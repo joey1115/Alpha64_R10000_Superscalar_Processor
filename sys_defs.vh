@@ -156,6 +156,7 @@ typedef struct packed {
   logic          cpuid;         // get CPUID inst?
   logic          illegal;       // is this instruction illegal?
   logic          valid;         // is inst a valid instruction to be counted for CPI calculations?
+  RS_ENTRY [NUM_RS-1:0] RS;
 } ID_EX_PACKET;
 
 `define ID_EX_PACKET_RESET '{ \
