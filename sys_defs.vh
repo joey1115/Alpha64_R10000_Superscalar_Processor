@@ -111,6 +111,63 @@ typedef enum logic [4:0] {
   ALU_CMPULE    = 5'h10
 } ALU_FUNC;
 
+typedef enum logic {
+  PR_NOT_READY = 1'b0;
+  PR_READY = 1'b1;
+} PR_STATUS;
+
+typedef union packed {
+	logic [31:0] inst;
+	struct packed {
+		logic [5:0] opcode;
+		logic [4:0] rega_idx;
+		logic [4:0] regb_idx;
+		logic [15:0] mem_disp;
+  } m; //memory with displacement inst
+	struct packed {
+		logic [5:0] opcode;
+		logic [4:0] rega_idx;
+		logic [4:0] regb_idx;
+		logic [15:0] func;
+  } m_func; //memory with function inst
+	struct packed {
+		logic [5:0] opcode;
+		logic [4:0] rega_idx;
+		logic [20:0] branch_disp;
+  } b; //Branch inst
+	struct packed {
+		logic [5:0] opcode;
+		logic [4:0] rega_idx;
+		logic [4:0] regb_idx;
+		logic [2:0] SBZ;
+    logic       IMM;
+    logic [6:0] func;
+    logic [4:0] regc_idx;
+  } op; //operate inst
+	struct packed {
+		logic [5:0] opcode;
+		logic [4:0] rega_idx;
+		logic [7:0] LIT;
+    logic       IMM;
+    logic [6:0] func;
+    logic [4:0] regc_idx;
+  } op_imm; //operate immediate inst
+`ifdef FLOATING_POINT_INST	
+  struct packed {
+    logic [5:0] opcode;
+    logic [4:0] rega_idx;
+    logic [4:0] regb_idx;
+    logic [10:0] func;
+    logic [4:0] regc_idx;
+	} opf;  //floating point inst
+`endif
+	struct packed {
+		logic [5:0] opcode;
+    logic [25:0] func;
+	} pal; //pal inst
+  
+} INST; //instruction typedef, this should cover all types of instructions
+
 //////////////////////////////////////////////
 //
 // IF Packets:
@@ -136,6 +193,16 @@ typedef struct packed {
 // Data that is exchanged from ID to EX stage
 //
 //////////////////////////////////////////////
+typedef struct packed {
+  FU            unit;
+  logic         busy;
+  logic [5:0]   inst;
+  logic [NUM_PR-1:0] T;
+  logic [NUM_PR-1:0] T1;
+  PR_STATUS          T1_status;              
+  logic [NUM_PR-1:0] T2;
+  PR_STATUS          T2_status;
+} RS_ENTRY;
 
 typedef struct packed {
   logic [63:0]   NPC;   // PC + 4
@@ -156,7 +223,7 @@ typedef struct packed {
   logic          cpuid;         // get CPUID inst?
   logic          illegal;       // is this instruction illegal?
   logic          valid;         // is inst a valid instruction to be counted for CPI calculations?
-  RS_ENTRY [NUM_RS-1:0] RS;
+  //RS_ENTRY [NUM_RS-1:0] RS;
 } ID_EX_PACKET;
 
 `define ID_EX_PACKET_RESET '{ \
