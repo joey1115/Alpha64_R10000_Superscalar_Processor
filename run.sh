@@ -105,11 +105,11 @@ do
 	fi
 done
 
-# if [[ -f ./result/program.out ]]
-# then
-# 	echo "Simulation errors in ./result/program.out"
-# 	exit 1
-# fi
+if [[ -f ./result/*.out ]]
+then
+	echo "Simulation errors in ./result/"
+	exit 1
+fi
 
 echo "Start comparing"
 for i in ./P3_example/*.pipeline.out
