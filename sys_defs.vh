@@ -113,6 +113,127 @@ typedef enum logic [4:0] {
 
 //////////////////////////////////////////////
 //
+// IF Packets:
+// Data that is exchanged between the IF and the ID stages  
+//
+//////////////////////////////////////////////
+
+typedef struct packed {
+  logic valid; // If low, the data in this struct is garbage
+  logic [31:0] inst;  // fetched instruction out
+  logic [63:0] NPC; // PC + 4 
+} IF_ID_PACKET;
+
+`define IF_ID_PACKET_RESET '{ \
+  `FALSE, \
+  `NOOP_INST, \
+  0 \
+}
+
+//////////////////////////////////////////////
+//
+// ID Packets:
+// Data that is exchanged from ID to EX stage
+//
+//////////////////////////////////////////////
+
+typedef struct packed {
+  logic [63:0]   NPC;   // PC + 4
+  logic [63:0]   rega_value;    // reg A value                                  
+  logic [63:0]   regb_value;    // reg B value                                  
+  ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
+  ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
+  logic [31:0]   inst;                 // instruction
+  logic [4:0]    dest_reg_idx;  // destination (writeback) register index      
+  ALU_FUNC       alu_func;      // ALU function select (ALU_xxx *)
+  logic          rd_mem;        // does inst read memory?
+  logic          wr_mem;        // does inst write memory?
+  logic          ldl_mem;       // load-lock inst?
+  logic          stc_mem;       // store-conditional inst?
+  logic          cond_branch;   // is inst a conditional branch?
+  logic          uncond_branch; // is inst an unconditional branch?
+  logic          halt;          // is this a halt?
+  logic          cpuid;         // get CPUID inst?
+  logic          illegal;       // is this instruction illegal?
+  logic          valid;         // is inst a valid instruction to be counted for CPI calculations?
+} ID_EX_PACKET;
+
+`define ID_EX_PACKET_RESET '{ \
+  {64{1'b0}}, \
+  {64{1'b0}}, \
+  {64{1'b0}}, \
+  ALU_OPA_IS_REGA, \
+  ALU_OPB_IS_REGB, \
+  `NOOP_INST, \
+  `ZERO_REG, \
+  ALU_ADDQ, \
+  1'b0, \
+  1'b0, \
+  1'b0, \
+  1'b0, \
+  1'b0, \
+  1'b0, \
+  1'b0, \
+  1'b0, \
+  1'b0, \
+  1'b0 \
+}
+
+typedef struct packed {
+  logic [63:0] inst;
+  logic [63:0] alu_result; // alu_result
+  logic [63:0] NPC; //pc + 4
+  logic             take_branch; // is this a taken branch?
+  //pass throughs from decode stage
+  logic [63:0] rega_value;
+  logic             rd_mem, wr_mem;
+  logic [4:0]       dest_reg_idx;
+  logic             halt, illegal, valid;
+} EX_MEM_PACKET;
+
+`define EX_MEM_PACKET_RESET '{ \
+  `NOOP_INST, \
+  0, \
+  0, \
+  0, \
+  0, \
+  0, \
+  0, \
+  `ZERO_REG, \
+  0, \
+  0, \
+  0 \
+}
+
+typedef struct packed {
+  logic [63:0] inst;
+  logic [63:0] NPC; //pc + 4
+  logic             halt, illegal, valid, stall;
+  logic             take_branch; // is this a taken branch?
+  logic [4:0]       dest_reg_idx;
+  logic [63:0]      result;
+} MEM_WB_PACKET;
+
+`define MEM_WB_PACKET_RESET '{ \
+  `NOOP_INST, \
+  0, \
+  0, \
+  0, \
+  0, \
+  0, \
+  0, \
+  `ZERO_REG, \
+  0 \
+}
+
+typedef struct packed {
+  logic [63:0] wr_data;
+  logic        wr_en;
+  logic [4:0]  wr_idx;
+} WB_REG_PACKET;
+
+//////////////////////////////////////////////
+//
 // Assorted things it is not wise to change
 //
 //////////////////////////////////////////////
