@@ -92,11 +92,14 @@ echo "Checking simulation error"
 for i in ./output/*.program.test.out
 do
 	filename=$(basename "$i")
+	filename="${filename%.test.out}"
 	echo "Checking $filename"
 	error=$(grep -e '@@@ System halted on memory error' -e '@@@ System halted on illegal instruction' -e '@@@ System halted on unknown error code' $i)
-	if [[ -n error ]]
+	if [[ -n "$error" ]]
 	then
-		cp -pf "$i" ./output/
+		echo "Error: Copying files"
+		cp -pf "$i" ./result/
+		cp -pf "./project4_provided/output/$filename.sol.out" ./result/
 	else
 		echo "No errors in $filename"
 	fi
@@ -118,7 +121,9 @@ do
 	then
 		if [[ $(diff $i ./output/$filename.test.out) ]]
 		then
+			echo "Error: Copying files"
 			cp -pf "./output/$filename.test.out" ./result/
+			cp -pf "$i" ./result/
 		else
 			echo "Passed $filename"
 		fi
@@ -134,7 +139,9 @@ do
 	then
 		if [[ $(diff $i ./output/$filename.test.out) ]]
 		then
+			echo "Error: Copying files"
 			cp -pf "./output/$filename.test.out" ./result/
+			cp -pf "$i" ./result/
 		else
 			echo "Passed $filename"
 		fi
@@ -150,7 +157,9 @@ do
 	then
 		if [[ $(diff <(grep 'CPI' $i) <(grep 'CPI' ./output/$filename.test.out)) || $(diff <(grep '@@@' $i) <(grep '@@@' ./output/$filename.test.out)) ]]
 		then
+			echo "Error: Copying files"
 			cp -pf "./output/$filename.test.out" ./result/
+			cp -pf "$i" ./result/
 		else
 			echo "Passed $filename"
 		fi
