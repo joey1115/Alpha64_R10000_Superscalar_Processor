@@ -67,11 +67,14 @@ make nuke &> /dev/null
 echo "Running make simv"
 make simv &> ./compiler.out
 
-# if [[ $(grep -e 'Error' -e 'Warning' $i) ]]
-# then
-# 	echo "Could not make due to errors in ./result/make.out"
-# 	exit 1
-# fi
+error=$(grep -e 'Error' -e 'Warning' "./compiler.out")
+if [[ -n "$error" ]]
+then
+	echo "Error: Copying files"
+	cp -pf ./compiler.out ./result/
+	echo "Could not make due to errors in ./result/"
+	exit 1
+fi
 
 echo "Running vs-asm and simv"
 for i in ./test_progs/*.s
