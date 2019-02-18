@@ -26,7 +26,8 @@
 
 
 `define NUM_MEM_TAGS           15
-
+`define NUM_PR                 64
+`define NUM_ALU                1
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
@@ -112,8 +113,8 @@ typedef enum logic [4:0] {
 } ALU_FUNC;
 
 typedef enum logic {
-  PR_NOT_READY = 1'b0;
-  PR_READY = 1'b1;
+  PR_NOT_READY = 1'b0,
+  PR_READY = 1'b1
 } PR_STATUS;
 
 typedef union packed {
@@ -168,6 +169,23 @@ typedef union packed {
   
 } INST; //instruction typedef, this should cover all types of instructions
 
+// typedef struct packed {
+//   logic [31:0] inst;  // fetched instruction out
+//   logic        valid; // PC + 4 
+// } DECODER_PACKET_IN;
+
+typedef struct packed {
+  ALU_OPA_SELECT opa_select;  // fetched instruction out
+  ALU_OPB_SELECT opb_select;
+  // DEST_REG_SEL   dest_reg; // mux selects
+  ALU_FUNC       alu_func;
+  logic          rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
+  logic          halt;      // non-zero on a halt
+  logic          cpuid;     // get CPUID instruction
+  logic          illegal;   // non-zero on an illegal instruction
+  logic          valid; // for counting valid instructions executed
+  logic [4:0]    dest_reg_idx;
+} DECODER_PACKET_OUT;
 //////////////////////////////////////////////
 //
 // IF Packets:
@@ -176,8 +194,8 @@ typedef union packed {
 //////////////////////////////////////////////
 
 typedef struct packed {
-  logic valid; // If low, the data in this struct is garbage
-  logic [31:0] inst;  // fetched instruction out
+  logic        valid; // If low, the data in this struct is garbage
+  INST         inst;  // fetched instruction out
   logic [63:0] NPC; // PC + 4 
 } IF_ID_PACKET;
 
@@ -193,16 +211,16 @@ typedef struct packed {
 // Data that is exchanged from ID to EX stage
 //
 //////////////////////////////////////////////
-typedef struct packed {
-  FU            unit;
-  logic         busy;
-  logic [5:0]   inst;
-  logic [NUM_PR-1:0] T;
-  logic [NUM_PR-1:0] T1;
-  PR_STATUS          T1_status;              
-  logic [NUM_PR-1:0] T2;
-  PR_STATUS          T2_status;
-} RS_ENTRY;
+// typedef struct packed {
+//   FU            unit;
+//   logic         busy;
+//   logic [5:0]   inst;
+//   logic [$clog2(NUM_PR)-1:0] T;
+//   logic [$clog2(NUM_PR)-1:0] T1;
+//   PR_STATUS          T1_status;
+//   logic [$clog2(NUM_PR)-1:0] T2;
+//   PR_STATUS          T2_status;
+// } RS_ENTRY;
 
 typedef struct packed {
   logic [63:0]   NPC;   // PC + 4
@@ -210,7 +228,7 @@ typedef struct packed {
   logic [63:0]   regb_value;    // reg B value                                  
   ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
   ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
-  logic [31:0]   inst;                 // instruction
+  INST           inst;                 // instruction
   logic [4:0]    dest_reg_idx;  // destination (writeback) register index      
   ALU_FUNC       alu_func;      // ALU function select (ALU_xxx *)
   logic          rd_mem;        // does inst read memory?
@@ -248,7 +266,7 @@ typedef struct packed {
 }
 
 typedef struct packed {
-  logic [63:0] inst;
+  INST         inst;
   logic [63:0] alu_result; // alu_result
   logic [63:0] NPC; //pc + 4
   logic             take_branch; // is this a taken branch?
@@ -274,7 +292,7 @@ typedef struct packed {
 }
 
 typedef struct packed {
-  logic [63:0] inst;
+  INST         inst;
   logic [63:0] NPC; //pc + 4
   logic             halt, illegal, valid, stall;
   logic             take_branch; // is this a taken branch?
@@ -358,9 +376,9 @@ typedef enum logic [1:0] {
 `define FLTV_GRP	6'h15	// unimplemented
 `define FLTI_GRP	6'h16	// unimplemented
 `define FLTL_GRP	6'h17	// unimplemented
-`define MISC_GRP	6'h18
+`define MISC_GRP	6'h18	// illegal
 `define JSR_GRP		6'h1a
-`define FTPI_GRP	6'h1c
+`define FTPI_GRP	6'h1c	// illegal
 `define LDF_INST	6'h20
 `define LDG_INST	6'h21
 `define LDS_INST	6'h22

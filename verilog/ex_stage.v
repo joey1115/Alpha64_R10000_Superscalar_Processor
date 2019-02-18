@@ -155,7 +155,7 @@ module ex_stage(
   //
   // instantiate the ALU
   //
-  alu alu_0 (// Inputs
+  alu alu_0 [`NUM_ALU-1:0] (// Inputs
     .opa(opa_mux_out),
     .opb(opb_mux_out),
     .func(id_ex_packet_in.alu_func),

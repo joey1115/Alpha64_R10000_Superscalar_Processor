@@ -38,13 +38,14 @@ ASSEMBLER = vs-asm
 
 # SIMULATION CONFIG
 
-HEADERS     = $(wildcard *.vh)
-TESTBENCH   = $(wildcard testbench/*.v)
-TESTBENCH  += $(wildcard testbench/*.c)
-PIPEFILES   = $(wildcard verilog/*.v)
-CACHEFILES  = $(wildcard verilog/cache/*.v)
+HEADERS      = $(wildcard *.vh)
+TESTBENCH    = $(wildcard testbench/*.v)
+TESTBENCH   += $(wildcard testbench/*.c)
+PIPEFILES    = $(wildcard verilog/*.v)
+CACHEFILES   = $(wildcard verilog/cache/*.v)
+DECODERFILES = $(wildcard verilog/decoder/*.v)
 
-SIMFILES    = $(PIPEFILES) $(CACHEFILES)
+SIMFILES    = $(PIPEFILES) $(CACHEFILES) $(DECODERFILES)
 
 # SYNTHESIS CONFIG
 
