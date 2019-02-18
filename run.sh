@@ -35,7 +35,7 @@ for i in ./../test_progs/*.s
 do
 	filename=$(basename "$i")
 	filename="${filename%.s}"
-	if [[ ! -f ./output/$i.writeback.sol.out ]]
+	if [[ ! -f ./output/$filename.writeback.sol.out ]]
 	then
 		echo "Start simulating $filename for provided code"
 		echo "Running vs-asm $filename for provided code"
@@ -48,13 +48,14 @@ do
 	fi
 done
 
-echo "Removing cache files for provided code"
 if [[ -f ./*.out ]]
 then
+	echo "Removing out files for provided code"
 	rm *.out
 fi
 if [[ -f ./*.mem ]]
 then
+	echo "Removing mem files for provided code"
 	rm *.mem
 fi
 
@@ -104,7 +105,7 @@ do
 		cp -pf "$i" ./result/
 		cp -pf "./project4_provided/output/$filename.sol.out" ./result/
 	else
-		echo "No errors in $filename"
+		echo "Passed $filename"
 	fi
 done
 
@@ -115,10 +116,64 @@ then
 fi
 
 echo "Start comparing"
-for i in ./P3_example/*.pipeline.out
+# for i in ./P4_example/*.pipeline.out
+# do
+# 	filename=$(basename $i)
+# 	filename="${filename%.out}"
+# 	echo "Comparing $filename"
+# 	if [[ -f ./output/$filename.test.out ]]
+# 	then
+# 		if [[ $(diff $i ./output/$filename.test.out) ]]
+# 		then
+# 			echo "Error: Copying files"
+# 			cp -pf "./output/$filename.test.out" ./result/
+# 			cp -pf "$i" ./result/
+# 		else
+# 			echo "Passed $filename"
+# 		fi
+# 	fi
+# done
+
+# for i in ./P4_example/*.writeback.out
+# do
+# 	filename=$(basename $i)
+# 	filename="${filename%.out}"
+# 	echo "Comparing $filename"
+# 	if [[ -f ./output/$filename.test.out ]]
+# 	then
+# 		if [[ $(diff $i ./output/$filename.test.out) ]]
+# 		then
+# 			echo "Error: Copying files"
+# 			cp -pf "./output/$filename.test.out" ./result/
+# 			cp -pf "$i" ./result/
+# 		else
+# 			echo "Passed $filename"
+# 		fi
+# 	fi
+# done
+
+# for i in ./P4_example/*.program.out
+# do
+# 	filename=$(basename $i)
+# 	filename="${filename%.out}"
+# 	echo "Comparing $filename"
+# 	if [[ -f ./output/$filename.test.out ]]
+# 	then
+# 		if [[ $(diff <(grep 'CPI' $i) <(grep 'CPI' ./output/$filename.test.out)) || $(diff <(grep '@@@' $i) <(grep '@@@' ./output/$filename.test.out)) ]]
+# 		then
+# 			echo "Error: Copying files"
+# 			cp -pf "./output/$filename.test.out" ./result/
+# 			cp -pf "$i" ./result/
+# 		else
+# 			echo "Passed $filename"
+# 		fi
+# 	fi
+# done
+
+for i in ./project4_provided/output/*.writeback.sol.out
 do
 	filename=$(basename $i)
-	filename="${filename%.out}"
+	filename="${filename%.sol.out}"
 	echo "Comparing $filename"
 	if [[ -f ./output/$filename.test.out ]]
 	then
@@ -133,41 +188,6 @@ do
 	fi
 done
 
-for i in ./P3_example/*.writeback.out
-do
-	filename=$(basename $i)
-	filename="${filename%.out}"
-	echo "Comparing $filename"
-	if [[ -f ./output/$filename.test.out ]]
-	then
-		if [[ $(diff $i ./output/$filename.test.out) ]]
-		then
-			echo "Error: Copying files"
-			cp -pf "./output/$filename.test.out" ./result/
-			cp -pf "$i" ./result/
-		else
-			echo "Passed $filename"
-		fi
-	fi
-done
-
-for i in ./P3_example/*.program.out
-do
-	filename=$(basename $i)
-	filename="${filename%.out}"
-	echo "Comparing $filename"
-	if [[ -f ./output/$filename.test.out ]]
-	then
-		if [[ $(diff <(grep 'CPI' $i) <(grep 'CPI' ./output/$filename.test.out)) || $(diff <(grep '@@@' $i) <(grep '@@@' ./output/$filename.test.out)) ]]
-		then
-			echo "Error: Copying files"
-			cp -pf "./output/$filename.test.out" ./result/
-			cp -pf "$i" ./result/
-		else
-			echo "Passed $filename"
-		fi
-	fi
-done
 echo "Finished comparing"
 
 if [[ -f ./result/*.out ]]
@@ -179,12 +199,12 @@ else
 fi
 
 echo "Removing cache files"
-if [[ -f ./*.out ]]
+for i in ./*.out
+do
+	rm "$i"
+done
+if [[ -f ./program.mem ]]
 then
-	rm *.out
-fi
-if [[ -f ./*.mem ]]
-then
-	rm *.mem
+	rm ./program.mem
 fi
 rm -rf ./output/

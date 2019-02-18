@@ -28,6 +28,7 @@
 `define NUM_MEM_TAGS           15
 `define NUM_PR                 64
 `define NUM_ALU                1
+`define NUM_ROB                1
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
@@ -112,11 +113,6 @@ typedef enum logic [4:0] {
   ALU_CMPULE    = 5'h10
 } ALU_FUNC;
 
-typedef enum logic {
-  PR_NOT_READY = 1'b0,
-  PR_READY = 1'b1
-} PR_STATUS;
-
 typedef union packed {
 	logic [31:0] inst;
 	struct packed {
@@ -177,7 +173,6 @@ typedef union packed {
 typedef struct packed {
   ALU_OPA_SELECT opa_select;  // fetched instruction out
   ALU_OPB_SELECT opb_select;
-  // DEST_REG_SEL   dest_reg; // mux selects
   ALU_FUNC       alu_func;
   logic          rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
   logic          halt;      // non-zero on a halt
@@ -186,6 +181,77 @@ typedef struct packed {
   logic          valid; // for counting valid instructions executed
   logic [4:0]    dest_reg_idx;
 } DECODER_PACKET_OUT;
+
+`define DECODER_PACKET_OUT_DEFAULT '{ \
+  ALU_OPA_IS_REGA, \
+  ALU_OPB_IS_REGB, \
+  ALU_ADDQ, \
+  `FALSE, \
+  `FALSE, \
+  `FALSE, \
+  `FALSE, \
+  `FALSE, \
+  `FALSE, \
+  `FALSE, \
+  `FALSE, \
+  `FALSE, \
+  `FALSE, \
+  `ZERO_REG \
+}
+
+typedef enum logic {
+  PR_NOT_FREE = 1'b0,
+  PR_FREE     = 1'b1
+} PR_FREE;
+
+typedef struct packed {
+  logic [63:0] data;
+  PR_FREE      free;
+} PR;
+
+typedef struct packed {
+  logic [4:0]                 reg_idx;
+  logic [$clog2(`NUM_PR)-1:0] PR_idx;
+} ARCH_MAP;
+
+typedef enum logic {
+  PR_NOT_READY = 1'b0,
+  PR_READY     = 1'b1
+} PR_STATUS;
+
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] PR_idx;
+  PR_STATUS                   T_PLUS_STATUS;
+} T_t;
+
+typedef struct packed {
+  logic [4:0] reg_idx;
+  T_t         T_plus;
+} MAP_TABLE;
+
+typedef struct packed {
+  // logic [$clog2(`NUM_ALU)-1:0] FU;
+  logic                       busy;
+  logic [5:0]                 op;
+  logic [$clog2(`NUM_PR)-1:0] T;
+  T_t                         T1;
+  T_t                         T2;
+} RS_ENTRY;
+
+typedef enum logic [1:0] {
+  HT_NONE = 2'b00,
+  HT_HEAD = 2'b01,
+  HT_TAIL = 2'b10,
+  HT_HT   = 2'b11,
+} HT;
+
+typedef struct packed {
+  HT                          ht;
+  // INST                        inst;
+  logic [$clog2(`NUM_PR)-1:0] T;
+  logic [$clog2(`NUM_PR)-1:0] T_old;
+} ROB_ENTRY;
+
 //////////////////////////////////////////////
 //
 // IF Packets:
@@ -211,16 +277,6 @@ typedef struct packed {
 // Data that is exchanged from ID to EX stage
 //
 //////////////////////////////////////////////
-// typedef struct packed {
-//   FU            unit;
-//   logic         busy;
-//   logic [5:0]   inst;
-//   logic [$clog2(NUM_PR)-1:0] T;
-//   logic [$clog2(NUM_PR)-1:0] T1;
-//   PR_STATUS          T1_status;
-//   logic [$clog2(NUM_PR)-1:0] T2;
-//   PR_STATUS          T2_status;
-// } RS_ENTRY;
 
 typedef struct packed {
   logic [63:0]   NPC;   // PC + 4

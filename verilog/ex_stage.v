@@ -41,8 +41,8 @@ module alu(
 
   always_comb begin
     case (func)
-      ALU_ADDQ:      result = opa + opb;
-      ALU_SUBQ:      result = opa - opb;
+      ALU_ADDQ:     result = opa + opb;
+      ALU_SUBQ:     result = opa - opb;
       ALU_AND:      result = opa & opb;
       ALU_BIC:      result = opa & ~opb;
       ALU_BIS:      result = opa | opb;
@@ -51,12 +51,11 @@ module alu(
       ALU_EQV:      result = opa ^ ~opb;
       ALU_SRL:      result = opa >> opb[5:0];
       ALU_SLL:      result = opa << opb[5:0];
-      ALU_SRA:      result = (opa >> opb[5:0]) | ({64{opa[63]}} << (64 -
-                              opb[5:0])); // arithmetic from logical shift
-      ALU_MULQ:      result = opa * opb;
-      ALU_CMPULT:    result = { 63'd0, (opa < opb) };
+      ALU_SRA:      result = (opa >> opb[5:0]) | ({64{opa[63]}} << (64 - opb[5:0])); // arithmetic from logical shift
+      ALU_MULQ:     result = opa * opb;
+      ALU_CMPULT:   result = { 63'd0, (opa < opb) };
       ALU_CMPEQ:    result = { 63'd0, (opa == opb) };
-      ALU_CMPULE:    result = { 63'd0, (opa <= opb) };
+      ALU_CMPULE:   result = { 63'd0, (opa <= opb) };
       ALU_CMPLT:    result = { 63'd0, signed_lt(opa, opb) };
       ALU_CMPLE:    result = { 63'd0, (signed_lt(opa, opb) || (opa == opb)) };
       default:      result = 64'hdeadbeefbaadbeef;  // here only to force
@@ -83,36 +82,36 @@ module brcond(// Inputs
   );
 
   always_comb begin
-  case (func[1:0])                              // 'full-case'  All cases covered, no need for a default
-    2'b00: cond = (opa[0] == 0);                // LBC: (lsb(opa) == 0) ?
-    2'b01: cond = (opa == 0);                    // EQ: (opa == 0) ?
-    2'b10: cond = (opa[63] == 1);                // LT: (signed(opa) < 0) : check sign bit
-    2'b11: cond = (opa[63] == 1) || (opa == 0);  // LE: (signed(opa) <= 0)
-  endcase
-  
-     // negate cond if func[2] is set
-    if (func[2])
-      cond = ~cond;
+    case (func[1:0])                              // 'full-case'  All cases covered, no need for a default
+      2'b00: cond = (opa[0] == 0);                // LBC: (lsb(opa) == 0) ?
+      2'b01: cond = (opa == 0);                    // EQ: (opa == 0) ?
+      2'b10: cond = (opa[63] == 1);                // LT: (signed(opa) < 0) : check sign bit
+      2'b11: cond = (opa[63] == 1) || (opa == 0);  // LE: (signed(opa) <= 0)
+    endcase
+    
+      // negate cond if func[2] is set
+      if (func[2])
+        cond = ~cond;
   end
 endmodule // brcond
 
 
 module ex_stage(
-  input          clock,               // system clock
-  input          reset,               // system reset
-  input ID_EX_PACKET id_ex_packet_in,
+  input                clock,               // system clock
+  input                reset,               // system reset
+  input ID_EX_PACKET   id_ex_packet_in,
   output EX_MEM_PACKET ex_packet_out
 );
   
   assign ex_packet_out.NPC          = id_ex_packet_in.NPC;
-  assign ex_packet_out.inst           = id_ex_packet_in.inst;
+  assign ex_packet_out.inst         = id_ex_packet_in.inst;
   assign ex_packet_out.dest_reg_idx = id_ex_packet_in.dest_reg_idx;
   assign ex_packet_out.rd_mem       = id_ex_packet_in.rd_mem;
   assign ex_packet_out.wr_mem       = id_ex_packet_in.wr_mem;
   assign ex_packet_out.halt         = id_ex_packet_in.halt;
   assign ex_packet_out.illegal      = id_ex_packet_in.illegal;
-  assign ex_packet_out.valid   = id_ex_packet_in.valid;
-  assign ex_packet_out.rega_value         = id_ex_packet_in.rega_value;
+  assign ex_packet_out.valid        = id_ex_packet_in.valid;
+  assign ex_packet_out.rega_value   = id_ex_packet_in.rega_value;
 
 
   logic  [63:0] opa_mux_out, opb_mux_out;
@@ -122,9 +121,9 @@ module ex_stage(
   //   mem_disp: sign-extended 16-bit immediate for memory format
   //   br_disp: sign-extended 21-bit immediate * 4 for branch displacement
   //   alu_imm: zero-extended 8-bit immediate for ALU ops
-  wire [63:0] mem_disp = { {48{id_ex_packet_in.inst[15]}}, id_ex_packet_in.inst[15:0] };
-  wire [63:0] br_disp  = { {41{id_ex_packet_in.inst[20]}}, id_ex_packet_in.inst[20:0], 2'b00 };
-  wire [63:0] alu_imm  = { 56'b0, id_ex_packet_in.inst[20:13] };
+  wire [63:0] mem_disp = { {48{id_ex_packet_in.inst[15]}}, id_ex_packet_in.inst.m.mem_disp };
+  wire [63:0] br_disp  = { {41{id_ex_packet_in.inst[20]}}, id_ex_packet_in.instb.branch_disp, 2'b00 };
+  wire [63:0] alu_imm  = { 56'b0, id_ex_packet_in.inst.op_imm.LIT };
    
   //
   // ALU opA mux

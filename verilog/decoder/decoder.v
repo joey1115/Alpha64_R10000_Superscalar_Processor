@@ -34,8 +34,6 @@ module decoder(
   output DECODER_PACKET_OUT decoder_packet_out
 );
 
-  assign decoder_packet_out.valid = decoder_packet_in.valid && !decoder_packet_out.illegal;
-
   always_comb begin
     // default control values:
     // - valid instructions must override these defaults as necessary.
@@ -43,46 +41,36 @@ module decoder(
     // - invalid instructions should clear decoder_packet_out.valid_inst.
     // - These defaults are equivalent to a noop
     // * see sys_defs.vh for the constants used here
-    decoder_packet_out.opa_select    = ALU_OPA_IS_REGA;
-    decoder_packet_out.opb_select    = ALU_OPB_IS_REGB;
-    decoder_packet_out.alu_func      = ALU_ADDQ;
-    decoder_packet_out.dest_reg_idx  = `ZERO_REG;
-    decoder_packet_out.rd_mem        = `FALSE;
-    decoder_packet_out.wr_mem        = `FALSE;
-    decoder_packet_out.ldl_mem       = `FALSE;
-    decoder_packet_out.stc_mem       = `FALSE;
-    decoder_packet_out.cond_branch   = `FALSE;
-    decoder_packet_out.uncond_branch = `FALSE;
-    decoder_packet_out.halt          = `FALSE;
-    decoder_packet_out.cpuid         = `FALSE;
-    decoder_packet_out.illegal       = `FALSE;
+    decoder_packet_out       = `DECODER_PACKET_OUT_DEFAULT;
+    decoder_packet_out.valid = decoder_packet_in.valid && !decoder_packet_out.illegal;
     if(decoder_packet_in.valid) begin
       case(decoder_packet_in.inst.m.opcode)
         `PAL_INST: begin
-          if (decoder_packet_in.inst.pal.func == `PAL_HALT)
-            decoder_packet_out.halt = `TRUE;
-          else if (decoder_packet_in.inst.pal.func == `PAL_WHAMI) begin
-            decoder_packet_out.cpuid = `TRUE;
-            decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.m.rega_idx;
-          end else
-            decoder_packet_out.illegal = `TRUE;
-          end
+          case (decoder_packet_in.inst.pal.func)
+            `PAL_HALT: begin
+              decoder_packet_out.halt = `TRUE;
+            end
+            `PAL_WHAMI: begin
+              decoder_packet_out.cpuid        = `TRUE;
+              decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.m.rega_idx;
+            end
+            default: begin
+              decoder_packet_out.illegal = `TRUE;
+            end
+          endcase
+        end
         `LDA_INST: begin
-          decoder_packet_out.opa_select = ALU_OPA_IS_MEM_DISP;
-          decoder_packet_out.opb_select = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func = ALU_ADDQ;
+          decoder_packet_out.opa_select   = ALU_OPA_IS_MEM_DISP;
+          decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
+          decoder_packet_out.alu_func     = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.m.rega_idx;
         end
         `LDAH_INST, `LDBU_INST, `LDQ_U_INST, `LDWU_INST, `STW_INST, `STB_INST, `STQ_U_INST, `LDF_INST, `LDG_INST, `LDS_INST, `LDT_INST, `STF_INST, `STG_INST, `STS_INST, `STT_INST, `LDL_INST: begin
-          // decoder_packet_out.opa_select = ALU_OPA_IS_MEM_DISP;
-          // decoder_packet_out.opb_select = ALU_OPB_IS_REGB;
-          // decoder_packet_out.alu_func = ALU_ADDQ;
-          // decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.m.rega_idx;
           decoder_packet_out.illegal = `TRUE;
         end
         `INTA_GRP: begin
-          decoder_packet_out.opa_select = ALU_OPA_IS_REGA;
-          decoder_packet_out.opb_select = decoder_packet_in.inst.op.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          decoder_packet_out.opa_select   = ALU_OPA_IS_REGA;
+          decoder_packet_out.opb_select   = decoder_packet_in.inst.op.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.op.regc_idx;
           case (decoder_packet_in.inst.op.func)
             `CMPULT_INST:  decoder_packet_out.alu_func = ALU_CMPULT;
@@ -92,12 +80,12 @@ module decoder(
             `CMPULE_INST:  decoder_packet_out.alu_func = ALU_CMPULE;
             `CMPLT_INST:   decoder_packet_out.alu_func = ALU_CMPLT;
             `CMPLE_INST:   decoder_packet_out.alu_func = ALU_CMPLE;
-            default:       decoder_packet_out.illegal = `TRUE;
+            default:       decoder_packet_out.illegal  = `TRUE;
           endcase // case(decoder_packet_in.inst[11:5])
         end
         `INTL_GRP: begin
-          decoder_packet_out.opa_select = ALU_OPA_IS_REGA;
-          decoder_packet_out.opb_select = decoder_packet_in.inst.op.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          decoder_packet_out.opa_select   = ALU_OPA_IS_REGA;
+          decoder_packet_out.opb_select   = decoder_packet_in.inst.op.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.op.regc_idx;
           case (decoder_packet_in.inst.op.func)
             `AND_INST:    decoder_packet_out.alu_func = ALU_AND;
@@ -106,12 +94,12 @@ module decoder(
             `ORNOT_INST:  decoder_packet_out.alu_func = ALU_ORNOT;
             `XOR_INST:    decoder_packet_out.alu_func = ALU_XOR;
             `EQV_INST:    decoder_packet_out.alu_func = ALU_EQV;
-            default:      decoder_packet_out.illegal = `TRUE;
+            default:      decoder_packet_out.illegal  = `TRUE;
           endcase // case(decoder_packet_in.inst[11:5])
         end
         `INTS_GRP: begin
-          decoder_packet_out.opa_select = ALU_OPA_IS_REGA;
-          decoder_packet_out.opb_select = decoder_packet_in.inst.op.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          decoder_packet_out.opa_select   = ALU_OPA_IS_REGA;
+          decoder_packet_out.opb_select   = decoder_packet_in.inst.op.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.op.regc_idx;
           case (decoder_packet_in.inst.op.func)
             `SRL_INST:  decoder_packet_out.alu_func = ALU_SRL;
@@ -134,67 +122,60 @@ module decoder(
         end
         `JSR_GRP: begin
           // JMP, JSR, RET, and JSR_CO have identical semantics
-          decoder_packet_out.opa_select = ALU_OPA_IS_NOT3;
-          decoder_packet_out.opb_select = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func = ALU_AND; // clear low 2 bits (word-align)
-          decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.m.rega_idx;
+          decoder_packet_out.opa_select    = ALU_OPA_IS_NOT3;
+          decoder_packet_out.opb_select    = ALU_OPB_IS_REGB;
+          decoder_packet_out.alu_func      = ALU_AND; // clear low 2 bits (word-align)
+          decoder_packet_out.dest_reg_idx  = decoder_packet_in.inst.m.rega_idx;
           decoder_packet_out.uncond_branch = `TRUE;
         end
         `LDQ_INST: begin
-          decoder_packet_out.opa_select = ALU_OPA_IS_MEM_DISP;
-          decoder_packet_out.opb_select = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func = ALU_ADDQ;
+          decoder_packet_out.opa_select   = ALU_OPA_IS_MEM_DISP;
+          decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
+          decoder_packet_out.alu_func     = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.m.rega_idx;
-          decoder_packet_out.rd_mem = `TRUE;
+          decoder_packet_out.rd_mem       = `TRUE;
         end // case: `LDQ_INST
         `LDL_L_INST, `STL_INST, `STL_C_INST: begin
-          // decoder_packet_out.opa_select = ALU_OPA_IS_MEM_DISP;
-          // decoder_packet_out.opb_select = ALU_OPB_IS_REGB;
-          // decoder_packet_out.alu_func = ALU_ADDQ;
-          // decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.m.rega_idx;
           decoder_packet_out.illegal = `TRUE;
         end
         `LDQ_L_INST: begin
-          decoder_packet_out.opa_select = ALU_OPA_IS_MEM_DISP;
-          decoder_packet_out.opb_select = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func = ALU_ADDQ;
+          decoder_packet_out.opa_select   = ALU_OPA_IS_MEM_DISP;
+          decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
+          decoder_packet_out.alu_func     = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.m.rega_idx;
-          decoder_packet_out.rd_mem = `TRUE;
-          decoder_packet_out.ldl_mem = `TRUE;
+          decoder_packet_out.rd_mem       = `TRUE;
+          decoder_packet_out.ldl_mem      = `TRUE;
         end
         `STQ_INST:
         begin
-          decoder_packet_out.opa_select = ALU_OPA_IS_MEM_DISP;
-          decoder_packet_out.opb_select = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func = ALU_ADDQ;
-          decoder_packet_out.wr_mem = `TRUE;
+          decoder_packet_out.opa_select   = ALU_OPA_IS_MEM_DISP;
+          decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
+          decoder_packet_out.alu_func     = ALU_ADDQ;
+          decoder_packet_out.wr_mem       = `TRUE;
           decoder_packet_out.dest_reg_idx = `ZERO_REG;
         end
         `STQ_C_INST: begin
-          decoder_packet_out.opa_select = ALU_OPA_IS_MEM_DISP;
-          decoder_packet_out.opb_select = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func = ALU_ADDQ;
+          decoder_packet_out.opa_select   = ALU_OPA_IS_MEM_DISP;
+          decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
+          decoder_packet_out.alu_func     = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.m.rega_idx;
-          decoder_packet_out.wr_mem = `TRUE;
-          decoder_packet_out.stc_mem = `TRUE;
+          decoder_packet_out.wr_mem       = `TRUE;
+          decoder_packet_out.stc_mem      = `TRUE;
         end
         `BR_INST, `BSR_INST: begin
-          decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.m.rega_idx;
+          decoder_packet_out.dest_reg_idx  = decoder_packet_in.inst.m.rega_idx;
           decoder_packet_out.uncond_branch = `TRUE;
-          decoder_packet_out.opa_select = ALU_OPA_IS_NPC;
-          decoder_packet_out.opb_select = ALU_OPB_IS_BR_DISP;
-          decoder_packet_out.alu_func = ALU_ADDQ;
+          decoder_packet_out.opa_select    = ALU_OPA_IS_NPC;
+          decoder_packet_out.opb_select    = ALU_OPB_IS_BR_DISP;
+          decoder_packet_out.alu_func      = ALU_ADDQ;
         end
         `FBEQ_INST, `FBLT_INST, `FBLE_INST, `FBNE_INST, `FBGE_INST, `FBGT_INST: begin
-          // decoder_packet_out.opa_select = ALU_OPA_IS_NPC;
-          // decoder_packet_out.opb_select = ALU_OPB_IS_BR_DISP;
-          // decoder_packet_out.alu_func = ALU_ADDQ;
           decoder_packet_out.illegal = `TRUE;
         end
         `BLBC_INST, `BEQ_INST, `BLT_INST, `BLE_INST, `BLBS_INST, `BNE_INST, `BGE_INST, `BGT_INST: begin
-          decoder_packet_out.opa_select = ALU_OPA_IS_NPC;
-          decoder_packet_out.opb_select = ALU_OPB_IS_BR_DISP;
-          decoder_packet_out.alu_func = ALU_ADDQ;
+          decoder_packet_out.opa_select  = ALU_OPA_IS_NPC;
+          decoder_packet_out.opb_select  = ALU_OPB_IS_BR_DISP;
+          decoder_packet_out.alu_func    = ALU_ADDQ;
           decoder_packet_out.cond_branch = `TRUE; // all others are conditional
         end
         default: begin
