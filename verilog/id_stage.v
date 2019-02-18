@@ -37,9 +37,9 @@ module id_stage(
   assign id_packet_out.dest_reg_idx = decoder_packet_out.dest_reg_idx;
 
   // instruction fields read from IF/ID pipeline register
-  wire    [4:0] ra_idx = decoder_packet_in.inst.op.rega_idx;   // inst operand A register index
-  wire    [4:0] rb_idx = decoder_packet_in.inst.op.regb_idx;   // inst operand B register index
-  wire    [4:0] rc_idx = decoder_packet_in.inst.op.regc_idx;     // inst operand C register index
+  wire    [4:0] ra_idx = if_id_packet_in.inst.op.rega_idx;   // inst operand A register index
+  wire    [4:0] rb_idx = if_id_packet_in.inst.op.regb_idx;   // inst operand B register index
+  wire    [4:0] rc_idx = if_id_packet_in.inst.op.regc_idx;     // inst operand C register index
 
   // Instantiate the register file used by this pipeline
   regfile regf_0 (
