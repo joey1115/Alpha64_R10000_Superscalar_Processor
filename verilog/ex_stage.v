@@ -122,8 +122,8 @@ module ex_stage(
   //   br_disp: sign-extended 21-bit immediate * 4 for branch displacement
   //   alu_imm: zero-extended 8-bit immediate for ALU ops
   wire [63:0] mem_disp = { {48{id_ex_packet_in.inst[15]}}, id_ex_packet_in.inst.m.mem_disp };
-  wire [63:0] br_disp  = { {41{id_ex_packet_in.inst[20]}}, id_ex_packet_in.instb.branch_disp, 2'b00 };
-  wire [63:0] alu_imm  = { 56'b0, id_ex_packet_in.inst.op_imm.LIT };
+  wire [63:0] br_disp  = { {41{id_ex_packet_in.inst[20]}}, id_ex_packet_in.inst.b.branch_disp, 2'b00 };
+  wire [63:0] alu_imm  = { 56'b0, id_ex_packet_in.inst.i.LIT };
    
   //
   // ALU opA mux

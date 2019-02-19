@@ -27,7 +27,7 @@
 
 `define NUM_MEM_TAGS           15
 `define NUM_PR                 64
-`define NUM_ALU                1
+
 `define NUM_ROB                1
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
@@ -114,54 +114,70 @@ typedef enum logic [4:0] {
 } ALU_FUNC;
 
 typedef union packed {
-	logic [31:0] inst;
-	struct packed {
-		logic [5:0] opcode;
-		logic [4:0] rega_idx;
-		logic [4:0] regb_idx;
-		logic [15:0] mem_disp;
-  } m; //memory with displacement inst
-	struct packed {
-		logic [5:0] opcode;
-		logic [4:0] rega_idx;
-		logic [4:0] regb_idx;
-		logic [15:0] func;
-  } m_func; //memory with function inst
-	struct packed {
-		logic [5:0] opcode;
-		logic [4:0] rega_idx;
-		logic [20:0] branch_disp;
-  } b; //Branch inst
-	struct packed {
-		logic [5:0] opcode;
-		logic [4:0] rega_idx;
-		logic [4:0] regb_idx;
-		logic [2:0] SBZ;
-    logic       IMM;
-    logic [6:0] func;
-    logic [4:0] regc_idx;
-  } op; //operate inst
-	struct packed {
-		logic [5:0] opcode;
-		logic [4:0] rega_idx;
-		logic [7:0] LIT;
-    logic       IMM;
-    logic [6:0] func;
-    logic [4:0] regc_idx;
-  } op_imm; //operate immediate inst
-`ifdef FLOATING_POINT_INST	
+  logic [31:0] inst;
   struct packed {
     logic [5:0] opcode;
     logic [4:0] rega_idx;
     logic [4:0] regb_idx;
-    logic [10:0] func;
+    logic [3:0] m;
+    logic [6:0] func;
     logic [4:0] regc_idx;
-	} opf;  //floating point inst
-`endif
-	struct packed {
-		logic [5:0] opcode;
+  } r; //reg
+  struct packed {
+    logic [5:0] opcode;
+    logic [4:0] rega_idx;
+    logic [7:0] LIT;
+    logic       IMM;
+    logic [6:0] func;
+    logic [4:0] regc_idx;
+  } i; //IMM
+  struct packed {
+    logic [5:0] opcode;
+    logic [4:0] rega_idx;
+    logic [4:0] regb_idx;
+    logic [15:0] mem_disp;
+  } m; //memory with displacement inst
+  // struct packed {
+  //   logic [5:0] opcode;
+  //   logic [4:0] rega_idx;
+  //   logic [4:0] regb_idx;
+  //   logic [15:0] func;
+  // } m_func; //memory with function inst
+  struct packed {
+    logic [5:0] opcode;
+    logic [4:0] rega_idx;
+    logic [20:0] branch_disp;
+  } b; //Branch inst
+  // struct packed {
+  //   logic [5:0] opcode;
+  //   logic [4:0] rega_idx;
+  //   logic [4:0] regb_idx;
+  //   logic [2:0] SBZ;
+  //   logic       IMM;
+  //   logic [6:0] func;
+  //   logic [4:0] regc_idx;
+  // } op; //operate inst
+  // struct packed {
+  //   logic [5:0] opcode;
+  //   logic [4:0] rega_idx;
+  //   logic [7:0] LIT;
+  //   logic       IMM;
+  //   logic [6:0] func;
+  //   logic [4:0] regc_idx;
+  // } op_imm; //operate immediate inst
+// `ifdef FLOATING_POINT_INST	
+//   struct packed {
+//     logic [5:0] opcode;
+//     logic [4:0] rega_idx;
+//     logic [4:0] regb_idx;
+//     logic [10:0] func;
+//     logic [4:0] regc_idx;
+//   } opf;  //floating point inst
+// `endif
+  struct packed {
+    logic [5:0] opcode;
     logic [25:0] func;
-	} pal; //pal inst
+  } p; //pal inst
   
 } INST; //instruction typedef, this should cover all types of instructions
 
@@ -210,7 +226,12 @@ typedef struct packed {
 } PR;
 
 typedef struct packed {
-  logic [4:0]                 reg_idx;
+  logic [$clog2(`NUM_PR)-1:0] PR_idx;
+  PR_STATUS                   T_PLUS_STATUS;
+} T_t;
+
+typedef struct packed {
+  T_t                         T_PLUS;
   logic [$clog2(`NUM_PR)-1:0] PR_idx;
 } ARCH_MAP;
 
@@ -220,17 +241,23 @@ typedef enum logic {
 } PR_STATUS;
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] PR_idx;
-  PR_STATUS                   T_PLUS_STATUS;
-} T_t;
-
-typedef struct packed {
   logic [4:0] reg_idx;
   T_t         T_plus;
 } MAP_TABLE;
 
+typedef enum logic [3:0] {
+  FU_ALU = 3'b000,
+  FU_ST  = 3'b001,
+  FU_LD  = 3'b010,
+  FU_FP1 = 3'b011,
+  FU_FP2 = 3'b100
+} FU_t;
+
+`define NUM_ALU 1
+`define FU_list { FU_ALU, FU_ST, FU_LD, FU_FP1, FU_FP2 }
+
 typedef struct packed {
-  // logic [$clog2(`NUM_ALU)-1:0] FU;
+  FU_t                        FU;
   logic                       busy;
   logic [5:0]                 op;
   logic [$clog2(`NUM_PR)-1:0] T;

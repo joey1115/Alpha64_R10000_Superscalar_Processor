@@ -50,8 +50,8 @@ module id_stage(
 
   // Instantiate the register file used by this pipeline
   regfile regf_0 (
-    .rda_idx(if_id_packet_in.inst.op.rega_idx),
-    .rdb_idx(if_id_packet_in.inst.op.regb_idx),
+    .rda_idx(if_id_packet_in.inst.r.rega_idx),
+    .rdb_idx(if_id_packet_in.inst.r.regb_idx),
     .wr_idx(wb_reg_packet_in.wr_idx),
     .wr_data(wb_reg_packet_in.wr_data),
     .wr_en(wb_reg_packet_in.wr_en),
