@@ -93,7 +93,7 @@ module decoder(
             `CMPLT_INST:  decoder_packet_out.alu_func = ALU_CMPLT;
             `CMPLE_INST:  decoder_packet_out.alu_func = ALU_CMPLE;
             default: begin
-              decoder_packet_out.illegal  = `TRUE;
+              decoder_packet_out.illegal = `TRUE;
               decoder_packet_out.valid   = `FALSE;
             end
           endcase // case(decoder_packet_in.inst[11:5])
