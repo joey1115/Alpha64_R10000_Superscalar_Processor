@@ -180,10 +180,10 @@ typedef union packed {
   } p; //pal inst
 } INST_t; //instruction typedef, this should cover all types of instructions
 
-// typedef struct packed {
-//   logic [31:0] inst;  // fetched instruction out
-//   logic        valid; // PC + 4 
-// } DECODER_PACKET_IN;
+typedef struct packed {
+  INST_t inst;  // fetched instruction out
+  logic  valid; // PC + 4 
+} DECODER_PACKET_IN;
 
 typedef struct packed {
   ALU_OPA_SELECT opa_select;  // fetched instruction out
@@ -354,9 +354,9 @@ typedef struct packed {
   logic             take_branch; // is this a taken branch?
   //pass throughs from decode stage
   logic [63:0] rega_value;
-  logic             rd_mem, wr_mem;
-  logic [4:0]       dest_reg_idx;
-  logic             halt, illegal, valid;
+  logic        rd_mem, wr_mem;
+  logic [4:0]  dest_reg_idx;
+  logic        halt, illegal, valid;
 } EX_MEM_PACKET;
 
 `define EX_MEM_PACKET_RESET '{ \
