@@ -20,7 +20,6 @@ module id_stage(
 );
   DECODER_PACKET_OUT decoder_packet_out;
   DECODER_PACKET_IN  decoder_packet_in;
-  logic [63:0] rda_out, rdb_out;
 
   PR_t        [$clog2(`NUM_PR)-1:0]  PR;
   MAP_TABLE_t [31:0]                 map_table;
@@ -28,31 +27,25 @@ module id_stage(
   RS_ENTRY_t  [$clog2(`NUM_ALU)-1:0] RS;
   ROB_ENTRY_t [$clog2(`NUM_ROB)-1:0] ROB;
 
-  assign decoder_packet_in = '{
-    if_id_packet_in.inst,
-    if_id_packet_in.valid
-  };
+  assign decoder_packet_in.inst  = if_id_packet_in.inst;
+  assign decoder_packet_in.valid = if_id_packet_in.valid;
 
-  assign id_packet_out = '{
-    if_id_packet_in.NPC,
-    rda_out,
-    rdb_out,
-    decoder_packet_out.opa_select,
-    decoder_packet_out.opb_select,
-    if_id_packet_in.inst,
-    decoder_packet_out.dest_reg_idx,
-    decoder_packet_out.alu_func,
-    decoder_packet_out.rd_mem,
-    decoder_packet_out.wr_mem,
-    decoder_packet_out.ldl_mem,
-    decoder_packet_out.stc_mem,
-    decoder_packet_out.cond_branch,
-    decoder_packet_out.uncond_branch,
-    decoder_packet_out.halt,
-    decoder_packet_out.cpuid,
-    decoder_packet_out.illegal,
-    decoder_packet_out.valid
-  };
+  assign id_packet_out.NPC           = if_id_packet_in.NPC;
+  assign id_packet_out.inst          = if_id_packet_in.inst;
+  assign id_packet_out.opa_select    = decoder_packet_out.opa_select;
+  assign id_packet_out.opb_select    = decoder_packet_out.opb_select;
+  assign id_packet_out.alu_func      = decoder_packet_out.alu_func;
+  assign id_packet_out.rd_mem        = decoder_packet_out.rd_mem;
+  assign id_packet_out.wr_mem        = decoder_packet_out.wr_mem;
+  assign id_packet_out.ldl_mem       = decoder_packet_out.ldl_mem;
+  assign id_packet_out.stc_mem       = decoder_packet_out.stc_mem;
+  assign id_packet_out.cond_branch   = decoder_packet_out.cond_branch;
+  assign id_packet_out.uncond_branch = decoder_packet_out.uncond_branch;
+  assign id_packet_out.halt          = decoder_packet_out.halt;
+  assign id_packet_out.cpuid         = decoder_packet_out.cpuid;
+  assign id_packet_out.illegal       = decoder_packet_out.illegal;
+  assign id_packet_out.valid         = decoder_packet_out.valid;
+  assign id_packet_out.dest_reg_idx  = decoder_packet_out.dest_reg_idx;
 
   // Instantiate the register file used by this pipeline
   regfile regf_0 (
@@ -62,8 +55,8 @@ module id_stage(
     .wr_data(wb_reg_packet_in.wr_data),
     .wr_en(wb_reg_packet_in.wr_en),
     .wr_clk(clock),
-    .rda_out(rda_out), 
-    .rdb_out(rdb_out)
+    .rda_out(id_packet_out.rega_value), 
+    .rdb_out(id_packet_out.regb_value)
   );
 
   // instantiate the instruction decoder
