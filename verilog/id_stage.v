@@ -21,11 +21,11 @@ module id_stage(
   DECODER_PACKET_OUT decoder_packet_out;
   logic [63:0] rda_out, rdb_out;
 
-  PR [$clog2(`NUM_PR)-1:0]         PR_table;
-  MAP_TABLE [31:0]                 map_table;
-  ARCH_MAP  [31:0]                 arch_map;
-  RS_ENTRY [$clog2(`NUM_ALU)-1:0]  RS_table;
-  ROB_ENTRY [$clog2(`NUM_ROB)-1:0] ROB_table;
+  PR_t [$clog2(`NUM_PR)-1:0]         PR;
+  MAP_TABLE_t [31:0]                 map_table;
+  ARCH_MAP_t [31:0]                  arch_map;
+  RS_ENTRY_t [$clog2(`NUM_ALU)-1:0]  RS;
+  ROB_ENTRY_t [$clog2(`NUM_ROB)-1:0] ROB;
 
   assign id_packet_out = '{
     if_id_packet_in.NPC,

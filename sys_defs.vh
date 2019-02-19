@@ -218,32 +218,32 @@ typedef struct packed {
 typedef enum logic {
   PR_NOT_FREE = 1'b0,
   PR_FREE     = 1'b1
-} PR_FREE;
+} PR_FREE_t;
 
 typedef struct packed {
   logic [63:0] data;
-  PR_FREE      free;
-} PR;
+  PR_FREE_t    free;
+} PR_t;
 
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] PR_idx;
-  PR_STATUS                   T_PLUS_STATUS;
+  PR_STATUS_t                 T_PLUS_STATUS;
 } T_t;
 
 typedef struct packed {
   T_t                         T_PLUS;
   logic [$clog2(`NUM_PR)-1:0] PR_idx;
-} ARCH_MAP;
+} ARCH_MAP_t;
 
 typedef enum logic {
   PR_NOT_READY = 1'b0,
   PR_READY     = 1'b1
-} PR_STATUS;
+} PR_STATUS_t;
 
 typedef struct packed {
   logic [4:0] reg_idx;
   T_t         T_plus;
-} MAP_TABLE;
+} MAP_TABLE_t;
 
 typedef enum logic [3:0] {
   FU_ALU = 3'b000,
@@ -263,7 +263,7 @@ typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] T;
   T_t                         T1;
   T_t                         T2;
-} RS_ENTRY;
+} RS_ENTRY_t;
 
 typedef enum logic [1:0] {
   HT_NONE = 2'b00,
@@ -277,7 +277,7 @@ typedef struct packed {
   // INST                        inst;
   logic [$clog2(`NUM_PR)-1:0] T;
   logic [$clog2(`NUM_PR)-1:0] T_old;
-} ROB_ENTRY;
+} ROB_ENTRY_t;
 
 //////////////////////////////////////////////
 //
