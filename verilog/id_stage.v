@@ -22,10 +22,10 @@ module id_stage(
   DECODER_PACKET_IN  decoder_packet_in;
   logic [63:0] rda_out, rdb_out;
 
-  PR_t [$clog2(`NUM_PR)-1:0]         PR;
+  PR_t        [$clog2(`NUM_PR)-1:0]  PR;
   MAP_TABLE_t [31:0]                 map_table;
-  ARCH_MAP_t [31:0]                  arch_map;
-  RS_ENTRY_t [$clog2(`NUM_ALU)-1:0]  RS;
+  ARCH_MAP_t  [31:0]                 arch_map;
+  RS_ENTRY_t  [$clog2(`NUM_ALU)-1:0] RS;
   ROB_ENTRY_t [$clog2(`NUM_ROB)-1:0] ROB;
 
   assign decoder_packet_in = '{
