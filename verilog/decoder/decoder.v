@@ -52,17 +52,21 @@ module decoder(
 
         `PAL_INST: begin
           case (decoder_packet_in.inst.p.func)
+
             `PAL_HALT: begin
               decoder_packet_out.halt = `TRUE;
             end
+
             `PAL_WHAMI: begin
               decoder_packet_out.cpuid        = `TRUE;
               decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
             end
+
             default: begin
               decoder_packet_out.illegal = `TRUE;
               decoder_packet_out.valid   = `FALSE;
             end
+
           endcase
         end
 

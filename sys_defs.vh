@@ -132,9 +132,9 @@ typedef union packed {
     logic [4:0] regc_idx;
   } i; //IMM
   struct packed {
-    logic [5:0] opcode;
-    logic [4:0] rega_idx;
-    logic [4:0] regb_idx;
+    logic [5:0]  opcode;
+    logic [4:0]  rega_idx;
+    logic [4:0]  regb_idx;
     logic [15:0] mem_disp;
   } m; //memory with displacement inst
   // struct packed {
@@ -144,8 +144,8 @@ typedef union packed {
   //   logic [15:0] func;
   // } m_func; //memory with function inst
   struct packed {
-    logic [5:0] opcode;
-    logic [4:0] rega_idx;
+    logic [5:0]  opcode;
+    logic [4:0]  rega_idx;
     logic [20:0] branch_disp;
   } b; //Branch inst
   // struct packed {
@@ -178,8 +178,7 @@ typedef union packed {
     logic [5:0] opcode;
     logic [25:0] func;
   } p; //pal inst
-  
-} INST; //instruction typedef, this should cover all types of instructions
+} INST_t; //instruction typedef, this should cover all types of instructions
 
 // typedef struct packed {
 //   logic [31:0] inst;  // fetched instruction out
@@ -274,7 +273,7 @@ typedef enum logic [1:0] {
 
 typedef struct packed {
   HT                          ht;
-  // INST                        inst;
+  // INST_t                      inst;
   logic [$clog2(`NUM_PR)-1:0] T;
   logic [$clog2(`NUM_PR)-1:0] T_old;
 } ROB_ENTRY_t;
@@ -288,7 +287,7 @@ typedef struct packed {
 
 typedef struct packed {
   logic        valid; // If low, the data in this struct is garbage
-  INST         inst;  // fetched instruction out
+  INST_t       inst;  // fetched instruction out
   logic [63:0] NPC; // PC + 4 
 } IF_ID_PACKET;
 
@@ -311,7 +310,7 @@ typedef struct packed {
   logic [63:0]   regb_value;    // reg B value                                  
   ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
   ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
-  INST           inst;                 // instruction
+  INST_t         inst;                 // instruction
   logic [4:0]    dest_reg_idx;  // destination (writeback) register index      
   ALU_FUNC       alu_func;      // ALU function select (ALU_xxx *)
   logic          rd_mem;        // does inst read memory?
@@ -349,7 +348,7 @@ typedef struct packed {
 }
 
 typedef struct packed {
-  INST         inst;
+  INST_t       inst;
   logic [63:0] alu_result; // alu_result
   logic [63:0] NPC; //pc + 4
   logic             take_branch; // is this a taken branch?
@@ -375,7 +374,7 @@ typedef struct packed {
 }
 
 typedef struct packed {
-  INST         inst;
+  INST_t       inst;
   logic [63:0] NPC; //pc + 4
   logic             halt, illegal, valid, stall;
   logic             take_branch; // is this a taken branch?
