@@ -42,7 +42,6 @@ module decoder(
     // - These defaults are equivalent to a noop
     // * see sys_defs.vh for the constants used here
     decoder_packet_out = `DECODER_PACKET_OUT_DEFAULT;
-    // decoder_packet_out.valid = decoder_packet_in.valid && !decoder_packet_out.illegal;
 
     if(decoder_packet_in.valid) begin
 

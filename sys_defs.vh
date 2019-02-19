@@ -268,11 +268,11 @@ typedef enum logic [1:0] {
   HT_NONE = 2'b00,
   HT_HEAD = 2'b01,
   HT_TAIL = 2'b10,
-  HT_HT   = 2'b11,
-} HT;
+  HT_HT   = 2'b11
+} HT_t;
 
 typedef struct packed {
-  HT                          ht;
+  HT_t                        ht;
   // INST_t                      inst;
   logic [$clog2(`NUM_PR)-1:0] T;
   logic [$clog2(`NUM_PR)-1:0] T_old;
