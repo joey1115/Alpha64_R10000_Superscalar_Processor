@@ -31,7 +31,7 @@ module ROB (
 
   ROB_ENTRY_t [`NUM_ROB - 1:0] rob;
   logic writeTail, readHead, readTail, incHead, incTail;
-  logic [$clog2(`NUM_ROB)-1: 0] headPointer, tailPointer;
+  logic [$clog2(`NUM_ROB)-1: 0] headPointer, tailPointer; // not sure if register ok or need param
 
 
   always_ff @ (posedge clock) begin
@@ -58,7 +58,6 @@ module ROB (
         rob[tailPointer].T_old <= #`SD T_old_in;
       end
     end
-
   end
 
   always_comb begin
@@ -68,23 +67,17 @@ module ROB (
     incHead = increment && ht;
     incTail = increment && ~ht;
 
-    if(readTail && rob[tailPointer].valid) begin
+    if(readTail) begin
       T_out = rob[tailPointer].T;
       T_old_out = rob[tailPointer].T_old;
-      out = 1;
+      out = rob[tailPointer].valid;
     end
-    else if (readHead && rob[headPointer].valid) begin
+    else if (readHead) begin
       T_out = rob[headPointer].T;
       T_old_out = rob[headPointer].T_old;
-      out = 1;
-    end
-    else begin
-      out = 0;
+      out = rob[headPointer].valid;
     end
   end
-    
-
- 
 endmodule
   
   

@@ -274,7 +274,7 @@ typedef enum logic [1:0] {
 } HT_t;
 
 typedef struct packed {
-  HT_t                        ht;
+  //HT_t                        ht;
   // INST_t                      inst;
   logic valid;
   logic [$clog2(`NUM_PR)-1:0] T;
