@@ -16,24 +16,35 @@ module OoO (
   always_comb begin
     genvar i, j;
     for (i = 0; i <= `NUM_PR; i++) begin
+
       if (i == `NUM_PR) begin
+
         // No next_PR available
         break;
+
       end else if (next_PR[i].free == PR_FREE) begin
+
         // Dest pr idx is i
         for (j = 0; j <= `NUM_ROB; j++) begin
+
           if (j == `NUM_ROB) begin
+
             // No next_ROB entry left
             next_ROB = {ROB[$clog2(`NUM_ROB)-1:1], {// New entry}}; // Shift
             break;
+
           end else if (next_ROB[j].ht == HT_FREE) begin
+
             // Empty entry
-            next_ROB[j].ht = {//new entry};
-            // Told
+            next_ROB[j] = {//new entry};
             break;
+
           end // j == 32
+
         end // for
+
       end // i == (`NUM_PR-1)
+
     end // for
   end
 
