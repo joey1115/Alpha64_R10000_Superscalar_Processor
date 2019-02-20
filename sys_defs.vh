@@ -195,6 +195,7 @@ typedef struct packed {
   logic          illegal;   // non-zero on an illegal instruction
   logic          valid; // for counting valid instructions executed
   logic [4:0]    dest_reg_idx;
+  FU_t           FU;
 } DECODER_PACKET_OUT;
 
 `define DECODER_PACKET_OUT_DEFAULT '{ \
@@ -211,7 +212,8 @@ typedef struct packed {
   `FALSE, \
   `FALSE, \
   `FALSE, \
-  `ZERO_REG \
+  `ZERO_REG, \
+  FU_ALU \
 }
 
 typedef enum logic {
@@ -323,6 +325,7 @@ typedef struct packed {
   logic          cpuid;         // get CPUID inst?
   logic          illegal;       // is this instruction illegal?
   logic          valid;         // is inst a valid instruction to be counted for CPI calculations?
+  FU_t           FU;
   //RS_ENTRY [NUM_RS-1:0] RS;
 } ID_EX_PACKET;
 
@@ -344,7 +347,8 @@ typedef struct packed {
   1'b0, \
   1'b0, \
   1'b0, \
-  1'b0 \
+  1'b0, \
+  FU_ALU \
 }
 
 typedef struct packed {

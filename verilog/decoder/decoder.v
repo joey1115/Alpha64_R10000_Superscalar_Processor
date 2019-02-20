@@ -74,6 +74,7 @@ module decoder(
           decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
           decoder_packet_out.alu_func     = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
+          decoder_packet_out.FU           = FU_ALU;
         end
 
         // `LDAH_INST, `LDBU_INST, `LDQ_U_INST, `LDWU_INST, `STW_INST, `STB_INST, `STQ_U_INST, `LDF_INST, `LDG_INST, `LDS_INST, `LDT_INST, `STF_INST, `STG_INST, `STS_INST, `STT_INST, `LDL_INST: begin
@@ -84,6 +85,7 @@ module decoder(
           decoder_packet_out.opa_select   = ALU_OPA_IS_REGA;
           decoder_packet_out.opb_select   = decoder_packet_in.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.regc_idx;
+          decoder_packet_out.FU           = FU_ALU;
           case (decoder_packet_in.inst.i.func)
             `CMPULT_INST: decoder_packet_out.alu_func = ALU_CMPULT;
             `ADDQ_INST:   decoder_packet_out.alu_func = ALU_ADDQ;
@@ -103,6 +105,7 @@ module decoder(
           decoder_packet_out.opa_select   = ALU_OPA_IS_REGA;
           decoder_packet_out.opb_select   = decoder_packet_in.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.regc_idx;
+          decoder_packet_out.FU           = FU_ALU;
           case (decoder_packet_in.inst.i.func)
             `AND_INST:   decoder_packet_out.alu_func = ALU_AND;
             `BIC_INST:   decoder_packet_out.alu_func = ALU_BIC;
@@ -121,6 +124,7 @@ module decoder(
           decoder_packet_out.opa_select   = ALU_OPA_IS_REGA;
           decoder_packet_out.opb_select   = decoder_packet_in.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.regc_idx;
+          decoder_packet_out.FU           = FU_ALU;
           case (decoder_packet_in.inst.i.func)
             `SRL_INST: decoder_packet_out.alu_func = ALU_SRL;
             `SLL_INST: decoder_packet_out.alu_func = ALU_SLL;
@@ -136,6 +140,7 @@ module decoder(
           decoder_packet_out.opa_select = ALU_OPA_IS_REGA;
           decoder_packet_out.opb_select = decoder_packet_in.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.regc_idx;
+          decoder_packet_out.FU           = FU_ALU;
           case (decoder_packet_in.inst.i.func)
             `MULQ_INST: decoder_packet_out.alu_func = ALU_MULQ;
             default: begin
@@ -156,6 +161,7 @@ module decoder(
           decoder_packet_out.alu_func      = ALU_AND; // clear low 2 bits (word-align)
           decoder_packet_out.dest_reg_idx  = decoder_packet_in.inst.r.rega_idx;
           decoder_packet_out.uncond_branch = `TRUE;
+          decoder_packet_out.FU            = FU_ALU;
         end
 
         `LDQ_INST: begin
@@ -164,6 +170,7 @@ module decoder(
           decoder_packet_out.alu_func     = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
           decoder_packet_out.rd_mem       = `TRUE;
+          decoder_packet_out.FU           = FU_LD;
         end // case: `LDQ_INST
 
         // `LDL_L_INST, `STL_INST, `STL_C_INST: begin
@@ -177,6 +184,7 @@ module decoder(
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
           decoder_packet_out.rd_mem       = `TRUE;
           decoder_packet_out.ldl_mem      = `TRUE;
+          decoder_packet_out.FU           = FU_LD;
         end
 
         `STQ_INST: begin
@@ -185,6 +193,7 @@ module decoder(
           decoder_packet_out.alu_func     = ALU_ADDQ;
           decoder_packet_out.wr_mem       = `TRUE;
           decoder_packet_out.dest_reg_idx = `ZERO_REG;
+          decoder_packet_out.FU           = FU_ST;
         end
 
         `STQ_C_INST: begin
@@ -194,6 +203,7 @@ module decoder(
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
           decoder_packet_out.wr_mem       = `TRUE;
           decoder_packet_out.stc_mem      = `TRUE;
+          decoder_packet_out.FU           = FU_ST;
         end
 
         `BR_INST, `BSR_INST: begin
@@ -202,6 +212,7 @@ module decoder(
           decoder_packet_out.opa_select    = ALU_OPA_IS_NPC;
           decoder_packet_out.opb_select    = ALU_OPB_IS_BR_DISP;
           decoder_packet_out.alu_func      = ALU_ADDQ;
+          decoder_packet_out.FU            = FU_ALU;
         end
 
         // `FBEQ_INST, `FBLT_INST, `FBLE_INST, `FBNE_INST, `FBGE_INST, `FBGT_INST: begin
@@ -213,6 +224,7 @@ module decoder(
           decoder_packet_out.opb_select  = ALU_OPB_IS_BR_DISP;
           decoder_packet_out.alu_func    = ALU_ADDQ;
           decoder_packet_out.cond_branch = `TRUE; // all others are conditional
+          decoder_packet_out.FU          = FU_ALU;
         end
 
         default: begin
