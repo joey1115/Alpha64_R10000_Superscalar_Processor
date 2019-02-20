@@ -21,7 +21,7 @@ module OoO (
         break;
       end else if (next_PR[i].free == PR_FREE) begin
         // Dest pr idx is i
-        for (j = 0; j < `NUM_ROB; j++) begin
+        for (j = 0; j <= `NUM_ROB; j++) begin
           if (j == `NUM_ROB) begin
             // No next_ROB entry left
             next_ROB = {ROB[$clog2(`NUM_ROB)-1:1], {// New entry}}; // Shift
