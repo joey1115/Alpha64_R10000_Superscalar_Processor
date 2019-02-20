@@ -266,12 +266,11 @@ typedef struct packed {
   T_t                         T2;
 } RS_ENTRY_t;
 
-typedef enum logic [2:0] {
-  HT_NONE = 3'b000,
-  HT_HEAD = 3'b001,
-  HT_TAIL = 3'b010,
-  HT_HT   = 3'b011,
-  HT_FREE = 3'b100
+typedef enum logic [1:0] {
+  HT_NONE = 2'b000,
+  HT_HEAD = 2'b001,
+  HT_TAIL = 2'b010,
+  HT_HT   = 2'b011
 } HT_t;
 
 typedef struct packed {
