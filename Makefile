@@ -44,8 +44,9 @@ TESTBENCH   += $(wildcard testbench/*.c)
 PIPEFILES    = $(wildcard verilog/*.v)
 CACHEFILES   = $(wildcard verilog/cache/*.v)
 DECODERFILES = $(wildcard verilog/decoder/*.v)
+OOOFILES     = $(wildcard verilog/OoO/*.v)
 
-SIMFILES    = $(PIPEFILES) $(CACHEFILES) $(DECODERFILES)
+SIMFILES    = $(PIPEFILES) $(CACHEFILES) $(DECODERFILES) $(OOOFILES)
 
 # SYNTHESIS CONFIG
 
