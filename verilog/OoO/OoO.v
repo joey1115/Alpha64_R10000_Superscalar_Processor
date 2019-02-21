@@ -1,10 +1,10 @@
 module OoO_m (
-  input  ID_EX_PACKET  id_packet_out,
-  input  EX_MEM_PACKET ex_packet_out,
-  input  MEM_WB_PACKET mem_packet_out,
-  output ID_EX_PACKET  id_packet_new,
-  output EX_MEM_PACKET ex_packet_new,
-  output MEM_WB_PACKET mem_packet_new
+  input  S_X_PACKET  s_packet_out,
+  input  X_C_PACKET x_packet_out,
+  input  C_R_PACKET c_packet_out,
+  output S_X_PACKET  id_packet_new,
+  output X_C_PACKET ex_packet_new,
+  output C_R_PACKET mem_packet_new
 );
 
   // PR_t        [$clog2(`NUM_PR)-1:0]  next_PR;

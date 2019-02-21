@@ -18,9 +18,9 @@
 module wb_stage(
   input         clock,                // system clock
   input         reset,                // system reset
-  input MEM_WB_PACKET mem_wb_packet_in,
+  input C_R_PACKET mem_wb_packet_in,
 
-  output WB_REG_PACKET wb_packet_out
+  output R_REG_PACKET r_packet_out
     // Always enabled if valid inst
 );
 
@@ -34,12 +34,12 @@ module wb_stage(
   assign result_mux = (mem_wb_packet_in.take_branch) ? mem_wb_packet_in.NPC : mem_wb_packet_in.result;
 
   // Generate signals for write-back to register file
-  // wb_packet_out.wr_en computation is sort of overkill since the reg file
+  // r_packet_out.wr_en computation is sort of overkill since the reg file
   // has a special way of handling `ZERO_REG but there is no harm 
   // in putting this here.  Hopefully it illustrates how the pipeline works.
-  assign wb_packet_out.wr_en  = mem_wb_packet_in.dest_reg_idx != `ZERO_REG;
-  assign wb_packet_out.wr_idx = mem_wb_packet_in.dest_reg_idx;
-  assign wb_packet_out.wr_data = result_mux;
+  assign r_packet_out.wr_en  = mem_wb_packet_in.dest_reg_idx != `ZERO_REG;
+  assign r_packet_out.wr_idx = mem_wb_packet_in.dest_reg_idx;
+  assign r_packet_out.wr_data = result_mux;
 
 endmodule // module wb_stage
 

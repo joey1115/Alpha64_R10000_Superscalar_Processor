@@ -201,13 +201,13 @@ endmodule // decoder
 module id_stage(
   input         clock,                // system clock
   input         reset,                // system reset
-  input WB_REG_PACKET wb_reg_packet_in,
-  input IF_ID_PACKET if_id_packet_in,
-  output ID_EX_PACKET id_packet_out
+  input R_REG_PACKET wb_reg_packet_in,
+  input F_D_PACKET if_id_packet_in,
+  output S_X_PACKET s_packet_out
 );
 
-  assign id_packet_out.NPC = if_id_packet_in.NPC;
-  assign id_packet_out.inst = if_id_packet_in.inst;
+  assign s_packet_out.NPC = if_id_packet_in.NPC;
+  assign s_packet_out.inst = if_id_packet_in.inst;
 
   DEST_REG_SEL dest_reg_select;
 
@@ -219,9 +219,9 @@ module id_stage(
   // Instantiate the register file used by this pipeline
   regfile regf_0 (
     .rda_idx(ra_idx),
-    .rda_out(id_packet_out.rega_value), 
+    .rda_out(s_packet_out.rega_value), 
     .rdb_idx(rb_idx),
-    .rdb_out(id_packet_out.regb_value),
+    .rdb_out(s_packet_out.regb_value),
     .wr_clk(clock),
     .wr_en(wb_reg_packet_in.wr_en),
     .wr_idx(wb_reg_packet_in.wr_idx),
@@ -234,30 +234,30 @@ module id_stage(
     .inst(if_id_packet_in.inst),
     .valid_inst_in(if_id_packet_in.valid),
     // Outputs
-    .opa_select(id_packet_out.opa_select),
-    .opb_select(id_packet_out.opb_select),
-    .alu_func(id_packet_out.alu_func),
+    .opa_select(s_packet_out.opa_select),
+    .opb_select(s_packet_out.opb_select),
+    .alu_func(s_packet_out.alu_func),
     .dest_reg(dest_reg_select),
-    .rd_mem(id_packet_out.rd_mem),
-    .wr_mem(id_packet_out.wr_mem),
-    .ldl_mem(id_packet_out.ldl_mem),
-    .stc_mem(id_packet_out.stc_mem),
-    .cond_branch(id_packet_out.cond_branch),
-    .uncond_branch(id_packet_out.uncond_branch),
-    .halt(id_packet_out.halt),
-    .cpuid(id_packet_out.cpuid),
-    .illegal(id_packet_out.illegal),
-    .valid_inst(id_packet_out.valid)
+    .rd_mem(s_packet_out.rd_mem),
+    .wr_mem(s_packet_out.wr_mem),
+    .ldl_mem(s_packet_out.ldl_mem),
+    .stc_mem(s_packet_out.stc_mem),
+    .cond_branch(s_packet_out.cond_branch),
+    .uncond_branch(s_packet_out.uncond_branch),
+    .halt(s_packet_out.halt),
+    .cpuid(s_packet_out.cpuid),
+    .illegal(s_packet_out.illegal),
+    .valid_inst(s_packet_out.valid)
   );
 
   // mux to generate dest_reg_idx based on
   // the dest_reg_select output from decoder
   always_comb begin
     case (dest_reg_select)
-      DEST_IS_REGC: id_packet_out.dest_reg_idx = rc_idx;
-      DEST_IS_REGA: id_packet_out.dest_reg_idx = ra_idx;
-      DEST_NONE:    id_packet_out.dest_reg_idx = `ZERO_REG;
-      default:      id_packet_out.dest_reg_idx = `ZERO_REG; 
+      DEST_IS_REGC: s_packet_out.dest_reg_idx = rc_idx;
+      DEST_IS_REGA: s_packet_out.dest_reg_idx = ra_idx;
+      DEST_NONE:    s_packet_out.dest_reg_idx = `ZERO_REG;
+      default:      s_packet_out.dest_reg_idx = `ZERO_REG; 
     endcase
   end
    

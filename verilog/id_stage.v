@@ -14,9 +14,9 @@
 module id_stage(
   input                clock,                // system clock
   input                reset,                // system reset
-  input  WB_REG_PACKET wb_reg_packet_in,
-  input  IF_ID_PACKET  if_id_packet_in,
-  output ID_EX_PACKET  id_packet_out
+  input  R_REG_PACKET wb_reg_packet_in,
+  input  F_D_PACKET  if_id_packet_in,
+  output S_X_PACKET  s_packet_out
 );
   DECODER_PACKET_OUT decoder_packet_out;
   DECODER_PACKET_IN  decoder_packet_in;
@@ -24,22 +24,22 @@ module id_stage(
   assign decoder_packet_in.inst  = if_id_packet_in.inst;
   assign decoder_packet_in.valid = if_id_packet_in.valid;
 
-  assign id_packet_out.NPC           = if_id_packet_in.NPC;
-  assign id_packet_out.inst          = if_id_packet_in.inst;
-  assign id_packet_out.opa_select    = decoder_packet_out.opa_select;
-  assign id_packet_out.opb_select    = decoder_packet_out.opb_select;
-  assign id_packet_out.alu_func      = decoder_packet_out.alu_func;
-  assign id_packet_out.rd_mem        = decoder_packet_out.rd_mem;
-  assign id_packet_out.wr_mem        = decoder_packet_out.wr_mem;
-  assign id_packet_out.ldl_mem       = decoder_packet_out.ldl_mem;
-  assign id_packet_out.stc_mem       = decoder_packet_out.stc_mem;
-  assign id_packet_out.cond_branch   = decoder_packet_out.cond_branch;
-  assign id_packet_out.uncond_branch = decoder_packet_out.uncond_branch;
-  assign id_packet_out.halt          = decoder_packet_out.halt;
-  assign id_packet_out.cpuid         = decoder_packet_out.cpuid;
-  assign id_packet_out.illegal       = decoder_packet_out.illegal;
-  assign id_packet_out.valid         = decoder_packet_out.valid;
-  assign id_packet_out.dest_reg_idx  = decoder_packet_out.dest_reg_idx;
+  assign s_packet_out.NPC           = if_id_packet_in.NPC;
+  assign s_packet_out.inst          = if_id_packet_in.inst;
+  assign s_packet_out.opa_select    = decoder_packet_out.opa_select;
+  assign s_packet_out.opb_select    = decoder_packet_out.opb_select;
+  assign s_packet_out.alu_func      = decoder_packet_out.alu_func;
+  assign s_packet_out.rd_mem        = decoder_packet_out.rd_mem;
+  assign s_packet_out.wr_mem        = decoder_packet_out.wr_mem;
+  assign s_packet_out.ldl_mem       = decoder_packet_out.ldl_mem;
+  assign s_packet_out.stc_mem       = decoder_packet_out.stc_mem;
+  assign s_packet_out.cond_branch   = decoder_packet_out.cond_branch;
+  assign s_packet_out.uncond_branch = decoder_packet_out.uncond_branch;
+  assign s_packet_out.halt          = decoder_packet_out.halt;
+  assign s_packet_out.cpuid         = decoder_packet_out.cpuid;
+  assign s_packet_out.illegal       = decoder_packet_out.illegal;
+  assign s_packet_out.valid         = decoder_packet_out.valid;
+  assign s_packet_out.dest_reg_idx  = decoder_packet_out.dest_reg_idx;
 
   // Instantiate the register file used by this pipeline
   regfile regf_0 (
@@ -49,8 +49,8 @@ module id_stage(
     .wr_data(wb_reg_packet_in.wr_data),
     .wr_en(wb_reg_packet_in.wr_en),
     .wr_clk(clock),
-    .rda_out(id_packet_out.rega_value), 
-    .rdb_out(id_packet_out.regb_value)
+    .rda_out(s_packet_out.rega_value), 
+    .rdb_out(s_packet_out.regb_value)
   );
 
   // instantiate the instruction decoder

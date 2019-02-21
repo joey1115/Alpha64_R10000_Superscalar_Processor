@@ -14,13 +14,13 @@
 module if_stage(
   input         clock,                  // system clock
   input         reset,                  // system reset
-  input MEM_WB_PACKET mem_wb_packet_in,
-  input EX_MEM_PACKET ex_mem_packet_in,
+  input C_R_PACKET mem_wb_packet_in,
+  input X_C_PACKET ex_mem_packet_in,
   input  [63:0] Imem2proc_data,          // Data coming back from instruction-memory
   input         Imem_valid,
 
   output logic [63:0] proc2Imem_addr,    // Address sent to Instruction memory
-  IF_ID_PACKET if_packet_out
+  F_D_PACKET f_packet_out
 );
 
   logic    [63:0] PC_reg;             // PC we are currently fetching
@@ -33,7 +33,7 @@ module if_stage(
   assign proc2Imem_addr = {PC_reg[63:3], 3'b0};
 
   // this mux is because the Imem gives us 64 bits not 32 bits
-  assign if_packet_out.inst = PC_reg[2] ? Imem2proc_data[63:32] : Imem2proc_data[31:0];
+  assign f_packet_out.inst = PC_reg[2] ? Imem2proc_data[63:32] : Imem2proc_data[31:0];
 
   // default next PC value
   assign PC_plus_4 = PC_reg + 4;
@@ -44,14 +44,14 @@ module if_stage(
   assign next_PC = ex_mem_packet_in.take_branch ? ex_mem_packet_in.alu_result : PC_plus_4;
 
   // The take-branch signal must override stalling (otherwise it may be lost)
-  assign PC_enable = if_packet_out.valid || ex_mem_packet_in.take_branch;
+  assign PC_enable = f_packet_out.valid || ex_mem_packet_in.take_branch;
 
   // Pass PC+4 down pipeline w/instruction
-  assign if_packet_out.NPC = PC_plus_4;
+  assign f_packet_out.NPC = PC_plus_4;
 
-  assign if_packet_out.valid = ready_for_valid && Imem_valid;
+  assign f_packet_out.valid = ready_for_valid && Imem_valid;
 
-  assign next_ready_for_valid = (ready_for_valid || mem_wb_packet_in.valid) && !if_packet_out.valid;
+  assign next_ready_for_valid = (ready_for_valid || mem_wb_packet_in.valid) && !f_packet_out.valid;
 
   // This register holds the PC value
   // synopsys sync_set_reset "reset"

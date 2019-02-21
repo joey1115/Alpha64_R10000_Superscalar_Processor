@@ -99,19 +99,19 @@ endmodule // brcond
 module ex_stage(
   input                clock,               // system clock
   input                reset,               // system reset
-  input ID_EX_PACKET   id_ex_packet_in,
-  output EX_MEM_PACKET ex_packet_out
+  input S_X_PACKET   id_ex_packet_in,
+  output X_C_PACKET x_packet_out
 );
   
-  assign ex_packet_out.NPC          = id_ex_packet_in.NPC;
-  assign ex_packet_out.inst         = id_ex_packet_in.inst;
-  assign ex_packet_out.dest_reg_idx = id_ex_packet_in.dest_reg_idx;
-  assign ex_packet_out.rd_mem       = id_ex_packet_in.rd_mem;
-  assign ex_packet_out.wr_mem       = id_ex_packet_in.wr_mem;
-  assign ex_packet_out.halt         = id_ex_packet_in.halt;
-  assign ex_packet_out.illegal      = id_ex_packet_in.illegal;
-  assign ex_packet_out.valid        = id_ex_packet_in.valid;
-  assign ex_packet_out.rega_value   = id_ex_packet_in.rega_value;
+  assign x_packet_out.NPC          = id_ex_packet_in.NPC;
+  assign x_packet_out.inst         = id_ex_packet_in.inst;
+  assign x_packet_out.dest_reg_idx = id_ex_packet_in.dest_reg_idx;
+  assign x_packet_out.rd_mem       = id_ex_packet_in.rd_mem;
+  assign x_packet_out.wr_mem       = id_ex_packet_in.wr_mem;
+  assign x_packet_out.halt         = id_ex_packet_in.halt;
+  assign x_packet_out.illegal      = id_ex_packet_in.illegal;
+  assign x_packet_out.valid        = id_ex_packet_in.valid;
+  assign x_packet_out.rega_value   = id_ex_packet_in.rega_value;
 
 
   logic  [63:0] opa_mux_out, opb_mux_out;
@@ -159,7 +159,7 @@ module ex_stage(
     .opb(opb_mux_out),
     .func(id_ex_packet_in.alu_func),
     // Output
-    .result(ex_packet_out.alu_result)
+    .result(x_packet_out.alu_result)
   );
 
    //
@@ -175,6 +175,6 @@ module ex_stage(
 
    // ultimate "take branch" signal:
    //    unconditional, or conditional and the condition is true
-  assign ex_packet_out.take_branch = id_ex_packet_in.uncond_branch | (id_ex_packet_in.cond_branch & brcond_result);
+  assign x_packet_out.take_branch = id_ex_packet_in.uncond_branch | (id_ex_packet_in.cond_branch & brcond_result);
 
 endmodule // module ex_stage

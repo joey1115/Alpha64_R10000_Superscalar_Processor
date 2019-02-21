@@ -122,7 +122,7 @@ typedef struct packed {
   logic valid; // If low, the data in this struct is garbage
   logic [31:0] inst;  // fetched instruction out
   logic [63:0] NPC; // PC + 4 
-} IF_ID_PACKET;
+} F_D_PACKET;
 
 `define IF_ID_PACKET_RESET '{ \
   `FALSE, \
@@ -156,7 +156,7 @@ typedef struct packed {
   logic          cpuid;         // get CPUID inst?
   logic          illegal;       // is this instruction illegal?
   logic          valid;         // is inst a valid instruction to be counted for CPI calculations?
-} ID_EX_PACKET;
+} S_X_PACKET;
 
 `define ID_EX_PACKET_RESET '{ \
   {64{1'b0}}, \
@@ -189,7 +189,7 @@ typedef struct packed {
   logic             rd_mem, wr_mem;
   logic [4:0]       dest_reg_idx;
   logic             halt, illegal, valid;
-} EX_MEM_PACKET;
+} X_C_PACKET;
 
 `define EX_MEM_PACKET_RESET '{ \
   `NOOP_INST, \
@@ -212,7 +212,7 @@ typedef struct packed {
   logic             take_branch; // is this a taken branch?
   logic [4:0]       dest_reg_idx;
   logic [63:0]      result;
-} MEM_WB_PACKET;
+} C_R_PACKET;
 
 `define MEM_WB_PACKET_RESET '{ \
   `NOOP_INST, \
@@ -230,7 +230,7 @@ typedef struct packed {
   logic [63:0] wr_data;
   logic        wr_en;
   logic [4:0]  wr_idx;
-} WB_REG_PACKET;
+} R_REG_PACKET;
 
 //////////////////////////////////////////////
 //
