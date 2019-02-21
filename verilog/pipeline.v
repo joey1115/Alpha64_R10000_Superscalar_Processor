@@ -195,7 +195,6 @@ module pipeline (
     .reset(reset),
     .f_d_packet_in(f_d_packet),
     .r_packet_in(r_packet_out),
-
     // Outputs
     .s_packet_out(s_packet_out)
   );
@@ -282,7 +281,8 @@ module pipeline (
   //                 C-Stage                      //
   //                                              //
   //////////////////////////////////////////////////
-  c_stage c_stage_0 (// Inputs
+  c_stage c_stage_0 (
+    // Inputs
     .clock(clock),
     .reset(reset),
     .x_c_packet_in(x_c_packet),
@@ -297,7 +297,7 @@ module pipeline (
   );
   //////////////////////////////////////////////////
   //                                              //
-  //           MEM/WB Pipeline Register           //
+  //           C/R Pipeline Register              //
   //                                              //
   //////////////////////////////////////////////////
   assign mem_wb_NPC        = c_r_packet.NPC;
@@ -315,7 +315,7 @@ module pipeline (
   end // always
   //////////////////////////////////////////////////
   //                                              //
-  //                  WB-Stage                    //
+  //                  R-Stage                     //
   //                                              //
   //////////////////////////////////////////////////
   r_stage r_stage_0 (
