@@ -274,12 +274,17 @@ typedef enum logic [1:0] {
 } HT_t;
 
 typedef struct packed {
-  //HT_t                        ht;
+  // HT_t                        ht;
   // INST_t                      inst;
   logic valid;
   logic [$clog2(`NUM_PR)-1:0] T;
   logic [$clog2(`NUM_PR)-1:0] T_old;
 } ROB_ENTRY_t;
+
+typedef struct packed {
+  logic [$clog2(`NUM_ROB)-1:0] head;
+  ROB_ENTRY_t [`NUM_ROB-1:0] ROB;
+} ROB_t;
 
 //////////////////////////////////////////////
 //
