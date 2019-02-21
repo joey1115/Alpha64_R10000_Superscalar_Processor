@@ -13,27 +13,27 @@ module OoO (
   RS_ENTRY_t  [$clog2(`NUM_ALU)-1:0] next_RS;
   ROB_ENTRY_t [$clog2(`NUM_ROB)-1:0] next_ROB;
 
-  always_comb begin
-    genvar i, j;
-    for (i = 0; i <= `NUM_PR; i++) begin
+  // always_comb begin
+  //   genvar i, j;
+  //   for (i = 0; i <= `NUM_PR; i++) begin
 
-      if ( i == `NUM_PR ) begin
+  //     if ( i == `NUM_PR ) begin
 
-        // No next_PR available
-        break;
+  //       // No next_PR available
+  //       break;
 
-      end else if ( next_PR[i].free == PR_FREE ) begin
+  //     end else if ( next_PR[i].free == PR_FREE ) begin
 
-        if ( ROB[0].ht == HT_NONE ) begin
-          //shift
-        end else begin
-          // stall
-        end
+  //       if ( ROB[0].ht == HT_NONE ) begin
+  //         // shift
+  //       end else begin
+  //         // stall
+  //       end
 
-      end // i == (`NUM_PR-1)
+  //     end // i == (`NUM_PR-1)
 
-    end // for
-  end
+  //   end // for
+  // end
 
   always_ff @(posedge clock) begin
     if(reset) begin
