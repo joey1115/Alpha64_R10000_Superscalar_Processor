@@ -52,7 +52,7 @@ module pipeline (
 );
 
   // Pipeline register enables
-  logic   f_d_enable, s_x_enable, x_c_enable, c_r_enable;
+  logic f_d_enable, s_x_enable, x_c_enable, c_r_enable;
 
   // Outputs from IF stage
   F_D_PACKET f_packet_out;
