@@ -44,7 +44,7 @@ module OoO_m (
   //     arch_map  <= `SD next_arch_map;
   //     RS        <= `SD next_RS;
   //     ROB       <= `SD next_ROB;
-  //   end // if (if_id_enable)
+  //   end // if (f_d_enable)
   // end // always
 
 endmodule

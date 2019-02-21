@@ -14,8 +14,8 @@
 module if_stage(
   input         clock,                  // system clock
   input         reset,                  // system reset
-  input C_R_PACKET mem_wb_packet_in,
-  input X_C_PACKET ex_mem_packet_in,
+  input C_R_PACKET c_r_packet_in,
+  input X_C_PACKET x_c_packet_in,
   input  [63:0] Imem2proc_data,          // Data coming back from instruction-memory
   input         Imem_valid,
 
@@ -41,17 +41,17 @@ module if_stage(
   // next PC is target_pc if there is a taken branch or
   // the next sequential PC (PC+4) if no branch
   // (halting is handled with the enable PC_enable;
-  assign next_PC = ex_mem_packet_in.take_branch ? ex_mem_packet_in.alu_result : PC_plus_4;
+  assign next_PC = x_c_packet_in.take_branch ? x_c_packet_in.alu_result : PC_plus_4;
 
   // The take-branch signal must override stalling (otherwise it may be lost)
-  assign PC_enable = f_packet_out.valid || ex_mem_packet_in.take_branch;
+  assign PC_enable = f_packet_out.valid || x_c_packet_in.take_branch;
 
   // Pass PC+4 down pipeline w/instruction
   assign f_packet_out.NPC = PC_plus_4;
 
   assign f_packet_out.valid = ready_for_valid && Imem_valid;
 
-  assign next_ready_for_valid = (ready_for_valid || mem_wb_packet_in.valid) && !f_packet_out.valid;
+  assign next_ready_for_valid = (ready_for_valid || c_r_packet_in.valid) && !f_packet_out.valid;
 
   // This register holds the PC value
   // synopsys sync_set_reset "reset"

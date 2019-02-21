@@ -11,7 +11,7 @@ module PR_m (
       PR <= `SD {`NUM_PR{'{0, PR_FREE}};
     end else if(rob_packet_in.en) begin
       PR <= `SD next_PR;
-    end // if (if_id_enable)
+    end // if (f_d_enable)
   end // always
 
 endmodule

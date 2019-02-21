@@ -52,7 +52,7 @@ module pipeline (
 );
 
   // Pipeline register enables
-  logic   if_id_enable, id_ex_enable, ex_mem_enable, mem_wb_enable;
+  logic   f_d_enable, s_x_enable, x_c_enable, c_r_enable;
 
   // Outputs from IF stage
   F_D_PACKET f_packet_out;
@@ -62,7 +62,7 @@ module pipeline (
   // Outputs from ID stage
   S_X_PACKET s_packet_out;
   // Outputs from ID/EX Pipeline Register
-  S_X_PACKET s_ex_packet;
+  S_X_PACKET s_x_packet;
 
   // Outputs from EX-Stage
   X_C_PACKET x_packet_out;
@@ -155,8 +155,8 @@ module pipeline (
     // Inputs
     .clock (clock),
     .reset (reset),
-    .mem_wb_packet_in(c_r_packet),
-    .ex_mem_packet_in(x_c_packet),
+    .c_r_packet_in(c_r_packet),
+    .x_c_packet_in(x_c_packet),
     .Imem2proc_data(Icache_data_out),
     .Imem_valid(Icache_valid_out),
     // Outputs
@@ -171,15 +171,15 @@ module pipeline (
   assign if_id_NPC        = f_d_packet.NPC;
   assign if_id_IR         = f_d_packet.inst;
   assign if_id_valid_inst = f_d_packet.valid;
-  assign if_id_enable = 1'b1; // always enabled
+  assign f_d_enable = 1'b1; // always enabled
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset) begin
-      f_d_packet <= `SD `IF_ID_PACKET_RESET;
+      f_d_packet <= `SD `F_D_PACKET_RESET;
     end // if (reset)
-    else if (if_id_enable) begin
+    else if (f_d_enable) begin
         f_d_packet <= `SD f_packet_out; 
-    end // if (if_id_enable)
+    end // if (f_d_enable)
   end // always
   //////////////////////////////////////////////////
   //                                              //
@@ -189,8 +189,8 @@ module pipeline (
   id_stage id_stage_0 (// Inputs
     .clock(clock),
     .reset(reset),
-    .if_id_packet_in(f_d_packet),
-    .wb_reg_packet_in(r_packet_out),
+    .f_d_packet_in(f_d_packet),
+    .r_packet_in(r_packet_out),
 
     // Outputs
     .s_packet_out(s_packet_out)
@@ -205,17 +205,17 @@ module pipeline (
   //            ID/EX Pipeline Register           //
   //                                              //
   //////////////////////////////////////////////////
-  assign id_ex_NPC        = s_ex_packet.NPC;
-  assign id_ex_IR         = s_ex_packet.inst;
-  assign id_ex_valid_inst = s_ex_packet.valid;
-  assign id_ex_enable = 1'b1; // always enabled
+  assign id_ex_NPC        = s_x_packet.NPC;
+  assign id_ex_IR         = s_x_packet.inst;
+  assign id_ex_valid_inst = s_x_packet.valid;
+  assign s_x_enable = 1'b1; // always enabled
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
-      s_ex_packet <= `SD `ID_EX_PACKET_RESET; 
+      s_x_packet <= `SD `ID_EX_PACKET_RESET; 
     end else begin // if (reset)
-      if (id_ex_enable) begin
-        s_ex_packet <= `SD s_packet_out;
+      if (s_x_enable) begin
+        s_x_packet <= `SD s_packet_out;
       end // if
     end // else: !if(reset)
   end // always
@@ -228,7 +228,7 @@ module pipeline (
     // Inputs
     .clock(clock),
     .reset(reset),
-    .id_ex_packet_in(s_ex_packet),
+    .s_x_packet_in(s_x_packet),
     // Outputs
     .x_packet_out(x_packet_out)
   );
@@ -240,13 +240,13 @@ module pipeline (
   assign ex_mem_NPC = x_c_packet.NPC;
   assign ex_mem_IR = x_c_packet.inst;
   assign ex_mem_valid_inst = x_c_packet.valid;
-  assign ex_mem_enable = ~c_packet_out.stall;
+  assign x_c_enable = ~c_packet_out.stall;
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       x_c_packet <= `SD `EX_MEM_PACKET_RESET;
     end else begin
-      if (ex_mem_enable) begin
+      if (x_c_enable) begin
         // these are forwarded directly from ID/EX latches
         x_c_packet <= `SD x_packet_out;
       end // if
@@ -260,7 +260,7 @@ module pipeline (
   mem_stage mem_stage_0 (// Inputs
     .clock(clock),
     .reset(reset),
-    .ex_mem_packet_in(x_c_packet),
+    .x_c_packet_in(x_c_packet),
     .Dmem2proc_data(mem2proc_data),
     .Dmem2proc_tag(mem2proc_tag),
     .Dmem2proc_response(Dmem2proc_response),
@@ -278,13 +278,13 @@ module pipeline (
   assign mem_wb_NPC        = c_r_packet.NPC;
   assign mem_wb_IR         = c_r_packet.inst;
   assign mem_wb_valid_inst = c_r_packet.valid;
-  assign mem_wb_enable = 1'b1; // always enabled
+  assign c_r_enable = 1'b1; // always enabled
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       c_r_packet <= `SD `MEM_WB_PACKET_RESET;
     end else begin
-      if (mem_wb_enable) begin
+      if (c_r_enable) begin
         // these are forwarded directly from EX/MEM latches
         c_r_packet <= `SD c_packet_out;
       end // if
@@ -299,7 +299,7 @@ module pipeline (
     // Inputs
     .clock(clock),
     .reset(reset),
-    .mem_wb_packet_in(c_r_packet),
+    .c_r_packet_in(c_r_packet),
     // Outputs
     .r_packet_out(r_packet_out)
   );

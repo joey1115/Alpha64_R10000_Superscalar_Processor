@@ -11,7 +11,7 @@ module RS_m (
       // RS <= `SD 0;
     end else if(rob_packet_in.en) begin
       RS <= `SD next_RS;
-    end // if (if_id_enable)
+    end // if (f_d_enable)
   end // always
 
 endmodule

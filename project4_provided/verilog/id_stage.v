@@ -201,20 +201,20 @@ endmodule // decoder
 module id_stage(
   input         clock,                // system clock
   input         reset,                // system reset
-  input R_REG_PACKET wb_reg_packet_in,
-  input F_D_PACKET if_id_packet_in,
+  input R_REG_PACKET r_packet_in,
+  input F_D_PACKET f_d_packet_in,
   output S_X_PACKET s_packet_out
 );
 
-  assign s_packet_out.NPC = if_id_packet_in.NPC;
-  assign s_packet_out.inst = if_id_packet_in.inst;
+  assign s_packet_out.NPC = f_d_packet_in.NPC;
+  assign s_packet_out.inst = f_d_packet_in.inst;
 
   DEST_REG_SEL dest_reg_select;
 
   // instruction fields read from IF/ID pipeline register
-  wire    [4:0] ra_idx = if_id_packet_in.inst[25:21];   // inst operand A register index
-  wire    [4:0] rb_idx = if_id_packet_in.inst[20:16];   // inst operand B register index
-  wire    [4:0] rc_idx = if_id_packet_in.inst[4:0];     // inst operand C register index
+  wire    [4:0] ra_idx = f_d_packet_in.inst[25:21];   // inst operand A register index
+  wire    [4:0] rb_idx = f_d_packet_in.inst[20:16];   // inst operand B register index
+  wire    [4:0] rc_idx = f_d_packet_in.inst[4:0];     // inst operand C register index
 
   // Instantiate the register file used by this pipeline
   regfile regf_0 (
@@ -223,16 +223,16 @@ module id_stage(
     .rdb_idx(rb_idx),
     .rdb_out(s_packet_out.regb_value),
     .wr_clk(clock),
-    .wr_en(wb_reg_packet_in.wr_en),
-    .wr_idx(wb_reg_packet_in.wr_idx),
-    .wr_data(wb_reg_packet_in.wr_data)
+    .wr_en(r_packet_in.wr_en),
+    .wr_idx(r_packet_in.wr_idx),
+    .wr_data(r_packet_in.wr_data)
   );
 
   // instantiate the instruction decoder
   decoder decoder_0 (
     // Input
-    .inst(if_id_packet_in.inst),
-    .valid_inst_in(if_id_packet_in.valid),
+    .inst(f_d_packet_in.inst),
+    .valid_inst_in(f_d_packet_in.valid),
     // Outputs
     .opa_select(s_packet_out.opa_select),
     .opb_select(s_packet_out.opb_select),

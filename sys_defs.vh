@@ -299,7 +299,7 @@ typedef struct packed {
   logic [63:0] NPC; // PC + 4 
 } F_D_PACKET;
 
-`define IF_ID_PACKET_RESET '{ \
+`define F_D_PACKET_RESET '{ \
   `FALSE, \
   `NOOP_INST, \
   0 \

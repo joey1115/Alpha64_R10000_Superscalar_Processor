@@ -16,7 +16,7 @@
 module mem_stage(
   input         clock,              // system clock
   input         reset,              // system reset
-  input X_C_PACKET ex_mem_packet_in,
+  input X_C_PACKET x_c_packet_in,
   input  [63:0] Dmem2proc_data,
   input   [3:0] Dmem2proc_tag, Dmem2proc_response,
 
@@ -28,33 +28,33 @@ module mem_stage(
 
   logic [3:0] mem_waiting_tag;
 
-  assign c_packet_out.NPC          = ex_mem_packet_in.NPC;
-  assign c_packet_out.inst         = ex_mem_packet_in.inst;
-  assign c_packet_out.halt         = ex_mem_packet_in.halt;
-  assign c_packet_out.illegal      = ex_mem_packet_in.illegal;
-  assign c_packet_out.take_branch  = ex_mem_packet_in.take_branch;
+  assign c_packet_out.NPC          = x_c_packet_in.NPC;
+  assign c_packet_out.inst         = x_c_packet_in.inst;
+  assign c_packet_out.halt         = x_c_packet_in.halt;
+  assign c_packet_out.illegal      = x_c_packet_in.illegal;
+  assign c_packet_out.take_branch  = x_c_packet_in.take_branch;
   
-  assign c_packet_out.dest_reg_idx = c_packet_out.stall ? `ZERO_REG : ex_mem_packet_in.dest_reg_idx;
-  assign c_packet_out.valid = ex_mem_packet_in.valid & ~c_packet_out.stall;
+  assign c_packet_out.dest_reg_idx = c_packet_out.stall ? `ZERO_REG : x_c_packet_in.dest_reg_idx;
+  assign c_packet_out.valid = x_c_packet_in.valid & ~c_packet_out.stall;
 
   // Determine the command that must be sent to mem
   assign proc2Dmem_command =  (mem_waiting_tag != 0) ?  BUS_NONE :
-                              ex_mem_packet_in.wr_mem  ? BUS_STORE :
-                              ex_mem_packet_in.rd_mem  ? BUS_LOAD :
+                              x_c_packet_in.wr_mem  ? BUS_STORE :
+                              x_c_packet_in.rd_mem  ? BUS_LOAD :
                               BUS_NONE;
 
   // The memory address is calculated by the ALU
-  assign proc2Dmem_data = ex_mem_packet_in.rega_value;
+  assign proc2Dmem_data = x_c_packet_in.rega_value;
 
-  assign proc2Dmem_addr = ex_mem_packet_in.alu_result;
+  assign proc2Dmem_addr = x_c_packet_in.alu_result;
 
   // Assign the result-out for next stage
-  assign c_packet_out.result = (ex_mem_packet_in.rd_mem) ? Dmem2proc_data : ex_mem_packet_in.alu_result;
+  assign c_packet_out.result = (x_c_packet_in.rd_mem) ? Dmem2proc_data : x_c_packet_in.alu_result;
 
-  assign c_packet_out.stall =  (ex_mem_packet_in.rd_mem && ((mem_waiting_tag!=Dmem2proc_tag) || (Dmem2proc_tag==0))) |
-              (ex_mem_packet_in.wr_mem && (Dmem2proc_response==0));
+  assign c_packet_out.stall =  (x_c_packet_in.rd_mem && ((mem_waiting_tag!=Dmem2proc_tag) || (Dmem2proc_tag==0))) |
+              (x_c_packet_in.wr_mem && (Dmem2proc_response==0));
 
-  wire write_enable =  ex_mem_packet_in.rd_mem && 
+  wire write_enable =  x_c_packet_in.rd_mem && 
             ((mem_waiting_tag==0) || (mem_waiting_tag==Dmem2proc_tag));
 
   // synopsys sync_set_reset "reset"

@@ -100,19 +100,19 @@ endmodule // brcond
 module ex_stage(
   input          clock,               // system clock
   input          reset,               // system reset
-  input S_X_PACKET id_ex_packet_in,
+  input S_X_PACKET s_x_packet_in,
   output X_C_PACKET x_packet_out
 );
   
-  assign x_packet_out.NPC          = id_ex_packet_in.NPC;
-  assign x_packet_out.inst           = id_ex_packet_in.inst;
-  assign x_packet_out.dest_reg_idx = id_ex_packet_in.dest_reg_idx;
-  assign x_packet_out.rd_mem       = id_ex_packet_in.rd_mem;
-  assign x_packet_out.wr_mem       = id_ex_packet_in.wr_mem;
-  assign x_packet_out.halt         = id_ex_packet_in.halt;
-  assign x_packet_out.illegal      = id_ex_packet_in.illegal;
-  assign x_packet_out.valid   = id_ex_packet_in.valid;
-  assign x_packet_out.rega_value         = id_ex_packet_in.rega_value;
+  assign x_packet_out.NPC          = s_x_packet_in.NPC;
+  assign x_packet_out.inst           = s_x_packet_in.inst;
+  assign x_packet_out.dest_reg_idx = s_x_packet_in.dest_reg_idx;
+  assign x_packet_out.rd_mem       = s_x_packet_in.rd_mem;
+  assign x_packet_out.wr_mem       = s_x_packet_in.wr_mem;
+  assign x_packet_out.halt         = s_x_packet_in.halt;
+  assign x_packet_out.illegal      = s_x_packet_in.illegal;
+  assign x_packet_out.valid   = s_x_packet_in.valid;
+  assign x_packet_out.rega_value         = s_x_packet_in.rega_value;
 
 
   logic  [63:0] opa_mux_out, opb_mux_out;
@@ -122,18 +122,18 @@ module ex_stage(
   //   mem_disp: sign-extended 16-bit immediate for memory format
   //   br_disp: sign-extended 21-bit immediate * 4 for branch displacement
   //   alu_imm: zero-extended 8-bit immediate for ALU ops
-  wire [63:0] mem_disp = { {48{id_ex_packet_in.inst[15]}}, id_ex_packet_in.inst[15:0] };
-  wire [63:0] br_disp  = { {41{id_ex_packet_in.inst[20]}}, id_ex_packet_in.inst[20:0], 2'b00 };
-  wire [63:0] alu_imm  = { 56'b0, id_ex_packet_in.inst[20:13] };
+  wire [63:0] mem_disp = { {48{s_x_packet_in.inst[15]}}, s_x_packet_in.inst[15:0] };
+  wire [63:0] br_disp  = { {41{s_x_packet_in.inst[20]}}, s_x_packet_in.inst[20:0], 2'b00 };
+  wire [63:0] alu_imm  = { 56'b0, s_x_packet_in.inst[20:13] };
    
   //
   // ALU opA mux
   //
   always_comb begin
-    case (id_ex_packet_in.opa_select)
-      ALU_OPA_IS_REGA:     opa_mux_out = id_ex_packet_in.rega_value;
+    case (s_x_packet_in.opa_select)
+      ALU_OPA_IS_REGA:     opa_mux_out = s_x_packet_in.rega_value;
       ALU_OPA_IS_MEM_DISP: opa_mux_out = mem_disp;
-      ALU_OPA_IS_NPC:      opa_mux_out = id_ex_packet_in.NPC;
+      ALU_OPA_IS_NPC:      opa_mux_out = s_x_packet_in.NPC;
       ALU_OPA_IS_NOT3:     opa_mux_out = ~64'h3;
     endcase
   end
@@ -145,8 +145,8 @@ module ex_stage(
     // Default value, Set only because the case isnt full.  If you see this
     // value on the output of the mux you have an invalid opb_select
     opb_mux_out = 64'hbaadbeefdeadbeef;
-    case (id_ex_packet_in.opb_select)
-      ALU_OPB_IS_REGB:    opb_mux_out = id_ex_packet_in.regb_value;
+    case (s_x_packet_in.opb_select)
+      ALU_OPB_IS_REGB:    opb_mux_out = s_x_packet_in.regb_value;
       ALU_OPB_IS_ALU_IMM: opb_mux_out = alu_imm;
       ALU_OPB_IS_BR_DISP: opb_mux_out = br_disp;
     endcase 
@@ -158,7 +158,7 @@ module ex_stage(
   alu alu_0 (// Inputs
     .opa(opa_mux_out),
     .opb(opb_mux_out),
-    .func(id_ex_packet_in.alu_func),
+    .func(s_x_packet_in.alu_func),
     // Output
     .result(x_packet_out.alu_result)
   );
@@ -168,14 +168,14 @@ module ex_stage(
    //
   brcond brcond (
     // Inputs
-    .opa(id_ex_packet_in.rega_value),       // always check regA value
-    .func(id_ex_packet_in.inst[28:26]), // inst bits to determine check
+    .opa(s_x_packet_in.rega_value),       // always check regA value
+    .func(s_x_packet_in.inst[28:26]), // inst bits to determine check
     // Output
     .cond(brcond_result)
   );
 
    // ultimate "take branch" signal:
    //    unconditional, or conditional and the condition is true
-  assign x_packet_out.take_branch = id_ex_packet_in.uncond_branch | (id_ex_packet_in.cond_branch & brcond_result);
+  assign x_packet_out.take_branch = s_x_packet_in.uncond_branch | (s_x_packet_in.cond_branch & brcond_result);
 
 endmodule // module ex_stage

@@ -11,7 +11,7 @@ module map_table_m (
       // map_table <= `SD 0;
     end else if(rob_packet_in.en) begin
       map_table <= `SD next_map_table;
-    end // if (if_id_enable)
+    end // if (f_d_enable)
   end // always
 
 endmodule

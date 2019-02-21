@@ -223,7 +223,7 @@ module testbench();
     $display("fif_valid 1:%h",      pipeline_0.if_valid_inst_out);
 
     // IF/ID signals (4) - prefix 'g'
-    $display("genable 1:%h",        pipeline_0.if_id_enable);
+    $display("genable 1:%h",        pipeline_0.f_d_enable);
     $display("gNPC 16:%h",          pipeline_0.if_id_NPC);
     $display("gIR 8:%h",            pipeline_0.if_id_IR);
     $display("gvalid 1:%h",         pipeline_0.if_id_valid_inst);
@@ -244,7 +244,7 @@ module testbench();
     $display("dvalid 1:%h",         pipeline_0.id_valid_inst_out);
 
     // ID/EX signals (16) - prefix 'h'
-    $display("henable 1:%h",        pipeline_0.id_ex_enable);
+    $display("henable 1:%h",        pipeline_0.s_x_enable);
     $display("hNPC 16:%h",          pipeline_0.id_ex_NPC); 
     $display("hIR 8:%h",            pipeline_0.id_ex_IR); 
     $display("hrega 16:%h",         pipeline_0.id_ex_rega); 
@@ -268,7 +268,7 @@ module testbench();
     $display("etake_branch 1:%h",   pipeline_0.ex_take_branch_out);
 
     // EX/MEM signals (12) - prefix 'i'
-    $display("ienable 1:%h",        pipeline_0.ex_mem_enable);
+    $display("ienable 1:%h",        pipeline_0.x_c_enable);
     $display("iNPC 16:%h",          pipeline_0.ex_mem_NPC);
     $display("iIR 8:%h",            pipeline_0.ex_mem_IR);
     $display("irega 16:%h",         pipeline_0.ex_mem_rega);
@@ -289,7 +289,7 @@ module testbench();
     $display("m2Dmem_cmd 1:%h",     pipeline_0.proc2Dmem_command);
 
     // MEM/WB signals (9) - prefix 'j'
-    $display("jenable 1:%h",        pipeline_0.mem_wb_enable);
+    $display("jenable 1:%h",        pipeline_0.c_r_enable);
     $display("jNPC 16:%h",          pipeline_0.mem_wb_NPC);
     $display("jIR 8:%h",            pipeline_0.mem_wb_IR);
     $display("jresult 16:%h",       pipeline_0.mem_wb_result);

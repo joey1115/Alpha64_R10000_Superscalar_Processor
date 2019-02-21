@@ -11,7 +11,7 @@ module arch_map_m (
       // arch_map <= `SD 0;
     end else if(rob_packet_in.en) begin
       arch_map <= `SD next_arch_map;
-    end // if (if_id_enable)
+    end // if (f_d_enable)
   end // always
 
 endmodule

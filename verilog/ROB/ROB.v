@@ -11,7 +11,7 @@ ROB_ENTRY_t [$clog2(`NUM_ROB)-1:0] ROB, next_ROB;
       // ROB       <= `SD {`NUM_ROB{'{HT_FREE, PR_FREE}};
     end else if(rob_packet_in.en) begin
       ROB       <= `SD next_ROB;
-    end // if (if_id_enable)
+    end // if (f_d_enable)
   end // always
 
 endmodule
