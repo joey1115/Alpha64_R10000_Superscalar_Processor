@@ -193,7 +193,7 @@ module testbench();
     $write("a");
     for(i = 0; i < 32; i=i+1)
     begin
-      $write("%h", pipeline_0.id_stage_0.regf_0.registers[i]);
+      $write("%h", pipeline_0.d_stage_0.regf_0.registers[i]);
     end
     $display("");
 
@@ -217,9 +217,9 @@ module testbench();
     // IF signals (6) - prefix 'f'
     $display("fNPC 16:%h",          pipeline_0.if_NPC_out);
     $display("fIR 8:%h",            pipeline_0.if_IR_out);
-    $display("fImem_addr 16:%h",    pipeline_0.if_stage_0.proc2Imem_addr);
-    $display("fPC_en 1:%h",         pipeline_0.if_stage_0.PC_enable);
-    $display("fPC_reg 16:%h",       pipeline_0.if_stage_0.PC_reg);
+    $display("fImem_addr 16:%h",    pipeline_0.f_stage_0.proc2Imem_addr);
+    $display("fPC_en 1:%h",         pipeline_0.f_stage_0.PC_enable);
+    $display("fPC_reg 16:%h",       pipeline_0.f_stage_0.PC_reg);
     $display("fif_valid 1:%h",      pipeline_0.if_valid_inst_out);
 
     // IF/ID signals (4) - prefix 'g'
@@ -262,8 +262,8 @@ module testbench();
     $display("hvalid 1:%h",         pipeline_0.id_ex_valid_inst);
 
     // EX signals (4) - prefix 'e'
-    $display("eopa_mux 16:%h",      pipeline_0.ex_stage_0.opa_mux_out);
-    $display("eopb_mux 16:%h",      pipeline_0.ex_stage_0.opb_mux_out);
+    $display("eopa_mux 16:%h",      pipeline_0.x_stage_0.opa_mux_out);
+    $display("eopb_mux 16:%h",      pipeline_0.x_stage_0.opb_mux_out);
     $display("ealu_result 16:%h",   pipeline_0.ex_alu_result_out);
     $display("etake_branch 1:%h",   pipeline_0.ex_take_branch_out);
 
@@ -282,7 +282,7 @@ module testbench();
     $display("ivalid 1:%h",         pipeline_0.ex_mem_valid_inst);
 
     // MEM signals (5) - prefix 'm'
-    $display("mmem_data 16:%h",     pipeline_0.mem_stage_0.Dmem2proc_data);
+    $display("mmem_data 16:%h",     pipeline_0.c_stage_0.Dmem2proc_data);
     $display("mresult_out 16:%h",   pipeline_0.mem_result_out);
     $display("m2Dmem_data 16:%h",   pipeline_0.proc2mem_data);
     $display("m2Dmem_addr 16:%h",   pipeline_0.proc2Dmem_addr);

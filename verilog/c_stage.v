@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
 //                                                                     //
-//   Modulename :  r_stage.v                                          //
+//   Modulename :  c_stage.v                                           //
 //                                                                     //
 //  Description :   writeback (WB) stage of the pipeline;              //
 //                  determine the destination register of the          //
@@ -15,12 +15,12 @@
 `timescale 1ns/100ps
 
 
-module r_stage(
+module c_stage(
   input         clock,                // system clock
   input         reset,                // system reset
-  input C_R_PACKET c_r_packet_in,
+  input  X_C_PACKET x_c_packet_in,
 
-  output R_REG_PACKET r_packet_out
+  output C_R_PACKET c_packet_out
     // Always enabled if valid inst
 );
 

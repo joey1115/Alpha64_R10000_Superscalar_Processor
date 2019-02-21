@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
 //                                                                     //
-//   Modulename :  mem_stage.v                                         //
+//   Modulename :  c_stage.v                                         //
 //                                                                     //
 //  Description :  memory access (MEM) stage of the pipeline;          //
 //                 this stage accesses memory for stores and loads,    // 
@@ -13,7 +13,7 @@
 
 `timescale 1ns/100ps
 
-module mem_stage(
+module c_stage(
   input         clock,              // system clock
   input         reset,              // system reset
   input X_C_PACKET x_c_packet_in,
@@ -64,4 +64,4 @@ module mem_stage(
     else if(write_enable)
       mem_waiting_tag <= `SD Dmem2proc_response;
 
-endmodule // module mem_stage
+endmodule // module c_stage

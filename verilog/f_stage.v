@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
 //                                                                     //
-//   Modulename :  if_stage.v                                          //
+//   Modulename :  f_stage.v                                          //
 //                                                                     //
 //  Description :  instruction fetch (IF) stage of the pipeline;       // 
 //                 fetch instruction, compute next PC location, and    //
@@ -11,7 +11,7 @@
 
 `timescale 1ns/100ps
 
-module if_stage(
+module f_stage(
   input         clock,                  // system clock
   input         reset,                  // system reset
   input C_R_PACKET c_r_packet_in,
@@ -72,4 +72,4 @@ module if_stage(
       ready_for_valid <= `SD next_ready_for_valid;
   end
 
-endmodule  // module if_stage
+endmodule  // module f_stage

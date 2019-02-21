@@ -156,7 +156,7 @@ module pipeline (
   assign if_NPC_out = f_packet_out.NPC;
   assign if_IR_out = f_packet_out.inst;
   assign if_valid_inst_out = f_packet_out.valid;
-  if_stage if_stage_0 (
+  f_stage f_stage_0 (
     // Inputs
     .clock (clock),
     .reset (reset),
@@ -190,7 +190,7 @@ module pipeline (
   //                  D-Stage                     //
   //                                              //
   //////////////////////////////////////////////////
-  id_stage id_stage_0 (// Inputs
+  d_stage d_stage_0 (// Inputs
     .clock(clock),
     .reset(reset),
     .f_d_packet_in(f_d_packet),
@@ -199,11 +199,6 @@ module pipeline (
     // Outputs
     .s_packet_out(s_packet_out)
   );
-  // Note: Decode signals for load-lock/store-conditional and "get CPU ID"
-  //  instructions (id_{ldl,stc}_mem_out, id_cpuid_out) are not connected
-  //  to anything because the provided EX and MEM stages do not implement
-  //  these instructions.  You will have to implement these instructions
-  //  if you plan to do a multicore project.
   //////////////////////////////////////////////////
   //                                              //
   //            D/S Pipeline Register             //
@@ -216,7 +211,7 @@ module pipeline (
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
-      s_x_packet <= `SD `ID_EX_PACKET_RESET; 
+      s_x_packet <= `SD `S_X_PACKET_RESET; 
     end else if (s_x_enable) begin
       s_x_packet <= `SD s_packet_out;
     end // else: !if(reset)
@@ -226,20 +221,14 @@ module pipeline (
   //                  S-Stage                     //
   //                                              //
   //////////////////////////////////////////////////
-  id_stage id_stage_0 (// Inputs
+  s_stage s_stage_0 (// Inputs
     .clock(clock),
     .reset(reset),
     .f_d_packet_in(f_d_packet),
     .r_packet_in(r_packet_out),
-
     // Outputs
     .s_packet_out(s_packet_out)
   );
-  // Note: Decode signals for load-lock/store-conditional and "get CPU ID"
-  //  instructions (id_{ldl,stc}_mem_out, id_cpuid_out) are not connected
-  //  to anything because the provided EX and MEM stages do not implement
-  //  these instructions.  You will have to implement these instructions
-  //  if you plan to do a multicore project.
   //////////////////////////////////////////////////
   //                                              //
   //              S/X Pipeline Register           //
@@ -252,7 +241,7 @@ module pipeline (
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
-      s_x_packet <= `SD `ID_EX_PACKET_RESET; 
+      s_x_packet <= `SD `S_X_PACKET_RESET; 
     end else if (s_x_enable) begin
       s_x_packet <= `SD s_packet_out;
     end // else: !if(reset)
@@ -262,7 +251,7 @@ module pipeline (
   //                  X-Stage                     //
   //                                              //
   //////////////////////////////////////////////////
-  ex_stage ex_stage_0 (
+  x_stage x_stage_0 (
     // Inputs
     .clock(clock),
     .reset(reset),
@@ -272,7 +261,7 @@ module pipeline (
   );
   //////////////////////////////////////////////////
   //                                              //
-  //           X/MEM Pipeline Register            //
+  //           X/C Pipeline Register              //
   //                                              //
   //////////////////////////////////////////////////
   assign ex_mem_NPC = x_c_packet.NPC;
@@ -282,7 +271,7 @@ module pipeline (
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
-      x_c_packet <= `SD `EX_MEM_PACKET_RESET;
+      x_c_packet <= `SD `X_C_PACKET_RESET;
     end else if (x_c_enable) begin
       // these are forwarded directly from ID/EX latches
       x_c_packet <= `SD x_packet_out;
@@ -290,10 +279,10 @@ module pipeline (
   end // always
   //////////////////////////////////////////////////
   //                                              //
-  //                 MEM-Stage                    //
+  //                 C-Stage                      //
   //                                              //
   //////////////////////////////////////////////////
-  mem_stage mem_stage_0 (// Inputs
+  c_stage c_stage_0 (// Inputs
     .clock(clock),
     .reset(reset),
     .x_c_packet_in(x_c_packet),
@@ -318,7 +307,7 @@ module pipeline (
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
-      c_r_packet <= `SD `MEM_WB_PACKET_RESET;
+      c_r_packet <= `SD `C_R_PACKET_RESET;
     end else if (c_r_enable) begin
       // these are forwarded directly from EX/MEM latches
       c_r_packet <= `SD c_packet_out;
@@ -329,7 +318,7 @@ module pipeline (
   //                  WB-Stage                    //
   //                                              //
   //////////////////////////////////////////////////
-  wb_stage wb_stage_0 (
+  r_stage r_stage_0 (
     // Inputs
     .clock(clock),
     .reset(reset),

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
 //                                                                     //
-//   Modulename :  id_stage.v                                          //
+//   Modulename :  d_stage.v                                          //
 //                                                                     //
 //  Description :  instruction decode (ID) stage of the pipeline;      // 
 //                 decode the instruction fetch register operands, and // 
@@ -198,7 +198,7 @@ module decoder(
    
 endmodule // decoder
 
-module id_stage(
+module d_stage(
   input         clock,                // system clock
   input         reset,                // system reset
   input R_REG_PACKET r_packet_in,
@@ -261,4 +261,4 @@ module id_stage(
     endcase
   end
    
-endmodule // module id_stage
+endmodule // module d_stage

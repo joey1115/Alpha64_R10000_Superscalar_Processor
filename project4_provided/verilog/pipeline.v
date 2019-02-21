@@ -151,7 +151,7 @@ module pipeline (
   assign if_NPC_out = f_packet_out.NPC;
   assign if_IR_out = f_packet_out.inst;
   assign if_valid_inst_out = f_packet_out.valid;
-  if_stage if_stage_0 (
+  f_stage f_stage_0 (
     // Inputs
     .clock (clock),
     .reset (reset),
@@ -186,7 +186,7 @@ module pipeline (
   //                  ID-Stage                    //
   //                                              //
   //////////////////////////////////////////////////
-  id_stage id_stage_0 (// Inputs
+  d_stage d_stage_0 (// Inputs
     .clock(clock),
     .reset(reset),
     .f_d_packet_in(f_d_packet),
@@ -212,7 +212,7 @@ module pipeline (
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
-      s_x_packet <= `SD `ID_EX_PACKET_RESET; 
+      s_x_packet <= `SD `S_X_PACKET_RESET; 
     end else begin // if (reset)
       if (s_x_enable) begin
         s_x_packet <= `SD s_packet_out;
@@ -224,7 +224,7 @@ module pipeline (
   //                  EX-Stage                    //
   //                                              //
   //////////////////////////////////////////////////
-  ex_stage ex_stage_0 (
+  x_stage x_stage_0 (
     // Inputs
     .clock(clock),
     .reset(reset),
@@ -244,7 +244,7 @@ module pipeline (
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
-      x_c_packet <= `SD `EX_MEM_PACKET_RESET;
+      x_c_packet <= `SD `X_C_PACKET_RESET;
     end else begin
       if (x_c_enable) begin
         // these are forwarded directly from ID/EX latches
@@ -257,7 +257,7 @@ module pipeline (
   //                 MEM-Stage                    //
   //                                              //
   //////////////////////////////////////////////////
-  mem_stage mem_stage_0 (// Inputs
+  c_stage c_stage_0 (// Inputs
     .clock(clock),
     .reset(reset),
     .x_c_packet_in(x_c_packet),
@@ -282,7 +282,7 @@ module pipeline (
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
-      c_r_packet <= `SD `MEM_WB_PACKET_RESET;
+      c_r_packet <= `SD `C_R_PACKET_RESET;
     end else begin
       if (c_r_enable) begin
         // these are forwarded directly from EX/MEM latches
@@ -295,7 +295,7 @@ module pipeline (
   //                  WB-Stage                    //
   //                                              //
   //////////////////////////////////////////////////
-  wb_stage wb_stage_0 (
+  r_stage r_stage_0 (
     // Inputs
     .clock(clock),
     .reset(reset),

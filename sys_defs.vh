@@ -335,7 +335,7 @@ typedef struct packed {
   //RS_ENTRY [NUM_RS-1:0] RS;
 } S_X_PACKET;
 
-`define ID_EX_PACKET_RESET '{ \
+`define S_X_PACKET_RESET '{ \
   {64{1'b0}}, \
   {64{1'b0}}, \
   {64{1'b0}}, \
@@ -369,7 +369,7 @@ typedef struct packed {
   logic        halt, illegal, valid;
 } X_C_PACKET;
 
-`define EX_MEM_PACKET_RESET '{ \
+`define X_C_PACKET_RESET '{ \
   `NOOP_INST, \
   0, \
   0, \
@@ -392,7 +392,7 @@ typedef struct packed {
   logic [63:0]      result;
 } C_R_PACKET;
 
-`define MEM_WB_PACKET_RESET '{ \
+`define C_R_PACKET_RESET '{ \
   `NOOP_INST, \
   0, \
   0, \

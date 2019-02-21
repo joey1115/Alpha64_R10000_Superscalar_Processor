@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-//   Modulename :  ex_stage.v                                           //
+//   Modulename :  x_stage.v                                           //
 //                                                                      //
 //  Description :  instruction execute (EX) stage of the pipeline;      //
 //                 given the instruction command code CMD, select the   //
@@ -96,10 +96,10 @@ module brcond(// Inputs
 endmodule // brcond
 
 
-module ex_stage(
+module x_stage(
   input                clock,               // system clock
   input                reset,               // system reset
-  input S_X_PACKET   s_x_packet_in,
+  input  S_X_PACKET s_x_packet_in,
   output X_C_PACKET x_packet_out
 );
   
@@ -177,4 +177,4 @@ module ex_stage(
    //    unconditional, or conditional and the condition is true
   assign x_packet_out.take_branch = s_x_packet_in.uncond_branch | (s_x_packet_in.cond_branch & brcond_result);
 
-endmodule // module ex_stage
+endmodule // module x_stage
