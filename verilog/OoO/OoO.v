@@ -1,4 +1,4 @@
-module OoO (
+module OoO_m (
   input  ID_EX_PACKET  id_packet_out,
   input  EX_MEM_PACKET ex_packet_out,
   input  MEM_WB_PACKET mem_packet_out,

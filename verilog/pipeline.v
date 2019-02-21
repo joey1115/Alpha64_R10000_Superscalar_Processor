@@ -145,7 +145,7 @@ module pipeline (
   );
   //////////////////////////////////////////////////
   //                                              //
-  //                  IF-Stage                    //
+  //                  F-Stage                     //
   //                                              //
   //////////////////////////////////////////////////
   assign if_NPC_out = if_packet_out.NPC;
@@ -165,7 +165,7 @@ module pipeline (
   );
   //////////////////////////////////////////////////
   //                                              //
-  //            IF/ID Pipeline Register           //
+  //            F/D Pipeline Register             //
   //                                              //
   //////////////////////////////////////////////////
   assign if_id_NPC        = if_id_packet.NPC;
@@ -183,7 +183,7 @@ module pipeline (
   end // always
   //////////////////////////////////////////////////
   //                                              //
-  //                  ID-Stage                    //
+  //                  D-Stage                     //
   //                                              //
   //////////////////////////////////////////////////
   id_stage id_stage_0 (// Inputs
@@ -202,7 +202,7 @@ module pipeline (
   //  if you plan to do a multicore project.
   //////////////////////////////////////////////////
   //                                              //
-  //            ID/EX Pipeline Register           //
+  //            D/S Pipeline Register             //
   //                                              //
   //////////////////////////////////////////////////
   assign id_ex_NPC        = id_ex_packet.NPC;
@@ -221,7 +221,45 @@ module pipeline (
   end // always
   //////////////////////////////////////////////////
   //                                              //
-  //                  EX-Stage                    //
+  //                  S-Stage                     //
+  //                                              //
+  //////////////////////////////////////////////////
+  id_stage id_stage_0 (// Inputs
+    .clock(clock),
+    .reset(reset),
+    .if_id_packet_in(if_id_packet),
+    .wb_reg_packet_in(wb_packet_out),
+
+    // Outputs
+    .id_packet_out(id_packet_out)
+  );
+  // Note: Decode signals for load-lock/store-conditional and "get CPU ID"
+  //  instructions (id_{ldl,stc}_mem_out, id_cpuid_out) are not connected
+  //  to anything because the provided EX and MEM stages do not implement
+  //  these instructions.  You will have to implement these instructions
+  //  if you plan to do a multicore project.
+  //////////////////////////////////////////////////
+  //                                              //
+  //              S/X Pipeline Register           //
+  //                                              //
+  //////////////////////////////////////////////////
+  assign id_ex_NPC        = id_ex_packet.NPC;
+  assign id_ex_IR         = id_ex_packet.inst;
+  assign id_ex_valid_inst = id_ex_packet.valid;
+  assign id_ex_enable = 1'b1; // always enabled
+  // synopsys sync_set_reset "reset"
+  always_ff @(posedge clock) begin
+    if (reset) begin
+      id_ex_packet <= `SD `ID_EX_PACKET_RESET; 
+    end else begin // if (reset)
+      if (id_ex_enable) begin
+        id_ex_packet <= `SD id_packet_out;
+      end // if
+    end // else: !if(reset)
+  end // always
+  //////////////////////////////////////////////////
+  //                                              //
+  //                  X-Stage                     //
   //                                              //
   //////////////////////////////////////////////////
   ex_stage ex_stage_0 (
@@ -234,7 +272,7 @@ module pipeline (
   );
   //////////////////////////////////////////////////
   //                                              //
-  //           EX/MEM Pipeline Register           //
+  //           X/MEM Pipeline Register            //
   //                                              //
   //////////////////////////////////////////////////
   assign ex_mem_NPC = ex_mem_packet.NPC;
