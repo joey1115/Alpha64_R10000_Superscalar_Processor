@@ -3,64 +3,58 @@
 //Increment head (oldest inst).
 //Increment tail (newer inst).
 module rob_m (
-  input clock, reset,
-  input logic ht,
-  input COMMAND cmd, //WRITE, READ
-  input increment,    //ADD T/H
-  input logic [$clog2(`NUM_PR)-1:0] T_in,    
-  input logic [$clog2(`NUM_PR)-1:0] T_old_in,
-  output logic [$clog2(`NUM_PR)-1:0] T_out,    
-  output logic [$clog2(`NUM_PR)-1:0] T_old_out,
-  output logic out
+  input en, clock, reset,
+  input ROB_PACKET_IN rob_packet_in,
+
+  output ROB_PACKET_OUT rob_packet_out
 );
 
-  ROB_ENTRY_t [`NUM_ROB - 1:0] rob;
-  logic writeTail, readHead, readTail, incHead, incTail;
-  logic [$clog2(`NUM_ROB)-1: 0] headPointer, tailPointer; // not sure if register ok or need param
-
+  ROB_t rob;
+  
+  logic [$clog2(`NUM_ROB)-1:0] nextTailPointer, nextHeadPointer;
+  logic [$clog2(`NUM_PR)-1:0] nextT, nextT_old;
+  logic writeTail, moveHead;
 
   always_ff @ (posedge clock) begin
     if(reset) begin
-      headPointer = 0;
-      tailPointer = 0;
+      rob.tail <= # `SD 0;
+      rob.head <= # `SD 0;
       for(int i=0; i < `NUM_ROB; i++) begin
-        rob.valid = 0;
+         rob.entry[i].valid <= # `SD 0;
       end
     end
     else begin
-      if(incTail)
-        tailPointer <= #`SD tailPointer + 1;
-      else
-        tailPointer <= #`SD tailPointer;
+      rob.tail <= # `SD nextTailPointer;
+      rob.head <= # `SD nextHeadPointer;
 
-      if(incHead)
-        headPointer <= #`SD headPointer + 1;
-      else
-        headPointer <= #`SD headPointer;
+      rob.entry[rob.tail].T <= #`SD nextT;
+      rob.entry[rob.tail].T_old <= #`SD nextT_old;
+      rob.entry[rob.tail].valid <= #`SD nextTailValid;
 
-      if(writeTail) begin
-        rob[tailPointer].T <= #`SD T_in;
-        rob[tailPointer].T_old <= #`SD T_old_in;
-      end
+      rob.entry[rob.head].valid <= #`SD nextHeadValid;
     end
   end
 
   always_comb begin
-    writeTail = (cmd == WRITE) && ~ht;
-    readTail = (cmd == READ) && ~ht;
-    readHead = (cmd == READ) && ht;
-    incHead = increment && ht;
-    incTail = increment && ~ht;
+    writeTail = (rob_packet_in.inst_dispatch) && en && ~rob_packet_out.struct_hazard;
+    moveHead = (rob_packet_in.r) && en;
 
-    if(readTail) begin
-      T_out = rob[tailPointer].T;
-      T_old_out = rob[tailPointer].T_old;
-      out = rob[tailPointer].valid;
-    end
-    else if (readHead) begin
-      T_out = rob[headPointer].T;
-      T_old_out = rob[headPointer].T_old;
-      out = rob[headPointer].valid;
-    end
+    nextTailPointer = (writeTail) ? (rob.tail + 1) : rob.tail;
+    nextT = (writeTail) ? T_in : rob.entry[rob.tail].T;
+    nextT_old = (writeTail) ? T_old_in : rob.entry[rob.tail].T_old;
+    nextTailValid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
+
+    nextHeadPointer = (moveHead) ? (rob.head + 1) : rob.head;
+    nextHeadValid = (moveHead) ? 0 : rob.entry[rob.head].valid;
+
+    rob_packet_out.out_correct = rob.entry[rob.tail - 1].valid;
+    rob_packet_out.ins_rob_idx = (rob.tail - 1);
+    rob_packet_out.T_out = rob.entry[rob.tail - 1].T;
+    rob_packet_out.T_old_out = rob.entry[rob.tail - 1].T_old;
+
+    rob_packet_out.struct_hazard = rob.entry[rob.tail].valid;
+
+    rob_packet_out.head_idx_out = rob.head;
+
   end
 endmodule
