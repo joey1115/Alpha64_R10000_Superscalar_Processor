@@ -260,7 +260,7 @@ typedef enum logic [3:0] {
 typedef struct packed {
   FU_t                        FU;
   logic                       busy;
-  logic [5:0]                 op;
+  // logic [5:0]                 op;
   logic [$clog2(`NUM_PR)-1:0] T;
   T_t                         T1;
   T_t                         T2;
