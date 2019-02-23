@@ -66,6 +66,14 @@ module testbench_ROB;
 
   logic [31:0] cycle_count;
 
+/*   task show_ROB;
+    input [31:0] start_addr;
+    input [31:0] end_addr;
+    int showing_data;
+    begin
+    
+    end
+  endtask  // task show_ROB */
 
   // Generate System Clock
   always begin
@@ -83,7 +91,8 @@ module testbench_ROB;
 
 
   initial begin
-    $monitor("Time:%4.0f", $time);
+    $display("_____________");
+    $display("| Time:%4.0f |", $time);
     // Reset
     en    = 1'b1;
     clock = 1'b0;
