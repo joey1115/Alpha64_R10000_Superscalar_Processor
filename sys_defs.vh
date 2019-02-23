@@ -28,7 +28,7 @@
 `define NUM_MEM_TAGS           15
 `define NUM_PR                 64
 
-`define NUM_ROB                1
+`define NUM_ROB                8
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
@@ -185,6 +185,14 @@ typedef struct packed {
   logic  valid; // PC + 4 
 } DECODER_PACKET_IN;
 
+typedef enum logic [2:0] {
+  FU_ALU = 3'b000,
+  FU_ST  = 3'b001,
+  FU_LD  = 3'b010,
+  FU_FP1 = 3'b011,
+  FU_FP2 = 3'b100
+} FU_t;
+
 typedef struct packed {
   ALU_OPA_SELECT opa_select;  // fetched instruction out
   ALU_OPB_SELECT opb_select;
@@ -226,6 +234,11 @@ typedef struct packed {
   PR_FREE_t    free;
 } PR_t;
 
+typedef enum logic {
+  PR_NOT_READY = 1'b0,
+  PR_READY     = 1'b1
+} PR_STATUS_t;
+
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] PR_idx;
   PR_STATUS_t                 T_PLUS_STATUS;
@@ -236,23 +249,10 @@ typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] PR_idx;
 } ARCH_MAP_t;
 
-typedef enum logic {
-  PR_NOT_READY = 1'b0,
-  PR_READY     = 1'b1
-} PR_STATUS_t;
-
 typedef struct packed {
   logic [4:0] reg_idx;
   T_t         T_plus;
 } MAP_TABLE_t;
-
-typedef enum logic [3:0] {
-  FU_ALU = 3'b000,
-  FU_ST  = 3'b001,
-  FU_LD  = 3'b010,
-  FU_FP1 = 3'b011,
-  FU_FP2 = 3'b100
-} FU_t;
 
 `define NUM_ALU 1
 `define FU_list { FU_ALU, FU_ST, FU_LD, FU_FP1, FU_FP2 }
@@ -267,10 +267,10 @@ typedef struct packed {
 } RS_ENTRY_t;
 
 typedef enum logic [1:0] {
-  HT_NONE = 2'b000,
-  HT_HEAD = 2'b001,
-  HT_TAIL = 2'b010,
-  HT_HT   = 2'b011
+  HT_NONE = 2'b00,
+  HT_HEAD = 2'b01,
+  HT_TAIL = 2'b10,
+  HT_HT   = 2'b11
 } HT_t;
 
 typedef struct packed {
