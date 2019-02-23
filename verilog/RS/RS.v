@@ -24,7 +24,7 @@ module RS_m (
 // ROB logic
   always_ff @(posedge clock) begin
     if(reset) begin
-      RS <= `SD {`NUM_ALU{RS_ENTRY_RESET}};
+      RS <= `SD RS_RESET;
     end else if(rob_packet_in.en) begin
       RS <= `SD next_RS;
     end // if (f_d_enable)

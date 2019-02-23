@@ -256,6 +256,13 @@ typedef enum logic [3:0] {
 
 `define NUM_ALU 1
 `define FU_list { FU_ALU, FU_ST, FU_LD, FU_FP1, FU_FP2 }
+`define RS_RESET '{ /
+  {FU_ALU, `FALSE, 0, 0, 0}, /
+  {FU_ST,  `FALSE, 0, 0, 0}, /
+  {FU_LD,  `FALSE, 0, 0, 0}, /
+  {FU_FP1, `FALSE, 0, 0, 0}, /
+  {FU_FP2, `FALSE, 0, 0, 0}, /
+}
 
 typedef struct packed {
   FU_t                        FU;
