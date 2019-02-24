@@ -27,7 +27,7 @@
 ## CONFIGURATION
 ################################################################################
 
-VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD)
+VCS = SW_VCS=2012.09 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD)
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 SYNTH_DIR = ./synth
@@ -55,7 +55,7 @@ export CACHEFILES
 export CACHE_NAME = cache
 export PIPELINE_NAME = pipeline
 
-PIPELINE  = $(SYNTH_DIR)/$(PIPELINE_NAME).vg 
+PIPELINE  = $(SYNTH_DIR)/$(PIPELINE_NAME).vg
 SYNFILES  = $(PIPELINE) $(SYNTH_DIR)/$(PIPELINE_NAME)_svsim.sv
 CACHE     = $(SYNTH_DIR)/$(CACHE_NAME).vg
 

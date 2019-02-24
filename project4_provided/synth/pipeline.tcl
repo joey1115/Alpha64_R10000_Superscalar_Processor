@@ -32,12 +32,13 @@ set clock_name [getenv CLOCK_NET_NAME]
 set reset_name [getenv RESET_NET_NAME]
 set CLK_PERIOD [getenv CLOCK_PERIOD]
 
+
+#/***********************************************************/
+#/* The rest of this file may be left alone for most small  */
+#/* to moderate sized designs.  You may need to alter it    */
+#/* when synthesizing your final project.                   */
+#/***********************************************************/
 set SYN_DIR ./
-
-
-#/***********************************************************/
-#/* You should NOT edit anything below this line for 470    */
-#/***********************************************************/
 
 #/***********************************************************/
 #/* Set some flags for optimisation */

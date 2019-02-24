@@ -114,7 +114,7 @@ typedef enum logic [4:0] {
 } ALU_FUNC;
 
 typedef union packed {
-  logic [31:0] inst;
+  logic [31:0] I;
   struct packed {
     logic [5:0] opcode;
     logic [4:0] rega_idx;
