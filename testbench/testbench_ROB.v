@@ -78,6 +78,16 @@ module testbench_ROB;
     end
   endtask  // task show_ROB */
 
+  // Test Cases #1
+  ROB_PACKET_IN [:0] test1;
+  // {r, inst_dispatch, T_in, T_old_in}
+  test1[0] = '{0, 1,  5,  2};
+  test1[1] = '{0, 1,  6,  3};
+  test1[2] = '{0, 1, 31, 31}; // store inst, no destination
+  test1[3] = '{0, 1,  7,  4};
+  test1[4] = '{1, 1,  8,  5};
+
+
   // Generate System Clock
   always begin
     #(`VERILOG_CLOCK_PERIOD/2.0);
