@@ -14,6 +14,7 @@
 `define NUM_ROB                8
 
 typedef struct packed {
+  logic valid;
   logic [$clog2(`NUM_PR)-1:0] T;
   logic [$clog2(`NUM_PR)-1:0] T_old;
 } ROB_ENTRY_t;
@@ -54,6 +55,7 @@ module testbench_ROB;
 
   // DUT output
   ROB_PACKET_OUT rob_packet_out;
+  ROB_t          rob;
 
   // DUT instantiation
   rob_m DUT(
@@ -61,7 +63,8 @@ module testbench_ROB;
     .clock(clock),
     .reset(reset),
     .rob_packet_in(rob_packet_in),
-    .rob_packet_out(rob_packet_out)
+    .rob_packet_out(rob_packet_out),
+    .rob(rob)
   );
 
   logic [31:0] cycle_count;
@@ -89,6 +92,13 @@ module testbench_ROB;
       cycle_count <= `SD (cycle_count + 1);
   end
 
+  always @(negedge clock) begin
+    $display("\n");
+    $display("cycle:%3d", cycle_count);
+    $display("head:%4d", rob.head);
+    $display("tail:%4d", rob.tail);
+    $display("entry0:%2d", rob.entry[0].valid);
+  end
 
   initial begin
     $display("_____________");
@@ -96,6 +106,8 @@ module testbench_ROB;
     // Reset
     en    = 1'b1;
     clock = 1'b0;
+    reset = 1'b0;
+    @(negedge clock);
     reset = 1'b1;
 
     // Load initial line
@@ -105,7 +117,10 @@ module testbench_ROB;
     reset = 1'b0;
 
     @(negedge clock);
-    $display("Try and it worked");
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+
     $finish;
 
   end // initial

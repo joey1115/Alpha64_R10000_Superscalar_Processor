@@ -40,15 +40,23 @@ typedef struct packed {
 
 `timescale 1ns/100ps
 
+`define DEBUG
+
 module rob_m (
   input en, clock, reset,
   input ROB_PACKET_IN rob_packet_in,
 
+  `ifdef DEBUG
+  output ROB_t rob,
+  `endif
+
   output ROB_PACKET_OUT rob_packet_out
 );
 
+  `ifndef DEBUG
   ROB_t rob;
-  
+  `endif
+
   logic nextTailValid;
   logic nextHeadValid;
   logic [$clog2(`NUM_ROB)-1:0] nextTailPointer, nextHeadPointer;
