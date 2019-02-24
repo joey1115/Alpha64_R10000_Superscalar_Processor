@@ -7,8 +7,7 @@ module RS_m (
 
   always_comb begin
     next_RS = RS;
-    genvar i;
-    for (i = 0; i <= `NUM_ALU; i++) begin
+    for (int i = 0; i <= `NUM_ALU; i++) begin
       if ( i == `NUM_ALU ) begin
         rs_packet_out.valid = `FALSE;
         break;
