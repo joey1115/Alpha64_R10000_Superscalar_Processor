@@ -70,31 +70,33 @@ module rob_m (
       rob.entry[rob.tail].T <= `SD nextT;
       rob.entry[rob.tail].T_old <= `SD nextT_old;
       rob.entry[rob.tail].valid <= `SD nextTailValid;
-
-      rob.entry[rob.head].valid <= `SD nextHeadValid;
-    end
-  end
+      if (rob.tail != rob.head) begin
+        rob.entry[rob.head].valid <= `SD nextHeadValid;
+      end
+    end // if (reset) else
+  end // always_ff
 
   always_comb begin
-    writeTail = (rob_packet_in.inst_dispatch) && en && ~rob_packet_out.struct_hazard;
+    // for Retire
     moveHead = (rob_packet_in.r) && en;
+    nextHeadPointer = (moveHead) ? (rob.head + 1) : rob.head;
+    nextHeadValid = (moveHead) ? 0 : rob.entry[rob.head].valid;
+    // for Complete
+    rob_packet_out.head_idx_out = rob.head;
+    // for Dispatch
+    rob_packet_out.struct_hazard = rob.entry[rob.tail].valid;
+    writeTail = (rob_packet_in.inst_dispatch) && en && ~rob_packet_out.struct_hazard;
 
     nextTailPointer = (writeTail) ? (rob.tail + 1) : rob.tail;
     nextT = (writeTail) ? rob_packet_in.T_in : rob.entry[rob.tail].T;
     nextT_old = (writeTail) ? rob_packet_in.T_old_in : rob.entry[rob.tail].T_old;
     nextTailValid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
 
-    nextHeadPointer = (moveHead) ? (rob.head + 1) : rob.head;
-    nextHeadValid = (moveHead) ? 0 : rob.entry[rob.head].valid;
-
     rob_packet_out.out_correct = rob.entry[rob.tail - 1].valid;
-    rob_packet_out.ins_rob_idx = (rob.tail - 1);
+    //rob_packet_out.ins_rob_idx = (rob.tail - 1);
+    rob_packet_out.ins_rob_idx = rob.tail;
     rob_packet_out.T_out = rob.entry[rob.tail - 1].T;
     rob_packet_out.T_old_out = rob.entry[rob.tail - 1].T_old;
-
-    rob_packet_out.struct_hazard = rob.entry[rob.tail].valid;
-
-    rob_packet_out.head_idx_out = rob.head;
 
   end
 endmodule
