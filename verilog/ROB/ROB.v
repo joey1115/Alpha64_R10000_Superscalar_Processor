@@ -71,6 +71,25 @@ module rob_m (
          rob.entry[i].valid <= `SD 0;
       end
     end
+    // To flush instructions in ROB until branch
+    else if(rob_packet_in.branch_mispredict) begin 
+      //if the branch idx is greater or equal to tail
+      if(rob_packet_in.flush_branch_idx >= rob.tail) begin
+        for(int i=0; i < `NUM_ROB; i++) begin
+          //flush only branch greater less than tail and greater than branch
+          if( i < rob.tail || i > rob_packet_in.flush_branch_idx)
+            rob.entry[i].valid <= `SD 0;
+        end
+      end
+      //if the branch idx is less than to tail
+      else begin
+        for(int i=0; i < `NUM_ROB; i++) begin
+          //flush instructions between tail and branch
+          if( i < rob.tail && i > rob_packet_in.flush_branch_idx)
+            rob.entry[i].valid <= `SD 0;
+        end
+      end
+    end
     else begin
       rob.tail <= `SD nextTailPointer;
       rob.head <= `SD nextHeadPointer;

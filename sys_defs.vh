@@ -266,16 +266,14 @@ typedef struct packed {
   T_t                         T2;
 } RS_ENTRY_t;
 
-typedef enum logic [1:0] {
-  HT_NONE = 2'b00,
-  HT_HEAD = 2'b01,
-  HT_TAIL = 2'b10,
-  HT_HT   = 2'b11
-} HT_t;
+// typedef enum logic [1:0] {
+//   HT_NONE = 2'b00,
+//   HT_HEAD = 2'b01,
+//   HT_TAIL = 2'b10,
+//   HT_HT   = 2'b11
+// } HT_t;
 
 typedef struct packed {
-  // HT_t                        ht;
-  // INST_t                      inst;
   logic valid;
   logic [$clog2(`NUM_PR)-1:0] T;
   logic [$clog2(`NUM_PR)-1:0] T_old;
@@ -288,19 +286,21 @@ typedef struct packed {
 } ROB_t;
 
 typedef struct packed {
-  logic r;
-  logic inst_dispatch;
-  logic [$clog2(`NUM_PR)-1:0] T_in;
-  logic [$clog2(`NUM_PR)-1:0] T_old_in;
+  logic r;                                        //retire, increase head, invalidate entry
+  logic inst_dispatch;                            //dispatch, increase tail, validate entry
+  logic [$clog2(`NUM_PR)-1:0] T_in;               //T_in data to input to T during dispatch
+  logic [$clog2(`NUM_PR)-1:0] T_old_in;           //T_onld_in data to input to T_old during dispatch
+  logic [$clog2(`NUM_ROB)-1:0] flush_branch_idx;  //ROB idx of branch inst
+  logic branch_mispredict;                        //set high when branch mispredicted, will invalidate entry except branch inst
 } ROB_PACKET_IN;
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] T_out;
-  logic [$clog2(`NUM_PR)-1:0] T_old_out;
-  logic out_correct;
-  logic struct_hazard;
-  logic [$clog2(`NUM_ROB)-1:0] head_idx_out;
-  logic [$clog2(`NUM_ROB)-1:0] ins_rob_idx;
+  logic [$clog2(`NUM_PR)-1:0] T_out;              //output tail's T
+  logic [$clog2(`NUM_PR)-1:0] T_old_out;          //output tail's T_old
+  logic out_correct;                              //tells whether output is valid
+  logic struct_hazard;                            //tells whether structural hazard reached
+  logic [$clog2(`NUM_ROB)-1:0] head_idx_out;      //tells the rob idx of the head
+  logic [$clog2(`NUM_ROB)-1:0] ins_rob_idx;       //tells the rob idx of the dispatched inst
 } ROB_PACKET_OUT;
 //////////////////////////////////////////////
 //
