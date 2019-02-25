@@ -7,7 +7,7 @@
 
 `define DEBUG
 
-module rob_m (
+module ROB (
   input en, clock, reset,
   input ROB_PACKET_IN rob_packet_in,
 

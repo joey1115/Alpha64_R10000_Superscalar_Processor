@@ -60,7 +60,7 @@ module testbench_ROB;
   ROB_t          rob;
 
   // DUT instantiation
-  rob_m UUT(
+  ROB UUT(
     .en(en),
     .clock(clock),
     .reset(reset),
@@ -219,10 +219,13 @@ module testbench_ROB;
     en    = 1'b1;
     clock = 1'b0;
     reset = 1'b0;
+
+    @(negedge clock);
+    reset = 1'b1;
     
     // Cycle 0 input
     @(negedge clock);
-    reset = 1'b1;
+    reset = 1'b0;
     rob_packet_in = test1[0];
 
     // Cycle 1 input
