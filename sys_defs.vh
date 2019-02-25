@@ -297,11 +297,12 @@ typedef struct packed {
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] T_out;              //output tail's T
   logic [$clog2(`NUM_PR)-1:0] T_old_out;          //output tail's T_old
-  logic out_correct;                              //tells whether output is valid
+  logic out_correct;                              //tells whether output is valid (empty entry)
   logic struct_hazard;                            //tells whether structural hazard reached
   logic [$clog2(`NUM_ROB)-1:0] head_idx_out;      //tells the rob idx of the head
   logic [$clog2(`NUM_ROB)-1:0] ins_rob_idx;       //tells the rob idx of the dispatched inst
 } ROB_PACKET_OUT;
+
 //////////////////////////////////////////////
 //
 // IF Packets:
