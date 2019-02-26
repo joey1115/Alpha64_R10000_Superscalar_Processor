@@ -2,7 +2,7 @@
 //WRITE T_old and T for Head or tail.
 //Increment head (oldest inst).
 //Increment tail (newer inst).
-module rob_m (
+module ROB (
   input en, clock, reset,
   input ROB_PACKET_IN rob_packet_in,
 
