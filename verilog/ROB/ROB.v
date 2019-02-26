@@ -29,7 +29,7 @@ module ROB (
   logic nextHeadValid;
   logic [$clog2(`NUM_ROB)-1:0] nextTailPointer, nextHeadPointer;
   logic [$clog2(`NUM_PR)-1:0] nextT, nextT_old;
-  logic writeTail, moveHead;
+  logic writeTail, moveHead, mispredict, b_t;
 
   always_comb begin
     Nrob = rob;
@@ -53,17 +53,20 @@ module ROB (
     Nrob.entry[rob.head].valid = (moveHead) ? 0 : rob.entry[rob.head].valid;
     Nrob.entry[rob.tail].valid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
 
-    if(rob_packet_in.branch_mispredict) begin
-        if(rob_packet_in.flush_branch_idx >= rob.tail) begin
-            for(int i=0; i < `NUM_ROB; i++) begin
-              //flush only branch greater less than tail and greater than branch
-              if( i < rob.tail || i > rob_packet_in.flush_branch_idx)
-                Nrob.entry[i].valid = 0;
-            end
+    b_t = rob_packet_in.flush_branch_idx >= rob.tail;
+
+    mispredict = rob_packet_in.branch_mispredict && rob.entry[rob_packet_in.flush_branch_idx].valid;
+
+    if(mispredict) begin
+        if(b_t) begin
+          for(int i=0; i < `NUM_ROB; i++) begin
+            //flush only branch less than tail and greater than branch
+            if( i < rob.tail || i > rob_packet_in.flush_branch_idx)
+              Nrob.entry[i].valid = 0;
+          end
         end
-        //if the branch idx is less than to tail
         else begin
-        for(int i=0; i < `NUM_ROB; i++) begin
+          for(int i=0; i < `NUM_ROB; i++) begin
             //flush instructions between tail and branch
             if( i < rob.tail && i > rob_packet_in.flush_branch_idx)
               Nrob.entry[i].valid = 0;
