@@ -22,6 +22,9 @@ module ROB (
   ROB_t rob;
   `endif
 
+  ROB_t Nrob;
+
+
   logic nextTailValid;
   logic nextHeadValid;
   logic [$clog2(`NUM_ROB)-1:0] nextTailPointer, nextHeadPointer;
@@ -29,18 +32,41 @@ module ROB (
   logic writeTail, moveHead;
 
   always_comb begin
+    Nrob = rob;
     // condition for Retire
     moveHead = (rob_packet_in.r) && en && rob.entry[rob.head].valid;
-    nextHeadPointer = (moveHead) ? (rob.head + 1) : rob.head;
-    nextHeadValid = (moveHead) ? 0 : rob.entry[rob.head].valid;
     // condition for Dispatch
     writeTail = (rob_packet_in.inst_dispatch) && en && (!rob_packet_out.struct_hazard || rob_packet_in.r);
 
     // next state logic
-    nextTailPointer = (writeTail) ? (rob.tail + 1) : rob.tail;
-    nextT = (writeTail) ? rob_packet_in.T_in : rob.entry[rob.tail].T;
-    nextT_old = (writeTail) ? rob_packet_in.T_old_in : rob.entry[rob.tail].T_old;
-    nextTailValid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
+    Nrob.tail = (writeTail) ? (rob.tail + 1) : rob.tail;
+    Nrob.head = (moveHead) ? (rob.head + 1) : rob.head;
+    Nrob.entry[rob.tail].T = (writeTail) ? rob_packet_in.T_in : rob.entry[rob.tail].T;
+    Nrob.entry[rob.tail].T_old = (writeTail) ? rob_packet_in.T_old_in : rob.entry[rob.tail].T_old;
+  
+    //update valid bits of entry
+    Nrob.entry[rob.head].valid = (moveHead) ? 0 : rob.entry[rob.head].valid;
+    Nrob.entry[rob.tail].valid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
+
+    if(rob_packet_in.branch_mispredict) begin
+        if(rob_packet_in.flush_branch_idx >= rob.tail) begin
+            for(int i=0; i < `NUM_ROB; i++) begin
+              //flush only branch greater less than tail and greater than branch
+              if( i < rob.tail || i > rob_packet_in.flush_branch_idx)
+                Nrob.entry[i].valid = 0;
+            end
+        end
+        //if the branch idx is less than to tail
+        else begin
+        for(int i=0; i < `NUM_ROB; i++) begin
+            //flush instructions between tail and branch
+            if( i < rob.tail && i > rob_packet_in.flush_branch_idx)
+              Nrob.entry[i].valid = 0;
+          end
+        end
+        //move tail index to after branch
+        Nrob.tail = rob_packet_in.flush_branch_idx + 1;
+    end
 
     //outputs
     rob_packet_out.out_correct = rob.entry[rob.tail - 1].valid;
@@ -62,44 +88,8 @@ module ROB (
          rob.entry[i].valid <= `SD 0;
       end
     end
-    // To flush instructions in ROB until branch
-    else if(rob_packet_in.branch_mispredict) begin 
-      //if the branch idx is greater or equal to tail
-      if(rob_packet_in.flush_branch_idx >= rob.tail) begin
-        for(int i=0; i < `NUM_ROB; i++) begin
-          //flush only branch greater less than tail and greater than branch
-          if( i < rob.tail || i > rob_packet_in.flush_branch_idx)
-            rob.entry[i].valid <= `SD 0;
-        end
-      end
-      //if the branch idx is less than to tail
-      else begin
-        for(int i=0; i < `NUM_ROB; i++) begin
-          //flush instructions between tail and branch
-          if( i < rob.tail && i > rob_packet_in.flush_branch_idx)
-            rob.entry[i].valid <= `SD 0;
-        end
-      end
-      //update head to allow retire while flushing
-      rob.head <= `SD nextHeadPointer;
-      rob.entry[rob.head].valid <= `SD nextHeadValid;
-      //move tail index to after branch
-      rob.tail <= `SD rob_packet_in.flush_branch_idx + 1;
-    end // else if(rob_packet_in.branch_mispredict)
     else begin
-      rob.tail <= `SD nextTailPointer;
-      rob.head <= `SD nextHeadPointer;
-
-      rob.entry[rob.tail].T <= `SD nextT;
-      rob.entry[rob.tail].T_old <= `SD nextT_old;
-      
-      // check is the tail and head index is same or different
-      if (rob.tail != rob.head) begin
-        rob.entry[rob.head].valid <= `SD nextHeadValid;
-        rob.entry[rob.tail].valid <= `SD nextTailValid;
-      end
-      else
-        rob.entry[rob.tail].valid <= `SD (writeTail)?nextTailValid:nextHeadValid;
+      rob <= `SD Nrob;
     end // if (reset) else
   end // always_ff
 
