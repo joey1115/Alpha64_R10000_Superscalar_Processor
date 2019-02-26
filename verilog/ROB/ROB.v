@@ -34,9 +34,14 @@ module ROB (
   always_comb begin
     Nrob = rob;
     // condition for Retire
-    moveHead = (rob_packet_in.r) && en && rob.entry[rob.head].valid;
+    moveHead = (rob_packet_in.r) 
+                && en 
+                && rob.entry[rob.head].valid;
     // condition for Dispatch
-    writeTail = (rob_packet_in.inst_dispatch) && en && (!rob_packet_out.struct_hazard || rob_packet_in.r);
+    writeTail = (rob_packet_in.inst_dispatch) 
+                && en 
+                && (!rob_packet_out.struct_hazard || rob_packet_in.r) 
+                && !rob_packet_in.branch_mispredict;
 
     // next state logic
     Nrob.tail = (writeTail) ? (rob.tail + 1) : rob.tail;
