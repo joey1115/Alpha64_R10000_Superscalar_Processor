@@ -72,7 +72,7 @@ module testbench_ROB;
   logic [31:0] cycle_count;
 
   // Test Cases #1: Lecture Slides
-  `define TEST1_LEN 34
+  `define TEST1_LEN 35
   ROB_PACKET_IN  [`TEST1_LEN-1:0] test1;
   // solutions have one more state than test cases
   ROB_PACKET_OUT   [`TEST1_LEN:0] test1_out;
@@ -197,7 +197,7 @@ module testbench_ROB;
     test1[31] = '{0, 0, 12, 22, 4, 1}; // flush right after flush
     test1[32] = '{0, 1, 12, 22, 4, 0}; // write something after flush
     test1[33] = '{1, 1, 13, 23, 3, 1}; // flush and retire at the same time
-
+    test1[34] = '{1, 0, 13, 23, 3, 1}; // flush again at the same spot, and flush
 
     // test1_out[c]: output at cycle c (test1[c]'s effect is shown by test1_out[c+1])
     // {T_out, T_old_out, out_correct, struct_hazard, head_idx_out, ins_rob_idx}
@@ -245,6 +245,7 @@ module testbench_ROB;
     test1_out[32] = '{ 4, 14, 1, 0, 2, 4};
     test1_out[33] = '{12, 22, 1, 0, 2, 5};
     test1_out[34] = '{ 3, 13, 1, 0, 3, 3};
+    test1_out[35] = '{ 3, 13, 0, 0, 4, 3};
 
 
     // Reset
