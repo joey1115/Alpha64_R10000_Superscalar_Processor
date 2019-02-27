@@ -20,8 +20,8 @@ read_file -f sverilog [list ${headers} ${sources}]
 set design_name [getenv MOD_NAME]
 set clock_name [getenv CLOCK_NET_NAME]
 set reset_name [getenv RESET_NET_NAME]
-set CLK_PERIOD 1.3
-# set CLK_PERIOD [getenv CLOCK_PERIOD]
+# set CLK_PERIOD 1.3
+set CLK_PERIOD [getenv CLOCK_PERIOD]
 
 
 #/***********************************************************/
