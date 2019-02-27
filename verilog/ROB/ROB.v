@@ -87,7 +87,7 @@ module ROB (
     // output for Complete
     rob_packet_out.head_idx_out = rob.head;
     // output for Dispatch
-    rob_packet_out.struct_hazard = Nrob.entry[rob.tail].valid;
+    rob_packet_out.struct_hazard = rob.entry[rob.tail].valid;
 
   end
 
