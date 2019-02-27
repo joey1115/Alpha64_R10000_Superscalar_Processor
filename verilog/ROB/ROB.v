@@ -58,20 +58,21 @@ module ROB (
     mispredict = rob_packet_in.branch_mispredict && rob.entry[rob_packet_in.flush_branch_idx].valid;
 
     if(mispredict) begin
+      $display("mispredict");
         if(b_t) begin
+          $display("flush away tail and branch");
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush only branch less than tail and greater than branch
             if( i < rob.tail || i > rob_packet_in.flush_branch_idx)
               Nrob.entry[i].valid = 0;
-              $display("flush away tail and branch");
           end
         end
         else begin
+          $display("flush between tail and branch");
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush instructions between tail and branch
             if( i < rob.tail && i > rob_packet_in.flush_branch_idx)
               Nrob.entry[i].valid = 0;
-              $display("flush between tail and branch");
           end
         end
         //move tail index to after branch
