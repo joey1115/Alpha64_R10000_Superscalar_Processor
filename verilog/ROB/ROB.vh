@@ -1,6 +1,7 @@
 `include "../../sys_defs.vh"
 
 typedef struct packed {
+  logic valid;
   logic [$clog2(`NUM_PR)-1:0] T;
   logic [$clog2(`NUM_PR)-1:0] T_old;
 } ROB_ENTRY_t;
