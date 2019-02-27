@@ -11,6 +11,7 @@
 `timescale 1ns/100ps
 
 `include "sys_defs.vh"
+`include "verilog/ROB/ROB.vh"
 
 extern void print_header(string str);
 extern void print_cycles();
