@@ -10,6 +10,8 @@
 `ifndef __SYS_DEFS_VH__
 `define __SYS_DEFS_VH__
 
+`include "sys_config.vh"
+
 /* Synthesis testing definition, used in DUT module instantiation */
 
 `ifdef  SYNTH_TEST
@@ -85,7 +87,6 @@ typedef enum logic [1:0] {
   DEST_IS_REGA  = 2'h1,
   DEST_NONE     = 2'h2
 } DEST_REG_SEL;
-
 
 //
 // ALU function code input
@@ -178,11 +179,6 @@ typedef union packed {
   } p; //pal inst
 } INST_t; //instruction typedef, this should cover all types of instructions
 
-typedef struct packed {
-  INST_t inst;  // fetched instruction out
-  logic  valid; // PC + 4 
-} DECODER_PACKET_IN;
-
 typedef enum logic [2:0] {
   FU_ALU = 3'b000,
   FU_ST  = 3'b001,
@@ -192,84 +188,9 @@ typedef enum logic [2:0] {
 } FU_t;
 
 typedef struct packed {
-  ALU_OPA_SELECT opa_select;  // fetched instruction out
-  ALU_OPB_SELECT opb_select;
-  ALU_FUNC       alu_func;
-  logic          rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
-  logic          halt;      // non-zero on a halt
-  logic          cpuid;     // get CPUID instruction
-  logic          illegal;   // non-zero on an illegal instruction
-  logic          valid; // for counting valid instructions executed
-  logic [4:0]    dest_reg_idx;
-  FU_t           FU;
-} DECODER_PACKET_OUT;
-
-`define DECODER_PACKET_OUT_DEFAULT '{ \
-  ALU_OPA_IS_REGA, \
-  ALU_OPB_IS_REGB, \
-  ALU_ADDQ, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `ZERO_REG, \
-  FU_ALU \
-}
-
-typedef enum logic {
-  PR_NOT_FREE = 1'b0,
-  PR_FREE     = 1'b1
-} PR_FREE_t;
-
-typedef struct packed {
-  logic [63:0] data;
-  PR_FREE_t    free;
-} PR_t;
-
-typedef enum logic {
-  PR_NOT_READY = 1'b0,
-  PR_READY     = 1'b1
-} PR_STATUS_t;
-
-typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] PR_idx;
   PR_STATUS_t                 T_PLUS_STATUS;
 } T_t;
-
-typedef struct packed {
-  T_t                         T_PLUS;
-  logic [$clog2(`NUM_PR)-1:0] PR_idx;
-} ARCH_MAP_t;
-
-typedef struct packed {
-  logic [4:0] reg_idx;
-  T_t         T_plus;
-} MAP_TABLE_t;
-
-`define NUM_ALU 1
-`define FU_list { FU_ALU, FU_ST, FU_LD, FU_FP1, FU_FP2 }
-`define RS_RESET '{ \
-  {FU_ALU, `FALSE, 0, 0, 0}, \
-  {FU_ST,  `FALSE, 0, 0, 0}, \
-  {FU_LD,  `FALSE, 0, 0, 0}, \
-  {FU_FP1, `FALSE, 0, 0, 0}, \
-  {FU_FP2, `FALSE, 0, 0, 0}, \
-}
-
-typedef struct packed {
-  FU_t                        FU;
-  logic                       busy;
-  // logic [5:0]                 op;
-  logic [$clog2(`NUM_PR)-1:0] T;
-  T_t                         T1;
-  T_t                         T2;
-} RS_ENTRY_t;
 
 // typedef enum logic [1:0] {
 //   HT_NONE = 2'b00,
@@ -292,9 +213,9 @@ typedef struct packed {
 } F_D_PACKET;
 
 `define F_D_PACKET_RESET '{ \
-  `FALSE, \
-  `NOOP_INST, \
-  0 \
+  `FALSE,                   \
+  `NOOP_INST,               \
+  0                         \
 }
 
 //////////////////////////////////////////////
@@ -362,17 +283,17 @@ typedef struct packed {
 } X_C_PACKET;
 
 `define X_C_PACKET_RESET '{ \
-  `NOOP_INST, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  `ZERO_REG, \
-  0, \
-  0, \
-  0 \
+  `NOOP_INST,               \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  `ZERO_REG,                \
+  0,                        \
+  0,                        \
+  0                         \
 }
 
 typedef struct packed {
