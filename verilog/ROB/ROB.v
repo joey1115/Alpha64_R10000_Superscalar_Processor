@@ -30,7 +30,7 @@ module ROB (
   //logic [$clog2(`NUM_ROB)-1:0] nextTailPointer, nextHeadPointer;
   //logic [$clog2(`NUM_PR)-1:0] nextT, nextT_old;
   logic writeTail, moveHead, mispredict, b_t;
-  logic [$clog(`NUM_ROB)-1:0] real_tail_idx;
+  logic [$clog2(`NUM_ROB)-1:0] real_tail_idx;
 
   always_comb begin
     Nrob = rob;
