@@ -269,7 +269,7 @@ module testbench_ROB;
     en    = 1'b1;
     clock = 1'b0;
     reset = 1'b0;
-    rob_packet_in.r = 0;
+    rob_packet_in = 0;
 
     @(negedge clock);
     reset = 1'b1;
