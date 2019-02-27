@@ -54,7 +54,8 @@ SYNFILES  = $(MOD_NAME).vg $(MOD_NAME)_svsim.sv
 export MOD_NAME
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD = 30	# TODO: You will want to make this more aggresive
+export CLOCK_PERIOD = 30
+# TODO: You will want to make this more aggresive
 
 ################################################################################
 ## RULES
