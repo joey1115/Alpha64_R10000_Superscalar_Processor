@@ -10,6 +10,7 @@
 
 `timescale 1ns/100ps
 
+`include "../../sys_defs.vh"
 `include "ROB.vh"
 
 module test_ROB;

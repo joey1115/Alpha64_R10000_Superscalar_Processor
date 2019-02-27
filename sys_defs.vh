@@ -10,8 +10,6 @@
 `ifndef __SYS_DEFS_VH__
 `define __SYS_DEFS_VH__
 
-`include "sys_config.vh"
-
 /* Synthesis testing definition, used in DUT module instantiation */
 
 `ifdef  SYNTH_TEST
@@ -186,11 +184,6 @@ typedef enum logic [2:0] {
   FU_FP1 = 3'b011,
   FU_FP2 = 3'b100
 } FU_t;
-
-typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] PR_idx;
-  PR_STATUS_t                 T_PLUS_STATUS;
-} T_t;
 
 // typedef enum logic [1:0] {
 //   HT_NONE = 2'b00,

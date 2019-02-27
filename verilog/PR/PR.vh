@@ -18,4 +18,9 @@ typedef enum logic {
   PR_READY     = 1'b1
 } PR_STATUS_t;
 
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] PR_idx;
+  PR_STATUS_t                 T_PLUS_STATUS;
+} T_t;
+
 `endif
