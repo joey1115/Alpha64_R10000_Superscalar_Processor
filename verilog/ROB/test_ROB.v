@@ -47,9 +47,9 @@ typedef struct packed {
 
 `timescale 1ns/100ps
 
-`include "sys_defs.vh"
+`include "ROB.vh"
 
-module testbench_ROB;
+module test_ROB;
 
   // DUT input stimulus
   logic en, clock, reset;
