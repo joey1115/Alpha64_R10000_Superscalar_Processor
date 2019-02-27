@@ -63,6 +63,7 @@ module ROB (
             //flush only branch less than tail and greater than branch
             if( i < rob.tail || i > rob_packet_in.flush_branch_idx)
               Nrob.entry[i].valid = 0;
+              $display("flush away tail and branch");
           end
         end
         else begin
@@ -70,6 +71,7 @@ module ROB (
             //flush instructions between tail and branch
             if( i < rob.tail && i > rob_packet_in.flush_branch_idx)
               Nrob.entry[i].valid = 0;
+              $display("flush between tail and branch");
           end
         end
         //move tail index to after branch
