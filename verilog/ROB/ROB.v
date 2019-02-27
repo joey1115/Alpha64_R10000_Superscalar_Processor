@@ -50,8 +50,14 @@ module ROB (
     Nrob.entry[rob.tail].T_old = (writeTail) ? rob_packet_in.T_old_in : rob.entry[rob.tail].T_old;
   
     //update valid bits of entry
-    Nrob.entry[rob.head].valid = (moveHead) ? 0 : rob.entry[rob.head].valid;
-    Nrob.entry[rob.tail].valid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
+    if(rob.head != rob.tail) begin
+      Nrob.entry[rob.head].valid = (moveHead) ? 0 : rob.entry[rob.head].valid;
+      Nrob.entry[rob.tail].valid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
+    end
+    else begin
+      Nrob.entry[rob.tail].valid = (writeTail) ? 1 :
+                                    (moveHead) ? 0 : rob.entry[rob.head].valid;
+    end
 
     b_t = rob_packet_in.flush_branch_idx >= rob.tail;
 
