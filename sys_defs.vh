@@ -28,7 +28,7 @@
 `define NUM_MEM_TAGS           15
 `define NUM_PR                 64
 
-`define NUM_ROB                8
+`define NUM_ROB                1
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 

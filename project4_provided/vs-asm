@@ -1,0 +1,75 @@
+#! /usr/um/bin/perl
+
+# $path = "."; # if you grab local copies of the 2 binaries
+$path = "/afs/umich.edu/class/eecs470/lib/bin";
+
+unless (-e "$path/gas-alpha") {
+    print "Missing '/gas-alpha' file, used by this script!\n";
+    exit 1;
+}
+unless (-e "$path/objdump-alpha") {
+    print "Missing './objdump-alpha' file, used by this script!\n";
+    exit 1;
+}
+
+$file = shift;
+$tmpfile = "a.out.$$";
+system("$path/gas-alpha -o $tmpfile $file"); # could try the -R option to combine text & data segments
+
+unless (-e $tmpfile) {
+    exit 1;
+}
+open TEXTSEG, "$path/objdump-alpha -s $tmpfile -j .text |";
+open DATASEG, "$path/objdump-alpha -s $tmpfile -j .data |";
+
+$hdigit = '[\da-fA-F]';
+
+# skip up to actual text segment output
+while (<TEXTSEG>) {
+    chop;
+    last if ($_ eq 'Contents of section .text:');
+}
+for ($count = 0; <TEXTSEG>; $count++) {
+    ($data) = /^ $hdigit{4,} (($hdigit{8} ){1,4})/;
+    @words = split(' ', $data);
+    while ($#words < 3) {
+        push @words, '00000000';
+    }
+    print byterev($words[1]), byterev($words[0]), "\n";
+    print byterev($words[3]), byterev($words[2]), "\n";
+}
+
+# skip up to actual data segment output
+while (<DATASEG>) {
+    chop;
+    if ($_ eq 'Contents of section .data:') {
+        if ($count >= 256) {
+            print "More than 1024 instructions in the .text segment, runs into .data segment!";
+        }
+        for (; $count < 256; $count++) {
+            print '00000000', '00000000', "\n";
+            print '00000000', '00000000', "\n";
+        }
+        last;
+    }
+}
+while (<DATASEG>) {
+    ($data) = /^ $hdigit{4,} (($hdigit{8} ){1,4})/;
+    @words = split(' ', $data);
+    while ($#words < 3) {
+        push @words, '00000000';
+    }
+    print byterev($words[1]), byterev($words[0]), "\n";
+    print byterev($words[3]), byterev($words[2]), "\n";
+}
+
+sub byterev
+{
+    my $w = shift;
+    my @chars = split(//, $w);
+    return join('', @chars[6..7], @chars[4..5], @chars[2..3], @chars[0..1]);
+}
+
+close TEXTSEG;
+close DATASEG;
+unlink $tmpfile;

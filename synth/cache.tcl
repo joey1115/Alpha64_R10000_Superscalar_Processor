@@ -1,20 +1,32 @@
-#/***********************************************************/
-#/*   FILE        : mult_stage.tcl                          */
-#/*   Description : Default Synopsys Design Compiler Script */
-#/*   Usage       : dc_shell -tcl_mode -f default.tcl       */
-#/*   You'll need to minimally set design_name & read files */
-#/***********************************************************/
+################################################################################
+## DO NOT EDIT THESE FILES BY HAND
+##
+## CONFIGURATION HAS BEEN MOVED TO THE MAKEFILE
+################################################################################
+set search_path [ list "./" "/afs/umich.edu/class/eecs470/lib/synopsys/" ]
+set target_library "lec25dscc25_TT.db"
+set link_library [concat  "*" $target_library]
 
 #/***********************************************************/
-#/* The following five lines must be updated for every      */
-#/* new design                                              */
-#/***********************************************************/
+#/* Set some flags to suppress warnings we don't care about */
+set suppress_errors [concat $suppress_errors "UID-401"]
+suppress_message {"VER-130"}
 
-read_file -f sverilog [list "sys_defs.vh" "verilog/ROB.v"]
-set design_name ROB
-set clock_name clock
-set reset_name reset
-set CLK_PERIOD 10
+#/***********************************************************/
+#/* The following lines are set from environment variables
+#/* automatically by the Makefile
+#/***********************************************************/
+lappend search_path ../
+
+set headers [getenv HEADERS]
+set sources [getenv CACHEFILES]
+
+read_file -f sverilog [list ${headers} ${sources}]
+set design_name [getenv CACHE_NAME]
+set clock_name [getenv CLOCK_NET_NAME]
+set reset_name [getenv RESET_NET_NAME]
+set CLK_PERIOD [getenv CLOCK_PERIOD]
+
 
 #/***********************************************************/
 #/* The rest of this file may be left alone for most small  */
@@ -22,16 +34,16 @@ set CLK_PERIOD 10
 #/* when synthesizing your final project.                   */
 #/***********************************************************/
 set SYN_DIR ./
-set search_path "/afs/umich.edu/class/eecs470/lib/synopsys/"
-set target_library "lec25dscc25_TT.db"
-set link_library [concat  "*" $target_library]
 
 #/***********************************************************/
 #/* Set some flags for optimisation */
 
 set compile_top_all_paths "true"
 set auto_wire_load_selection "false"
+set compile_seqmap_synchronous_extraction "true"
 
+# uncomment this and change number appropriately if on multi-core machine
+#set_host_options -max_cores 2
 
 #/***********************************************************/
 #/*  Clk Periods/uncertainty/transition                     */
@@ -112,7 +124,7 @@ if {  $dc_shell_status != [list] } {
   uniquify
   ungroup -all -flatten
   redirect $chk_file { check_design }
-  compile -map_effort high
+  compile -map_effort medium
   write -hier -format verilog -output $netlist_file $design_name
   write -hier -format ddc -output $ddc_file $design_name
   redirect $rep_file { report_design -nosplit }

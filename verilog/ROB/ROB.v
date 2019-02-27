@@ -25,10 +25,10 @@ module ROB (
   ROB_t Nrob;
 
 
-  //logic nextTailValid;
-  //logic nextHeadValid;
-  //logic [$clog2(`NUM_ROB)-1:0] nextTailPointer, nextHeadPointer;
-  //logic [$clog2(`NUM_PR)-1:0] nextT, nextT_old;
+  logic nextTailValid;
+  logic nextHeadValid;
+  logic [$clog2(`NUM_ROB)-1:0] nextTailPointer, nextHeadPointer;
+  logic [$clog2(`NUM_PR)-1:0] nextT, nextT_old;
   logic writeTail, moveHead, mispredict, b_t;
 
   always_comb begin
@@ -50,16 +50,10 @@ module ROB (
     Nrob.entry[rob.tail].T_old = (writeTail) ? rob_packet_in.T_old_in : rob.entry[rob.tail].T_old;
   
     //update valid bits of entry
-    if(rob.head != rob.tail) begin
-      Nrob.entry[rob.head].valid = (moveHead) ? 0 : rob.entry[rob.head].valid;
-      Nrob.entry[rob.tail].valid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
-    end
-    else begin
-      Nrob.entry[rob.tail].valid = (writeTail) ? 1 :
-                                    (moveHead) ? 0 : rob.entry[rob.head].valid;
-    end
+    Nrob.entry[rob.head].valid = (moveHead) ? 0 : rob.entry[rob.head].valid;
+    Nrob.entry[rob.tail].valid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
 
-    b_t = rob_packet_in.flush_branch_idx >= rob.tail;
+    b_t = rob_packet_in.flush_branch_idx > rob.tail;
 
     mispredict = rob_packet_in.branch_mispredict && rob.entry[rob_packet_in.flush_branch_idx].valid;
 
@@ -90,7 +84,7 @@ module ROB (
     // output for Complete
     rob_packet_out.head_idx_out = rob.head;
     // output for Dispatch
-    rob_packet_out.struct_hazard = rob.entry[rob.tail].valid;
+    rob_packet_out.struct_hazard = Nrob.entry[rob.tail].valid;
 
   end
 
