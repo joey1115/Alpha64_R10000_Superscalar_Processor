@@ -20,7 +20,8 @@ read_file -f sverilog [list ${headers} ${sources}]
 set design_name [getenv MOD_NAME]
 set clock_name [getenv CLOCK_NET_NAME]
 set reset_name [getenv RESET_NET_NAME]
-set CLK_PERIOD [getenv CLOCK_PERIOD]
+set CLK_PERIOD 1.3
+# set CLK_PERIOD [getenv CLOCK_PERIOD]
 
 
 #/***********************************************************/
@@ -121,7 +122,7 @@ if {  $dc_shell_status != [list] } {
   uniquify
   ungroup -all -flatten
   redirect $chk_file { check_design }
-  compile -map_effort medium
+  compile -map_effort ultra
   write -hier -format verilog -output $netlist_file $design_name
   write -hier -format ddc -output $ddc_file $design_name
   write -format svsim -output $svsim_file $design_name
