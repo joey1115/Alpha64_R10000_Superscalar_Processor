@@ -249,25 +249,25 @@ typedef struct packed {
 } S_X_PACKET;
 
 `define S_X_PACKET_RESET '{ \
-  {64{1'b0}}, \
-  {64{1'b0}}, \
-  {64{1'b0}}, \
-  ALU_OPA_IS_REGA, \
-  ALU_OPB_IS_REGB, \
-  `NOOP_INST, \
-  `ZERO_REG, \
-  ALU_ADDQ, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  FU_ALU \
+  {64{1'b0}},               \
+  {64{1'b0}},               \
+  {64{1'b0}},               \
+  ALU_OPA_IS_REGA,          \
+  ALU_OPB_IS_REGB,          \
+  `NOOP_INST,               \
+  `ZERO_REG,                \
+  ALU_ADDQ,                 \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  FU_ALU                    \
 }
 
 typedef struct packed {
@@ -306,15 +306,15 @@ typedef struct packed {
 } C_R_PACKET;
 
 `define C_R_PACKET_RESET '{ \
-  `NOOP_INST, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  `ZERO_REG, \
-  0 \
+  `NOOP_INST,               \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  `ZERO_REG,                \
+  0                         \
 }
 
 typedef struct packed {
