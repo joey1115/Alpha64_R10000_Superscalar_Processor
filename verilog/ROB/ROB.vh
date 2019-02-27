@@ -1,6 +1,3 @@
-`ifndef __ROB_VH__
-`define __ROB_VH__
-
 `include "../../sys_defs.vh"
 
 typedef struct packed {
@@ -32,5 +29,3 @@ typedef struct packed {
   logic [$clog2(`NUM_ROB)-1:0] head_idx_out;      //tells the rob idx of the head
   logic [$clog2(`NUM_ROB)-1:0] ins_rob_idx;       //tells the rob idx of the dispatched inst
 } ROB_PACKET_OUT;
-
-`endif
