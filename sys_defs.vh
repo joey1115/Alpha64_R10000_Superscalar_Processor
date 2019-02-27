@@ -185,6 +185,14 @@ typedef struct packed {
   logic  valid; // PC + 4 
 } DECODER_PACKET_IN;
 
+typedef enum logic [2:0] {
+  FU_ALU = 3'b000,
+  FU_ST  = 3'b001,
+  FU_LD  = 3'b010,
+  FU_FP1 = 3'b011,
+  FU_FP2 = 3'b100
+} FU_t;
+
 typedef struct packed {
   ALU_OPA_SELECT opa_select;  // fetched instruction out
   ALU_OPB_SELECT opb_select;
@@ -226,6 +234,11 @@ typedef struct packed {
   PR_FREE_t    free;
 } PR_t;
 
+typedef enum logic {
+  PR_NOT_READY = 1'b0,
+  PR_READY     = 1'b1
+} PR_STATUS_t;
+
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] PR_idx;
   PR_STATUS_t                 T_PLUS_STATUS;
@@ -236,32 +249,19 @@ typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] PR_idx;
 } ARCH_MAP_t;
 
-typedef enum logic {
-  PR_NOT_READY = 1'b0,
-  PR_READY     = 1'b1
-} PR_STATUS_t;
-
 typedef struct packed {
   logic [4:0] reg_idx;
   T_t         T_plus;
 } MAP_TABLE_t;
 
-typedef enum logic [3:0] {
-  FU_ALU = 3'b000,
-  FU_ST  = 3'b001,
-  FU_LD  = 3'b010,
-  FU_FP1 = 3'b011,
-  FU_FP2 = 3'b100
-} FU_t;
-
 `define NUM_ALU 1
 `define FU_list { FU_ALU, FU_ST, FU_LD, FU_FP1, FU_FP2 }
-`define RS_RESET '{ /
-  {FU_ALU, `FALSE, 0, 0, 0}, /
-  {FU_ST,  `FALSE, 0, 0, 0}, /
-  {FU_LD,  `FALSE, 0, 0, 0}, /
-  {FU_FP1, `FALSE, 0, 0, 0}, /
-  {FU_FP2, `FALSE, 0, 0, 0}, /
+`define RS_RESET '{ \
+  {FU_ALU, `FALSE, 0, 0, 0}, \
+  {FU_ST,  `FALSE, 0, 0, 0}, \
+  {FU_LD,  `FALSE, 0, 0, 0}, \
+  {FU_FP1, `FALSE, 0, 0, 0}, \
+  {FU_FP2, `FALSE, 0, 0, 0}, \
 }
 
 typedef struct packed {

@@ -46,7 +46,7 @@ PIPEFILES    = $(wildcard verilog/*.v)
 CACHEFILES   = $(wildcard verilog/cache/*.v)
 DECODERFILES = $(wildcard verilog/decoder/*.v)
 
-SIMFILES    = $(PIPEFILES) $(CACHEFILES) $(DECODERFILES) $(OOOFILES)
+SIMFILES    = $(PIPEFILES) $(CACHEFILES) $(DECODERFILES)
 
 # SYNTHESIS CONFIG
 

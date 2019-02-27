@@ -36,12 +36,12 @@ ASSEMBLER = vs-asm
 
 # SIMULATION CONFIG
 MOD_NAME     = ROB
-HEADERS      = $(wildcard ./../../*.vh)
-HEADERS     += $(wildcard ./$(MOD_NAME).vh)
-TESTBENCH    = $(wildcard ./test_$(MOD_NAME).v)
-MODFILE      = $(wildcard ./$(MOD_NAME).v)
+HEADERS      = $(wildcard ../../*.vh)
+HEADERS     += $(wildcard $(MOD_NAME).vh)
+TESTBENCH    = $(wildcard test_$(MOD_NAME).v)
+MODFILE      = $(wildcard $(MOD_NAME).v)
 
-SIMFILES     = $(ROBFILE)
+SIMFILES     = $(MODFILE)
 
 # SYNTHESIS CONFIG
 
@@ -51,7 +51,7 @@ export MODFILE
 SYNFILES  = $(MOD_NAME).vg $(MOD_NAME)_svsim.sv
 
 # Passed through to .tcl scripts:
-export MOD_NAME       = $(MOD_NAME)
+export MOD_NAME
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
 export CLOCK_PERIOD = 30	# TODO: You will want to make this more aggresive
