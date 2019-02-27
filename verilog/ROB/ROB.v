@@ -30,6 +30,7 @@ module ROB (
   //logic [$clog2(`NUM_ROB)-1:0] nextTailPointer, nextHeadPointer;
   //logic [$clog2(`NUM_PR)-1:0] nextT, nextT_old;
   logic writeTail, moveHead, mispredict, b_t;
+  logic [$clog(`NUM_ROB)-1:0] real_tail_idx;
 
   always_comb begin
     Nrob = rob;
@@ -83,10 +84,10 @@ module ROB (
     end
 
     //outputs
-    rob_packet_out.out_correct = rob.entry[rob.tail - 1].valid;
-    rob_packet_out.ins_rob_idx = rob.tail - 1;
-    rob_packet_out.T_out = rob.entry[rob.tail - 1].T;
-    rob_packet_out.T_old_out = rob.entry[rob.tail - 1].T_old;
+    rob_packet_out.out_correct = rob.entry[real_tail_idx].valid;
+    rob_packet_out.ins_rob_idx = real_tail_idx;
+    rob_packet_out.T_out = rob.entry[real_tail_idx].T;
+    rob_packet_out.T_old_out = rob.entry[real_tail_idx].T_old;
     // output for Complete
     rob_packet_out.head_idx_out = rob.head;
     // output for Dispatch
