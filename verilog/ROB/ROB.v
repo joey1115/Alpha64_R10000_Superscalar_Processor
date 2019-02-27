@@ -83,6 +83,7 @@ module ROB (
         Nrob.tail = rob_packet_in.flush_branch_idx + 1;
     end
 
+    real_tail_idx = rob.tail - 1;
     //outputs
     rob_packet_out.out_correct = rob.entry[real_tail_idx].valid;
     rob_packet_out.ins_rob_idx = real_tail_idx;
