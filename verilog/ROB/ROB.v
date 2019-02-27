@@ -59,7 +59,7 @@ module ROB (
                                     (moveHead) ? 0 : rob.entry[rob.head].valid;
     end
 
-    b_t = rob_packet_in.flush_branch_idx >= rob.tail;
+    b_t = rob_packet_in.flush_branch_idx > rob.tail;
 
     mispredict = rob_packet_in.branch_mispredict && rob.entry[rob_packet_in.flush_branch_idx].valid;
 
