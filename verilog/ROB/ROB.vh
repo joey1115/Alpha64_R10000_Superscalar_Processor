@@ -1,5 +1,5 @@
-`ifndef __SYS_DEFS_VH__
-`define __SYS_DEFS_VH__
+`ifndef __ROB_VH__
+`define __ROB_VH__
 
 `include "../../sys_defs.vh"
 
