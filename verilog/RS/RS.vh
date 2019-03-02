@@ -14,7 +14,7 @@ typedef struct packed {
   // FU_t                        FU;
   logic                       busy;
   // logic [5:0]                 op;
-  logic [$clog2(`NUM_PR)-1:0] T;
+  logic [$clog2(`NUM_PR)-1:0] T_idx;
   T_t                         T1;
   T_t                         T2;
 } RS_ENTRY_t;
@@ -35,15 +35,24 @@ typedef struct packed {
   T_t                         T1;
   T_t                         T2;
   logic                       complete_en;
-  logic [`NUM_FU-1:0]         FU_valid_list;
+  // logic [`NUM_FU-1:0]         FU_ready_list;
   logic                       dispatch_en;
   FU_t                        FU;
+  logic [$clog2(`NUM_PR)-1:0] CDB_T;
 } RS_PACKET_IN;
 
 typedef struct packed {
-  logic                            valid;
-  logic      [$clog2(`NUM_FU)-1:0] FU_idx;
-  RS_ENTRY_t [`NUM_FU-1:0]         RS;
+  logic                       ready;
+  logic [$clog2(`NUM_PR)-1:0] T_idx;
+  logic [$clog2(`NUM_PR)-1:0] T1_idx;
+  logic [$clog2(`NUM_PR)-1:0] T2_idx;
+} FU_PACKET_t;
+
+typedef struct packed {
+  logic                             valid;
+  logic       [$clog2(`NUM_FU)-1:0] FU_idx;
+  FU_PACKET_t [`NUM_FU-1:0]         FU_packet_out;
+  RS_ENTRY_t  [`NUM_FU-1:0]         RS;
 } RS_PACKET_OUT;
 
 `endif
