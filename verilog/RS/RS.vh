@@ -12,21 +12,23 @@ typedef struct packed {
 
 typedef struct packed {
   logic                       busy;  // RS entry busy
+  ALU_FUNC                    op;
   logic [$clog2(`NUM_PR)-1:0] T_idx; // Dest idx
   T_t                         T1;    // T1
   T_t                         T2;    // T2
 } RS_ENTRY_t;
 
-`define FU_LIST '{ \
-  {`NUM_ALU{FU_ALU}}, \   // ALU
+`define FU_LIST '{      \
+  {`NUM_ALU{FU_ALU}},   \ // ALU
   {`NUM_MULT{FU_MULT}}, \ // MULT
-  {`NUM_ST{FU_ST}}, \     // ST
-  {`NUM_LD{FU_LD}} \      // LD
+  {`NUM_BR{FU_BR}},     \ // MULT
+  {`NUM_ST{FU_ST}},     \ // ST
+  {`NUM_LD{FU_LD}}      \ // LD
 }
 
-`define T_RESET {`ZERO_REG, 1'b0}                                // T reset
-`define RS_ENTRY_RESET  {`FALSE, `ZERO_REG, `T_RESET, `T_RESET}  // RS entry reset
-`define RS_RESET '{`NUM_FU{`RS_ENTRY_RESET}}                     // RS reset
+`define T_RESET {`ZERO_REG, 1'b0}                                          // T reset
+`define RS_ENTRY_RESET  {`FALSE, `ALU_ADDQ, `ZERO_REG, `T_RESET, `T_RESET} // RS entry reset
+`define RS_RESET '{`NUM_FU{`RS_ENTRY_RESET}}                               // RS reset
 
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] dest_idx;    // Dest idx
@@ -35,6 +37,7 @@ typedef struct packed {
   logic                       complete_en; // If CDB is ready
   logic                       dispatch_en; // If can be dispatched
   FU_t                        FU;          // Required FU
+  ALU_FUNC                    op;          // Required FU
   logic [$clog2(`NUM_PR)-1:0] CDB_T;       // CDB tag
 } RS_PACKET_IN;
 

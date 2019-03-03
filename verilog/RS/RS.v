@@ -51,7 +51,8 @@ module RS (
         rs_packet_out.FU_packet_out[i].T_idx  = RS[i].T_idx;                         // Output T_idx
         rs_packet_out.FU_packet_out[i].T1_idx = RS[i].T1.idx;                        // Output T1_idx
         rs_packet_out.FU_packet_out[i].T2_idx = RS[i].T2.idx;                        // Output T2_idx
-        next_RS[i] = '{`FALSE, `ZERO_REG, `T_RESET, `T_RESET};                       // Clear RS entry
+        rs_packet_out.FU_packet_out[i].op     = RS[i].op;
+        next_RS[i] = '{`FALSE, `ALU_ADDQ, `ZERO_REG, `T_RESET, `T_RESET};            // Clear RS entry
       end // if ( RS_entry_ready[i] ) begin
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
@@ -61,6 +62,7 @@ module RS (
 
       if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
         next_RS[i].busy  = `TRUE;                                                                 // RS entry busy
+        next_RS[i].op    = rs_packet_in.op;
         next_RS[i].T_idx = rs_packet_in.dest_idx;                                                 // Write T
         next_RS[i].T1    = rs_packet_in.T1;                                                       // Write T1
         next_RS[i].T2    = rs_packet_in.T2;                                                       // Write T2

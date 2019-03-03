@@ -210,11 +210,12 @@ typedef struct packed {
 //
 //////////////////////////////////////////////
 
-typedef enum logic [1:0] {
-  FU_ALU  = 2'b00,
-  FU_ST   = 2'b01,
-  FU_LD   = 2'b10,
-  FU_MULT = 2'b11
+typedef enum logic [2:0] {
+  FU_ALU  = 3'b000,
+  FU_ST   = 3'b001,
+  FU_LD   = 3'b010,
+  FU_MULT = 3'b011,
+  FU_BR   = 3'b100
 } FU_t;
 
 typedef struct packed {
