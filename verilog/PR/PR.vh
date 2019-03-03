@@ -17,22 +17,22 @@ typedef struct packed {
 
 
 typedef struct packed {
-  logic r;
-  logic [$clog2(`NUM_PR)-1:0] T_old;
-  logic X_C_valid;
-  logic [$clog2(`NUM_PR)-1:0] X_C_T;
-  logic [63:0] X_C_result;
-  logic [$clog2(`NUM_PR)-1:0] S_X_T1;
+  logic r;                                // retire signal from complete stage
+  logic [$clog2(`NUM_PR)-1:0] T_old;      // T_old from ROB
+  logic X_C_valid;                        // execute stage result_valid
+  logic [$clog2(`NUM_PR)-1:0] X_C_T;      // execute stage result_T
+  logic [63:0] X_C_result;                // execute stage result_valid
+  logic [$clog2(`NUM_PR)-1:0] S_X_T1;     // T1&T2 reg from FU
   logic [$clog2(`NUM_PR)-1:0] S_X_T2;
-  logic inst_dispatch;
+  logic inst_dispatch;                    // structure_hazard
 } PR_PACKET_IN;
 
 
 typedef struct packed {
-  logic [63:0] T1_value;
-  logic [63:0] T2_value;
-  logic struct_hazard;
-  logic [$clog2(`NUM_PR)-1:0] T;
+  logic [63:0] T1_value;                  // send T1 value to FU
+  logic [63:0] T2_value;                  // send T2 value to FU
+  logic struct_hazard;                    // send structure_hazard signal to dispatch control
+  logic [$clog2(`NUM_PR)-1:0] T;          // send tag to ROB, RS and Map Table 
 } PR_PACKET_OUT;
 
 `endif
