@@ -16,6 +16,7 @@ module RS (
 
   always_comb begin // If inst can dispatch
     rs_packet_out.valid = `FALSE;
+
     for (int i = 0; i < `NUM_FU; i++) begin
       T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T1 is complete
       T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T2 is complete
@@ -30,6 +31,7 @@ module RS (
       end // if ( ( RS_entry_ready[i]  || RS[i].busy == `FALSE ) && FU_list[i] == rs_packet_in.FU ) begin
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
+
   end // always_comb begin
 
   always_comb begin
