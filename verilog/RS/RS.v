@@ -14,8 +14,7 @@ module RS (
   logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
   assign rs_packet_out.RS = next_RS;
 
-  // Hazard
-  always_comb begin
+  always_comb begin // If inst can dispatch
     rs_packet_out.valid = `FALSE;
     for (int i = 0; i < `NUM_FU; i++) begin
       T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T1 is complete
@@ -24,10 +23,12 @@ module RS (
       T2_ready[i]       = RS[i].T2.ready || T1_CDB[i];                                    // T2 is ready or updated by CDB
       RS_entry_ready[i] = T1_ready[i] && T2_ready[i];                                     // T1 and T2 are ready to issue
       RS_entry_empty[i] = ( RS_entry_ready[i]  || RS[i].busy == `FALSE );                 // RS entry empty
+
       if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU ) begin                     // FU match
         rs_packet_out.valid = `TRUE;                                                      // No hazard
         break;
       end // if ( ( RS_entry_ready[i]  || RS[i].busy == `FALSE ) && FU_list[i] == rs_packet_in.FU ) begin
+
     end // for (int i = 0; i < `NUM_FU; i++) begin
   end // always_comb begin
 
@@ -56,7 +57,7 @@ module RS (
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
 
-    //Dispatch
+    // Dispatch
     for (int i = 0; i < `NUM_FU; i++) begin
 
       if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
