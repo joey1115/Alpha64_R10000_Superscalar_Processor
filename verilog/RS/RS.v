@@ -12,7 +12,6 @@ module RS (
   logic      [`NUM_FU-1:0] T2_ready;           // If T2 is ready
   logic      [`NUM_FU-1:0] RS_entry_ready;     // If a RS entry is ready
   logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
-  logic                    dispatched;     // If a RS entry is ready
   assign rs_packet_out.RS = next_RS;
 
   // Hazard
@@ -34,7 +33,6 @@ module RS (
 
   always_comb begin
     next_RS = RS;
-    dispatched = `FALSE;
     rs_packet_out.FU_packet_out = `FU_RESET;
 
     for (int i = 0; i < `NUM_FU; i++) begin
@@ -56,9 +54,12 @@ module RS (
         next_RS[i] = '{`FALSE, `ZERO_REG, `T_RESET, `T_RESET};                       // Clear RS entry
       end // if ( RS_entry_ready[i] ) begin
 
-      //Dispatch
+    end // for (int i = 0; i < `NUM_FU; i++) begin
+
+    //Dispatch
+    for (int i = 0; i < `NUM_FU; i++) begin
+
       if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
-        dispatched       = `TRUE;
         next_RS[i].busy  = `TRUE;                                                                 // RS entry busy
         next_RS[i].T_idx = rs_packet_in.dest_idx;                                                 // Write T
         next_RS[i].T1    = rs_packet_in.T1;                                                       // Write T1
