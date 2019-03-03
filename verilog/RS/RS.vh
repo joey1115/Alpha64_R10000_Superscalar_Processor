@@ -50,7 +50,7 @@ typedef struct packed {
 
 typedef struct packed {
   logic                             valid;
-  logic       [$clog2(`NUM_FU)-1:0] FU_idx;
+  // logic       [$clog2(`NUM_FU)-1:0] FU_idx;
   FU_PACKET_t [`NUM_FU-1:0]         FU_packet_out;
   RS_ENTRY_t  [`NUM_FU-1:0]         RS;
 } RS_PACKET_OUT;
