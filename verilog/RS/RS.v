@@ -9,7 +9,7 @@ module RS (
   logic      [`NUM_FU-1:0] T1_ready;           // If T1 is ready
   logic      [`NUM_FU-1:0] T2_ready;           // If T2 is ready
   logic      [`NUM_FU-1:0] RS_entry_ready;     // If a RS entry is ready
-  logic                    dispatched;         // If a inst has been dispatched to a previously free entry
+  logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
   assign rs_packet_out.RS = next_RS;
 
   // Hazard
@@ -19,7 +19,8 @@ module RS (
       T1_ready[i]       = RS[i].T1.ready || RS[i].T1.idx == rs_packet_in.CDB_T;                    // T1 is ready or updated by CDB
       T2_ready[i]       = RS[i].T2.ready || RS[i].T2.idx == rs_packet_in.CDB_T;                    // T2 is ready or updated by CDB
       RS_entry_ready[i] = T1_ready[i] && T2_ready[i];                                              // T1 and T2 are ready to issue
-      if ( ( RS_entry_ready[i]  || RS[i].busy == `FALSE ) && FU_list[i] == rs_packet_in.FU ) begin // FU match
+      RS_entry_empty[i] = ( RS_entry_ready[i]  || RS[i].busy == `FALSE );                          // RS entry empty
+      if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU ) begin                              // FU match
         rs_packet_out.valid = `TRUE;                                                               // No hazard
         break;
       end // if ( ( RS_entry_ready[i]  || RS[i].busy == `FALSE ) && FU_list[i] == rs_packet_in.FU ) begin
@@ -53,39 +54,16 @@ module RS (
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
 
-    dispatched = `FALSE;
     //Dispatch
     for (int i = 0; i < `NUM_FU; i++) begin
-      if ( RS[i].busy == `FALSE && rs_packet_in.dispatch_en && rs_packet_in.FU == FU_list[i] ) begin // RS entry was not busy and inst ready to dispatch and FU match
-        if ( rs_packet_in.T1.ready && rs_packet_in.T2.ready ) begin                                  // Input T1 and T2 are ready
-          rs_packet_out.FU_packet_out[i].ready  = `TRUE;                                             // Ready to issue
-          rs_packet_out.FU_packet_out[i].T_idx  = rs_packet_in.dest_idx;                             // Output T_idx
-          rs_packet_out.FU_packet_out[i].T1_idx = rs_packet_in.T1.idx;                               // Output T1_idx
-          rs_packet_out.FU_packet_out[i].T2_idx = rs_packet_in.T2.idx;                               // Output T2_idx
-          next_RS[i] = '{`FALSE, `ZERO_REG, `T_RESET, `T_RESET};                                     // RS entry not busy
-        end else begin                                                                               // T1 or T2 is not ready
-          next_RS[i].busy  = `TRUE;                                                                  // RS entry busy
-          next_RS[i].T_idx = rs_packet_in.dest_idx;                                                  // Write T
-          next_RS[i].T1    = rs_packet_in.T1;                                                        // Write T1
-          next_RS[i].T2    = rs_packet_in.T2;                                                        // Write T2
-        end // if ( rs_packet_in.T1.ready && rs_packet_in.T2.ready ) begin
-        dispatched = `TRUE;
+      if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
+        next_RS[i].busy  = `TRUE;                                                                 // RS entry busy
+        next_RS[i].T_idx = rs_packet_in.dest_idx;                                                 // Write T
+        next_RS[i].T1    = rs_packet_in.T1;                                                       // Write T1
+        next_RS[i].T2    = rs_packet_in.T2;                                                       // Write T2
         break;
       end // if ( RS[i].busy == `FALSE && rs_packet_in.dispatch_en ) begin
     end
-
-    // Dispatch
-    if ( dispatched == `FALSE ) begin                                                                           // If inst has not been dispatched
-      for (int i = 0; i < `NUM_FU; i++) begin
-        if ( ( next_RS[i].busy == `FALSE ) && rs_packet_in.dispatch_en && rs_packet_in.FU == FU_list[i] ) begin // If previous inst left
-          next_RS[i].busy  = `TRUE;                                                                             // RS entry busy
-          next_RS[i].T_idx = rs_packet_in.dest_idx;                                                             // Write T
-          next_RS[i].T1    = rs_packet_in.T1;                                                                   // Write T1
-          next_RS[i].T2    = rs_packet_in.T2;                                                                   // Write T2
-          break;
-        end // if ( ( next_RS[i].busy == `FALSE ) && rs_packet_in.dispatch_en && rs_packet_in.FU == FU_list[i] ) begin
-      end // for (int i = 0; i < `NUM_FU; i++) begin
-    end // if ( dispatched == `FALSE ) begin
 
   end // always_comb begin
 
