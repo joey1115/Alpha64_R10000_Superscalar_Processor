@@ -52,7 +52,10 @@ module RS (
         next_RS[i] = '{`FALSE, `ZERO_REG, `T_RESET, `T_RESET};                       // Clear RS entry
       end // if ( RS_entry_ready[i] ) begin
 
-      //Dispatch
+    end // for (int i = 0; i < `NUM_FU; i++) begin
+
+    //Dispatch
+    for (int i = 0; i < `NUM_FU; i++) begin
       if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
         next_RS[i].busy  = `TRUE;                                                                 // RS entry busy
         next_RS[i].T_idx = rs_packet_in.dest_idx;                                                 // Write T
@@ -60,8 +63,7 @@ module RS (
         next_RS[i].T2    = rs_packet_in.T2;                                                       // Write T2
         break;
       end // if ( RS[i].busy == `FALSE && rs_packet_in.dispatch_en ) begin
-
-    end // for (int i = 0; i < `NUM_FU; i++) begin
+    end
 
   end // always_comb begin
 
@@ -74,4 +76,4 @@ module RS (
     end // else if(en) begin
   end // always
 
-endmodule
+endmodule // RS

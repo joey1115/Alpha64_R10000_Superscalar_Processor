@@ -16,5 +16,5 @@
 module test_RS;
 
 
-endmodule  // module testbench_ROB
+endmodule  // module test_RS
 
