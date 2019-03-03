@@ -6,21 +6,26 @@ module RS (
 
   RS_ENTRY_t [`NUM_FU-1:0] RS, next_RS;
   FU_t       [`NUM_FU-1:0] FU_list = `FU_LIST; // List of FU
+  logic      [`NUM_FU-1:0] T1_CDB;             // If T1 is complete
+  logic      [`NUM_FU-1:0] T2_CDB;             // If T2 is complete
   logic      [`NUM_FU-1:0] T1_ready;           // If T1 is ready
   logic      [`NUM_FU-1:0] T2_ready;           // If T2 is ready
   logic      [`NUM_FU-1:0] RS_entry_ready;     // If a RS entry is ready
+  logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
   logic                    dispatched;         // If a inst has been dispatched to a previously free entry
   assign rs_packet_out.RS = next_RS;
 
-  // Hazard
-  always_comb begin
+  always_comb begin // Check if inst can be issued
     rs_packet_out.valid = `FALSE;
     for (int i = 0; i < `NUM_FU; i++) begin
-      T1_ready[i]       = RS[i].T1.ready || RS[i].T1.idx == rs_packet_in.CDB_T;                    // T1 is ready or updated by CDB
-      T2_ready[i]       = RS[i].T2.ready || RS[i].T2.idx == rs_packet_in.CDB_T;                    // T2 is ready or updated by CDB
-      RS_entry_ready[i] = T1_ready[i] && T2_ready[i];                                              // T1 and T2 are ready to issue
-      if ( ( RS_entry_ready[i]  || RS[i].busy == `FALSE ) && FU_list[i] == rs_packet_in.FU ) begin // FU match
-        rs_packet_out.valid = `TRUE;                                                               // No hazard
+      T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T1 is complete
+      T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T1 is complete
+      T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                    // T1 is ready or updated by CDB
+      T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                                    // T2 is ready or updated by CDB
+      RS_entry_ready[i] = T1_ready[i] && T2_ready[i];                                     // T1 and T2 are ready to issue
+      RS_entry_empty[i] = RS_entry_ready[i] || RS[i].busy == `FALSE;                      // T1 and T2 are ready to issue
+      if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU ) begin                     // FU match
+        rs_packet_out.valid = `TRUE;                                                      // No hazard
         break;
       end // if ( ( RS_entry_ready[i]  || RS[i].busy == `FALSE ) && FU_list[i] == rs_packet_in.FU ) begin
     end // for (int i = 0; i < `NUM_FU; i++) begin
