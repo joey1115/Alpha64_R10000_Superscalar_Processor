@@ -47,8 +47,16 @@ module PR (
       next_pr[pr_packet_in.X_C_T].value = pr_packet_in.X_C_result;
     end // if
     // Execution
-    pr_packet_out.T1_value = next_pr[pr_packet_in.S_X_T1].value;
-    pr_packet_out.T2_value = next_pr[pr_packet_in.S_X_T2].value;
+    if (pr_packet_in.X_C_T == pr_packet_in.S_X_T1) begin
+      pr_packet_out.T1_value = pr_packet_in.X_C_result;             // forwarding
+    end else begin
+      pr_packet_out.T1_value = next_pr[pr_packet_in.S_X_T1].value;
+    end
+    if (pr_packet_in.X_C_T == pr_packet_in.S_X_T2) begin
+      pr_packet_out.T2_value = pr_packet_in.X_C_result;             // forwarding
+    end else begin 
+      pr_packet_out.T2_value = next_pr[pr_packet_in.S_X_T2].value;
+    end
     // Dispatch
     for (logic [$clog2(`NUM_PR):0] i=0; i<`NUM_PR; i++) begin
       if (pr[i].free == PR_FREE) begin
