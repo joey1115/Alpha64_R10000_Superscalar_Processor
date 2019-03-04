@@ -107,24 +107,23 @@ module test_RS;
                 logic t2_ready,
                 FU_t FU,
                 ALU_FUNC func,
-                logic [$clog2(`NUM_PR)-1:0] CDB_T) begin
+                logic [$clog2(`NUM_PR)-1:0] CDB_T);
+    begin
+      rs_packet_in.dest_idx = dest_idx;
+      rs_packet_in.T1.idx = t1_idx;
+      rs_packet_in.T1.ready = t1_ready;
+      rs_packet_in.T2.idx = t2_idx;
+      rs_packet_in.T2.ready = t2_ready;
+      rs_packet_in.complete_en = complete_en;
+      rs_packet_in.dispatch_en = dispatch_en;
+      rs_packet_in.FU = FU;
+      rs_packet_in.func = func;
+      rs_packet_in.CDB_T = CDB_T;
+      rs_packet_in.inst = inst;
 
-    
-    rs_packet_in.dest_idx = dest_idx;
-    rs_packet_in.T1.idx = t1_idx;
-    rs_packet_in.T1.ready = t1_ready;
-    rs_packet_in.T2.idx = t2_idx;
-    rs_packet_in.T2.ready = t2_ready;
-    rs_packet_in.complete_en = complete_en;
-    rs_packet_in.dispatch_en = dispatch_en;
-    rs_packet_in.FU = FU;
-    rs_packet_in.func = func;
-    rs_packet_in.CDB_T = CDB.T;
-    rs_packet_in.inst = inst;
-
-    @(negedge clock);
-    printRS();
-
+      @(negedge clock);
+      printRS();
+    end
   endtask
 
   always begin
