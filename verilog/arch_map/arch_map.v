@@ -1,4 +1,7 @@
-module arch_map_m (
+// Told & T from ROB 
+// Told is replaced by T
+module arch_map (
+  input  en, clock, reset,
   input  ARCH_MAP_PACKET_IN  arch_map_packet_in,
   output ARCH_MAP_PACKET_OUT arch_map_packet_out
 );
@@ -8,10 +11,22 @@ module arch_map_m (
 // ROB logic
   always_ff @(posedge clock) begin
     if(reset) begin
-      // arch_map <= `SD 0;
+      for(int i=0; i < `NUM_ARCH_TABLE; i++) begin
+        map_table[i] = i;
+      end
     end else if(rob_packet_in.en) begin
       arch_map <= `SD next_arch_map;
     end // if (f_d_enable)
   end // always
 
+  always_comb begin
+    if (Rob_retire_enable && en) begin
+     genvar i;
+      for (i=0; i< `NUM_ARCH_TABLE;i++) begin
+        if (arch_map[i].PR_idx == arch_map_packet_in.Rob_retire_Told) begin
+          next_arch_map[i].PR_idx =arch_map_packet_in.Rob_retire_T;
+          break;
+        end
+    end
+  end
 endmodule

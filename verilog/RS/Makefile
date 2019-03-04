@@ -31,7 +31,7 @@ VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOC
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 # SIMULATION CONFIG
-MOD_NAME     = ROB
+MOD_NAME     = RS
 HEADERS      = $(wildcard ../../*.vh)
 HEADERS     += $(wildcard $(MOD_NAME).vh)
 TESTBENCH    = $(wildcard test_$(MOD_NAME).v)
@@ -50,7 +50,7 @@ SYNFILES  = $(MOD_NAME).vg $(MOD_NAME)_svsim.sv
 export MOD_NAME
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD = 2.1
+export CLOCK_PERIOD = 2.2
 # TODO: You will want to make this more aggresive
 
 ################################################################################

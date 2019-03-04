@@ -224,7 +224,7 @@ module decoder(
           decoder_packet_out.opb_select  = ALU_OPB_IS_BR_DISP;
           decoder_packet_out.alu_func    = ALU_ADDQ;
           decoder_packet_out.cond_branch = `TRUE; // all others are conditional
-          decoder_packet_out.FU          = FU_ALU;
+          decoder_packet_out.FU          = FU_BR;
         end
 
         default: begin
