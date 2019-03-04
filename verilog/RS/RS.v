@@ -5,7 +5,7 @@ module RS (
   input  RS_PACKET_IN  rs_packet_in,
 
   `ifdef DEBUG
-  RS_ENTRY_t [`NUM_FU-1:0] RS_out,
+  output RS_ENTRY_t [`NUM_FU-1:0] RS_out,
   `endif
   
   output logic         rs_hazard,       // RS hazard
