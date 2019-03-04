@@ -13,122 +13,123 @@
 `include "RS.vh"
 
 module test_RS;
-	// UUT input signals
-	logic clock, reset, en;
-	RS_PACKET_IN rs_packet_in;
+  // UUT input signals
+  logic clock, reset, en;
+  RS_PACKET_IN rs_packet_in;
 
-	RS_ENTRY_t [`NUM_FU-1:0] RS;
+  RS_ENTRY_t [`NUM_FU-1:0] RS;
 
-	// UUT output signals
-	logic rs_hazard;
-	RS_PACKET_OUT rs_packet_out, correct_packet_out;
+  // UUT output signals
+  logic rs_hazard;
+  RS_PACKET_OUT rs_packet_out, correct_packet_out;
 
-	RS UUT(.clock(clock),
-			.reset(reset),
-			.en(en),
-			.rs_packet_in(rs_packet_in),
-			.rs_hazard(rs_hazard),
-			.rs_packet_out(rs_packet_out),
-			.RS_out(RS));
+  RS UUT(.clock(clock),
+      .reset(reset),
+      .en(en),
+      .rs_packet_in(rs_packet_in),
+      .rs_hazard(rs_hazard),
+      .rs_packet_out(rs_packet_out),
+      .RS_out(RS));
 
-	task printRS() begin
-		$display(" RS# | inst |FU | busy | alu func | T_idx | T1 | T1 ready | T2 | T2 ready");
-		for(int i = 0; i < `NUM_LD; i++) begin
-			$display(" %d | %d | LD | %d | %h | %h | %h | %b | %h | %b ",
-							i,
-							RS[i].inst,
-							RS[i].busy,
-							RS[i].func,
-							RS[i].T_idx,
-							RS[i].T1.idx,
-							RS[i].T1.ready,
-							RS[i].T2.idx,
-							RS[i].T2.ready,);
-		end
-		for(int i = NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
-			$display(" %d | %d | ST | %d | %h | %h | %h | %b | %h | %b ",
-							i,
-							RS[i].inst,
-							RS[i].busy,
-							RS[i].func,
-							RS[i].T_idx,
-							RS[i].T1.idx,
-							RS[i].T1.ready,
-							RS[i].T2.idx,
-							RS[i].T2.ready,);
-		end
-		for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
-			$display(" %d | %d | BR | %d | %h | %h | %h | %b | %h | %b ",
-							i,
-							RS[i].inst,
-							RS[i].busy,
-							RS[i].func,
-							RS[i].T_idx,
-							RS[i].T1.idx,
-							RS[i].T1.ready,
-							RS[i].T2.idx,
-							RS[i].T2.ready,);
-		end
-		for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
-			$display(" %d | %d | MULT | %d | %h | %h | %h | %b | %h | %b ",
-							i,
-							RS[i].inst,
-							RS[i].busy,
-							RS[i].func,
-							RS[i].T_idx,
-							RS[i].T1.idx,
-							RS[i].T1.ready,
-							RS[i].T2.idx,
-							RS[i].T2.ready,);
-		end
-		for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
-			$display(" %d | %d | ALU | %d | %h | %h | %h | %b | %h | %b ",
-							i,
-							RS[i].inst,
-							RS[i].busy,
-							RS[i].func,
-							RS[i].T_idx,
-							RS[i].T1.idx,
-							RS[i].T1.ready,
-							RS[i].T2.idx,
-							RS[i].T2.ready,);
-		end
-	endtask
+  task printRS;
+  begin
+    $display(" RS# | inst |FU | busy | alu func | T_idx | T1 | T1 ready | T2 | T2 ready");
+    for(int i = 0; i < `NUM_LD; i++) begin
+      $display(" %d | %d | LD | %d | %h | %h | %h | %b | %h | %b ",
+              i,
+              RS[i].inst,
+              RS[i].busy,
+              RS[i].func,
+              RS[i].T_idx,
+              RS[i].T1.idx,
+              RS[i].T1.ready,
+              RS[i].T2.idx,
+              RS[i].T2.ready,);
+    end
+    for(int i = NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
+      $display(" %d | %d | ST | %d | %h | %h | %h | %b | %h | %b ",
+              i,
+              RS[i].inst,
+              RS[i].busy,
+              RS[i].func,
+              RS[i].T_idx,
+              RS[i].T1.idx,
+              RS[i].T1.ready,
+              RS[i].T2.idx,
+              RS[i].T2.ready,);
+    end
+    for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
+      $display(" %d | %d | BR | %d | %h | %h | %h | %b | %h | %b ",
+              i,
+              RS[i].inst,
+              RS[i].busy,
+              RS[i].func,
+              RS[i].T_idx,
+              RS[i].T1.idx,
+              RS[i].T1.ready,
+              RS[i].T2.idx,
+              RS[i].T2.ready,);
+    end
+    for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
+      $display(" %d | %d | MULT | %d | %h | %h | %h | %b | %h | %b ",
+              i,
+              RS[i].inst,
+              RS[i].busy,
+              RS[i].func,
+              RS[i].T_idx,
+              RS[i].T1.idx,
+              RS[i].T1.ready,
+              RS[i].T2.idx,
+              RS[i].T2.ready,);
+    end
+    for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
+      $display(" %d | %d | ALU | %d | %h | %h | %h | %b | %h | %b ",
+              i,
+              RS[i].inst,
+              RS[i].busy,
+              RS[i].func,
+              RS[i].T_idx,
+              RS[i].T1.idx,
+              RS[i].T1.ready,
+              RS[i].T2.idx,
+              RS[i].T2.ready,);
+    end
+  endtask
 
-	task setinput(logic complete_en,
-								logic dispatch_en,
-								INST_t inst,
-								logic [$clog2(`NUM_PR)-1:0] dest_idx,
-								logic [$clog2(`NUM_PR)-1:0] t1_idx,
-								logic t1_ready,
-								logic [$clog2(`NUM_PR)-1:0] t2_idx,
-								logic t2_ready,
-								FU_t FU,
-								ALU_FUNC func,
-								logic [$clog2(`NUM_PR)-1:0] CDB_T) begin
+  task setinput(logic complete_en,
+                logic dispatch_en,
+                INST_t inst,
+                logic [$clog2(`NUM_PR)-1:0] dest_idx,
+                logic [$clog2(`NUM_PR)-1:0] t1_idx,
+                logic t1_ready,
+                logic [$clog2(`NUM_PR)-1:0] t2_idx,
+                logic t2_ready,
+                FU_t FU,
+                ALU_FUNC func,
+                logic [$clog2(`NUM_PR)-1:0] CDB_T) begin
 
-		
-		rs_packet_in.dest_idx = dest_idx;
-		rs_packet_in.T1.idx = t1_idx;
-		rs_packet_in.T1.ready = t1_ready;
-		rs_packet_in.T2.idx = t2_idx;
-		rs_packet_in.T2.ready = t2_ready;
-		rs_packet_in.complete_en = complete_en;
-		rs_packet_in.dispatch_en = dispatch_en;
-		rs_packet_in.FU = FU;
-		rs_packet_in.func = func;
-		rs_packet_in.CDB_T = CDB.T;
-		rs_packet_in.inst = inst;
+    
+    rs_packet_in.dest_idx = dest_idx;
+    rs_packet_in.T1.idx = t1_idx;
+    rs_packet_in.T1.ready = t1_ready;
+    rs_packet_in.T2.idx = t2_idx;
+    rs_packet_in.T2.ready = t2_ready;
+    rs_packet_in.complete_en = complete_en;
+    rs_packet_in.dispatch_en = dispatch_en;
+    rs_packet_in.FU = FU;
+    rs_packet_in.func = func;
+    rs_packet_in.CDB_T = CDB.T;
+    rs_packet_in.inst = inst;
 
-		@(negedge clock);
-		printRS();
+    @(negedge clock);
+    printRS();
 
-	endtask
+  endtask
 
-	always begin
-		#(`VERILOG_CLOCK_PERIOD/2.0);
-		clock = ~clock;
-	end
+  always begin
+    #(`VERILOG_CLOCK_PERIOD/2.0);
+    clock = ~clock;
+  end
 
 // 	typedef enum logic [2:0] {
 //   FU_ALU  = 3'b000,
@@ -158,18 +159,18 @@ module test_RS;
 //   ALU_CMPULE    = 5'h10
 // } ALU_FUNC;
 
-	// reset
-	en = 1'b1;
-	clock = 1'b0;
-	reset = 1'b1;
-	@(negedge clock);
-	reset = 1'b0;
-	
-	setinput(0,1,`NOOP_INST,1,1,0,2,0, FU_ALU, ALU_ADDQ, 0);
+  // reset
+  en = 1'b1;
+  clock = 1'b0;
+  reset = 1'b1;
+  @(negedge clock);
+  reset = 1'b0;
+  
+  setinput(0,1,`NOOP_INST,1,1,0,2,0, FU_ALU, ALU_ADDQ, 0);
 
-	setinput(0,1,`NOOP_INST,2,4,1,5,0, FU_ALU, ALU_ADDQ, 0);
+  setinput(0,1,`NOOP_INST,2,4,1,5,0, FU_ALU, ALU_ADDQ, 0);
 
-	setinput(0,1,`NOOP_INST,3,4,0,5,1, FU_ALU, ALU_ADDQ, 0);
+  setinput(0,1,`NOOP_INST,3,4,0,5,1, FU_ALU, ALU_ADDQ, 0);
 
 endmodule  // module test_RS
 
