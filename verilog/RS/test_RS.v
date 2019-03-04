@@ -30,7 +30,7 @@ module test_RS;
 			.rs_packet_in(rs_packet_in),
 			.rs_hazard(rs_hazard),
 			.rs_packet_out(rs_packet_out)
-			.RS(RS));
+			.RS_out(RS));
 
 	task printRS(RS_ENTRY_t [`NUM_FU-1:0] print_RS_in) begin
 		$display(" RS# | inst |FU | busy | alu func | T_idx | T1 | T1 ready | T2 | T2 ready");

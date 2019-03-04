@@ -7,17 +7,12 @@ module RS (
   input  RS_PACKET_IN  rs_packet_in,
 
   `ifdef DEBUG
-  RS_ENTRY_t [`NUM_FU-1:0] RS,
+  RS_ENTRY_t [`NUM_FU-1:0] RS_out,
   `endif
 
   output logic         valid,                  // RS availbale
   output RS_PACKET_OUT rs_packet_out
 );
-
-
-  `ifndef DEBUG
-    RS_ENTRY_t [`NUM_FU-1:0] RS;
-  `endif
 
   RS_ENTRY_t [`NUM_FU-1:0] next_RS;
   FU_t       [`NUM_FU-1:0] FU_list = `FU_LIST; // List of FU
@@ -28,8 +23,9 @@ module RS (
   logic      [`NUM_FU-1:0] RS_entry_ready;     // If a RS entry is ready
   logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
   
-  assign RS = next_RS;
-
+  `ifdef DEBUG
+  assign RS_out = next_RS;
+  `endif
   // Hazard
   always_comb begin
     valid = `FALSE;
