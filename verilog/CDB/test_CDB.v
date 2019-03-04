@@ -31,46 +31,16 @@ module test_CDB;
 
   logic [31:0] cycle_count;
 
-  // Generate System Clock
-  always begin
-    #(`VERILOG_CLOCK_PERIOD/2.0);
-    clock = ~clock;
-  end
-
-  // Update cycle count
-  always @(posedge clock) begin
-    if(reset)
-      cycle_count <= `SD 0;
-    else
-      cycle_count <= `SD (cycle_count + 1);
-  end
-
 
   initial begin
 
     /***** Test Case #1 *****/
-
-
-    // Reset
-    en    = 1'b1;
-    clock = 1'b0;
-    reset = 1'b0;
-
-    @(negedge clock);
-    reset = 1'b1;
-    
-    // Cycle 0
-    @(negedge clock);
-    reset = 1'b0;
+    en = 1'b1;
     $display("@@@Pass!");
-
-    @(negedge clock);
-    @(negedge clock);
-    @(negedge clock);
 
     $finish;
 
   end // initial
 
-endmodule  // module testbench_PR
+endmodule  // module test_CDBs
 
