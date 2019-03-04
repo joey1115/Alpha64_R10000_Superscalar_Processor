@@ -24,7 +24,7 @@ module map_table (
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i=0; i < `NUM_MAP_TABLE; i++) begin
-        map_table[i] = '{ i, `TRUE};
+        map_table[i] = '{ i, `TRUE};                  
       end
     end else if(en) begin
       map_table <= `SD next_map_table;
@@ -33,14 +33,15 @@ module map_table (
 
   always_comb begin
     next_map_table = map_table;
-    if (map_table_packet_in.Dispatch_enble && en) begin
-      next_map_table[map_table_packet_in.Dispatch_reg_dest] = '{map_table_packet_in.Freelist_T, `FALSE};
+    if (map_table_packet_in.Dispatch_enble && en) begin       // no dispatch hazard
+      next_map_table[map_table_packet_in.Dispatch_reg_dest] = '{map_table_packet_in.Freelist_T, `FALSE}; 
+                                                             //renew maptable from freelist but not ready yet
     end
     if (map_table_packet_in.CDB_enable && en) begin
       genvar i;
-      for (i=0; i< `NUM_MAP_TABLE;i++) begin
-        if (map_table[i].PR_idx == CDB_T) begin
-          next_map_table[i].T_PLUS_STATUS = `TRUE;
+      for (i=0; i< `NUM_MAP_TABLE;i++) begin  
+        if (map_table[i].PR_idx == CDB_T) begin              // if CDB_T is the same as maptable value
+          next_map_table[i].T_PLUS_STATUS = `TRUE;           // The Tag in maptable change to ready
           break;
         end
     end
