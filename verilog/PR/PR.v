@@ -31,7 +31,6 @@ module PR (
 );
 
   PR_entry_t [`NUM_PR-1:0] pr, next_pr;
-//  PR_t pr, next_pr;
 
   always_comb begin
     next_pr = pr;
@@ -61,9 +60,12 @@ module PR (
     end
     // Dispatch
     for (logic [$clog2(`NUM_PR):0] i=0; i<`NUM_PR; i++) begin
-      if (pr[i].free == PR_FREE) begin
+      if (next_pr[i].free == PR_FREE) begin
         pr_packet_out.struct_hazard = 1'b0;
         pr_packet_out.T = i;
+        if (pr_packet_in.inst_dispatch) begin
+          next_pr[i].free = PR_NOT_FREE;
+        end
         break;
       end // if
     end // for
