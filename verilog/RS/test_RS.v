@@ -17,7 +17,7 @@ module test_RS;
 	logic clock, reset, en;
 	RS_PACKET_IN rs_packet_in;
 
-	RS_ENTRY_t [`NUM_FU-1:0] RS,
+	RS_ENTRY_t [`NUM_FU-1:0] RS;
 
 	// UUT output signals
 	logic rs_hazard;
