@@ -29,7 +29,6 @@ module RS (
 
   // assign rs_hazard = RS_entry_ready == 0 && RS_entry_empty == 0;
   assign rs_hazard = RS_entry_match == 0;
-  assign rs_packet_out.RS = next_RS;
 
   // always_comb begin
   //   for (int i = 0; i < `NUM_FU; i++) begin
