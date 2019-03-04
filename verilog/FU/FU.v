@@ -1,73 +1,64 @@
 module alu(
-/*     input [63:0] opa,
-    input [63:0] opb,
-    ALU_FUNC     func,
-
-    output logic [63:0] result */
-    input alu_input,
-    output alu_output
+    input  FU_PACKET_t       fu_packet,
+    output FU_RESULT_ENTRY_t result
   );
 
-
-    // This function computes a signed less-than operation 
+    // This function computes a signed less-than operation
   function signed_lt;
     input [63:0] a, b;
 
     if (a[63] == b[63]) 
       signed_lt = (a < b); // signs match: signed compare same as unsigned
     else
-      signed_lt = a[63];   // signs differ: a is smaller if neg, larger if pos
+        = a[63];   // signs differ: a is smaller if neg, larger if pos
   endfunction
 
   always_comb begin
-    if(alu_input.ready == `TRUE) begin 
-    case (alu_input.func)
-      ALU_ADDQ:     alu_output.result = alu_input.T1_value + alu_input.T2_value;
-      ALU_SUBQ:     alu_output.result = alu_input.T1_value - alu_input.T2_value;
-      ALU_AND:      alu_output.result = alu_input.T1_value & alu_input.T2_value;
-      ALU_BIC:      alu_output.result = alu_input.T1_value & ~alu_input.T2_value;
-      ALU_BIS:      alu_output.result = alu_input.T1_value | alu_input.T2_value;
-      ALU_ORNOT:    alu_output.result = alu_input.T1_value | ~alu_input.T2_value;
-      ALU_XOR:      alu_output.result = alu_input.T1_value ^ alu_input.T2_value;
-      ALU_EQV:      alu_output.result = alu_input.T1_value ^ ~alu_input.T2_value;
-      ALU_SRL:      alu_output.result = alu_input.T1_value >> alu_input.T2_value[5:0];
-      ALU_SLL:      alu_output.result = alu_input.T1_value << alu_input.T2_value[5:0];
-      ALU_SRA:      alu_output.result = (alu_input.T1_value >> alu_input.T2_value[5:0]) | ({64{alu_input.T1_value[63]}} << (64 - fu_packet.T2_value[5:0])); // arithmetic from logical shift
-      ALU_MULQ:     alu_output.result = alu_input.T1_value * alu_input.T2_value;
-      ALU_CMPULT:   alu_output.result = { 63'd0, (alu_input.T1_value < alu_input.T2_value) };
-      ALU_CMPEQ:    alu_output.result = { 63'd0, (alu_input.T1_value == alu_input.T2_value) };
-      ALU_CMPULE:   alu_output.result = { 63'd0, (alu_input.T1_value <= alu_input.T2_value) };
-      ALU_CMPLT:    alu_output.result = { 63'd0, signed_lt(alu_input.T1_value, alu_input.T2_value) };
-      ALU_CMPLE:    alu_output.result = { 63'd0, (signed_lt(alu_input.T1_value, alu_input.T2_value) || (alu_input.T1_value == fu_packet.T2_value)) };
-      default:      alu_output.result = 64'hdeadbeefbaadbeef;  // here only to force
-                              // a combinational solution
-                              // a casex would be better
-    endcase
-    alu_output.done = 1;
+    if (fu_packet.ready == `TRUE) begin
+      case (fu_packet.func)
+        ALU_ADDQ:     result = fu_packet.T1_value + fu_packet.T2_value;
+        ALU_SUBQ:     result = fu_packet.T1_value - fu_packet.T2_value;
+        ALU_AND:      result = fu_packet.T1_value & fu_packet.T2_value;
+        ALU_BIC:      result = fu_packet.T1_value & ~fu_packet.T2_value;
+        ALU_BIS:      result = fu_packet.T1_value | fu_packet.T2_value;
+        ALU_ORNOT:    result = fu_packet.T1_value | ~fu_packet.T2_value;
+        ALU_XOR:      result = fu_packet.T1_value ^ fu_packet.T2_value;
+        ALU_EQV:      result = fu_packet.T1_value ^ ~fu_packet.T2_value;
+        ALU_SRL:      result = fu_packet.T1_value >> fu_packet.T2_value[5:0];
+        ALU_SLL:      result = fu_packet.T1_value << fu_packet.T2_value[5:0];
+        ALU_SRA:      result = (fu_packet.T1_value >> fu_packet.T2_value[5:0]) | ({64{fu_packet.T1_value[63]}} << (64 - fu_packet.T2_value[5:0])); // arithmetic from logical shift
+        ALU_MULQ:     result = fu_packet.T1_value * fu_packet.T2_value;
+        ALU_CMPULT:   result = { 63'd0, (fu_packet.T1_value < fu_packet.T2_value) };
+        ALU_CMPEQ:    result = { 63'd0, (fu_packet.T1_value == fu_packet.T2_value) };
+        ALU_CMPULE:   result = { 63'd0, (fu_packet.T1_value <= fu_packet.T2_value) };
+        ALU_CMPLT:    result = { 63'd0, signed_lt(fu_packet.T1_value, fu_packet.T2_value) };
+        ALU_CMPLE:    result = { 63'd0, (signed_lt(fu_packet.T1_value, fu_packet.T2_value) || (fu_packet.T1_value == fu_packet.T2_value)) };
+        default:      result = 64'hdeadbeefbaadbeef;  // here only to force
+                                // a combinational solution
+                                // a casex would be better
+      endcase
     end
   end
 endmodule // alu
 
 module brcond(// Inputs
-/*     input [63:0] opa,    // Value to check against condition
-    input  [2:0] func,  // Specifies which condition to check
-
-    output logic cond    // 0/1 condition result (False/True) */
-    input br_input,
-    output br_output
+    input BR_PACKET_t br_packet,
+    output result    // 0/1 condition result (False/True)
   );
 
   always_comb begin
-    case (fu_packet.func[1:0])                              // 'full-case'  All cases covered, no need for a default
-      2'b00: cond = (fu_packet.T1_value[0] == 0);                // LBC: (lsb(opa) == 0) ?
-      2'b01: cond = (fu_packet.T1_value == 0);                    // EQ: (opa == 0) ?
-      2'b10: cond = (fu_packet.T1_value[63] == 1);                // LT: (signed(opa) < 0) : check sign bit
-      2'b11: cond = (fu_packet.T1_value[63] == 1) || (fu_packet.T1_value == 0);  // LE: (signed(opa) <= 0)
-    endcase
+    if(br_packet.ready == `TRUE)
+      case (br_packet.func[1:0])                              // 'full-case'  All cases covered, no need for a default
+        2'b00: result = (br_packet.T1_value[0] == 0);                // LBC: (lsb(opa) == 0) ?
+        2'b01: result = (br_packet.T1_value == 0);                    // EQ: (opa == 0) ?
+        2'b10: result = (br_packet.T1_value[63] == 1);                // LT: (signed(opa) < 0) : check sign bit
+        2'b11: result = (br_packet.T1_value[63] == 1) || (br_packet.T1_value == 0);  // LE: (signed(opa) <= 0)
+      endcase
     
-      // negate cond if func[2] is set
-      if (fu_packet.func[2])
-        cond = ~cond;
+        // negate cond if func[2] is set
+        if (br_packet.func[2])
+          result = ~result;
+    end
   end
 endmodule // brcond
 
@@ -80,23 +71,23 @@ module FU (
 
   alu alu_0 [`NUM_ALU-1:0] (
     // Inputs
-    .alu_input(fu_packet_in),
+    .fu_packet(fu_packet_in.FU_packet[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     // Output
-    .alu_output(fu_packet_out)
+    .result(fu_packet_out.alu_result[`NUM_ALU-1:0])
   );
 
   mult mult_0 [`NUM_MULT-1:0] (
     // Inputs
-    .fu_packet(fu_packet_in.FU_packet[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .fu_packet(fu_packet_in.fu_packet[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     // Output
     .result(fu_packet_out.fu_result[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
   );
 
   br br_0 [`NUM_BR-1:0] (
     // Inputs
-    .br_input(fu_packet_in.FU_packet[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
+    .br_packet(fu_packet_in.br_packet[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     // Output
-    .br_output(fu_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)])
+    .result(fu_packet_out.br_cond[(`NUM_BR-1:0)
   );
 
   st st_0 (
