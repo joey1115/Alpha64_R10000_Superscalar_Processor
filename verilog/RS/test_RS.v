@@ -160,17 +160,18 @@ module test_RS;
 // } ALU_FUNC;
 
   // reset
-  en = 1'b1;
-  clock = 1'b0;
-  reset = 1'b1;
-  @(negedge clock);
-  reset = 1'b0;
-  
-  setinput(0,1,`NOOP_INST,1,1,0,2,0, FU_ALU, ALU_ADDQ, 0);
+  initial begin
+    en = 1'b1;
+    clock = 1'b0;
+    reset = 1'b1;
+    @(negedge clock);
+    reset = 1'b0;
+    
+    setinput(0,1,`NOOP_INST,1,1,0,2,0, FU_ALU, ALU_ADDQ, 0);
 
-  setinput(0,1,`NOOP_INST,2,4,1,5,0, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,4,1,5,0, FU_ALU, ALU_ADDQ, 0);
 
-  setinput(0,1,`NOOP_INST,3,4,0,5,1, FU_ALU, ALU_ADDQ, 0);
-
+    setinput(0,1,`NOOP_INST,3,4,0,5,1, FU_ALU, ALU_ADDQ, 0);
+  end
 endmodule  // module test_RS
 
