@@ -8,27 +8,38 @@ module CT (
 
   always_comb begin
     next_ct = ct;
-    // save T & result, give stall signal
+
+    // Update taken, T & result for each empty entry
+    // and give full_hazard to FU
     for (int i=0; i<`NUM_FU; i++) begin
+      ct_packet_out.full_hazard[i] = next_ct[i].taken;
       if (next_ct[i].taken == 0 && ct_packet_in.X_C_valid[i] == 1) begin
         next_ct[i].taken == 1;
         next_ct[i].T = ct_packet_in.X_C_T[i];
         next_ct[i].result = ct_packet_in.X_C_result[i];
         ct_packet_out.full_hazard[i] = 1;
-      end else if (next_ct[i].taken == 1) begin
-        ct_packet_out.full_hazard[i] = 1;
       end
     end
-    // broadcast
+    // broadcast one completed instruction (if one is found)
+    ct_packet_out.valid  = 0;
+    ct_packet_out.T      = 0;
+    ct_packet_out.result = 0;
     for (int i=0; i<`NUM_FU; i++) begin
-      if (ct_packet_out.full_hazard[i] == 1) begin
-        ct_packet_out.valid = next_ct[i].taken;
+      if (next_ct[i].taken) begin
+        ct_packet_out.valid = 1'b1;
         ct_packet_out.T = next_ct[i].T;
         ct_packet_out.result = next_ct[i].result;
-        next_ct[i].taken = 0;
-        ct_packet_out.full_hazard[i] = 0;
+        // try filling this entry if X_C reg wants to write a new input here
+        // (compare T to prevent re-writing the entry with the same inst.)
+        if (ct_packet_in.X_C_valid[i] && ct_packet_in.X_C_T != next_ct[i].T) begin
+          next_ct[i].T = ct_packet_in.X_C_T[i];
+          next_ct[i].result = ct_packet_in.X_C_result[i];
+        end else begin
+          next_ct[i].taken = 0;
+          ct_packet_out.full_hazard[i] = 0;
+        end // else if
         break;
-      end
+      end // if
     end
 
   end
