@@ -46,7 +46,5 @@ module map_table (
     end
   end
 
-  assign map_table_packet_out.T1_to_RS = map_table[map_table_packet_in.Dispatch_rega];
-  assign map_table_packet_out.T2_to_RS = map_table[map_table_packet_in.Dispatch_regb];
   assign map_table_packet_out.Told_to_ROB = map_table[map_table_packet_in.Dispatch_reg_dest];
 endmodule

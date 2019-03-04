@@ -2,8 +2,6 @@
 
 typedef struct packed {
   logic                       Dispatch_enable;   // no Dispatch hazard
-  logic [4:0]                 Dispatch_rega;
-  logic [4:0]                 Dispatch_regb;
   logic [4:0]                 Dispatch_reg_dest;  // reg from dispatch
   logic [$clog2(`NUM_PR)-1:0] CDB_T;             // broadcast from CDB
   logic 					            CDB_enable;        //CDB enable
@@ -11,8 +9,6 @@ typedef struct packed {
 } MAP_TABLE_PACKET_IN;
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] T1_to_RS;          // output T1 to RS
-  logic [$clog2(`NUM_PR)-1:0] T2_to_RS;          // output T2 to RS
   logic [$clog2(`NUM_PR)-1:0] Told_to_ROB;       // output Told to ROB
 } MAP_TABLE_PACKET_OUT;
 
