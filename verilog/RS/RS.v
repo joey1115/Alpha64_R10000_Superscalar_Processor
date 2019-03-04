@@ -6,6 +6,7 @@ module RS (
 
   `ifdef DEBUG
   output RS_ENTRY_t [`NUM_FU-1:0] RS_out,
+  output logic      [`NUM_FU-1:0] RS_entry_match,     // If a RS entry is ready
   `endif
   
   output logic         rs_hazard,       // RS hazard
@@ -23,9 +24,16 @@ module RS (
   logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
   logic      [`NUM_FU-1:0] RS_entry_match;     // If a RS entry is ready
   
+  `ifndef DEBUG
+  logic      [`NUM_FU-1:0] RS_entry_match;     // If a RS entry is ready
+  `endif
+
+
   `ifdef DEBUG
   assign RS_out = next_RS;
   `endif
+
+
 
   // assign rs_hazard = RS_entry_ready == 0 && RS_entry_empty == 0;
   assign rs_hazard = RS_entry_match == 0;
