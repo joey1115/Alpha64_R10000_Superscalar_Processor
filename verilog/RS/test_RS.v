@@ -31,7 +31,7 @@ module test_RS;
 			.rs_packet_out(rs_packet_out),
 			.RS_out(RS));
 
-	task printRS(RS_ENTRY_t [`NUM_FU-1:0] print_RS_in) begin
+	task printRS() begin
 		$display(" RS# | inst |FU | busy | alu func | T_idx | T1 | T1 ready | T2 | T2 ready");
 		for(int i = 0; i < `NUM_LD; i++) begin
 			$display(" %d | %d | LD | %d | %h | %h | %h | %b | %h | %b ",
@@ -121,7 +121,7 @@ module test_RS;
 		rs_packet_in.inst = inst;
 
 		@(negedge clock);
-		printRS(RS);
+		printRS();
 
 	endtask
 
