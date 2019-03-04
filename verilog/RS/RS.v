@@ -44,7 +44,7 @@ module RS (
       T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                    // T1 is ready or updated by CDB
       T2_ready[i]       = RS[i].T2.ready || T1_CDB[i];                                    // T2 is ready or updated by CDB
       RS_T_ready[i]     = T1_ready[i] && T2_ready[i];                                     // T1 and T2 are ready to issue
-      RS_entry_empty[i] = RS_entry_ready[i] || RS[i].busy == `FALSE;                      // RS entry empty
+      RS_entry_empty[i] = RS_T_ready[i] || RS[i].busy == `FALSE;                          // RS entry empty
       RS_entry_match[i] = RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU;             // RS entry match
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
@@ -76,7 +76,7 @@ module RS (
         rs_packet_out.FU_packet_out[i].T2_idx = RS[i].T2.idx;             // Output T2_idx
         rs_packet_out.FU_packet_out[i].func   = RS[i].func;               // op code
         rs_packet_out.FU_packet_out[i].inst   = RS[i].inst;               // inst
-        next_RS[i] = '{`FALSE, `ALU_ADDQ, `ZERO_REG, `T_RESET, `T_RESET}; // Clear RS entry
+        next_RS[i] = '{`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_REG, `T_RESET, `T_RESET}; // Clear RS entry
       end // if ( RS_entry_ready[i] ) begin
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
