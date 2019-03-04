@@ -37,7 +37,7 @@ module test_RS;
     begin
       $display("     RS#     |    inst    |  FU  |  busy | alu func | T_idx | T1 | r | T2 | r | hazard");
       for(int i = 0; i < `NUM_LD; i++) begin
-        $display(" %d |  %h  |  LD  |   %d   |    %h    |  %h   | %h | %b | %h | %b | hazard",
+        $display(" %d |  %h  |  LD  |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -47,10 +47,10 @@ module test_RS;
                 RS[i].T1.ready,
                 RS[i].T2.idx,
                 RS[i].T2.ready,
-                RS_entry_match);
+                RS_entry_match[i]);
       end
       for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
-        $display(" %d |  %h  |  ST  |   %d   |    %h    |  %h   | %h | %b | %h | %b | hazard",
+        $display(" %d |  %h  |  ST  |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -60,10 +60,10 @@ module test_RS;
                 RS[i].T1.ready,
                 RS[i].T2.idx,
                 RS[i].T2.ready,
-                RS_entry_match);
+                RS_entry_match[i]);
       end
       for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
-        $display(" %d |  %h  |  BR  |   %d   |    %h    |  %h   | %h | %b | %h | %b | hazard",
+        $display(" %d |  %h  |  BR  |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -73,10 +73,10 @@ module test_RS;
                 RS[i].T1.ready,
                 RS[i].T2.idx,
                 RS[i].T2.ready,
-                RS_entry_match);
+                RS_entry_match[i]);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
-        $display(" %d |  %h  | MULT |   %d   |    %h    |  %h   | %h | %b | %h | %b | hazard",
+        $display(" %d |  %h  | MULT |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -86,10 +86,10 @@ module test_RS;
                 RS[i].T1.ready,
                 RS[i].T2.idx,
                 RS[i].T2.ready,
-                RS_entry_match);
+                RS_entry_match[i]);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
-        $display(" %d |  %h  |  ALU |   %d   |    %h    |  %h   | %h | %b | %h | %b | hazard",
+        $display(" %d |  %h  |  ALU |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -99,7 +99,7 @@ module test_RS;
                 RS[i].T1.ready,
                 RS[i].T2.idx,
                 RS[i].T2.ready,
-                RS_entry_match);
+                RS_entry_match[i]);
       end
     end
   endtask
