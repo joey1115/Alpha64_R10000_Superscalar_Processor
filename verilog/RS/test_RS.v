@@ -30,7 +30,6 @@ module test_RS;
       .rs_hazard(rs_hazard),
       .rs_packet_out(rs_packet_out),
       .RS_out(RS));
-           3 |     | MULT | 0 | 1c | 07 | 3f | 1 | 1f | 0  
 
   task printRS;
     begin
