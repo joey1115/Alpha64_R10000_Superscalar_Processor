@@ -1,7 +1,5 @@
 `timescale 1ns/100ps
 
-`define DEBUG
-
 module RS (
   input  logic         clock, reset, en,
   input  RS_PACKET_IN  rs_packet_in,
@@ -14,7 +12,7 @@ module RS (
   output RS_PACKET_OUT rs_packet_out
 );
 
-  RS_ENTRY_t [`NUM_FU-1:0] next_RS;
+  RS_ENTRY_t [`NUM_FU-1:0] RS, next_RS;
   FU_t       [`NUM_FU-1:0] FU_list = `FU_LIST; // List of FU
   logic      [`NUM_FU-1:0] T1_CDB;             // If T1 is complete
   logic      [`NUM_FU-1:0] T2_CDB;             // If T2 is complete
@@ -28,7 +26,7 @@ module RS (
   `ifdef DEBUG
   assign RS_out = next_RS;
   `endif
-  
+
   // assign rs_hazard = RS_entry_ready == 0 && RS_entry_empty == 0;
   assign rs_hazard = RS_entry_match == 0;
   assign rs_packet_out.RS = next_RS;
