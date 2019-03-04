@@ -33,7 +33,7 @@ module test_RS;
 
   task printRS;
     begin
-      $display("     RS#     |  inst  |  FU  |  busy | alu func | T_idx | T1 | T1 ready | T2 | T2 ready");
+      $display("     RS#     |    inst    |  FU  |  busy | alu func | T_idx | T1 | r | T2 | r");
       for(int i = 0; i < `NUM_LD; i++) begin
         $display(" %d |  %h  |  LD  |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
                 i,
