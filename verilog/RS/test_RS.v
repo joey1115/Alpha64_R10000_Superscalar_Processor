@@ -35,7 +35,7 @@ module test_RS;
     begin
       $display("     RS#     |    inst    |  FU  |  busy | alu func | T_idx | T1 | r | T2 | r");
       for(int i = 0; i < `NUM_LD; i++) begin
-        $display(" %d |  %h  |  LD  |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
+        $display(" %d |  %h  |  LD  |   %d   |    %h    |  %h   | %h | %b | %h | %b ",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -47,7 +47,7 @@ module test_RS;
                 RS[i].T2.ready,);
       end
       for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
-        $display(" %d |  %h  |  ST  |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
+        $display(" %d |  %h  |  ST  |   %d   |    %h    |  %h   | %h | %b | %h | %b ",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -59,7 +59,7 @@ module test_RS;
                 RS[i].T2.ready,);
       end
       for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
-        $display(" %d |  %h  |  BR  |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
+        $display(" %d |  %h  |  BR  |   %d   |    %h    |  %h   | %h | %b | %h | %b ",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -71,7 +71,7 @@ module test_RS;
                 RS[i].T2.ready,);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
-        $display(" %d |  %h  | MULT |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
+        $display(" %d |  %h  | MULT |   %d   |    %h    |  %h   | %h | %b | %h | %b ",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -83,7 +83,7 @@ module test_RS;
                 RS[i].T2.ready,);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
-        $display(" %d |  %h  |  ALU |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
+        $display(" %d |  %h  |  ALU |   %d   |    %h    |  %h   | %h | %b | %h | %b ",
                 i,
                 RS[i].inst,
                 RS[i].busy,
