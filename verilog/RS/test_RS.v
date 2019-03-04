@@ -28,7 +28,7 @@ module test_RS;
 			.en(en),
 			.rs_packet_in(rs_packet_in),
 			.rs_hazard(rs_hazard),
-			.rs_packet_out(rs_packet_out)
+			.rs_packet_out(rs_packet_out),
 			.RS_out(RS));
 
 	task printRS(RS_ENTRY_t [`NUM_FU-1:0] print_RS_in) begin
