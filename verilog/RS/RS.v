@@ -30,7 +30,7 @@ module RS (
 
 
   `ifdef DEBUG
-  assign RS_out = next_RS;
+  assign RS_out = RS;
   `endif
 
 
