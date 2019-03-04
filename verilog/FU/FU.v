@@ -10,7 +10,7 @@ module alu(
     if (a[63] == b[63]) 
       signed_lt = (a < b); // signs match: signed compare same as unsigned
     else
-        = a[63];   // signs differ: a is smaller if neg, larger if pos
+      signed_lt = a[63];   // signs differ: a is smaller if neg, larger if pos
   endfunction
 
   always_comb begin
