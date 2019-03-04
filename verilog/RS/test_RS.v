@@ -30,12 +30,13 @@ module test_RS;
       .rs_hazard(rs_hazard),
       .rs_packet_out(rs_packet_out),
       .RS_out(RS));
+           3 |     | MULT | 0 | 1c | 07 | 3f | 1 | 1f | 0  
 
   task printRS;
     begin
-      $display(" RS# | inst |FU | busy | alu func | T_idx | T1 | T1 ready | T2 | T2 ready");
+      $display("     RS#     |  inst  |  FU  |  busy | alu func | T_idx | T1 | T1 ready | T2 | T2 ready");
       for(int i = 0; i < `NUM_LD; i++) begin
-        $display(" %d | %d | LD | %d | %h | %h | %h | %b | %h | %b ",
+        $display(" %d |  %h  |  LD  |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -47,7 +48,7 @@ module test_RS;
                 RS[i].T2.ready,);
       end
       for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
-        $display(" %d | %d | ST | %d | %h | %h | %h | %b | %h | %b ",
+        $display(" %d |  %h  |  ST  |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -59,7 +60,7 @@ module test_RS;
                 RS[i].T2.ready,);
       end
       for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
-        $display(" %d | %d | BR | %d | %h | %h | %h | %b | %h | %b ",
+        $display(" %d |  %h  |  BR  |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -71,7 +72,7 @@ module test_RS;
                 RS[i].T2.ready,);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
-        $display(" %d | %d | MULT | %d | %h | %h | %h | %b | %h | %b ",
+        $display(" %d |  %h  | MULT |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -83,7 +84,7 @@ module test_RS;
                 RS[i].T2.ready,);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
-        $display(" %d | %d | ALU | %d | %h | %h | %h | %b | %h | %b ",
+        $display(" %d |  %h  |  ALU |   %d   |    %h    |  %h  | %h | %b | %h | %b ",
                 i,
                 RS[i].inst,
                 RS[i].busy,
@@ -161,17 +162,20 @@ module test_RS;
 
   // reset
   initial begin
-    en = 1'b1;
+    en = 1'b0;
     clock = 1'b0;
     reset = 1'b1;
     @(negedge clock);
     reset = 1'b0;
+    en = 1'b0;
     
     setinput(0,1,`NOOP_INST,1,1,0,2,0, FU_ALU, ALU_ADDQ, 0);
 
     setinput(0,1,`NOOP_INST,2,4,1,5,0, FU_ALU, ALU_ADDQ, 0);
 
     setinput(0,1,`NOOP_INST,3,4,0,5,1, FU_ALU, ALU_ADDQ, 0);
+    
+    $finish;
   end
 endmodule  // module test_RS
 
