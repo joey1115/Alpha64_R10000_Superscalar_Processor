@@ -173,7 +173,7 @@ module test_RS;
     reset = 1'b1;
     @(negedge clock);
     reset = 1'b0;
-    en = 1'b0;
+    en = 1'b1;
     
     @(negedge clock);
     setinput(0,1,`NOOP_INST,1,1,0,2,0, FU_ALU, ALU_ADDQ, 0);
