@@ -1,6 +1,7 @@
 module RS (
   input  logic         clock, reset, en,
   input  RS_PACKET_IN  rs_packet_in,
+  output logic         valid,                  // RS availbale
   output RS_PACKET_OUT rs_packet_out
 );
 
@@ -16,7 +17,7 @@ module RS (
 
   // Hazard
   always_comb begin
-    rs_packet_out.valid = `FALSE;
+    valid = `FALSE;
     for (int i = 0; i < `NUM_FU; i++) begin
       T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T1 is complete
       T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T2 is complete
@@ -25,7 +26,7 @@ module RS (
       RS_entry_ready[i] = T1_ready[i] && T2_ready[i];                                     // T1 and T2 are ready to issue
       RS_entry_empty[i] = ( RS_entry_ready[i] || RS[i].busy == `FALSE );                  // RS entry empty
       if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU ) begin                     // FU match
-        rs_packet_out.valid = `TRUE;                                                      // No hazard
+        valid = `TRUE;                                                      // No hazard
         break;
       end // if ( ( RS_entry_ready[i]  || RS[i].busy == `FALSE ) && FU_list[i] == rs_packet_in.FU ) begin
     end // for (int i = 0; i < `NUM_FU; i++) begin

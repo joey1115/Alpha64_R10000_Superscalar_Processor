@@ -37,7 +37,7 @@ typedef struct packed {
   logic                       complete_en; // If CDB is ready
   logic                       dispatch_en; // If can be dispatched
   FU_t                        FU;          // Required FU
-  ALU_FUNC                    op;          // Required FU
+  ALU_FUNC                    op;          // Required ALU operation
   logic [$clog2(`NUM_PR)-1:0] CDB_T;       // CDB tag
 } RS_PACKET_IN;
 
@@ -52,7 +52,6 @@ typedef struct packed {
 `define FU_RESET '{`NUM_FU{`FU_ENTRY_RESET}}                     // FU reset
 
 typedef struct packed {
-  logic                             valid;         // valid is true if no hazard
   FU_PACKET_t [`NUM_FU-1:0]         FU_packet_out; // List of output fu
   RS_ENTRY_t  [`NUM_FU-1:0]         RS;            // RS
 } RS_PACKET_OUT;
