@@ -32,67 +32,68 @@ module test_RS;
       .RS_out(RS));
 
   task printRS;
-  begin
-    $display(" RS# | inst |FU | busy | alu func | T_idx | T1 | T1 ready | T2 | T2 ready");
-    for(int i = 0; i < `NUM_LD; i++) begin
-      $display(" %d | %d | LD | %d | %h | %h | %h | %b | %h | %b ",
-              i,
-              RS[i].inst,
-              RS[i].busy,
-              RS[i].func,
-              RS[i].T_idx,
-              RS[i].T1.idx,
-              RS[i].T1.ready,
-              RS[i].T2.idx,
-              RS[i].T2.ready,);
-    end
-    for(int i = NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
-      $display(" %d | %d | ST | %d | %h | %h | %h | %b | %h | %b ",
-              i,
-              RS[i].inst,
-              RS[i].busy,
-              RS[i].func,
-              RS[i].T_idx,
-              RS[i].T1.idx,
-              RS[i].T1.ready,
-              RS[i].T2.idx,
-              RS[i].T2.ready,);
-    end
-    for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
-      $display(" %d | %d | BR | %d | %h | %h | %h | %b | %h | %b ",
-              i,
-              RS[i].inst,
-              RS[i].busy,
-              RS[i].func,
-              RS[i].T_idx,
-              RS[i].T1.idx,
-              RS[i].T1.ready,
-              RS[i].T2.idx,
-              RS[i].T2.ready,);
-    end
-    for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
-      $display(" %d | %d | MULT | %d | %h | %h | %h | %b | %h | %b ",
-              i,
-              RS[i].inst,
-              RS[i].busy,
-              RS[i].func,
-              RS[i].T_idx,
-              RS[i].T1.idx,
-              RS[i].T1.ready,
-              RS[i].T2.idx,
-              RS[i].T2.ready,);
-    end
-    for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
-      $display(" %d | %d | ALU | %d | %h | %h | %h | %b | %h | %b ",
-              i,
-              RS[i].inst,
-              RS[i].busy,
-              RS[i].func,
-              RS[i].T_idx,
-              RS[i].T1.idx,
-              RS[i].T1.ready,
-              RS[i].T2.idx,
-              RS[i].T2.ready,);
+    begin
+      $display(" RS# | inst |FU | busy | alu func | T_idx | T1 | T1 ready | T2 | T2 ready");
+      for(int i = 0; i < `NUM_LD; i++) begin
+        $display(" %d | %d | LD | %d | %h | %h | %h | %b | %h | %b ",
+                i,
+                RS[i].inst,
+                RS[i].busy,
+                RS[i].func,
+                RS[i].T_idx,
+                RS[i].T1.idx,
+                RS[i].T1.ready,
+                RS[i].T2.idx,
+                RS[i].T2.ready,);
+      end
+      for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
+        $display(" %d | %d | ST | %d | %h | %h | %h | %b | %h | %b ",
+                i,
+                RS[i].inst,
+                RS[i].busy,
+                RS[i].func,
+                RS[i].T_idx,
+                RS[i].T1.idx,
+                RS[i].T1.ready,
+                RS[i].T2.idx,
+                RS[i].T2.ready,);
+      end
+      for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
+        $display(" %d | %d | BR | %d | %h | %h | %h | %b | %h | %b ",
+                i,
+                RS[i].inst,
+                RS[i].busy,
+                RS[i].func,
+                RS[i].T_idx,
+                RS[i].T1.idx,
+                RS[i].T1.ready,
+                RS[i].T2.idx,
+                RS[i].T2.ready,);
+      end
+      for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
+        $display(" %d | %d | MULT | %d | %h | %h | %h | %b | %h | %b ",
+                i,
+                RS[i].inst,
+                RS[i].busy,
+                RS[i].func,
+                RS[i].T_idx,
+                RS[i].T1.idx,
+                RS[i].T1.ready,
+                RS[i].T2.idx,
+                RS[i].T2.ready,);
+      end
+      for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
+        $display(" %d | %d | ALU | %d | %h | %h | %h | %b | %h | %b ",
+                i,
+                RS[i].inst,
+                RS[i].busy,
+                RS[i].func,
+                RS[i].T_idx,
+                RS[i].T1.idx,
+                RS[i].T1.ready,
+                RS[i].T2.idx,
+                RS[i].T2.ready,);
+      end
     end
   endtask
 
