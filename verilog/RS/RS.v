@@ -23,7 +23,7 @@ module RS (
       T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                    // T1 is ready or updated by CDB
       T2_ready[i]       = RS[i].T2.ready || T1_CDB[i];                                    // T2 is ready or updated by CDB
       RS_entry_ready[i] = T1_ready[i] && T2_ready[i];                                     // T1 and T2 are ready to issue
-      RS_entry_empty[i] = ( RS_entry_ready[i]  || RS[i].busy == `FALSE );                 // RS entry empty
+      RS_entry_empty[i] = ( RS_entry_ready[i] || RS[i].busy == `FALSE );                  // RS entry empty
       if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU ) begin                     // FU match
         rs_packet_out.valid = `TRUE;                                                      // No hazard
         break;
