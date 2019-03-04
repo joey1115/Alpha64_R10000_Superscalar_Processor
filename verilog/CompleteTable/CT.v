@@ -8,25 +8,24 @@ module CT (
 
   always_comb begin
     next_ct = ct;
-
-    for (int i=0; i<NUM_FU; i++) begin
-      next_ct[i].valid = ct_packet_in.X_C_valid[i];
-    end
-    
-    // give stall signal
-    for (int i=0; i<NUM_FU; i++) begin
-      if (next_ct[i].valid == 1) begin
+    // save T & result, give stall signal
+    for (int i=0; i<`NUM_FU; i++) begin
+      if (next_ct[i].taken == 0 && ct_packet_in.X_C_valid[i] == 1) begin
+        next_ct[i].taken == 1;
         next_ct[i].T = ct_packet_in.X_C_T[i];
         next_ct[i].result = ct_packet_in.X_C_result[i];
+        ct_packet_out.full_hazard[i] = 1;
+      end else if (next_ct[i].taken == 1) begin
         ct_packet_out.full_hazard[i] = 1;
       end
     end
     // broadcast
-    for (int i=0; i<NUM_FU; i++) begin
-      if (ct_packet_out.full_hazard[i] = 1) begin
-        ct_packet_out.valid = next_ct[i].valid;
+    for (int i=0; i<`NUM_FU; i++) begin
+      if (ct_packet_out.full_hazard[i] == 1) begin
+        ct_packet_out.valid = next_ct[i].taken;
         ct_packet_out.T = next_ct[i].T;
         ct_packet_out.result = next_ct[i].result;
+        next_ct[i].taken = 0;
         ct_packet_out.full_hazard[i] = 0;
         break;
       end

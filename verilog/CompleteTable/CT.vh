@@ -4,7 +4,7 @@
 `include "../../sys_config.vh"
 
 typedef struct packed {
-  logic valid;
+  logic taken;
   logic [$clog2(`NUM_PR)-1:0] T;
   logic [63:0] result;
 } CT_entry_t;
