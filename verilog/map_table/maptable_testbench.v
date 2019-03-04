@@ -24,7 +24,7 @@ module testbench_map_table;
   logic [31:0] cycle_count;
 
   // Test Cases #1: Lecture Slides
-  `define TEST1_LEN 34
+  `define TEST1_LEN 5
   map_table_packet_in  [`TEST1_LEN-1:0] test1;
   // solutions have one more state than test cases
   map_table_packet_out   [`TEST1_LEN:0] test1_out;
@@ -78,95 +78,20 @@ module testbench_map_table;
     // test1[c]: input at cycle c
     // {r, inst_dispatch, T_in, T_old_in, flush_branch_idx, branch_mispredict}
     // Cycle 0-6: simulates Lecture Slides with stalls added
-    test1[0]  = '{0, 1,  5,  2, 0, 0};
-    test1[1]  = '{0, 0,  6,  3, 0, 0}; // test stall (inst_dispatch)
-    test1[2]  = '{0, 1,  6,  3, 0, 0};
-    test1[3]  = '{0, 1, 31, 31, 0, 0}; // store inst, no destination
-    test1[4]  = '{0, 1,  7,  4, 0, 0}; // test stall (enable) here
-    test1[5]  = '{0, 1,  7,  4, 0, 0};
-    test1[6]  = '{1, 1,  8,  5, 0, 0};
-    // Cycle 7-10: fill up all entries of ROB
-    test1[7]  = '{0, 1,  9, 19, 0, 0};
-    test1[8]  = '{0, 1, 10, 20, 0, 0};
-    test1[9]  = '{0, 1, 11, 21, 0, 0};
-    test1[10] = '{0, 1, 12, 22, 0, 0};
-    // Cycle 11: check struct hazard detection
-    test1[11] = '{0, 1, 13, 23, 0, 0};
-    // Cycle 12: the head retires and new inst should be dispatched at the same cycle
-    test1[12] = '{1, 1, 13, 23, 0, 0};
-    // Cycle 13-20: retire all instructions
-    test1[13] = '{1, 0, 14, 24, 0, 0};
-    test1[14] = '{1, 0, 14, 24, 0, 0};
-    test1[15] = '{1, 0, 14, 24, 0, 0};
-    test1[16] = '{1, 0, 14, 24, 0, 0};
-    test1[17] = '{1, 0, 14, 24, 0, 0};
-    test1[18] = '{1, 0, 14, 24, 0, 0};
-    test1[19] = '{1, 0, 14, 24, 0, 0};
-    test1[20] = '{1, 0, 14, 24, 0, 0};
-    // Cycle 21: try retire when ROB is empty
-    test1[21] = '{1, 0, 14, 24, 0, 0};
-    // Cycle 22-29: fill in instructions again
-    test1[22] = '{0, 1,  2, 12, 0, 0};
-    test1[23] = '{0, 1,  3, 13, 0, 0};
-    test1[24] = '{0, 1,  4, 14, 0, 0};
-    test1[25] = '{0, 1,  5, 15, 0, 0};
-    test1[26] = '{0, 1,  6, 16, 0, 0};
-    test1[27] = '{0, 1,  7, 17, 0, 0};
-    test1[28] = '{0, 1, 10, 20, 0, 0};
-    test1[29] = '{0, 1, 11, 21, 0, 0};
-    // Cycle 30: branch exception
-    test1[30] = '{0, 1, 12, 22, 7, 1}; // flush anything after ROB#7 (with inst_dispatch ON)
-    test1[31] = '{0, 0, 12, 22, 4, 1}; // flush right after flush
-    test1[32] = '{0, 1, 12, 22, 4, 0}; // write something after flush
-    test1[33] = '{1, 1, 13, 23, 3, 1}; // flush and retire at the same time
+    test1[0]  = '{1, 1,  33,  20, 1};
+    test1[1]  = '{1, 2,  34,  19, 1}; // test stall (inst_dispatch)
+	test1[2]  = '{1, 3,  35,  18, 1};
+	test1[3]  = '{1, 4,  36,  17, 1};
+	test1[4]  = '{1, 5,  37,  16, 1};
 
-
-    // test1_out[c]: output at cycle c (test1[c]'s effect is shown by test1_out[c+1])
-    // {T_out, T_old_out, out_correct, struct_hazard, head_idx_out, ins_rob_idx}
+    
     // Cycle 0 tests reset
-    test1_out[0]  = '{ 0,  0, 0, 0, 0, 0}; // T_out, T_old_out should be don't care
+    test1_out[0]  = '{1}; // T_out, T_old_out should be don't care
     // simulates lecture slides with stalls added
-    test1_out[1]  = '{ 5,  2, 1, 0, 0, 0};
-    test1_out[2]  = '{ 5,  2, 1, 0, 0, 0};
-    test1_out[3]  = '{ 6,  3, 1, 0, 0, 1};
-    test1_out[4]  = '{31, 31, 1, 0, 0, 2};
-    test1_out[5]  = '{31, 31, 1, 0, 0, 2};
-    test1_out[6]  = '{ 7,  4, 1, 0, 0, 3};
-    test1_out[7]  = '{ 8,  5, 1, 0, 1, 4};
-    // all entries of ROB are filled at cycle 11
-    test1_out[8]  = '{ 9, 19, 1, 0, 1, 5};
-    test1_out[9]  = '{10, 20, 1, 0, 1, 6};
-    test1_out[10] = '{11, 21, 1, 0, 1, 7};
-    test1_out[11] = '{12, 22, 1, 1, 1, 0}; // test ROB# roll-over
-    // struct hazard happens here
-    test1_out[12] = '{12, 22, 1, 1, 1, 0};
-    // the head retires and the new inst takes its entry
-    test1_out[13] = '{13, 23, 1, 1, 2, 1};
-    // retire all instructions
-    test1_out[14] = '{13, 23, 1, 0, 3, 1};
-    test1_out[15] = '{13, 23, 1, 0, 4, 1};
-    test1_out[16] = '{13, 23, 1, 0, 5, 1};
-    test1_out[17] = '{13, 23, 1, 0, 6, 1};
-    test1_out[18] = '{13, 23, 1, 0, 7, 1};
-    test1_out[19] = '{13, 23, 1, 0, 0, 1}; // test ROB head idx roll-over
-    test1_out[20] = '{13, 23, 1, 0, 1, 1};
-    test1_out[21] = '{13, 23, 0, 0, 2, 1};
-    // don't move head when over-retire
-    test1_out[22] = '{13, 23, 0, 0, 2, 1};
-    // fill in instructions again
-    test1_out[23] = '{ 2, 12, 1, 0, 2, 2};
-    test1_out[24] = '{ 3, 13, 1, 0, 2, 3};
-    test1_out[25] = '{ 4, 14, 1, 0, 2, 4};
-    test1_out[26] = '{ 5, 15, 1, 0, 2, 5};
-    test1_out[27] = '{ 6, 16, 1, 0, 2, 6};
-    test1_out[28] = '{ 7, 17, 1, 0, 2, 7};
-    test1_out[29] = '{10, 20, 1, 0, 2, 0};
-    test1_out[30] = '{11, 21, 1, 1, 2, 1};
-    // branch exception (flush anything after ROB#7)
-    test1_out[31] = '{ 7, 17, 1, 0, 2, 7};
-    test1_out[32] = '{ 4, 14, 1, 0, 2, 4};
-    test1_out[33] = '{12, 22, 1, 0, 2, 5};
-    test1_out[34] = '{ 3, 13, 1, 0, 3, 3};
+    test1_out[1]  = '{2};
+	test1_out[2]  = '{3};
+	test1_out[3]  = '{4};
+	test1_out[4]  = '{5};
 
 
     // Reset
@@ -200,27 +125,39 @@ module testbench_map_table;
     en = 1'b0;
     map_table_packet_in = test1[4];
 
-    // Cycle 5 input
-    @(negedge clock);
-    en = 1'b1;
-    map_table_packet_in = test1[5];
-
-    // Cycle 6 input
-    @(negedge clock);
-    map_table_packet_in = test1[6];
-
-    for (int i = 7; i < `TEST1_LEN; i=i+1) begin
-      @(negedge clock);
-      map_table_packet_in = test1[i];
-    end
-
-    @(negedge clock);
-    @(negedge clock);
-    @(negedge clock);
-
     $finish;
 
   end // initial
 
 endmodule  // module testbench_ROB
 
+/* 
+typedef struct packed {
+  logic valid;
+  logic [$clog2(`NUM_PR)-1:0] T;
+  logic [$clog2(`NUM_PR)-1:0] T_old;
+} ROB_ENTRY_t;
+
+typedef struct packed {
+  logic [$clog2(`NUM_ROB)-1:0] head;
+  logic [$clog2(`NUM_ROB)-1:0] tail;
+  ROB_ENTRY_t [`NUM_ROB-1:0] entry;
+} ROB_t;
+
+typedef struct packed {
+  logic r;                                        //retire, increase head, invalidate entry
+  logic inst_dispatch;                            //dispatch, increase tail, validate entry
+  logic [$clog2(`NUM_PR)-1:0] T_in;               //T_in data to input to T during dispatch
+  logic [$clog2(`NUM_PR)-1:0] T_old_in;           //T_onld_in data to input to T_old during dispatch
+  logic [$clog2(`NUM_ROB)-1:0] flush_branch_idx;  //ROB idx of branch inst
+  logic branch_mispredict;                        //set high when branch mispredicted, will invalidate entry except branch inst
+} ROB_PACKET_IN;
+
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] T_out;              //output tail's T
+  logic [$clog2(`NUM_PR)-1:0] T_old_out;          //output tail's T_old
+  logic out_correct;                              //tells whether output is valid (empty entry)
+  logic struct_hazard;                            //tells whether structural hazard reached
+  logic [$clog2(`NUM_ROB)-1:0] head_idx_out;      //tells the rob idx of the head
+  logic [$clog2(`NUM_ROB)-1:0] ins_rob_idx;       //tells the rob idx of the dispatched inst
+} ROB_PACKET_OUT; */
