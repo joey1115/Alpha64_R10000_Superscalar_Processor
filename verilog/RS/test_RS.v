@@ -30,7 +30,7 @@ module test_RS;
       .rs_packet_in(rs_packet_in),
       .rs_hazard(rs_hazard),
       .rs_packet_out(rs_packet_out),
-      .RS_out(RS)
+      .RS_out(RS),
       .RS_entry_match(RS_entry_match));
 
   task printRS;
