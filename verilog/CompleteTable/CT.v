@@ -14,7 +14,7 @@ module CT (
     for (int i=0; i<`NUM_FU; i++) begin
       ct_packet_out.full_hazard[i] = next_ct[i].taken;
       if (next_ct[i].taken == 0 && ct_packet_in.X_C_valid[i] == 1) begin
-        next_ct[i].taken == 1;
+        next_ct[i].taken = 1;
         next_ct[i].T = ct_packet_in.X_C_T[i];
         next_ct[i].result = ct_packet_in.X_C_result[i];
         ct_packet_out.full_hazard[i] = 1;
@@ -46,7 +46,11 @@ module CT (
 
   always_ff @(posedge clock) begin
     if (reset) begin
-      ct <= `SD {`NUM_FU{0, 0, 0}};
+      for (int i=0; i<`NUM_FU; i++) begin
+        ct[i].taken  <= `SD 0;
+        ct[i].T      <= `SD 0;
+        ct[i].result <= `SD 0;
+      end
     end else if (en) begin
       ct <= `SD next_ct;
     end
