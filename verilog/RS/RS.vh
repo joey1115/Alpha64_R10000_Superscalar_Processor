@@ -53,7 +53,6 @@ typedef struct packed {
 
 typedef struct packed {
   FU_PACKET_t [`NUM_FU-1:0]         FU_packet_out; // List of output fu
-  RS_ENTRY_t  [`NUM_FU-1:0]         RS;            // RS
 } RS_PACKET_OUT;
 
 `endif

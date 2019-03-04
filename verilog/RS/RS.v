@@ -1,11 +1,25 @@
+`timescale 1ns/100ps
+
+`define DEBUG
+
 module RS (
   input  logic         clock, reset, en,
   input  RS_PACKET_IN  rs_packet_in,
+
+  `ifdef DEBUG
+  RS_ENTRY_t [`NUM_FU-1:0] RS,
+  `endif
+
   output logic         valid,                  // RS availbale
   output RS_PACKET_OUT rs_packet_out
 );
 
-  RS_ENTRY_t [`NUM_FU-1:0] RS, next_RS;
+
+  `ifndef DEBUG
+    RS_ENTRY_t [`NUM_FU-1:0] RS;
+  `endif
+
+  RS_ENTRY_t [`NUM_FU-1:0] next_RS;
   FU_t       [`NUM_FU-1:0] FU_list = `FU_LIST; // List of FU
   logic      [`NUM_FU-1:0] T1_CDB;             // If T1 is complete
   logic      [`NUM_FU-1:0] T2_CDB;             // If T2 is complete
@@ -13,7 +27,8 @@ module RS (
   logic      [`NUM_FU-1:0] T2_ready;           // If T2 is ready
   logic      [`NUM_FU-1:0] RS_entry_ready;     // If a RS entry is ready
   logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
-  assign rs_packet_out.RS = next_RS;
+  
+  assign RS = next_RS;
 
   // Hazard
   always_comb begin
