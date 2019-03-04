@@ -14,8 +14,12 @@ typedef struct packed {
 } FU_ENTRY_t;
 
 typedef struct packed {
-  FU_PACKET_t [`NUM_FU-1:0]         FU_packet;
+  logic        ready;
+  logic [63:0] T1_value;
+  logic [63:0] T2_value;
+  ALU_FUNC     func;
 } FU_PACKET_IN;
+
 
 typedef struct packed {
   logic        done;
@@ -25,5 +29,15 @@ typedef struct packed {
 typedef struct packed {
   FU_RESULT_ENTRY_t [`NUM_FU-1:0] fu_result;
 } FU_PACKET_OUT;
+
+typedef struct packed {
+  logic        ready;
+  logic [63:0] T1_value;
+  ALU_FUNC     func;
+} BR_PACKET_IN;
+
+typedef struct packed {
+  logic cond;
+} BR_PACKET_OUT;
 
 `endif
