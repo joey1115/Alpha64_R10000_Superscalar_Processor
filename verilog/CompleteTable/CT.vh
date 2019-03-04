@@ -1,26 +1,28 @@
-`ifndef __PR_VH__
-`define __PR_VH__
+`ifndef __CT_VH__
+`define __CT_VH__
 
 `include "../../sys_config.vh"
 
-typedef enum logic {
-  PR_NOT_FREE = 1'b0,
-  PR_FREE     = 1'b1
-} PR_FREE_t;
+typedef struct packed {
+  logic valid;
+  logic [$clog2(`NUM_PR)-1:0] T;
+  logic [63:0] result;
+} CT_entry_t;
+
+
 
 typedef struct packed {
-  logic [63:0] data;
-  PR_FREE_t    free;
-} PR_t;
-
-typedef enum logic {
-  PR_NOT_READY = 1'b0,
-  PR_READY     = 1'b1
-} PR_STATUS_t;
+  logic                       X_C_valid [$clog2(`NUM_FU)-1:0];
+  logic                       ROB_T;
+  logic [$clog2(`NUM_PR)-1:0] X_C_T [$clog2(`NUM_FU)-1:0];
+  logic [63:0]                X_C_result [$clog2(`NUM_FU)-1:0];
+} CT_PACKET_IN;
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] PR_idx;
-  PR_STATUS_t                 T_PLUS_STATUS;
-} T_t;
+  logic                       full_hazard [$clog2(`NUM_FU)-1:0];
+  logic                       valid;
+  logic [$clog2(`NUM_PR)-1:0] T;
+  logic [63:0]                result;
+} CT_PACKET_OUT;
 
 `endif

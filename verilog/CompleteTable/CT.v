@@ -1,17 +1,44 @@
-module PR_m (
-  input  PR_PACKET_IN  pr_packet_in,
-  output PR_PACKET_OUT pr_packet_out
+module CT (
+  input  en, clock, reset, 
+  input  CT_PACKET_IN  ct_packet_in,
+  output CT_PACKET_OUT ct_packet_out
 );
 
-  PR_t [$clog2(`NUM_PR)-1:0] PR, next_PR;
+  CT_entry_t [$clog2(`NUM_FU)-1:0] ct, next_ct;
 
-// ROB logic
+  always_comb begin
+    next_ct = ct;
+
+    for (int i=0; i<NUM_FU; i++) begin
+      next_ct[i].valid = ct_packet_in.X_C_valid[i];
+    end
+    
+    // give stall signal
+    for (int i=0; i<NUM_FU; i++) begin
+      if (next_ct[i].valid == 1) begin
+        next_ct[i].T = ct_packet_in.X_C_T[i];
+        next_ct[i].result = ct_packet_in.X_C_result[i];
+        ct_packet_out.full_hazard[i] = 1;
+      end
+    end
+    // broadcast
+    for (int i=0; i<NUM_FU; i++) begin
+      if (ct_packet_out.full_hazard[i] = 1) begin
+        ct_packet_out.valid = next_ct[i].valid;
+        ct_packet_out.T = next_ct[i].T;
+        ct_packet_out.result = next_ct[i].result;
+        ct_packet_out.full_hazard[i] = 0;
+        break;
+      end
+    end
+
+  end
+
   always_ff @(posedge clock) begin
-    if(reset) begin
-      PR <= `SD {`NUM_PR{'{0, PR_FREE}};
-    end else if(rob_packet_in.en) begin
-      PR <= `SD next_PR;
-    end // if (f_d_enable)
-  end // always
-
+    if (reset) begin
+      ct <= `SD {`NUM_FU{0, 0, 0}};
+    end else if (en) begin
+      ct <= `SD next_ct;
+    end
+  end
 endmodule
