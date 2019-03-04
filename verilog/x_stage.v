@@ -76,14 +76,14 @@ endmodule // alu
 //
 module brcond(// Inputs
     input [63:0] opa,    // Value to check against condition
-    input  [2:0] func,  // Specifies which condition to check
+    input  [2:0] func,   // Specifies which condition to check
 
     output logic cond    // 0/1 condition result (False/True)
   );
 
   always_comb begin
-    case (func[1:0])                              // 'full-case'  All cases covered, no need for a default
-      2'b00: cond = (opa[0] == 0);                // LBC: (lsb(opa) == 0) ?
+    case (func[1:0])                               // 'full-case'  All cases covered, no need for a default
+      2'b00: cond = (opa[0] == 0);                 // LBC: (lsb(opa) == 0) ?
       2'b01: cond = (opa == 0);                    // EQ: (opa == 0) ?
       2'b10: cond = (opa[63] == 1);                // LT: (signed(opa) < 0) : check sign bit
       2'b11: cond = (opa[63] == 1) || (opa == 0);  // LE: (signed(opa) <= 0)
