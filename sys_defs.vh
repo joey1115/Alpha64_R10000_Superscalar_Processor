@@ -26,12 +26,9 @@
 
 
 `define NUM_MEM_TAGS           15
-`define NUM_PR                 64
 
-`define NUM_ROB                8
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
-
 
 // probably not a good idea to change this second one
 `define VIRTUAL_CLOCK_PERIOD   30.0 // Clock period from dc_shell
@@ -89,7 +86,6 @@ typedef enum logic [1:0] {
   DEST_NONE     = 2'h2
 } DEST_REG_SEL;
 
-
 //
 // ALU function code input
 // probably want to leave these alone
@@ -115,7 +111,7 @@ typedef enum logic [4:0] {
 } ALU_FUNC;
 
 typedef union packed {
-  logic [31:0] inst;
+  logic [31:0] I;
   struct packed {
     logic [5:0] opcode;
     logic [4:0] rega_idx;
@@ -181,118 +177,13 @@ typedef union packed {
   } p; //pal inst
 } INST_t; //instruction typedef, this should cover all types of instructions
 
-typedef struct packed {
-  INST_t inst;  // fetched instruction out
-  logic  valid; // PC + 4 
-} DECODER_PACKET_IN;
+// typedef enum logic [1:0] {
+//   HT_NONE = 2'b00,
+//   HT_HEAD = 2'b01,
+//   HT_TAIL = 2'b10,
+//   HT_HT   = 2'b11
+// } HT_t;
 
-typedef enum logic [2:0] {
-  FU_ALU = 3'b000,
-  FU_ST  = 3'b001,
-  FU_LD  = 3'b010,
-  FU_FP1 = 3'b011,
-  FU_FP2 = 3'b100
-} FU_t;
-
-typedef struct packed {
-  ALU_OPA_SELECT opa_select;  // fetched instruction out
-  ALU_OPB_SELECT opb_select;
-  ALU_FUNC       alu_func;
-  logic          rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
-  logic          halt;      // non-zero on a halt
-  logic          cpuid;     // get CPUID instruction
-  logic          illegal;   // non-zero on an illegal instruction
-  logic          valid; // for counting valid instructions executed
-  logic [4:0]    dest_reg_idx;
-  FU_t           FU;
-} DECODER_PACKET_OUT;
-
-`define DECODER_PACKET_OUT_DEFAULT '{ \
-  ALU_OPA_IS_REGA, \
-  ALU_OPB_IS_REGB, \
-  ALU_ADDQ, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `ZERO_REG, \
-  FU_ALU \
-}
-
-typedef enum logic {
-  PR_NOT_FREE = 1'b0,
-  PR_FREE     = 1'b1
-} PR_FREE_t;
-
-typedef struct packed {
-  logic [63:0] data;
-  PR_FREE_t    free;
-} PR_t;
-
-typedef enum logic {
-  PR_NOT_READY = 1'b0,
-  PR_READY     = 1'b1
-} PR_STATUS_t;
-
-typedef struct packed {
-  T_t                         T_PLUS;
-  logic [$clog2(`NUM_PR)-1:0] PR_idx;
-} ARCH_MAP_t;
-
-`define NUM_ALU 1
-`define FU_list { FU_ALU, FU_ST, FU_LD, FU_FP1, FU_FP2 }
-
-typedef struct packed {
-  FU_t                        FU;
-  logic                       busy;
-  logic [5:0]                 op;
-  logic [$clog2(`NUM_PR)-1:0] T;
-  T_t                         T1;
-  T_t                         T2;
-} RS_ENTRY_t;
-
-typedef enum logic [1:0] {
-  HT_NONE = 2'b00,
-  HT_HEAD = 2'b01,
-  HT_TAIL = 2'b10,
-  HT_HT   = 2'b11
-} HT_t;
-
-typedef struct packed {
-  // HT_t                        ht;
-  // INST_t                      inst;
-  logic valid;
-  logic [$clog2(`NUM_PR)-1:0] T;
-  logic [$clog2(`NUM_PR)-1:0] T_old;
-} ROB_ENTRY_t;
-
-typedef struct packed {
-  logic [$clog2(`NUM_ROB)-1:0] head;
-  logic [$clog2(`NUM_ROB)-1:0] tail;
-  ROB_ENTRY_t [`NUM_ROB-1:0] entry;
-} ROB_t;
-
-typedef struct packed {
-  logic r;
-  logic inst_dispatch;
-  logic [$clog2(`NUM_PR)-1:0] T_in;
-  logic [$clog2(`NUM_PR)-1:0] T_old_in;
-} ROB_PACKET_IN;
-
-typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] T_out;
-  logic [$clog2(`NUM_PR)-1:0] T_old_out;
-  logic out_correct;
-  logic struct_hazard;
-  logic [$clog2(`NUM_ROB)-1:0] head_idx_out;
-  logic [$clog2(`NUM_ROB)-1:0] ins_rob_idx;
-} ROB_PACKET_OUT;
 //////////////////////////////////////////////
 //
 // IF Packets:
@@ -307,9 +198,9 @@ typedef struct packed {
 } F_D_PACKET;
 
 `define F_D_PACKET_RESET '{ \
-  `FALSE, \
-  `NOOP_INST, \
-  0 \
+  `FALSE,                   \
+  `NOOP_INST,               \
+  0                         \
 }
 
 //////////////////////////////////////////////
@@ -318,6 +209,14 @@ typedef struct packed {
 // Data that is exchanged from ID to EX stage
 //
 //////////////////////////////////////////////
+
+typedef enum logic [2:0] {
+  FU_ALU  = 3'b000,
+  FU_ST   = 3'b001,
+  FU_LD   = 3'b010,
+  FU_MULT = 3'b011,
+  FU_BR   = 3'b100
+} FU_t;
 
 typedef struct packed {
   logic [63:0]   NPC;   // PC + 4
@@ -343,25 +242,25 @@ typedef struct packed {
 } S_X_PACKET;
 
 `define S_X_PACKET_RESET '{ \
-  {64{1'b0}}, \
-  {64{1'b0}}, \
-  {64{1'b0}}, \
-  ALU_OPA_IS_REGA, \
-  ALU_OPB_IS_REGB, \
-  `NOOP_INST, \
-  `ZERO_REG, \
-  ALU_ADDQ, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  FU_ALU \
+  {64{1'b0}},               \
+  {64{1'b0}},               \
+  {64{1'b0}},               \
+  ALU_OPA_IS_REGA,          \
+  ALU_OPB_IS_REGB,          \
+  `NOOP_INST,               \
+  `ZERO_REG,                \
+  ALU_ADDQ,                 \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  1'b0,                     \
+  FU_ALU                    \
 }
 
 typedef struct packed {
@@ -377,17 +276,17 @@ typedef struct packed {
 } X_C_PACKET;
 
 `define X_C_PACKET_RESET '{ \
-  `NOOP_INST, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  `ZERO_REG, \
-  0, \
-  0, \
-  0 \
+  `NOOP_INST,               \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  `ZERO_REG,                \
+  0,                        \
+  0,                        \
+  0                         \
 }
 
 typedef struct packed {
@@ -400,15 +299,15 @@ typedef struct packed {
 } C_R_PACKET;
 
 `define C_R_PACKET_RESET '{ \
-  `NOOP_INST, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  `ZERO_REG, \
-  0 \
+  `NOOP_INST,               \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  0,                        \
+  `ZERO_REG,                \
+  0                         \
 }
 
 typedef struct packed {

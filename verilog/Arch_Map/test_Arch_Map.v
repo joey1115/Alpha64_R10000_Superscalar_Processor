@@ -20,15 +20,15 @@ module test_Arch_Map;
   ARCH_MAP_PACKET_IN arch_map_packet_in;
 
   // DUT output
-  ARCH_MAP_PACKET_OUT arch_map_packet_out;
+  // ARCH_MAP_PACKET_OUT arch_map_packet_out;
 
   // DUT instantiation
   Arch_Map UUT(
     .en(en),
     .clock(clock),
     .reset(reset),
-    .arch_map_packet_in(arch_map_packet_in),
-    .arch_map_packet_out(arch_map_packet_out)
+    .arch_map_packet_in(arch_map_packet_in)
+    // .arch_map_packet_out(arch_map_packet_out)
   );
 
   logic [31:0] cycle_count;
