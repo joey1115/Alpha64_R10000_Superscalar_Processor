@@ -28,7 +28,6 @@ module RS (
   // logic      [`NUM_FU-1:0] RS_entry_ready;     // If a RS entry is ready
   // logic      [`NUM_FU-1:0] RS_entry_forward;   // If a RS entry is ready
   logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
-  logic      [`NUM_FU-1:0] RS_entry_match;     // If a RS entry is ready
   
 `ifndef DEBUG
   logic      [`NUM_FU-1:0] RS_entry_match;     // If a RS entry is ready
@@ -88,7 +87,7 @@ module RS (
         rs_packet_out.FU_packet_out[i].T2_idx = RS[i].T2.idx;                       // Output T2_idx
         rs_packet_out.FU_packet_out[i].func   = RS[i].func;                         // op code
         rs_packet_out.FU_packet_out[i].inst   = RS[i].inst;                         // inst
-        next_RS[i] = '{`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_PR, `T_RESET, `T_RESET}; // Clear RS entry
+        next_RS[i] = `RS_ENTRY_RESET; // Clear RS entry
       end // if ( RS_entry_ready[i] ) begin
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
