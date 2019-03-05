@@ -51,7 +51,7 @@ module RS (
       T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T2 is complete
       T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                    // T1 is ready or updated by CDB
       T2_ready[i]       = RS[i].T2.ready || T1_CDB[i];                                    // T2 is ready or updated by CDB
-      RS_T_ready[i]     = T1_ready[i] && T2_ready[i];                                     // T1 and T2 are ready to issue
+      RS_T_ready[i]     = T1_ready[i] && T2_ready[i] && rs_packet_in.fu_done[i];          // T1 and T2 are ready to issue
       RS_entry_empty[i] = RS_T_ready[i] || RS[i].busy == `FALSE;                          // RS entry empty
       RS_entry_match[i] = RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU;             // RS entry match
 
@@ -80,13 +80,13 @@ module RS (
     // Issue
     // for (int i = 0; i < `NUM_FU; i++) begin
 
-      if ( RS_T_ready[i] ) begin                                                    // T1 and T2 are ready to issue
-        rs_packet_out.FU_packet_out[i].ready  = `TRUE;                              // Ready to issue
-        rs_packet_out.FU_packet_out[i].T_idx  = RS[i].T_idx;                        // Output T_idx
-        rs_packet_out.FU_packet_out[i].T1_idx = RS[i].T1.idx;                       // Output T1_idx
-        rs_packet_out.FU_packet_out[i].T2_idx = RS[i].T2.idx;                       // Output T2_idx
-        rs_packet_out.FU_packet_out[i].func   = RS[i].func;                         // op code
-        rs_packet_out.FU_packet_out[i].inst   = RS[i].inst;                         // inst
+      if ( RS_T_ready[i] ) begin                              // T1 and T2 are ready to issue
+        rs_packet_out.FU_packet_out[i].ready  = `TRUE;        // Ready to issue
+        rs_packet_out.FU_packet_out[i].T_idx  = RS[i].T_idx;  // Output T_idx
+        rs_packet_out.FU_packet_out[i].T1_idx = RS[i].T1.idx; // Output T1_idx
+        rs_packet_out.FU_packet_out[i].T2_idx = RS[i].T2.idx; // Output T2_idx
+        rs_packet_out.FU_packet_out[i].func   = RS[i].func;   // op code
+        rs_packet_out.FU_packet_out[i].inst   = RS[i].inst;   // inst
         next_RS[i] = `RS_ENTRY_RESET; // Clear RS entry
       end // if ( RS_entry_ready[i] ) begin
 
