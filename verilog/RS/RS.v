@@ -45,16 +45,6 @@ module RS (
   // assign T2_ready_in = rs_packet_in.T1.ready || T2_CDB_in;
   // assign T_ready_in = T1_ready_in && T2_ready_in;
 
-  // always_comb begin
-  //   for (int i = 0; i < `NUM_FU; i++) begin
-      
-  //     RS_entry_ready[i]   = RS[i].busy == `FALSE && rs_packet_in.fu_done[i] == `TRUE && FU_list[i] == rs_packet_in.FU;
-  //     RS_entry_forward[i] = T_ready_in && RS_entry_ready[i];
-
-  //   end
-  // end
-
-  // Hazard
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
 
@@ -65,6 +55,9 @@ module RS (
       RS_T_ready[i]     = T1_ready[i] && T2_ready[i];                                     // T1 and T2 are ready to issue
       RS_entry_empty[i] = RS_T_ready[i] || RS[i].busy == `FALSE;                          // RS entry empty
       RS_entry_match[i] = RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU;             // RS entry match
+
+  //     RS_entry_ready[i]   = RS[i].busy == `FALSE && rs_packet_in.fu_done[i] == `TRUE && FU_list[i] == rs_packet_in.FU;
+  //     RS_entry_forward[i] = T_ready_in && RS_entry_ready[i];
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
   end // always_comb begin
