@@ -51,7 +51,7 @@ module RS (
       T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T2 is complete
       T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                    // T1 is ready or updated by CDB
       T2_ready[i]       = RS[i].T2.ready || T1_CDB[i];                                    // T2 is ready or updated by CDB
-      RS_T_ready[i]     = T1_ready[i] && T2_ready[i] && rs_packet_in.fu_done[i];          // T1 and T2 are ready to issue
+      RS_T_ready[i]     = T1_ready[i] && T2_ready[i] && rs_packet_in.fu_hazard[i];        // T1 and T2 are ready to issue
       RS_entry_empty[i] = RS_T_ready[i] || RS[i].busy == `FALSE;                          // RS entry empty
       RS_entry_match[i] = RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU;             // RS entry match
 

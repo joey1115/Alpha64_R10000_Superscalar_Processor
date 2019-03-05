@@ -42,7 +42,7 @@ typedef struct packed {
   FU_t                           FU;          // Required FU
   ALU_FUNC                       func;        // Required ALU operation
   logic    [$clog2(`NUM_PR)-1:0] CDB_T;       // CDB tag
-  logic    [`NUM_FU-1:0]         fu_done;     // FU done
+  logic    [`NUM_FU-1:0]         fu_hazard;   // FU done
 } RS_PACKET_IN;
 
 typedef struct packed {
