@@ -12,13 +12,15 @@ Told to ROB;
 // definition of input and output
 // output T1 T2 to RS
 // output Told to ROB
-module map_table (
+`timescale 1ns/100ps
+module Map_Table (
   input  en, clock, reset,
   input  MAP_TABLE_PACKET_IN  map_table_packet_in,
   output MAP_TABLE_PACKET_OUT map_table_packet_out
 );
 
   MAP_TABLE_t [`NUM_MAP_TABLE-1:0] map_table, next_map_table;
+  logic i;
 
 // ROB logic
   always_ff @(posedge clock) begin
@@ -38,14 +40,17 @@ module map_table (
                                                              //renew maptable from freelist but not ready yet
     end
     if (map_table_packet_in.CDB_enable && en) begin
-      genvar i;
+      // genvar i;
       for (i=0; i< `NUM_MAP_TABLE;i++) begin  
-        if (map_table[i].PR_idx == CDB_T) begin              // if CDB_T is the same as maptable value
+        if (map_table[i].PR_idx == map_table_packet_in.CDB_T) begin              // if CDB_T is the same as maptable value
           next_map_table[i].T_PLUS_STATUS = `TRUE;           // The Tag in maptable change to ready
           break;
         end
+      end
     end
   end
 
-  assign map_table_packet_out.Told_to_ROB = map_table[map_table_packet_in.Dispatch_reg_dest];
+  assign map_table_packet_out.Told_to_ROB = map_table[map_table_packet_in.Dispatch_reg_dest].PR_idx;
+  assign map_table_packet_out.T1_to_RS    = map_table[map_table_packet_in.Dispatch_reg_T1];
+  assign map_table_packet_out.T2_to_RS    = map_table[map_table_packet_in.Dispatch_reg_T2];
 endmodule

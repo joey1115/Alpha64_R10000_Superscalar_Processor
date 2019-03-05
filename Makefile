@@ -20,7 +20,7 @@ all:    simv
 
 HEADERS      = $(wildcard *.vh)
 SIMFILES     = ./verilog/map_table/map_table.v
-TESTBENCH    = ./testbench/maptabletestbench.v
+TESTBENCH    = ./testbench/maptable_testbench.v
 SYNFILES     = ./synth/map_table.vg 
 
 map_table.vg:	map_table.v map_table.vg map_table.tcl

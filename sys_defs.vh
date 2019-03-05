@@ -26,7 +26,7 @@
 
 
 `define NUM_MEM_TAGS           15
-`define NUM_PR                 64
+
 
 `define NUM_ROB                8
 `define MEM_SIZE_IN_BYTES      (64*1024)
@@ -240,29 +240,13 @@ typedef enum logic {
   PR_READY     = 1'b1
 } PR_STATUS_t;
 
-typedef struct packed {
-  T_t                         T_PLUS;
-  logic [$clog2(`NUM_PR)-1:0] PR_idx;
-} ARCH_MAP_t;
+
 
 `define NUM_ALU 1
 `define FU_list { FU_ALU, FU_ST, FU_LD, FU_FP1, FU_FP2 }
 
-typedef struct packed {
-  FU_t                        FU;
-  logic                       busy;
-  logic [5:0]                 op;
-  logic [$clog2(`NUM_PR)-1:0] T;
-  T_t                         T1;
-  T_t                         T2;
-} RS_ENTRY_t;
 
-typedef enum logic [1:0] {
-  HT_NONE = 2'b00,
-  HT_HEAD = 2'b01,
-  HT_TAIL = 2'b10,
-  HT_HT   = 2'b11
-} HT_t;
+
 
 typedef struct packed {
   // HT_t                        ht;
