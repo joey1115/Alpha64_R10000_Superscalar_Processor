@@ -160,7 +160,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T1_idx,
                 rs_packet_out.FU_packet_out[i].T2_idx);
       end
-      $display("-----------------------------FU END--------------------------------\n\n");
+      $display("-----------------------------FU END--------------------------------");
     end
   endtask
 
@@ -211,16 +211,19 @@ module test_RS;
       rs_packet_in.inst = inst;
 
       printInput();
+      printRS();
+      printOut();
 
       @(negedge clock);
 
-      $display("rs hazard: %b", rs_hazard);
+      // $display("rs hazard: %b", rs_hazard);
 
       $display("-----------------------WAITING FOR CYCLE------------------------");
 
-      
       printRS();
       printOut();
+
+      $display("\n\n\n");
     end
   endtask
 
