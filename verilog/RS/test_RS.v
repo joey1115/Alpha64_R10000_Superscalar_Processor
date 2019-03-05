@@ -243,7 +243,7 @@ module test_RS;
       setinput(0,0,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 0);
       @(negedge clock);
       reset = 1'b0;
-      @(negedge clock);
+      // @(negedge clock);
     end
   endtask
 
