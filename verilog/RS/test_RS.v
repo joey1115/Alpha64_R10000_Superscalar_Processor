@@ -215,9 +215,6 @@ module test_RS;
       printOut();
 
       @(negedge clock);
-      @(negedge clock);
-
-      // $display("rs hazard: %b", rs_hazard);
 
       $display("-----------------------WAITING FOR CYCLE------------------------");
 
@@ -283,7 +280,7 @@ module test_RS;
     en = 1'b1;
     
     @(negedge clock);
-    //INSERTION TEST (non ready) + FU PACKET OUT
+    $display("INSERTION TEST (non ready) + FU PACKET OUT");
     // test insertion for all FU non of which is ready.
     setinput(0,1,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 0);
     setinput(0,1,`NOOP_INST,2,12,0,22,0, FU_MULT, ALU_ADDQ, 0);
@@ -302,7 +299,7 @@ module test_RS;
     setinput(0,1,`NOOP_INST,5,15,1,25,1, FU_LD, ALU_ADDQ, 0);
 
 
-    //COMPLETION TEST + FU PACKET OUT
+    $display("COMPLETION TEST + FU PACKET OUT");
     //reset device
     resetRS();
     // fill all entries with reg 11
@@ -316,7 +313,7 @@ module test_RS;
     setinput(1,0,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 11);
     
 
-    //TEST multiple Insert to same entry
+    $display("TEST multiple Insert to same entry");
     //reset device
     resetRS();
     // insert all FU non of which is ready.
@@ -334,7 +331,7 @@ module test_RS;
     setinput(0,1,`NOOP_INST,5,35,0,45,0, FU_LD, ALU_ADDQ, 0);
 
 
-    //TEST complete and dispatch on the same cycle
+    $display("TEST complete and dispatch on the same cycle");
     //reset device
     resetRS();
     // fill all entries with reg 11 and dispatch at first
@@ -352,7 +349,7 @@ module test_RS;
     setinput(1,1,`NOOP_INST,5,12,0,12,0, FU_LD, ALU_ADDQ, 12);
 
 
-    //TEST complete nothing
+    $display("TEST complete nothing");
     //reset device
     resetRS();
     // insert for all FU non of which is ready.
@@ -366,7 +363,7 @@ module test_RS;
     setinput(1,0,`NOOP_INST,3,4,0,5,1, FU_ALU, ALU_ADDQ, 45);
     
 
-    //TEST EN off
+    $display("TEST EN off");
     //reset device
     resetRS();
     //turn enable off
