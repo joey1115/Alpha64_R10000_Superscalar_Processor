@@ -188,10 +188,11 @@ module test_RS;
 
       @(negedge clock);
       printRS();
+      printOut();
     end
   endtask
 
-  task resetRS() 
+  task resetRS; 
     begin
       //reset device
       reset = 1'b1;
