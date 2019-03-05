@@ -51,10 +51,10 @@ module RS (
   //   end // for (int i = 0; i < `NUM_FU; i++) begin
   // end // always_comb begin
 
+  // Hazard
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
 
-      // Hazard
       T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T1 is complete
       T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T2 is complete
       T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                    // T1 is ready or updated by CDB
@@ -85,14 +85,14 @@ module RS (
     // Issue
     for (int i = 0; i < `NUM_FU; i++) begin
 
-      if ( RS_T_ready[i] ) begin                                                     // T1 and T2 are ready to issue
-        rs_packet_out.FU_packet_out[i].ready  = `TRUE;                               // Ready to issue
-        rs_packet_out.FU_packet_out[i].T_idx  = RS[i].T_idx;                         // Output T_idx
-        rs_packet_out.FU_packet_out[i].T1_idx = RS[i].T1.idx;                        // Output T1_idx
-        rs_packet_out.FU_packet_out[i].T2_idx = RS[i].T2.idx;                        // Output T2_idx
-        rs_packet_out.FU_packet_out[i].func   = RS[i].func;                          // op code
-        rs_packet_out.FU_packet_out[i].inst   = RS[i].inst;                          // inst
-        next_RS[i] = '{`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_REG, `T_RESET, `T_RESET}; // Clear RS entry
+      if ( RS_T_ready[i] ) begin                                                    // T1 and T2 are ready to issue
+        rs_packet_out.FU_packet_out[i].ready  = `TRUE;                              // Ready to issue
+        rs_packet_out.FU_packet_out[i].T_idx  = RS[i].T_idx;                        // Output T_idx
+        rs_packet_out.FU_packet_out[i].T1_idx = RS[i].T1.idx;                       // Output T1_idx
+        rs_packet_out.FU_packet_out[i].T2_idx = RS[i].T2.idx;                       // Output T2_idx
+        rs_packet_out.FU_packet_out[i].func   = RS[i].func;                         // op code
+        rs_packet_out.FU_packet_out[i].inst   = RS[i].inst;                         // inst
+        next_RS[i] = '{`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_PR, `T_RESET, `T_RESET}; // Clear RS entry
       end // if ( RS_entry_ready[i] ) begin
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
