@@ -35,7 +35,7 @@ module test_RS;
 
   task printRS;
     begin
-      $display("     RS#     |    inst    |  FU  |  busy | alu func | T_idx | T1 | r | T2 | r | hazard");
+      $display("     RS#     |    inst    |  FU  |  busy | alu func | T_idx | T1 | r | T2 | r | valid");
       for(int i = 0; i < `NUM_LD; i++) begin
         $display(" %d |  %h  |  LD  |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
                 i,
@@ -104,6 +104,63 @@ module test_RS;
     end
   endtask
 
+  task printOut()
+    begin
+      $display("-----------------------------RS OUTPUT-----------------------------");
+      $display("rs hazard: %b", rs_hazard);
+      $display("     RS#     |    inst    |  FU  | ready | alu func | T_idx | T1 | T2");
+      for(int i = 0; i < `NUM_LD; i++) begin
+        $display(" %b |  %h  |  LD  |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
+                i,
+                rs_packet_out.FU_packet_out[i].inst,
+                rs_packet_out.FU_packet_out[i].ready,
+                rs_packet_out.FU_packet_out[i].func,
+                rs_packet_out.FU_packet_out[i].T_idx,
+                rs_packet_out.FU_packet_out[i].T1_idx,
+                rs_packet_out.FU_packet_out[i].T2_idx);
+      end
+      for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
+        $display(" %b |  %h  |  ST  |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
+                i,
+                rs_packet_out.FU_packet_out[i].inst,
+                rs_packet_out.FU_packet_out[i].ready,
+                rs_packet_out.FU_packet_out[i].func,
+                rs_packet_out.FU_packet_out[i].T_idx,
+                rs_packet_out.FU_packet_out[i].T1_idx,
+                rs_packet_out.FU_packet_out[i].T2_idx);
+      end
+      for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
+        $display(" %b |  %h  |  BR  |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
+                i,
+                rs_packet_out.FU_packet_out[i].inst,
+                rs_packet_out.FU_packet_out[i].ready,
+                rs_packet_out.FU_packet_out[i].func,
+                rs_packet_out.FU_packet_out[i].T_idx,
+                rs_packet_out.FU_packet_out[i].T1_idx,
+                rs_packet_out.FU_packet_out[i].T2_idx);
+      end
+      for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
+        $display(" %b |  %h  | MULT |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
+                i,
+                rs_packet_out.FU_packet_out[i].inst,
+                rs_packet_out.FU_packet_out[i].ready,
+                rs_packet_out.FU_packet_out[i].func,
+                rs_packet_out.FU_packet_out[i].T_idx,
+                rs_packet_out.FU_packet_out[i].T1_idx,
+                rs_packet_out.FU_packet_out[i].T2_idx);
+      end
+      for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
+        $display(" %b |  %h  | ALU  |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
+                i,
+                rs_packet_out.FU_packet_out[i].inst,
+                rs_packet_out.FU_packet_out[i].ready,
+                rs_packet_out.FU_packet_out[i].func,
+                rs_packet_out.FU_packet_out[i].T_idx,
+                rs_packet_out.FU_packet_out[i].T1_idx,
+                rs_packet_out.FU_packet_out[i].T2_idx);
+    end
+  endtask
+
   task setinput(logic complete_en,
                 logic dispatch_en,
                 INST_t inst,
@@ -130,6 +187,16 @@ module test_RS;
 
       @(negedge clock);
       printRS();
+    end
+  endtask
+
+  task resetRS() 
+    begin
+      //reset device
+      reset = 1'b1;
+      @(negedge clock);
+      reset = 1'b0;
+      @(negedge clock);
     end
   endtask
 
@@ -176,12 +243,124 @@ module test_RS;
     en = 1'b1;
     
     @(negedge clock);
-    setinput(0,1,`NOOP_INST,1,1,0,2,0, FU_ALU, ALU_ADDQ, 0);
+    //INSERTION TEST (non ready) + FU PACKET OUT
+    // test insertion for all FU non of which is ready.
+    setinput(0,1,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,12,0,22,0, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,13,0,23,0, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,14,0,24,0, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,15,0,25,0, FU_LD, ALU_ADDQ, 0);
 
-    setinput(0,1,`NOOP_INST,2,4,1,5,0, FU_ALU, ALU_ADDQ, 0);
+    //reset device
+    resetRS();
+    //INSERTION TEST (ready) + FU PACKET OUT
+    // test insertion for all FU all of which is ready.
+    setinput(0,1,`NOOP_INST,1,11,1,21,1, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,12,1,22,1, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,13,1,23,1, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,14,1,24,1, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,15,1,25,1, FU_LD, ALU_ADDQ, 0);
 
-    setinput(0,1,`NOOP_INST,3,4,0,5,1, FU_ALU, ALU_ADDQ, 0);
+
+    //COMPLETION TEST + FU PACKET OUT
+    //reset device
+    resetRS();
+    // fill all entries with reg 11
+    setinput(0,1,`NOOP_INST,1,11,0,11,0, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,11,0,11,0, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,11,0,11,0, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,11,0,11,0, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,11,0,11,0, FU_LD, ALU_ADDQ, 0);
+
+    // complete all reg 11
+    setinput(1,0,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 11);
     
+
+    //TEST multiple Insert to same entry
+    //reset device
+    resetRS();
+    // insert all FU non of which is ready.
+    setinput(0,1,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,12,0,22,0, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,13,0,23,0, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,14,0,24,0, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,15,0,25,0, FU_LD, ALU_ADDQ, 0);
+
+    // insert all FU non of which is ready again.
+    setinput(0,1,`NOOP_INST,1,31,0,41,0, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,32,0,42,0, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,33,0,43,0, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,34,0,44,0, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,35,0,45,0, FU_LD, ALU_ADDQ, 0);
+
+
+    //TEST complete and dispatch on the same cycle
+    //reset device
+    resetRS();
+    // fill all entries with reg 11 and dispatch at first
+    setinput(1,1,`NOOP_INST,1,11,0,11,0, FU_ALU, ALU_ADDQ, 11);
+    setinput(0,1,`NOOP_INST,2,11,0,11,0, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,11,0,11,0, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,11,0,11,0, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,11,0,11,0, FU_LD, ALU_ADDQ, 0);
+
+    // fill all entries with reg 12 and dispacth at all
+    setinput(0,1,`NOOP_INST,1,12,0,12,0, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,12,0,12,0, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,12,0,12,0, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,12,0,12,0, FU_ST, ALU_ADDQ, 0);
+    setinput(1,1,`NOOP_INST,5,12,0,12,0, FU_LD, ALU_ADDQ, 12);
+
+
+    //TEST complete nothing
+    //reset device
+    resetRS();
+    // insert for all FU non of which is ready.
+    setinput(0,1,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,12,0,22,0, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,13,0,23,0, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,14,0,24,0, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,15,0,25,0, FU_LD, ALU_ADDQ, 0);
+
+    // complete stage
+    setinput(1,0,`NOOP_INST,3,4,0,5,1, FU_ALU, ALU_ADDQ, 45);
+    
+
+    //TEST EN off
+    //reset device
+    resetRS();
+    //turn enable off
+    en = 1'b0;
+
+    // insert for all FU non of which is ready.
+    setinput(0,1,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,12,0,22,0, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,13,0,23,0, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,14,0,24,0, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,15,0,25,0, FU_LD, ALU_ADDQ, 0);
+
+    //turn enable on
+    en = 1'b1;
+
+    // fill all entries with reg 11
+    setinput(0,1,`NOOP_INST,1,11,0,11,0, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,11,0,11,0, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,11,0,11,0, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,11,0,11,0, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,11,0,11,0, FU_LD, ALU_ADDQ, 0);
+
+    //turn enable off
+    en = 1'b0;
+
+    // complete all reg 11
+    setinput(1,0,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 11);
+
+    //turn enable on
+    en = 1'b1;
+
+    // complete all reg 11
+    setinput(1,0,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 11);
+
     $finish;
   end
 endmodule  // module test_RS
