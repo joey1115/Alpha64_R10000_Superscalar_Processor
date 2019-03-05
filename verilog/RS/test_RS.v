@@ -164,6 +164,26 @@ module test_RS;
     end
   endtask
 
+  task printInput;
+    begin
+      $display("---------------------------INPUT START----------------------------\n\n");
+      $display(" dest_idx | t1_idx | t1_ready | t2_idx | t2_ready | complete en | dispatch en |   FU   |  func  | CDB_t | inst");
+      $display("    %h    |   %h   |    %b    |   %h   |    %b    |     %b      |      %b     |   %h   |   %h  |  %h   | %h",
+                rs_packet_in.dest_idx,
+                rs_packet_in.T1.idx,
+                rs_packet_in.T1.ready,
+                rs_packet_in.T2.idx,
+                rs_packet_in.T2.ready,
+                rs_packet_in.complete_en,
+                rs_packet_in.dispatch_en,
+                rs_packet_in.FU,
+                rs_packet_in.func,
+                rs_packet_in.CDB_T,
+                rs_packet_in.inst);
+      $display("---------------------------INPUT END-----------------------------\n\n");
+    end
+  endtask
+
   task setinput(logic complete_en,
                 logic dispatch_en,
                 INST_t inst,
@@ -187,6 +207,9 @@ module test_RS;
       rs_packet_in.func = func;
       rs_packet_in.CDB_T = CDB_T;
       rs_packet_in.inst = inst;
+
+      printInput();
+
       $display("rs hazard: %b", rs_hazard);
 
       @(negedge clock);
