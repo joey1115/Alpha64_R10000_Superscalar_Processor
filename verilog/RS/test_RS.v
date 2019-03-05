@@ -215,6 +215,7 @@ module test_RS;
       printOut();
 
       @(negedge clock);
+      @(negedge clock);
 
       // $display("rs hazard: %b", rs_hazard);
 
