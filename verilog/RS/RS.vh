@@ -54,7 +54,7 @@ typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] T2_idx; // T2 idx
 } FU_PACKET_t;
 
-`define FU_ENTRY_RESET {`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_REG, `ZERO_REG, `ZERO_REG} // FU entry reset
+`define FU_ENTRY_RESET {`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_PR, `ZERO_PR, `ZERO_PR} // FU entry reset
 `define FU_RESET '{`NUM_FU{`FU_ENTRY_RESET}}                                          // FU reset
 
 typedef struct packed {

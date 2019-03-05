@@ -35,6 +35,7 @@ module test_RS;
 
   task printRS;
     begin
+      $display("-----------------------------RS OUTPUT-----------------------------");
       $display("     RS#     |    inst    |  FU  |  busy | alu func | T_idx | T1 | r | T2 | r | valid");
       for(int i = 0; i < `NUM_LD; i++) begin
         $display(" %d |  %h  |  LD  |   %d   |    %h    |  %h   | %h | %b | %h | %b | %b",
@@ -101,16 +102,16 @@ module test_RS;
                 RS[i].T2.ready,
                 RS_entry_match[i]);
       end
+      $display("-----------------------------RS END--------------------------------");
     end
   endtask
 
   task printOut;
     begin
-      $display("-----------------------------RS OUTPUT-----------------------------");
-      $display("rs hazard: %b", rs_hazard);
-      $display("     RS#     |    inst    |  FU  | ready | alu func | T_idx | T1 | T2");
+      $display("-----------------------------FU OUTPUT-----------------------------");
+      $display("     FU#    |   inst   |  FU  | ready | alu func |  T_idx | T1 | T2");
       for(int i = 0; i < `NUM_LD; i++) begin
-        $display("%d | %h |  LD  |  %b  |   %h   |    %h    |  %h   | %h |",
+        $display("%d | %h |  LD  |   %b   |    %h    |   %h   | %h | %h ",
                 i,
                 rs_packet_out.FU_packet_out[i].inst,
                 rs_packet_out.FU_packet_out[i].ready,
@@ -120,7 +121,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T2_idx);
       end
       for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
-        $display("%d | %h |  LD  |  %b  |   %h   |    %h    |  %h   | %h |",
+        $display("%d | %h |  LD  |   %b   |    %h    |   %h   | %h | %h ",
                 i,
                 rs_packet_out.FU_packet_out[i].inst,
                 rs_packet_out.FU_packet_out[i].ready,
@@ -130,7 +131,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T2_idx);
       end
       for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
-        $display("%d | %h |  LD  |  %b  |   %h   |    %h    |  %h   | %h |",
+        $display("%d | %h |  LD  |   %b   |    %h    |   %h   | %h | %h ",
                 i,
                 rs_packet_out.FU_packet_out[i].inst,
                 rs_packet_out.FU_packet_out[i].ready,
@@ -140,7 +141,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T2_idx);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
-        $display("%d | %h |  LD  |  %b  |   %h   |    %h    |  %h   | %h |",
+        $display("%d | %h |  LD  |   %b   |    %h    |   %h   | %h | %h ",
                 i,
                 rs_packet_out.FU_packet_out[i].inst,
                 rs_packet_out.FU_packet_out[i].ready,
@@ -150,7 +151,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T2_idx);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
-        $display("%d | %h |  LD  |  %b  |   %h   |    %h    |  %h   | %h |",
+        $display("%d | %h |  LD  |   %b   |    %h    |   %h   | %h | %h ",
                 i,
                 rs_packet_out.FU_packet_out[i].inst,
                 rs_packet_out.FU_packet_out[i].ready,
@@ -159,6 +160,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T1_idx,
                 rs_packet_out.FU_packet_out[i].T2_idx);
       end
+      $display("-----------------------------FU END--------------------------------\n\n");
     end
   endtask
 
@@ -185,6 +187,7 @@ module test_RS;
       rs_packet_in.func = func;
       rs_packet_in.CDB_T = CDB_T;
       rs_packet_in.inst = inst;
+      $display("rs hazard: %b", rs_hazard);
 
       @(negedge clock);
       printRS();
@@ -240,6 +243,7 @@ module test_RS;
     en = 1'b0;
     clock = 1'b0;
     reset = 1'b1;
+    rs_packet_in = 0;
     @(negedge clock);
     reset = 1'b0;
     en = 1'b1;
