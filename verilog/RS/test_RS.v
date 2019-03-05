@@ -104,7 +104,7 @@ module test_RS;
     end
   endtask
 
-  task printOut()
+  task printOut;
     begin
       $display("-----------------------------RS OUTPUT-----------------------------");
       $display("rs hazard: %b", rs_hazard);
