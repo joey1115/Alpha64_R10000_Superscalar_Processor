@@ -1,8 +1,3 @@
-################################################################################
-## DO NOT EDIT THESE FILES BY HAND
-##
-## CONFIGURATION HAS BEEN MOVED TO THE MAKEFILE
-################################################################################
 set search_path [ list "./" "/afs/umich.edu/class/eecs470/lib/synopsys/" ]
 set target_library "lec25dscc25_TT.db"
 set link_library [concat  "*" $target_library]
@@ -18,18 +13,14 @@ suppress_message {"VER-130"}
 #/***********************************************************/
 lappend search_path ../
 
-set cache_module [getenv CACHE_NAME]
-
-read_file -f ddc [list ${cache_module}.ddc]
-set_dont_touch ${cache_module}
-
 set headers [getenv HEADERS]
-set sources [getenv PIPEFILES]
+set sources [getenv MODFILE]
 
 read_file -f sverilog [list ${headers} ${sources}]
-set design_name [getenv PIPELINE_NAME]
+set design_name [getenv MOD_NAME]
 set clock_name [getenv CLOCK_NET_NAME]
 set reset_name [getenv RESET_NET_NAME]
+# set CLK_PERIOD 1.3
 set CLK_PERIOD [getenv CLOCK_PERIOD]
 
 

@@ -12,6 +12,47 @@
 VCS = SW_VCS=2017.12-SP2-1 vcs +v2k -sverilog +vc -Mupdate -line -full64
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
+SYNTH_DIR = ./synth
+
+PROGRAM = test_progs/evens.s
+ASSEMBLED = program.mem
+ASSEMBLER = vs-asm
+
+# SIMULATION CONFIG
+
+HEADERS      = $(wildcard *.vh)
+HEADERS     += $(wildcard ./verilog/ROB.vh)
+TESTBENCH    = $(wildcard testbench/*.v)
+TESTBENCH   += $(wildcard testbench/*.c)
+PIPEFILES    = $(wildcard verilog/*.v)
+CACHEFILES   = $(wildcard verilog/cache/*.v)
+DECODERFILES = $(wildcard verilog/decoder/*.v)
+
+SIMFILES    = $(PIPEFILES) $(CACHEFILES) $(DECODERFILES)
+
+# SYNTHESIS CONFIG
+
+export HEADERS
+export PIPEFILES
+export CACHEFILES
+
+export CACHE_NAME = cache
+export PIPELINE_NAME = pipeline
+
+PIPELINE  = $(SYNTH_DIR)/$(PIPELINE_NAME).vg 
+SYNFILES  = $(PIPELINE) $(SYNTH_DIR)/$(PIPELINE_NAME)_svsim.sv
+CACHE     = $(SYNTH_DIR)/$(CACHE_NAME).vg
+
+# Passed through to .tcl scripts:
+export CLOCK_NET_NAME = clock
+export RESET_NET_NAME = reset
+export CLOCK_PERIOD = 30	# TODO: You will want to make this more aggresive
+
+################################################################################
+## RULES
+################################################################################
+
+# Default target:
 all:    simv
 	./simv | tee program.out
 ##### 

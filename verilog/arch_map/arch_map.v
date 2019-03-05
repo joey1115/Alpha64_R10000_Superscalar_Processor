@@ -11,16 +11,16 @@ module arch_map (
 // ROB logic
   always_ff @(posedge clock) begin
     if(reset) begin
-      for(int i=0; i < `NUM_ARCH_MAP; i++) begin
-        arch_map[i] = i;
+      for(int i=0; i < `NUM_ARCH_TABLE; i++) begin
+        map_table[i] = i;
       end
-    end else if(en) begin
+    end else if(rob_packet_in.en) begin
       arch_map <= `SD next_arch_map;
     end // if (f_d_enable)
   end // always
 
   always_comb begin
-    if (arch_map_packet_in.r && en) begin
+    if (Rob_retire_enable && en) begin
      genvar i;
       for (i=0; i< `NUM_ARCH_TABLE;i++) begin
         if (arch_map[i].PR_idx == arch_map_packet_in.Rob_retire_Told) begin
