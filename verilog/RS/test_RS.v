@@ -225,15 +225,12 @@ module test_RS;
       rs_packet_in.inst = inst;
 
       printInput();
-      printRS();
       printOut();
 
       @(negedge clock);
 
-      $display("-----------------------WAITING FOR CYCLE------------------------");
-
       printRS();
-      printOut();
+      $display("-----------------------WAITING FOR CYCLE------------------------");
 
       $display("\n\n\n");
     end
