@@ -214,6 +214,8 @@ module test_RS;
 
       $display("rs hazard: %b", rs_hazard);
 
+      $display("-----------------------WAITING FOR CYCLE------------------------");
+
       @(negedge clock);
       printRS();
       printOut();
