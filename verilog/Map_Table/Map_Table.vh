@@ -2,7 +2,7 @@
 `define __MAP_TABLE__
 
 `include "../../sys_config.vh"
-`include "../../sys_def.vh"
+`include "../../sys_defs.vh"
 
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] PR_idx;            //PR index

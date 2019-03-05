@@ -26,7 +26,7 @@ module Map_Table (
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i=0; i < `NUM_MAP_TABLE; i++) begin
-        map_table[i] = '{ i, `TRUE};                  
+        map_table[i] <= `SD '{ i, `TRUE};                  
       end
     end else if(en) begin
       map_table <= `SD next_map_table;
@@ -35,7 +35,7 @@ module Map_Table (
 
   always_comb begin
     next_map_table = map_table;
-    if (map_table_packet_in.Dispatch_enble && en) begin       // no dispatch hazard
+    if (map_table_packet_in.Dispatch_enable && en) begin       // no dispatch hazard
       next_map_table[map_table_packet_in.Dispatch_reg_dest] = '{map_table_packet_in.Freelist_T, `FALSE}; 
                                                              //renew maptable from freelist but not ready yet
     end
