@@ -27,21 +27,22 @@ typedef struct packed {
   {`NUM_LD{FU_LD}}      \
 }
 
-`define ZERO_PR {$clog2(`NUM_PR){1'b0}}
+`define ZERO_PR {($clog2(`NUM_PR)-5){1'b0}, 5'h1f}
 `define T_RESET {`ZERO_PR, 1'b0}                                                     // T reset
 `define RS_ENTRY_RESET  {`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_PR, `T_RESET, `T_RESET} // RS entry reset
 `define RS_RESET '{`NUM_FU{`RS_ENTRY_RESET}}                                         // RS reset
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] dest_idx;    // Dest idx
-  INST_t                      inst;        // Inst
-  T_t                         T1;          // T1
-  T_t                         T2;          // T2
-  logic                       complete_en; // If CDB is ready
-  logic                       dispatch_en; // If can be dispatched
-  FU_t                        FU;          // Required FU
-  ALU_FUNC                    func;        // Required ALU operation
-  logic [$clog2(`NUM_PR)-1:0] CDB_T;       // CDB tag
+  logic [$clog2(`NUM_PR)-1:0]    dest_idx;    // Dest idx
+  INST_t                         inst;        // Inst
+  T_t                            T1;          // T1
+  T_t                            T2;          // T2
+  logic                          complete_en; // If CDB is ready
+  logic                          dispatch_en; // If can be dispatched
+  FU_t                           FU;          // Required FU
+  ALU_FUNC                       func;        // Required ALU operation
+  logic    [$clog2(`NUM_PR)-1:0] CDB_T;       // CDB tag
+  // logic    [`NUM_PR-1:0]         fu_done;     // CDB tag
 } RS_PACKET_IN;
 
 typedef struct packed {
