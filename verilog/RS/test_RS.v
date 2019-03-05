@@ -191,11 +191,11 @@ module test_RS;
       $display("---------------------------CHANGE FU-----------------------------");
       $display("ALU: %b MULT: %b BR: %b ST: %b LD: %b", ALUdone, MULTdone, BRdone, STdone, LDdone);
       rs_packet_in.fu_done = '{
-        {`NUM_ALU{ALUdone}},   
-        {`NUM_MULT{MULTdone}}, 
-        {`NUM_BR{BRdone}},     
-        {`NUM_ST{STdone}},     
-        {`NUM_LD{LDdone}}      
+        {`NUM_ALU{ALUdone}},
+        {`NUM_MULT{MULTdone}},
+        {`NUM_BR{BRdone}},
+        {`NUM_ST{STdone}},
+        {`NUM_LD{LDdone}}
       };
     end
   endtask
