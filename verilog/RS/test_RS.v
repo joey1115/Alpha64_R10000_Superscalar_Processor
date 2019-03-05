@@ -269,6 +269,7 @@ module test_RS;
 
   // reset
   initial begin
+    $monitor("RS hazard: %b", rs_hazard);
     en = 1'b0;
     clock = 1'b0;
     reset = 1'b1;
