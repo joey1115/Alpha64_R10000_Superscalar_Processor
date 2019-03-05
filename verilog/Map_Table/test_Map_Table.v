@@ -79,20 +79,20 @@ module test_Map_Table;
     // test1[c]: input at cycle c
     // {r, inst_dispatch, T_in, T_old_in, flush_branch_idx, branch_mispredict}
     // Cycle 0-6: simulates Lecture Slides with stalls added
-    test1[0]  = '{1, 1,  33,  20, 1};
-    test1[1]  = '{1, 2,  34,  19, 1}; // test stall (inst_dispatch)
-	  test1[2]  = '{1, 3,  35,  18, 1};
-	  test1[3]  = '{1, 4,  36,  17, 1};
-  	test1[4]  = '{1, 5,  37,  16, 1};
+    // test1[0]  = '{1, 1,  33,  20, 1};
+    // test1[1]  = '{1, 2,  34,  19, 1}; // test stall (inst_dispatch)
+	  // test1[2]  = '{1, 3,  35,  18, 1};
+	  // test1[3]  = '{1, 4,  36,  17, 1};
+  	// test1[4]  = '{1, 5,  37,  16, 1};
 
     
-    // Cycle 0 tests reset
-    test1_out[0]  = '{1}; // T_out, T_old_out should be don't care
-    // simulates lecture slides with stalls added
-    test1_out[1]  = '{2};
-  	test1_out[2]  = '{3};
-  	test1_out[3]  = '{4};
-  	test1_out[4]  = '{5};
+    // // Cycle 0 tests reset
+    // test1_out[0]  = '{1}; // T_out, T_old_out should be don't care
+    // // simulates lecture slides with stalls added
+    // test1_out[1]  = '{2};
+  	// test1_out[2]  = '{3};
+  	// test1_out[3]  = '{4};
+  	// test1_out[4]  = '{5};
 
 
     // Reset

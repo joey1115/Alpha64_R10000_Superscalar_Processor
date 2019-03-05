@@ -41,7 +41,7 @@ module Map_Table (
     end
     if (map_table_packet_in.CDB_enable && en) begin
       // genvar i;
-      for (i=0; i< `NUM_MAP_TABLE;i++) begin  
+      for ( int i=0; i< `NUM_MAP_TABLE;i++) begin  
         if (map_table[i].PR_idx == map_table_packet_in.CDB_T) begin              // if CDB_T is the same as maptable value
           next_map_table[i].T_PLUS_STATUS = `TRUE;           // The Tag in maptable change to ready
           break;
