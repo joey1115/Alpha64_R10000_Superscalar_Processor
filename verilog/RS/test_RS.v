@@ -212,11 +212,13 @@ module test_RS;
 
       printInput();
 
+      @(negedge clock);
+
       $display("rs hazard: %b", rs_hazard);
 
       $display("-----------------------WAITING FOR CYCLE------------------------");
 
-      @(negedge clock);
+      
       printRS();
       printOut();
     end
