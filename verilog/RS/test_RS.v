@@ -166,7 +166,7 @@ module test_RS;
 
   task printInput;
     begin
-      $display("---------------------------INPUT START----------------------------\n\n");
+      $display("---------------------------INPUT START----------------------------");
       $display(" dest_idx | t1_idx | t1_ready | t2_idx | t2_ready | complete en | dispatch en |   FU   |  func  | CDB_t | inst");
       $display("    %h    |   %h   |    %b    |   %h   |    %b    |     %b      |      %b     |   %h   |   %h  |  %h   | %h",
                 rs_packet_in.dest_idx,
@@ -180,7 +180,7 @@ module test_RS;
                 rs_packet_in.func,
                 rs_packet_in.CDB_T,
                 rs_packet_in.inst);
-      $display("---------------------------INPUT END-----------------------------\n\n");
+      $display("---------------------------INPUT END-----------------------------");
     end
   endtask
 
