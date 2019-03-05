@@ -121,7 +121,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T2_idx);
       end
       for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
-        $display("%d | %h |  LD  |   %b   |    %h    |   %h   | %h | %h ",
+        $display("%d | %h |  ST  |   %b   |    %h    |   %h   | %h | %h ",
                 i,
                 rs_packet_out.FU_packet_out[i].inst,
                 rs_packet_out.FU_packet_out[i].ready,
@@ -131,7 +131,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T2_idx);
       end
       for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
-        $display("%d | %h |  LD  |   %b   |    %h    |   %h   | %h | %h ",
+        $display("%d | %h |  BR  |   %b   |    %h    |   %h   | %h | %h ",
                 i,
                 rs_packet_out.FU_packet_out[i].inst,
                 rs_packet_out.FU_packet_out[i].ready,
@@ -141,7 +141,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T2_idx);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
-        $display("%d | %h |  LD  |   %b   |    %h    |   %h   | %h | %h ",
+        $display("%d | %h | MULT |   %b   |    %h    |   %h   | %h | %h ",
                 i,
                 rs_packet_out.FU_packet_out[i].inst,
                 rs_packet_out.FU_packet_out[i].ready,
@@ -151,7 +151,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T2_idx);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
-        $display("%d | %h |  LD  |   %b   |    %h    |   %h   | %h | %h ",
+        $display("%d | %h | ALU  |   %b   |    %h    |   %h   | %h | %h ",
                 i,
                 rs_packet_out.FU_packet_out[i].inst,
                 rs_packet_out.FU_packet_out[i].ready,
