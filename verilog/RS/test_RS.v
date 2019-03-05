@@ -186,6 +186,20 @@ module test_RS;
     end
   endtask
 
+  task setFUDone(logic ALUdone, logic MULTdone, logic BRdone, logic STdone, logic LDdone);
+    begin
+      $display("---------------------------CHANGE FU-----------------------------");
+      $display("ALU: %b MULT: %b BR: %b ST: %b LD: %b", ALUdone, MULTdone, BRdone, STdone, LDdone);
+      rs_packet_in.fu_done = '{ \
+        {`NUM_ALU{ALUdone}},   \
+        {`NUM_MULT{MULTdone}}, \
+        {`NUM_BR{BRdone}},     \
+        {`NUM_ST{STdone}},     \
+        {`NUM_LD{LDdone}}      \
+      }
+    end
+  endtask
+
   task setinput(logic complete_en,
                 logic dispatch_en,
                 INST_t inst,
@@ -271,6 +285,8 @@ module test_RS;
   // reset
   initial begin
     $monitor("RS hazard: %b", rs_hazard);
+
+    
     en = 1'b0;
     clock = 1'b0;
     reset = 1'b1;
@@ -282,6 +298,16 @@ module test_RS;
     @(negedge clock);
     $display("INSERTION TEST (non ready) + FU PACKET OUT");
     // test insertion for all FU non of which is ready.
+    setFUDone(1,1,1,1,1);
+
+    setinput(0,1,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,12,0,22,0, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,13,0,23,0, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,14,0,24,0, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,15,0,25,0, FU_LD, ALU_ADDQ, 0);
+
+    setFUDone(0,0,0,0,0);
+
     setinput(0,1,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 0);
     setinput(0,1,`NOOP_INST,2,12,0,22,0, FU_MULT, ALU_ADDQ, 0);
     setinput(0,1,`NOOP_INST,3,13,0,23,0, FU_BR, ALU_ADDQ, 0);
@@ -290,8 +316,19 @@ module test_RS;
 
     //reset device
     resetRS();
-    //INSERTION TEST (ready) + FU PACKET OUT
+    $display("INSERTION TEST (ready) + FU PACKET OUT");
+
+    setFUDone(1,1,1,1,1);
+
     // test insertion for all FU all of which is ready.
+    setinput(0,1,`NOOP_INST,1,11,1,21,1, FU_ALU, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,2,12,1,22,1, FU_MULT, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,3,13,1,23,1, FU_BR, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,4,14,1,24,1, FU_ST, ALU_ADDQ, 0);
+    setinput(0,1,`NOOP_INST,5,15,1,25,1, FU_LD, ALU_ADDQ, 0);
+
+    setFUDone(0,0,0,0,0);
+
     setinput(0,1,`NOOP_INST,1,11,1,21,1, FU_ALU, ALU_ADDQ, 0);
     setinput(0,1,`NOOP_INST,2,12,1,22,1, FU_MULT, ALU_ADDQ, 0);
     setinput(0,1,`NOOP_INST,3,13,1,23,1, FU_BR, ALU_ADDQ, 0);
@@ -300,6 +337,8 @@ module test_RS;
 
 
     $display("COMPLETION TEST + FU PACKET OUT");
+
+    setFUDone(0,0,0,0,0);
     //reset device
     resetRS();
     // fill all entries with reg 11
@@ -312,6 +351,12 @@ module test_RS;
     // complete all reg 11
     setinput(1,0,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 11);
     
+    setFUDone(1,1,1,1,1);
+
+    @negedge(clock);
+    $display("See RS after FU all available");
+    printRS(); 
+
 
     $display("TEST multiple Insert to same entry");
     //reset device
@@ -332,6 +377,7 @@ module test_RS;
 
 
     $display("TEST complete and dispatch on the same cycle");
+    setFUDone(0,0,0,0,0);
     //reset device
     resetRS();
     // fill all entries with reg 11 and dispatch at first
@@ -350,6 +396,7 @@ module test_RS;
 
 
     $display("TEST complete nothing");
+    setFUDone(0,0,0,0,0);
     //reset device
     resetRS();
     // insert for all FU non of which is ready.
@@ -364,6 +411,7 @@ module test_RS;
     
 
     $display("TEST EN off");
+    setFUDone(0,0,0,0,0);
     //reset device
     resetRS();
     //turn enable off
