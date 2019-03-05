@@ -1,7 +1,7 @@
 `timescale 1ns/100ps
 
 // `include "sys_defs.vh"
-// `include "map_table.vh"
+`include "Map_Table.vh"
 
 module test_Map_Table;
 
