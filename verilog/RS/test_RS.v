@@ -190,13 +190,13 @@ module test_RS;
     begin
       $display("---------------------------CHANGE FU-----------------------------");
       $display("ALU: %b MULT: %b BR: %b ST: %b LD: %b", ALUdone, MULTdone, BRdone, STdone, LDdone);
-      rs_packet_in.fu_done = '{ \
-        {`NUM_ALU{ALUdone}},   \
-        {`NUM_MULT{MULTdone}}, \
-        {`NUM_BR{BRdone}},     \
-        {`NUM_ST{STdone}},     \
-        {`NUM_LD{LDdone}}      \
-      }
+      rs_packet_in.fu_done = '{
+        {`NUM_ALU{ALUdone}},   
+        {`NUM_MULT{MULTdone}}, 
+        {`NUM_BR{BRdone}},     
+        {`NUM_ST{STdone}},     
+        {`NUM_LD{LDdone}}      
+      };
     end
   endtask
 
@@ -353,7 +353,7 @@ module test_RS;
     
     setFUDone(1,1,1,1,1);
 
-    @negedge(clock);
+    @(negedge clock);
     $display("See RS after FU all available");
     printRS(); 
 
