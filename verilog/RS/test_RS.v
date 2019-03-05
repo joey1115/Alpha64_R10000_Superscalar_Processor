@@ -158,6 +158,7 @@ module test_RS;
                 rs_packet_out.FU_packet_out[i].T_idx,
                 rs_packet_out.FU_packet_out[i].T1_idx,
                 rs_packet_out.FU_packet_out[i].T2_idx);
+      end
     end
   endtask
 
