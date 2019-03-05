@@ -167,8 +167,10 @@ module test_RS;
   task printInput;
     begin
       $display("---------------------------INPUT START----------------------------");
-      $display(" dest_idx | t1_idx | t1_ready | t2_idx | t2_ready | complete en | dispatch en |   FU   |  func  | CDB_t | inst");
-      $display("    %h    |   %h   |    %b     |   %h   |    %b     |      %b      |      %b      |    %h   |   %h   |  %h   | %h",
+      $display(" RESET | en |dest_idx | t1_idx | t1_ready | t2_idx | t2_ready | complete en | dispatch en |   FU   |  func  | CDB_t | inst");
+      $display("   %b   |  %b |    %h    |   %h   |    %b     |   %h   |    %b     |      %b      |      %b      |    %h   |   %h   |  %h   | %h",
+                reset,
+                en,
                 rs_packet_in.dest_idx,
                 rs_packet_in.T1.idx,
                 rs_packet_in.T1.ready,
