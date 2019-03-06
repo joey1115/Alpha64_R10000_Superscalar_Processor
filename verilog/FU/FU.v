@@ -27,7 +27,7 @@ module alu(
         ALU_SRL:      result = fu_packet.T1_value >> fu_packet.T2_value[5:0];
         ALU_SLL:      result = fu_packet.T1_value << fu_packet.T2_value[5:0];
         ALU_SRA:      result = (fu_packet.T1_value >> fu_packet.T2_value[5:0]) | ({64{fu_packet.T1_value[63]}} << (64 - fu_packet.T2_value[5:0])); // arithmetic from logical shift
-        ALU_MULQ:     result = fu_packet.T1_value * fu_packet.T2_value;
+        // ALU_MULQ:     result = fu_packet.T1_value * fu_packet.T2_value;
         ALU_CMPULT:   result = { 63'd0, (fu_packet.T1_value < fu_packet.T2_value) };
         ALU_CMPEQ:    result = { 63'd0, (fu_packet.T1_value == fu_packet.T2_value) };
         ALU_CMPULE:   result = { 63'd0, (fu_packet.T1_value <= fu_packet.T2_value) };
