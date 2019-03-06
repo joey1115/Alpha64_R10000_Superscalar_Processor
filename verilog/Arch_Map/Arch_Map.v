@@ -1,13 +1,23 @@
 // Told & T from ROB 
 // Told is replaced by T
+`timescale 1ns/100ps
+
+`define DEBUG
 
 module Arch_Map (
+  `ifdef DEBUG
+  output ARCH_MAP_t [31:0] arch_map,
+  `endif
+  
   input  en, clock, reset,
   input  ARCH_MAP_PACKET_IN  arch_map_packet_in
-  // output ARCH_MAP_PACKET_OUT arch_map_packet_out
 );
 
-  ARCH_MAP_t [31:0] arch_map, next_arch_map;
+  `ifndef DEBUG
+  output ARCH_MAP_t [31:0] arch_map;
+  `endif
+
+  ARCH_MAP_t [31:0] next_arch_map;
 
   always_ff @(posedge clock) begin
     if(reset) begin
