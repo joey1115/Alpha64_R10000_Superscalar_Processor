@@ -5,6 +5,11 @@ module alu(
   );
 
   logic [63:0] regA, regB;
+
+  always_ff begin
+    
+  end
+
     // This function computes a signed less-than operation
   function signed_lt;
     input [63:0] a, b;
@@ -67,6 +72,7 @@ module alu(
       endcase
     end
   end
+
 endmodule // alu
 
 module brcond(// Inputs
