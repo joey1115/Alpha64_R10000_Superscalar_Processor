@@ -80,7 +80,7 @@ module PR (
         pr.value <= `SD 64'b0;
         pr.free <= `SD PR_NOT_FREE;
       end // for
-      for (logic [$clog2(`NUM_PR):0] i=0; i<`NUM_PR; i++) begin
+      for (logic [$clog2(`NUM_PR):0] i=32; i<`NUM_PR; i++) begin
         pr.value <= `SD 64'b0;
         pr.free <= `SD PR_FREE;
       end // for
