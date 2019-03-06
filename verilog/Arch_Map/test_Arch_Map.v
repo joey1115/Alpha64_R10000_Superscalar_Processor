@@ -65,18 +65,28 @@ module test_Arch_Map;
       check_signal = 0;
       for (int i=0; i<31; i++) begin
         if (prior_output[i].PR_idx == current_input.Rob_retire_Told) begin
-          check_signal = 1;
+          check_signal = i;
           break;
         end // if 
       end
-
+      if (check_signal == 0) begin
+        if (prior_output == current_output) begin
+          $display("@@@Passed!!!!Told has not been used before, no changes!!!!");
+        end else begin
+          $display("@@@Wrong answer!!!!Shouldn't change arch_map when Told has not been used before");
+          $finish;
+        end // else
+      end else begin
+        if (current_output[check_signal].PR_idx == current_input.Rob_retire_T) begin
+          $display("@@@Passed!!!!");
+        end else begin
+          $display("@@@Wrong answer!!!!");
+        end // else
+      end // else
     end // else
-    
   endtask
 
 
-
-/
   initial begin
 
     //***** Test Case #1 *****//
