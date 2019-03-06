@@ -13,18 +13,18 @@
 //   logic [$clog2(`NUM_PR)-1:0] T2_idx;
 // } FU_ENTRY_t;
 
-typedef struct packed {
-  logic        ready;
-  logic [63:0] T1_value;
-  logic [63:0] T2_value;
-  ALU_FUNC     func;
-} FU_PACKET_t;
+// typedef struct packed {
+//   logic        ready;
+//   logic [63:0] T1_value;
+//   logic [63:0] T2_value;
+//   ALU_FUNC     func;
+// } FU_PACKET_t;
 
-typedef struct packed {
-  logic        ready;
-  logic [63:0] T1_value;
-  ALU_FUNC     func;
-} BR_PACKET_t;
+// typedef struct packed {
+//   logic        ready;
+//   logic [63:0] T1_value;
+//   ALU_FUNC     func;
+// } BR_PACKET_t;
 
 typedef struct packed {
   FU_PACKET_t [`NUM_FU-1:0] fu_packet;
