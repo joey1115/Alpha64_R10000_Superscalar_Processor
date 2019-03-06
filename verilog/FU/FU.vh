@@ -28,23 +28,24 @@
 
 typedef struct packed {
   FU_PACKET_t [`NUM_FU-1:0] fu_packet;
-  // BR_PACKET_t [`NUM_FU-1:0] br_packet;
-} FU_PACKET_IN;
+} FU_M_PACKET_IN;
 
 typedef struct packed {
   logic        done;
   logic [63:0] result;
+  logic [$clog2(`NUM_PR)-1:0] T_idx;  // Dest idx
 } FU_RESULT_ENTRY_t;
 
 typedef struct packed {
-  FU_RESULT_ENTRY_t [`NUM_ALU-1:0] alu_result;
-  logic             [`NUM_BR-1:0]  br_cond;
-} FU_PACKET_OUT;
+  FU_RESULT_ENTRY_t [`NUM_FU-1:0] fu_result;
+  //logic             [`NUM_BR-1:0]  br_cond;
+} FU_M_PACKET_OUT;
 
 typedef struct packed {
-  logic                       ready;  // If an entry is ready
+  logic                       ready;    // If an entry is ready
   INST_t                      inst;
   ALU_FUNC                    func;
+  logic [$clog2(`NUM_PR)-1:0] T_idx;    // Dest idx
   logic [$clog2(`NUM_PR)-1:0] T1_value; // T1 idx
   logic [$clog2(`NUM_PR)-1:0] T2_value; // T2 idx
   ALU_OPA_SELECT              T1_select;

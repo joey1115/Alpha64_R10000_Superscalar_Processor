@@ -161,7 +161,7 @@ module decoder(
           decoder_packet_out.alu_func      = ALU_AND; // clear low 2 bits (word-align)
           decoder_packet_out.dest_reg_idx  = decoder_packet_in.inst.r.rega_idx;
           decoder_packet_out.uncond_branch = `TRUE;
-          decoder_packet_out.FU            = FU_ALU;
+          decoder_packet_out.FU            = FU_BR;
         end
 
         `LDQ_INST: begin
