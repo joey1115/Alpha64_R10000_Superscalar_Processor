@@ -1,9 +1,9 @@
-】/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 //                                                                     //
 //                                                                     //
-//   Modulename :  testbench_PR.v                                      //
+//   Modulename :  testbench_Arch_Map.v                                //
 //                                                                     //
-//  Description :  Testbench module for PR module;                     //
+//  Description :  Testbench module for Arch_Map module;               //
 //                                                                     //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
@@ -109,16 +109,79 @@ module test_Arch_Map;
     reset = 1'b0;
     @(negedge clock);
     reset = 1'b1;
+    
     @(negedge clock);
     reset = 1'b0;
     $display("@@@Let's begin testbench!!!!!!!!!!!!!!!!!!");
     
     // Cycle 0
-    @(negedge clock);
+    $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[0];
     test_result = arch_map;
-    check()
+    check(test_result, test[0], test_result);
+    
+    @(negedge clock);
+    // Cycle 1
+    $display("Cycle %d",cycle_count);
+    arch_map_packet_in = test[1];
+    check(test_result, test[1], arch_map);
+    test_result = arch_map;
 
+    @(negedge clock);
+    // Cycle 2
+    $display("Cycle %d",cycle_count);
+    arch_map_packet_in = test[2];
+    check(test_result, test[2], arch_map);
+    test_result = arch_map;
+
+    @(negedge clock);
+    // Cycle 3
+    $display("Cycle %d",cycle_count);
+    arch_map_packet_in = test[3];
+    check(test_result, test[23, arch_map);
+    test_result = arch_map;
+
+    @(negedge clock);
+    // Cycle 4
+    $display("Cycle %d",cycle_count);
+    arch_map_packet_in = test[4];
+    check(test_result, test[4], arch_map);
+    test_result = arch_map;
+
+    @(negedge clock);
+    // Cycle 5
+    $display("Cycle %d",cycle_count);
+    arch_map_packet_in = test[5];
+    check(test_result, test[5], arch_map);
+    test_result = arch_map;
+
+    @(negedge clock);
+    // Cycle 6
+    $display("Cycle %d",cycle_count);
+    arch_map_packet_in = test[6];
+    check(test_result, test[6], arch_map);
+    test_result = arch_map;
+
+    @(negedge clock);
+    // Cycle 7
+    $display("Cycle %d",cycle_count);
+    arch_map_packet_in = test[7];
+    check(test_result, test[7], arch_map);
+    test_result = arch_map;
+
+    @(negedge clock);
+    // Cycle 8
+    $display("Cycle %d",cycle_count);
+    arch_map_packet_in = test[8];
+    check(test_result, test[8], arch_map);
+    test_result = arch_map;
+
+    @(negedge clock);
+    // Cycle 9
+    $display("Cycle %d",cycle_count);
+    arch_map_packet_in = test[9];
+    check(test_result, test[9], arch_map);
+    test_result = arch_map;
 
     @(negedge clock);
     @(negedge clock);
