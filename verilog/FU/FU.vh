@@ -45,8 +45,8 @@ typedef struct packed {
   logic                       ready;  // If an entry is ready
   INST_t                      inst;
   ALU_FUNC                    func;
-  logic [$clog2(`NUM_PR)-1:0] T1_value; // T1 idx
-  logic [$clog2(`NUM_PR)-1:0] T2_value; // T2 idx
+  logic [63:0]                T1_value; // T1 value
+  logic [63:0]                T2_value; // T2 value
   ALU_OPA_SELECT              T1_select;
   ALU_OPB_SELECT              T2_select;
 } FU_PACKET_IN_t;
