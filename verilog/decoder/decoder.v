@@ -74,7 +74,7 @@ module decoder(
           decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
           decoder_packet_out.alu_func     = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
-          decoder_packet_out.FU           = FU_ALU;
+          decoder_packet_out.FU           = FU_LD;
         end
 
         // `LDAH_INST, `LDBU_INST, `LDQ_U_INST, `LDWU_INST, `STW_INST, `STB_INST, `STQ_U_INST, `LDF_INST, `LDG_INST, `LDS_INST, `LDT_INST, `STF_INST, `STG_INST, `STS_INST, `STT_INST, `LDL_INST: begin
@@ -161,7 +161,7 @@ module decoder(
           decoder_packet_out.alu_func      = ALU_AND; // clear low 2 bits (word-align)
           decoder_packet_out.dest_reg_idx  = decoder_packet_in.inst.r.rega_idx;
           decoder_packet_out.uncond_branch = `TRUE;
-          decoder_packet_out.FU            = FU_ALU;
+          decoder_packet_out.FU            = FU_BR;
         end
 
         `LDQ_INST: begin

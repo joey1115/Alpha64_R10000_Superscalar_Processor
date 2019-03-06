@@ -10,9 +10,9 @@
 
 `timescale 1ns/100ps
 
-`include "RS.vh"
+`include "FU.vh"
 
-module test_RS;
+module test_FU;
   // UUT input signals
   logic clock, reset, en;
   RS_PACKET_IN rs_packet_in;
