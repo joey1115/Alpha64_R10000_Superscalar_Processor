@@ -47,15 +47,15 @@ module RS (
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
 
-      T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T1 is complete
-      T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T2 is complete
-      T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                    // T1 is ready or updated by CDB
-      T2_ready[i]       = RS[i].T2.ready || T1_CDB[i];                                    // T2 is ready or updated by CDB
-      RS_T_ready[i]     = T1_ready[i] && T2_ready[i] && rs_packet_in.fu_hazard[i];        // T1 and T2 are ready to issue
-      RS_entry_empty[i] = RS_T_ready[i] || RS[i].busy == `FALSE;                          // RS entry empty
-      RS_entry_match[i] = RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU;             // RS entry match
+      T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;    // T1 is complete
+      T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;    // T2 is complete
+      T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                       // T1 is ready or updated by CDB
+      T2_ready[i]       = RS[i].T2.ready || T1_CDB[i];                                       // T2 is ready or updated by CDB
+      RS_T_ready[i]     = T1_ready[i] && T2_ready[i] && rs_packet_in.fu_hazard[i] == `FALSE; // T1 and T2 are ready to issue
+      RS_entry_empty[i] = RS_T_ready[i] || RS[i].busy == `FALSE;                             // RS entry empty
+      RS_entry_match[i] = RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU;                // RS entry match
 
-  //     RS_entry_ready[i]   = RS[i].busy == `FALSE && rs_packet_in.fu_hazard[i] == `TRUE && FU_list[i] == rs_packet_in.FU;
+  //     RS_entry_ready[i]   = ( RS[i].busy == `FALSE || !( T1_ready[i] && T2_ready[i] ) ) && rs_packet_in.fu_hazard[i] == `FALSE && FU_list[i] == rs_packet_in.FU;
   //     RS_entry_forward[i] = T_ready_in && RS_entry_ready[i];
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
