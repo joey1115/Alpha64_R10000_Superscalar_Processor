@@ -60,20 +60,30 @@ module PR (
     end
     // Dispatch
     for (logic [$clog2(`NUM_PR):0] i=0; i<`NUM_PR; i++) begin
-      if (next_pr[i].free == PR_FREE) begin
-        pr_packet_out.struct_hazard = 1'b0;
-        pr_packet_out.T = i;
-        if (pr_packet_in.inst_dispatch) begin
-          next_pr[i].free = PR_NOT_FREE;
-        end
-        break;
-      end // if
+      if (i != 31) begin
+        if (next_pr[i].free == PR_FREE) begin
+          pr_packet_out.struct_hazard = 1'b0;
+          pr_packet_out.T = i;
+          if (pr_packet_in.inst_dispatch) begin
+            next_pr[i].free = PR_NOT_FREE;
+          end
+          break;
+        end // if
+      end else begin
+      end
     end // for
   end
 
   always_ff @(posedge clock) begin
     if (reset) begin
-      pr <= `SD {`NUM_PR{64'b0, PR_FREE}};
+      for (logic [$clog2(`NUM_PR):0] i=0; i<31; i++) begin
+        pr.value <= `SD 64'b0;
+        pr.free <= `SD PR_NOT_FREE;
+      end // for
+      for (logic [$clog2(`NUM_PR):0] i=0; i<`NUM_PR; i++) begin
+        pr.value <= `SD 64'b0;
+        pr.free <= `SD PR_FREE;
+      end // for
     end else if (en && pr_packet_in.inst_dispatch) begin
       pr <= `SD next_pr;
     end // if
