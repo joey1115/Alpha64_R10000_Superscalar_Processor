@@ -28,7 +28,7 @@
 
 typedef struct packed {
   FU_PACKET_t [`NUM_FU-1:0] fu_packet;
-  BR_PACKET_t [`NUM_FU-1:0] br_packet;
+  // BR_PACKET_t [`NUM_FU-1:0] br_packet;
 } FU_PACKET_IN;
 
 typedef struct packed {

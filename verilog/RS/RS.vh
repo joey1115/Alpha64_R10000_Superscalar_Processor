@@ -41,6 +41,7 @@ typedef struct packed {
   logic                          dispatch_en; // If can be dispatched
   FU_t                           FU;          // Required FU
   ALU_FUNC                       func;        // Required ALU operation
+  T1_select
   logic    [$clog2(`NUM_PR)-1:0] CDB_T;       // CDB tag
   logic    [`NUM_FU-1:0]         fu_valid;   // FU done
 } RS_PACKET_IN;
