@@ -55,7 +55,7 @@ module RS (
       RS_entry_empty[i] = RS_T_ready[i] || RS[i].busy == `FALSE;                          // RS entry empty
       RS_entry_match[i] = RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU;             // RS entry match
 
-  //     RS_entry_ready[i]   = RS[i].busy == `FALSE && rs_packet_in.fu_done[i] == `TRUE && FU_list[i] == rs_packet_in.FU;
+  //     RS_entry_ready[i]   = RS[i].busy == `FALSE && rs_packet_in.fu_hazard[i] == `TRUE && FU_list[i] == rs_packet_in.FU;
   //     RS_entry_forward[i] = T_ready_in && RS_entry_ready[i];
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
@@ -131,6 +131,7 @@ module RS (
       //     rs_packet_out.FU_packet_out[i].T2_idx = rs_packet_in.T2.idx;   // Output T2_idx
       //     rs_packet_out.FU_packet_out[i].func   = rs_packet_in.func;     // op code
       //     rs_packet_out.FU_packet_out[i].inst   = rs_packet_in.inst;     // inst
+      //     break;
 
       //   end
 
