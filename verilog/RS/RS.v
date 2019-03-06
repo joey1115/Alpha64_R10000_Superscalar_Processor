@@ -80,13 +80,15 @@ module RS (
     // Issue
     // for (int i = 0; i < `NUM_FU; i++) begin
 
-      if ( RS_T_ready[i] ) begin                              // T1 and T2 are ready to issue
-        rs_packet_out.FU_packet_out[i].ready  = `TRUE;        // Ready to issue
-        rs_packet_out.FU_packet_out[i].T_idx  = RS[i].T_idx;  // Output T_idx
-        rs_packet_out.FU_packet_out[i].T1_idx = RS[i].T1.idx; // Output T1_idx
-        rs_packet_out.FU_packet_out[i].T2_idx = RS[i].T2.idx; // Output T2_idx
-        rs_packet_out.FU_packet_out[i].func   = RS[i].func;   // op code
-        rs_packet_out.FU_packet_out[i].inst   = RS[i].inst;   // inst
+      if ( RS_T_ready[i] ) begin                                    // T1 and T2 are ready to issue
+        rs_packet_out.FU_packet_out[i].ready     = `TRUE;           // Ready to issue
+        rs_packet_out.FU_packet_out[i].T_idx     = RS[i].T_idx;     // Output T_idx
+        rs_packet_out.FU_packet_out[i].T1_idx    = RS[i].T1.idx;    // Output T1_idx
+        rs_packet_out.FU_packet_out[i].T1_select = RS[i].T1_select; // Output T2_idx
+        rs_packet_out.FU_packet_out[i].T2_idx    = RS[i].T2.idx;    // Output T2_idx
+        rs_packet_out.FU_packet_out[i].T2_select = RS[i].T2_select; // Output T2_idx
+        rs_packet_out.FU_packet_out[i].func      = RS[i].func;      // op code
+        rs_packet_out.FU_packet_out[i].inst      = RS[i].inst;      // inst
         next_RS[i] = `RS_ENTRY_RESET; // Clear RS entry
       end // if ( RS_entry_ready[i] ) begin
 
@@ -96,13 +98,15 @@ module RS (
     if ( rs_packet_in.dispatch_en ) begin
       for (int i = 0; i < `NUM_FU; i++) begin
 
-        if ( RS_entry_match[i] ) begin              // RS entry was not busy and inst ready to dispatch and FU match
-          next_RS[i].busy  = `TRUE;                 // RS entry busy
-          next_RS[i].inst  = rs_packet_in.inst;     // inst
-          next_RS[i].func  = rs_packet_in.func;     // func
-          next_RS[i].T_idx = rs_packet_in.dest_idx; // Write T
-          next_RS[i].T1    = rs_packet_in.T1;       // Write T1
-          next_RS[i].T2    = rs_packet_in.T2;       // Write T2
+        if ( RS_entry_match[i] ) begin                   // RS entry was not busy and inst ready to dispatch and FU match
+          next_RS[i].busy      = `TRUE;                  // RS entry busy
+          next_RS[i].inst      = rs_packet_in.inst;      // inst
+          next_RS[i].func      = rs_packet_in.func;      // func
+          next_RS[i].T_idx     = rs_packet_in.dest_idx;  // Write T
+          next_RS[i].T1        = rs_packet_in.T1;        // Write T1
+          next_RS[i].T1_select = rs_packet_in.T1_select; // Write T1 select
+          next_RS[i].T2        = rs_packet_in.T2;        // Write T2
+          next_RS[i].T2_select = rs_packet_in.T2_select; // Write T1 select
           break;
         end // if ( RS[i].busy == `FALSE && rs_packet_in.dispatch_en ) begin
 
