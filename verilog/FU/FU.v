@@ -73,7 +73,7 @@ module FU (
 
   alu alu_0 [`NUM_ALU-1:0] (
     // Inputs
-    .fu_packet(fu_packet_in.FU_packet[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
+    .fu_packet(fu_packet_in[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     // Output
     .result(fu_packet_out.fu_result[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     .first_done(fu_first_done[`NUM_FU-1:(`NUM_FU-`NUM_ALU)])
@@ -81,7 +81,7 @@ module FU (
 
   mult mult_0 [`NUM_MULT-1:0] (
     // Inputs
-    .fu_packet(fu_packet_in.fu_packet[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     // Output
     .result(fu_packet_out.fu_result[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     .first_done(fu_first_done[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
@@ -89,7 +89,7 @@ module FU (
 
   br br_0 [`NUM_BR-1:0] (
     // Inputs
-    .fu_packet(fu_packet_in.fu_packet[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
+    .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     // Output
     .result(fu_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     .first_done(fu_first_done[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)])
@@ -97,7 +97,7 @@ module FU (
 
   st st_0 [`NUM_ST-1:0] (
     // Inputs
-    .fu_packet(fu_packet_in.fu_packet[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
+    .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
     // Output
     .result(fu_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
     .first_done(fu_first_done[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)])
@@ -105,7 +105,7 @@ module FU (
 
   ld ld_0 [`NUM_LD-1:0] (
     // Inputs
-    .fu_packet(fu_packet_in.fu_packet[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
+    .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
     // Output
     .result(fu_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
     .first_done(fu_first_done[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)])
@@ -115,6 +115,8 @@ module FU (
     
     for (int i = 0; i < `NUM_FU; i++) begin
       fu_packet_out.fu_valid[i] = !FU_packet[i].ready || fu_first_done[i];
+      // fu_packet_in.T1_value = 
+      // fu_packet_in.T2_value = 
     end
 
   end

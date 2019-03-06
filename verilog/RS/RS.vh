@@ -41,7 +41,8 @@ typedef struct packed {
   logic                          dispatch_en; // If can be dispatched
   FU_t                           FU;          // Required FU
   ALU_FUNC                       func;        // Required ALU operation
-  T1_select
+  ALU_OPA_SELECT                 T1_select;
+  ALU_OPB_SELECT                 T2_select;
   logic    [$clog2(`NUM_PR)-1:0] CDB_T;       // CDB tag
   logic    [`NUM_FU-1:0]         fu_valid;   // FU done
 } RS_PACKET_IN;
@@ -53,6 +54,8 @@ typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] T_idx;  // Dest idx
   logic [$clog2(`NUM_PR)-1:0] T1_idx; // T1 idx
   logic [$clog2(`NUM_PR)-1:0] T2_idx; // T2 idx
+  ALU_OPA_SELECT              T1_select;
+  ALU_OPB_SELECT              T2_select;
 } FU_PACKET_t;
 
 `define FU_ENTRY_RESET {`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_PR, `ZERO_PR, `ZERO_PR} // FU entry reset
