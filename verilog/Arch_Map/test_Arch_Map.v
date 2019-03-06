@@ -34,6 +34,7 @@ module test_Arch_Map;
   logic [31:0] cycle_count;
   ARCH_MAP_t [31:0] test_result;
   ARCH_MAP_PACKET_IN test;
+  logic check_signal;
 
   // Generate System Clock
   always begin
@@ -53,12 +54,29 @@ module test_Arch_Map;
     input ARCH_MAP_t [31:0] prior_output;
     input ARCH_MAP_PACKET_IN current_input;
     input ARCH_MAP_t [31:0] current_output;
-    for ()
+    if (current_input.en == 0) begin
+      if (prior_output == current_output) begin
+        $display("@@@Passed!!!!No retire signal!!!!");
+      end else begin
+        $display("@@@Wrong answer!!!!Shouldn't change arch_map when no retire signal");
+        $finish;
+      end // else
+    end else begin
+      check_signal = 0;
+      for (int i=0; i<31; i++) begin
+        if (prior_output[i].PR_idx == current_input.Rob_retire_Told) begin
+          check_signal = 1;
+          break;
+        end // if 
+      end
+
+    end // else
+    
   endtask
 
 
 
-
+/
   initial begin
 
     //***** Test Case #1 *****//
