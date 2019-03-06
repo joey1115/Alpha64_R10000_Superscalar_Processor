@@ -11,9 +11,9 @@ typedef struct packed {
 
 typedef struct packed {
   logic                       Dispatch_enable;    // no Dispatch hazard
-  logic [4:0]                 Dispatch_reg_dest;  // reg from dispatch
-  logic [4:0]                 Dispatch_reg_T1;
-  logic [4:0]                 Dispatch_reg_T2;
+  logic [4:0]                 Dispatch_T_idx;  // reg from dispatch
+  logic [4:0]                 Dispatch_T1_idx;
+  logic [4:0]                 Dispatch_T2_idx;
   logic [$clog2(`NUM_PR)-1:0] Freelist_T;         // tags from freelist
   logic [$clog2(`NUM_PR)-1:0] CDB_T;              // broadcast from CDB
   logic                       CDB_enable;         //CDB enable
