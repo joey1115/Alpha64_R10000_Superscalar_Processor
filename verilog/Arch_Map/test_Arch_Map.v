@@ -33,7 +33,7 @@ module test_Arch_Map;
 
   logic [31:0] cycle_count;
   ARCH_MAP_t [31:0] test_result;
-  ARCH_MAP_PACKET_IN test;
+  ARCH_MAP_PACKET_IN [9:0] test;
   logic check_signal;
 
   // Generate System Clock
@@ -78,9 +78,10 @@ module test_Arch_Map;
         end // else
       end else begin
         if (current_output[check_signal].PR_idx == current_input.Rob_retire_T) begin
-          $display("@@@Passed!!!!");
+          $display("@@@Passed!!!!Right answer!!!!");
         end else begin
           $display("@@@Wrong answer!!!!");
+          $finish;
         end // else
       end // else
     end // else
@@ -89,7 +90,7 @@ module test_Arch_Map;
 
   initial begin
 
-    //***** Test Case #1 *****//
+
     // test{retire signal, T_old from ROB, T from ROB}
     test[0] = '{0,  0, 32}; // retire signal = 0, no changes
     test[1] = '{0,  1, 35};
