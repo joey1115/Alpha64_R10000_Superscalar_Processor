@@ -70,14 +70,16 @@ endmodule // alu
 module mult_stage (
   input  logic                       clock, reset, start, hazard,
   input  logic [63:0]                product_in, mplier_in, mcand_in,
+  input  logic [$clog2(`NUM_PR)-1:0] T_idx,
   output logic                       done, harzard_out,
   output logic [63:0]                product_out, mplier_out, mcand_out, next_product,
-  // output logic [$clog2(`NUM_PR)-1:0] T_idx
+  output logic [$clog2(`NUM_PR)-1:0] T_idx_out
 );
 
   logic [64/`NUM_MULT_STAGE-1:0] next_mplier_out;
   logic [64/`NUM_MULT_STAGE-1:0] next_mcand_out;
   logic [63:0]                   next_product_out;
+  logic [$clog2(`NUM_PR)-1:0]    next_T_idx_out;
   logic [64/`NUM_MULT_STAGE-1:0] partial_product, next_mplier, next_mcand;
 
   assign harzard_out = start && hazard;
@@ -92,16 +94,19 @@ module mult_stage (
   assign next_mplier_out = mplier_out;
   assign next_mcand_out = mcand_out;
   assign next_product_out = product_out;
+  assign next_T_idx = T_idx;
   //synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if ( hazard ) begin
       mplier_out       <= `SD next_mplier_out;
       mcand_out        <= `SD next_mcand_out;
       product_out      <= `SD next_product_out;
+      T_idx_out        <= `SD next_T_idx_out;
     end else begin
       mplier_out       <= `SD next_mplier;
       mcand_out        <= `SD next_mcand;
       product_out      <= `SD next_product;
+      T_idx_out        <= `SD T_idx;
     end
   end
 
@@ -132,6 +137,8 @@ module mult (
   logic [((`NUM_MULT_STAGE-1)*64)-1:0] internal_products, internal_mcands, internal_mpliers, next_products;
   logic [`NUM_MULT_STAGE-2:0] internal_hazards;
   logic [`NUM_MULT_STAGE-3:0] internal_dones;
+  logic [$clog2(`NUM_PR)-1:0] last_T_idx;
+  logic [$clog2(`NUM_PR)*(`NUM_MULT_STAGE-1)-1:0] internal_T_idx;
 
   assign start = fu_packet.ready;
   assign fu_valid = !first_harzard;
@@ -150,7 +157,8 @@ module mult (
     endcase 
   end
 
-  mult_stage mstage [`NUM_MULT_STAGE-1:0]  (
+  mult_stage mstage [`NUM_MULT_STAGE-1:0] (
+    // input
     .clock(clock),
     .reset(reset),
     .product_in({internal_products, {64{1'b0}}}),
@@ -158,12 +166,15 @@ module mult (
     .mcand_in({internal_mcands, regB}),
     .start({fu_packet_out.done, internal_dones, start}),
     .hazard({full_hazard, internal_hazards}),
+    .T_idx({fu_packet_out.T_idx, internal_T_idx, fu_packet.T_idx}),
+    // Ouput
     .product_out({product_out, internal_products}),
     .mplier_out({mplier_out, internal_mpliers}),
     .mcand_out({mcand_out, internal_mcands}),
     .done({last_done, fu_packet_out.done, internal_dones}),
     .harzard_out({internal_hazards, first_harzard}),
-    .next_product({fu_packet_out.result, next_products})
+    .next_product({fu_packet_out.result, next_products}),
+    .T_idx_out({last_T_idx, fu_packet_out.T_idx, internal_T_idx}),
   );
 
 endmodule
