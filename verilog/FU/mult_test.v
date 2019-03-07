@@ -11,6 +11,10 @@ module testbench();
 
   logic [63:0] cres;
   logic [$clog2(`NUM_PR)-1:0] T_idx;
+
+  logic last_done;
+  logic [63:0] product_out;
+  logic [$clog2(`NUM_PR)-1:0] last_T_idx;
   
   assign cres = fu_packet_in.T1_value*fu_packet_in.T2_value;
   assign T_idx = fu_packet_in.T_idx;
@@ -21,7 +25,7 @@ module testbench();
   // end
 
   //wire correct = ((cres===fu_packet_out.result) && (T_idx === fu_packet_out.T_idx))|~fu_packet_out.done;
-  wire correct = ((cres===fu_packet_out.result))|~fu_packet_out.done;
+  wire correct = ((cres===product_out))|~last_done;
 
 
   mult m0(	.clock(clock),
@@ -29,12 +33,15 @@ module testbench();
             .full_hazard(full_hazard),
             .fu_packet(fu_packet_in),
             .fu_packet_out(fu_packet_out),
-            .fu_valid(fu_valid));
+            .fu_valid(fu_valid),
+            .last_done(last_done),
+            .product_out(product_out),
+            .last_T_idx(last_T_idx));
 
   always @(posedge clock)
     #2 if(!correct) begin 
         $display("Incorrect at time %4.0f",$time);
-        $display("cres = %h fu_packet_out.result = %h",cres,fu_packet_out.result);
+        $display("cres = %h fu_packet_out.result = %h product_out = %h",cres,fu_packet_out.result, product_out);
         //$finish;
     end
 
@@ -60,7 +67,7 @@ module testbench();
   initial begin
 
     //$vcdpluson;
-    $monitor("Time:%4.0f fu_valid:%b fu_packet_in.T1_value:%h fu_packet_in.T2_value:%h product:%h fu_packet_out.result:%h fu_packet_out.T_idx:%h fu_packet_out.done",$time,fu_valid,fu_packet_in.T1_value,fu_packet_in.T2_value,cres,fu_packet_out.result, fu_packet_out.T_idx, fu_packet_out.done);
+    $monitor("Time:%4.0f fu_valid:%b fu_packet_in.T1_value:%h fu_packet_in.T2_value:%h product:%h fu_packet_out.result:%h fu_packet_out.T_idx:%h fu_packet_out.done:%b product_out:%h last_T_idx:%h last_done:%b",$time,fu_valid,fu_packet_in.T1_value,fu_packet_in.T2_value,cres,fu_packet_out.result, fu_packet_out.T_idx, fu_packet_out.done, product_out, last_T_idx,last_done);
     fu_packet_in.T1_value=2;
     fu_packet_in.T2_value=3;
     fu_packet_in.T_idx=4;

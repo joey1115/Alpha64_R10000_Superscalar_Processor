@@ -129,16 +129,29 @@ module mult (
   input  logic             clock, reset, full_hazard,
   input  FU_PACKET_IN_t    fu_packet,
   output FU_RESULT_ENTRY_t fu_packet_out,
+
+  `ifdef DEBUG
+    output logic last_done,
+    output logic [63:0] product_out,
+    output logic [$clog2(`NUM_PR)-1:0] last_T_idx,
+  `endif
+
+
   output logic             fu_valid
 );
 
-  logic start, last_done, first_harzard;
-  logic [63:0] mcand_out, mplier_out, regA, regB, product_out;
+  `ifndef DEBUG
+    logic last_done;
+    logic [63:0] product_out;
+    logic [$clog2(`NUM_PR)-1:0] last_T_idx;
+  `endif
+
+  logic start, first_harzard;
+  logic [63:0] mcand_out, mplier_out, regA, regB;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0] internal_products, internal_mcands, internal_mpliers, next_products;
   logic [`NUM_MULT_STAGE-2:0] internal_hazards;
   logic [`NUM_MULT_STAGE-3:0] internal_dones;
-  logic [$clog2(`NUM_PR)-1:0] last_T_idx;
-  logic [$clog2(`NUM_PR)*(`NUM_MULT_STAGE-1)-1:0] internal_T_idx;
+  logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0] internal_T_idx;
 
   assign start = fu_packet.ready;
   assign fu_valid = !first_harzard;
@@ -174,7 +187,7 @@ module mult (
     .done({last_done, fu_packet_out.done, internal_dones}),
     .harzard_out({internal_hazards, first_harzard}),
     .next_product({fu_packet_out.result, next_products}),
-    .T_idx_out({last_T_idx, fu_packet_out.T_idx, internal_T_idx}),
+    .T_idx_out({last_T_idx, fu_packet_out.T_idx, internal_T_idx})
   );
 
 endmodule
