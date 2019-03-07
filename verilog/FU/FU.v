@@ -68,10 +68,11 @@ endmodule // alu
 // is sufficient to allow a faster clock period than straight *
 
 module mult_stage (
-  input  logic        clock, reset, start, hazard,
-  input  logic [63:0] product_in, mplier_in, mcand_in,
-  output logic        done, harzard_out,
-  output logic [63:0] product_out, mplier_out, mcand_out, next_product
+  input  logic                       clock, reset, start, hazard,
+  input  logic [63:0]                product_in, mplier_in, mcand_in,
+  output logic                       done, harzard_out,
+  output logic [63:0]                product_out, mplier_out, mcand_out, next_product,
+  // output logic [$clog2(`NUM_PR)-1:0] T_idx
 );
 
   logic [64/`NUM_MULT_STAGE-1:0] next_mplier_out;
@@ -107,9 +108,9 @@ module mult_stage (
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if( reset )
-      done <= `SD `FALSE;
+      done  <= `SD `FALSE;
     else
-      done <= `SD start;
+      done  <= `SD start;
   end
 
 endmodule
