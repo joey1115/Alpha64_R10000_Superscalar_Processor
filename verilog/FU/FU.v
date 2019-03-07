@@ -196,6 +196,30 @@ module FU (
   output logic          [`NUM_FU-1:0] fu_valid
 );
 
+  always_comb begin
+    
+    for (int i = 0; i < `NUM_FU; i++) begin
+      fu_packet_in[i].ready     = fu_m_packet_in.fu_packet[i].ready;
+      fu_packet_in[i].inst      = fu_m_packet_in.fu_packet[i].inst;
+      fu_packet_in[i].func      = fu_m_packet_in.fu_packet[i].func;
+      fu_packet_in[i].T_idx     = fu_m_packet_in.fu_packet[i].T_idx;
+      // fu_packet_in[i].T1_value = pr_packet_out[i].T1_value;
+      // fu_packet_in[i].T2_value = pr_packet_out[i].T2_value;
+      fu_packet_in[i].T1_select = fu_m_packet_in.fu_packet[i].T1_select;
+      fu_packet_in[i].T2_select = fu_m_packet_in.fu_packet[i].T2_select;
+    end
+
+  end
+
+  always_comb begin
+    
+    for (int i = 0; i < `NUM_FU; i++) begin
+      // pr_packet_in[i].S_X_T1 = fu_m_packet_in.fu_packet[i].T1_idx;
+      // pr_packet_in[i].S_X_T2 = fu_m_packet_in.fu_packet[i].T2_idx;
+    end
+
+  end
+
   FU_PACKET_IN_t [`NUM_FU-1:0] fu_packet_in;
 
   alu alu_0 [`NUM_ALU-1:0] (
@@ -242,21 +266,4 @@ module FU (
   //   .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)])
   // );
 
-  always_comb begin
-    
-    for (int i = 0; i < `NUM_FU; i++) begin
-      // pr_packet_in[i].S_X_T1 = fu_m_packet_in.fu_packet[i].T1_idx;
-      // pr_packet_in[i].S_X_T2 = fu_m_packet_in.fu_packet[i].T2_idx;
-      fu_packet_in[i].ready = fu_m_packet_in.fu_packet[i].ready;
-      fu_packet_in[i].inst = fu_m_packet_in.fu_packet[i].inst;
-      fu_packet_in[i].func = fu_m_packet_in.fu_packet[i].func;
-      fu_packet_in[i].T_idx = fu_m_packet_in.fu_packet[i].T_idx;
-      // fu_packet_in[i].T1_value = pr_packet_out[i].T1_value;
-      // fu_packet_in[i].T2_value = pr_packet_out[i].T2_value;
-      fu_packet_in[i].T1_select = fu_m_packet_in.fu_packet[i].T1_select;
-      fu_packet_in[i].T2_select = fu_m_packet_in.fu_packet[i].T2_select;
-    end
-
-  end
-
-endmodule // RS
+endmodule // FU
