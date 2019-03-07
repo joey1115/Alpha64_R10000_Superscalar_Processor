@@ -28,6 +28,7 @@
 
 typedef struct packed {
   FU_PACKET_t [`NUM_FU-1:0] fu_packet;
+  logic       [`NUM_FU-1:0] full_hazard;
 } FU_M_PACKET_IN;
 
 typedef struct packed {
@@ -51,5 +52,7 @@ typedef struct packed {
   ALU_OPA_SELECT              T1_select;
   ALU_OPB_SELECT              T2_select;
 } FU_PACKET_IN_t;
+
+`define FU_PACKET_IN_RESET '{`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_PR, 64{1'b0}, 64{1'b0}, ALU_OPA_IS_REGA, ALU_OPA_IS_REGA}
 
 `endif
