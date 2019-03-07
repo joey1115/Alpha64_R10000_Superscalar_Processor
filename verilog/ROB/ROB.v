@@ -5,6 +5,9 @@
 
 `timescale 1ns/100ps
 
+`include "../../sys_defs.vh"
+`include "ROB.vh"
+
 `define DEBUG
 
 module ROB (
@@ -99,7 +102,7 @@ module ROB (
 
     //set signals for Freeing freelist
     rob_packet_out_to_freelist.head_T_old_out = rob.entry[rob.head].T_old;
-    rob_packet_out_to_freelist.valid = retire;
+    rob_packet_out_to_freelist.freePR = retire;
 
   end
 
