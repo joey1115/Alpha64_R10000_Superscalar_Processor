@@ -34,7 +34,8 @@ LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 MOD_NAME     = FU
 HEADERS      = $(wildcard ../../*.vh)
 HEADERS     += $(wildcard $(MOD_NAME).vh)
-TESTBENCH    = $(wildcard test_$(MOD_NAME).v)
+TESTBENCH    = mult_test.v
+#TESTBENCH    = $(wildcard test_$(MOD_NAME).v)
 MODFILE      = $(wildcard $(MOD_NAME).v)
 
 SIMFILES     = $(MODFILE)
