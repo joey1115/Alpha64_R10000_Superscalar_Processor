@@ -28,6 +28,7 @@
 
 typedef struct packed {
   FU_PACKET_t [`NUM_FU-1:0] fu_packet;
+  logic       [`NUM_FU-1:0] full_hazard;
 } FU_M_PACKET_IN;
 
 typedef struct packed {

@@ -1,12 +1,12 @@
 module alu(
   input  FU_PACKET_IN_t    fu_packet,
-  input  logic             full_harzard,
+  input  logic             full_hazard,
   output FU_RESULT_ENTRY_t fu_packet_out,
   output logic             fu_valid
 );
 
   logic [63:0] regA, regB;
-  assign fu_valid = full_harzard == `FALSE || fu_packet.ready == `FALSE;
+  assign fu_valid = full_hazard == `FALSE || fu_packet.ready == `FALSE;
 
   // This function computes a signed less-than operation
   function signed_lt;
@@ -18,10 +18,6 @@ module alu(
       signed_lt = a[63];   // signs differ: a is smaller if neg, larger if pos
   endfunction
 
-  // set up possible immediates:
-  //   alu_imm: zero-extended 8-bit immediate for ALU ops
-  wire [63:0] alu_imm  = { 56'b0, fu_packet.inst.i.LIT };
-
   assign regA = fu_packet.T1_value;
 
   //
@@ -32,8 +28,8 @@ module alu(
      // value on the output of the mux you have an invalid opb_select
     regB = 64'hbaadbeefdeadbeef;
     case (fu_packet.T2_select)
-      `ALU_OPB_IS_REGB:    regB = fu_packet.T2_value;
-      `ALU_OPB_IS_ALU_IMM: regB = alu_imm;
+      ALU_OPB_IS_REGB:    regB = fu_packet.T2_value;
+      ALU_OPB_IS_ALU_IMM: regB = { 56'b0, fu_packet.inst.i.LIT };
     endcase 
   end
 
@@ -124,30 +120,44 @@ endmodule
 // allow a faster clock period than straight *
 // This module instantiates 8 pipeline stages as an array of submodules.
 module mult (
-  input  logic             clock, reset, full_harzard,
+  input  logic             clock, reset, full_hazard,
   input  FU_PACKET_IN_t    fu_packet,
   output FU_RESULT_ENTRY_t fu_packet_out,
   output logic             fu_valid
 );
 
   logic start, last_done, first_harzard;
-  logic [63:0] mcand_out, mplier_out, fu_packet_out.result;
-  logic [((NUM_MULT_STAGE-1)*64)-1:0] internal_products, internal_mcands, internal_mpliers, next_products;
-  logic [NUM_MULT_STAGE-2:0] internal_hazards;
-  logic [NUM_MULT_STAGE-3:0] internal_dones;
+  logic [63:0] mcand_out, mplier_out, regA, regB, product_out;
+  logic [((`NUM_MULT_STAGE-1)*64)-1:0] internal_products, internal_mcands, internal_mpliers, next_products;
+  logic [`NUM_MULT_STAGE-2:0] internal_hazards;
+  logic [`NUM_MULT_STAGE-3:0] internal_dones;
 
   assign start = fu_packet.ready;
   assign fu_valid = !first_harzard;
+  assign regA = fu_packet.T1_value;
 
-  mult_stage mstage [NUM_MULT_STAGE-1:0]  (
+  //
+  // regB mux
+  //
+  always_comb begin
+     // Default value, Set only because the case isnt full.  If you see this
+     // value on the output of the mux you have an invalid opb_select
+    regB = 64'hbaadbeefdeadbeef;
+    case (fu_packet.T2_select)
+      ALU_OPB_IS_REGB:    regB = fu_packet.T2_value;
+      ALU_OPB_IS_ALU_IMM: regB = { 56'b0, fu_packet.inst.i.LIT };
+    endcase 
+  end
+
+  mult_stage mstage [`NUM_MULT_STAGE-1:0]  (
     .clock(clock),
     .reset(reset),
     .product_in({internal_products, {64{1'b0}}}),
-    .mplier_in({internal_mpliers, fu_packet.T1_value}),
-    .mcand_in({internal_mcands, fu_packet.T2_value}),
+    .mplier_in({internal_mpliers, regA}),
+    .mcand_in({internal_mcands, regB}),
     .start({fu_packet_out.done, internal_dones, start}),
-    .hazard({full_harzard, internal_hazards}),
-    .product_out({fu_packet_out.result, internal_products}),
+    .hazard({full_hazard, internal_hazards}),
+    .product_out({product_out, internal_products}),
     .mplier_out({mplier_out, internal_mpliers}),
     .mcand_out({mcand_out, internal_mcands}),
     .done({last_done, fu_packet_out.done, internal_dones}),
@@ -157,33 +167,33 @@ module mult (
 
 endmodule
 
-module brcond(// Inputs
-    input BR_PACKET_t br_packet,
-    output result    // 0/1 condition result (False/True)
-  );
+// module brcond(// Inputs
+//     input BR_PACKET_t br_packet,
+//     output result    // 0/1 condition result (False/True)
+//   );
 
-  always_comb begin
-    if(br_packet.ready == `TRUE)
-      case (br_packet.func[1:0])                              // 'full-case'  All cases covered, no need for a default
-        2'b00: result = (br_packet.T1_value[0] == 0);                // LBC: (lsb(opa) == 0) ?
-        2'b01: result = (br_packet.T1_value == 0);                    // EQ: (opa == 0) ?
-        2'b10: result = (br_packet.T1_value[63] == 1);                // LT: (signed(opa) < 0) : check sign bit
-        2'b11: result = (br_packet.T1_value[63] == 1) || (br_packet.T1_value == 0);  // LE: (signed(opa) <= 0)
-      endcase
+//   always_comb begin
+//     if(br_packet.ready == `TRUE)
+//       case (br_packet.func[1:0])                              // 'full-case'  All cases covered, no need for a default
+//         2'b00: result = (br_packet.T1_value[0] == 0);                // LBC: (lsb(opa) == 0) ?
+//         2'b01: result = (br_packet.T1_value == 0);                    // EQ: (opa == 0) ?
+//         2'b10: result = (br_packet.T1_value[63] == 1);                // LT: (signed(opa) < 0) : check sign bit
+//         2'b11: result = (br_packet.T1_value[63] == 1) || (br_packet.T1_value == 0);  // LE: (signed(opa) <= 0)
+//       endcase
     
-        // negate cond if func[2] is set
-        if (br_packet.func[2])
-          result = ~result;
-    end
-  end
-endmodule // brcond
+//         // negate cond if func[2] is set
+//         if (br_packet.func[2])
+//           result = ~result;
+//     end
+//   end
+// endmodule // brcond
 
 module FU (
-  input                clock,               // system clock
-  input                reset,               // system reset
-  input  FU_M_PACKET_IN  fu_m_packet_in,
-  output FU_M_PACKET_OUT fu_m_packet_out,
-  output logic [`NUM_FU-1:0] fu_valid;
+  input                               clock,               // system clock
+  input                               reset,               // system reset
+  input  FU_M_PACKET_IN               fu_m_packet_in,
+  output FU_M_PACKET_OUT              fu_m_packet_out,
+  output logic          [`NUM_FU-1:0] fu_valid
 );
 
   FU_PACKET_IN_t [`NUM_FU-1:0] fu_packet_in;
@@ -191,7 +201,7 @@ module FU (
   alu alu_0 [`NUM_ALU-1:0] (
     // Inputs
     .fu_packet(fu_packet_in[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
-    .full_harzard(fu_m_packet_in.full_harzard[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
+    .full_hazard(fu_m_packet_in.full_hazard[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     // Output
     .fu_packet_out(fu_m_packet_out.fu_result[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     .fu_valid(fu_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)])
@@ -201,7 +211,7 @@ module FU (
     // Inputs
     .clock({`NUM_MULT{clock}}),
     .reset({`NUM_MULT{reset}}),
-    .full_harzard([(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .full_hazard(fu_m_packet_in.full_hazard[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     // Output
     .fu_packet_out(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
