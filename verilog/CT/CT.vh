@@ -19,7 +19,7 @@ typedef struct packed {
 
 typedef struct packed {
   logic [$clog2(`NUM_FU)-1:0] full_hazard;                          // full entry means hazard
-  logic                       valid;                                // valid signal to PR
+  logic                       valid;                                // valid signal to WB PR
   logic [$clog2(`NUM_PR)-1:0] T;                                    // tag to PR
   logic [63:0]                result;                               // result to PR
 } CT_PACKET_OUT;
