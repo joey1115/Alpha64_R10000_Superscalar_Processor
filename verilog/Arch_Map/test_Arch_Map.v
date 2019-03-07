@@ -18,6 +18,7 @@ module test_Arch_Map;
   // DUT input stimulus
   logic en, clock, reset;
   ARCH_MAP_PACKET_IN arch_map_packet_in;
+  ARCH_MAP_t [31:0] next_arch_map;
 
   // DUT output
   // ARCH_MAP_PACKET_OUT arch_map_packet_out;
@@ -28,13 +29,13 @@ module test_Arch_Map;
     .clock(clock),
     .reset(reset),
     .arch_map_packet_in(arch_map_packet_in),
-    .arch_map(arch_map)
+    .next_arch_map(next_arch_map)
   );
 
   logic [31:0] cycle_count;
   ARCH_MAP_t [31:0] test_result;
   ARCH_MAP_PACKET_IN [9:0] test;
-  logic check_signal;
+  logic [$clog2(`NUM_ARCH_TABLE):0] check_signal;
 
   // Generate System Clock
   always begin
@@ -46,15 +47,15 @@ module test_Arch_Map;
   always @(posedge clock) begin
     if(reset)
       cycle_count <= `SD 0;
-    else
-      cycle_count <= `SD (cycle_count + 1);
+/*     else
+      cycle_count <= `SD (cycle_count + 1); */
   end
 
   task check;
     input ARCH_MAP_t [31:0] prior_output;
     input ARCH_MAP_PACKET_IN current_input;
     input ARCH_MAP_t [31:0] current_output;
-    if (current_input.en == 0) begin
+    if (current_input.r == 0) begin
       if (prior_output == current_output) begin
         $display("@@@Passed!!!!No retire signal!!!!");
       end else begin
@@ -62,14 +63,14 @@ module test_Arch_Map;
         $finish;
       end // else
     end else begin
-      check_signal = 0;
-      for (int i=0; i<31; i++) begin
+      check_signal = 32;
+      for (logic [$clog2(`NUM_ARCH_TABLE):0] i=0; i<`NUM_ARCH_TABLE; i++) begin
         if (prior_output[i].PR_idx == current_input.Rob_retire_Told) begin
           check_signal = i;
           break;
         end // if 
       end
-      if (check_signal == 0) begin
+      if (check_signal == 32) begin
         if (prior_output == current_output) begin
           $display("@@@Passed!!!!Told has not been used before, no changes!!!!");
         end else begin
@@ -118,76 +119,127 @@ module test_Arch_Map;
     // Cycle 0
     $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[0];
-    test_result = arch_map;
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    cycle_count = cycle_count + 1;
+    test_result = next_arch_map;
     check(test_result, test[0], test_result);
     
     @(negedge clock);
     // Cycle 1
     $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[1];
-    check(test_result, test[1], arch_map);
-    test_result = arch_map;
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    cycle_count = cycle_count + 1;
+    check(test_result, test[1], next_arch_map);
+    test_result = next_arch_map;
 
     @(negedge clock);
     // Cycle 2
     $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[2];
-    check(test_result, test[2], arch_map);
-    test_result = arch_map;
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    cycle_count = cycle_count + 1;
+    check(test_result, test[2], next_arch_map);
+    test_result = next_arch_map;
 
     @(negedge clock);
     // Cycle 3
     $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[3];
-    check(test_result, test[23, arch_map);
-    test_result = arch_map;
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    cycle_count = cycle_count + 1;
+    check(test_result, test[3], next_arch_map);
+    test_result = next_arch_map;
 
     @(negedge clock);
     // Cycle 4
     $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[4];
-    check(test_result, test[4], arch_map);
-    test_result = arch_map;
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    cycle_count = cycle_count + 1;
+    check(test_result, test[4], next_arch_map);
+    test_result = next_arch_map;
 
     @(negedge clock);
     // Cycle 5
     $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[5];
-    check(test_result, test[5], arch_map);
-    test_result = arch_map;
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    cycle_count = cycle_count + 1;
+    check(test_result, test[5], next_arch_map);
+    test_result = next_arch_map;
 
     @(negedge clock);
     // Cycle 6
     $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[6];
-    check(test_result, test[6], arch_map);
-    test_result = arch_map;
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    cycle_count = cycle_count + 1;
+    check(test_result, test[6], next_arch_map);
+    test_result = next_arch_map;
 
     @(negedge clock);
     // Cycle 7
     $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[7];
-    check(test_result, test[7], arch_map);
-    test_result = arch_map;
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    cycle_count = cycle_count + 1;
+    check(test_result, test[7], next_arch_map);
+    test_result = next_arch_map;
 
     @(negedge clock);
     // Cycle 8
     $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[8];
-    check(test_result, test[8], arch_map);
-    test_result = arch_map;
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    cycle_count = cycle_count + 1;
+    check(test_result, test[8], next_arch_map);
+    test_result = next_arch_map;
 
     @(negedge clock);
     // Cycle 9
     $display("Cycle %d",cycle_count);
     arch_map_packet_in = test[9];
-    check(test_result, test[9], arch_map);
-    test_result = arch_map;
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    cycle_count = cycle_count + 1;
+    check(test_result, test[9], next_arch_map);
+    test_result = next_arch_map;
 
     @(negedge clock);
     @(negedge clock);
     @(negedge clock);
 
+    $display("Success!!!!");
     $finish;
 
   end // initial

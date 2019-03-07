@@ -6,7 +6,7 @@
 
 module Arch_Map (
   `ifdef DEBUG
-  output ARCH_MAP_t [31:0] arch_map,
+  output ARCH_MAP_t [31:0] next_arch_map,
   `endif
   
   input  en, clock, reset,
@@ -14,10 +14,10 @@ module Arch_Map (
 );
 
   `ifndef DEBUG
-  output ARCH_MAP_t [31:0] arch_map;
+  ARCH_MAP_t [31:0] next_arch_map;
   `endif
 
-  ARCH_MAP_t [31:0] next_arch_map;
+  ARCH_MAP_t [31:0] arch_map;
 
   always_ff @(posedge clock) begin
     if(reset) begin
@@ -32,8 +32,8 @@ module Arch_Map (
   always_comb begin
     next_arch_map = arch_map;
     if (arch_map_packet_in.r && en) begin
-      for (int i=0; i< `NUM_ARCH_TABLE;i++) begin
-        if (arch_map[i].PR_idx == arch_map_packet_in.Rob_retire_Told) begin
+      for (logic [$clog2(`NUM_ARCH_TABLE):0] i=0; i< `NUM_ARCH_TABLE;i++) begin
+        if (next_arch_map[i].PR_idx == arch_map_packet_in.Rob_retire_Told) begin
           next_arch_map[i].PR_idx = arch_map_packet_in.Rob_retire_T;
           break;
         end // if
