@@ -52,10 +52,10 @@ module test_Arch_Map;
   end
 
   task check;
-    input ARCH_MAP_t [31:0] prior_output;
-    input ARCH_MAP_PACKET_IN current_input;
-    input ARCH_MAP_t [31:0] current_output;
-    if (current_input.r == 0) begin
+    input ARCH_MAP_t [31:0] prior_output;     // output of prior test case
+    input ARCH_MAP_PACKET_IN current_input;   // current test case
+    input ARCH_MAP_t [31:0] current_output;   // output of current test case
+    if (current_input.r == 0) begin           // retire signal is 0, cannot change arch_map
       if (prior_output == current_output) begin
         $display("@@@Passed!!!!No retire signal!!!!");
       end else begin
@@ -63,21 +63,21 @@ module test_Arch_Map;
         $finish;
       end // else
     end else begin
-      check_signal = 32;
+      check_signal = 32;                      // a nonexistent i for output
       for (logic [$clog2(`NUM_ARCH_TABLE):0] i=0; i<`NUM_ARCH_TABLE; i++) begin
         if (prior_output[i].PR_idx == current_input.Rob_retire_Told) begin
-          check_signal = i;
+          check_signal = i;                   // if find Told, check_signal will be i
           break;
         end // if 
       end
-      if (check_signal == 32) begin
+      if (check_signal == 32) begin           // if not find Told, cannot change arch_map according to the test case
         if (prior_output == current_output) begin
           $display("@@@Passed!!!!Told has not been used before, no changes!!!!");
         end else begin
           $display("@@@Wrong answer!!!!Shouldn't change arch_map when Told has not been used before");
           $finish;
         end // else
-      end else begin
+      end else begin                          // if find Told, check current output
         if (current_output[check_signal].PR_idx == current_input.Rob_retire_T) begin
           $display("@@@Passed!!!!Right answer!!!!");
         end else begin
