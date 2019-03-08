@@ -5,18 +5,18 @@
 `include "../../sys_defs.vh"
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] PR_idx;            //PR index
-  logic                       T_PLUS_STATUS;     //Tag plus state
+  logic [$clog2(`NUM_PR)-1:0] PR_idx;            // PR index
+  logic                       T_PLUS_STATUS;     // Tag plus state
 } MAP_TABLE_t;
 
 typedef struct packed {
-  logic                       Dispatch_enable;    // no Dispatch hazard
-  logic [4:0]                 Dispatch_T_idx;  // reg from dispatch
+  logic                       Dispatch_enable;   // no Dispatch hazard
+  logic [4:0]                 Dispatch_T_idx;    // reg from dispatch
   logic [4:0]                 Dispatch_T1_idx;
   logic [4:0]                 Dispatch_T2_idx;
-  logic [$clog2(`NUM_PR)-1:0] Freelist_T;         // tags from freelist
-  logic [$clog2(`NUM_PR)-1:0] CDB_T;              // broadcast from CDB
-  logic                       CDB_enable;         //CDB enable
+  logic [$clog2(`NUM_PR)-1:0] Freelist_T;        // tags from freelist
+  logic [$clog2(`NUM_PR)-1:0] CDB_T;             // broadcast from CDB
+  logic                       CDB_enable;        // CDB enable
 } MAP_TABLE_PACKET_IN;
 
 typedef struct packed {

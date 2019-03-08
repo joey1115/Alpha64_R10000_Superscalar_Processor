@@ -1,12 +1,45 @@
+/**********************************************************
+ * MapTable Procedure
+ * 
+ * --- Complete ---
+ * 1. Update ready bit from CDB
+ * input: CDB_T; CDB_enable from CDB
+ * 
+ * ---- Dispatch ---
+ * 1. see if there is a struct hazard
+ * input: Dispatch_enable from dispatch control
+ * 
+ * 2. if no hazard,
+ * send T_old to ROB, get new T from PR,
+ * send T1 (and ready bit) and T2 (and ready bit) to RS
+ * input: reg_dest (Dispatch_T_idx), reg_a (Dispatch_T1_idx), and
+ *        reg_b (Dispatch_T2_idx) from decoder;
+ *        Freelist_T from PR
+ * output: Told_to_ROB to ROB;
+ *         T1_to_RS(T1 and ready) and T1_to_RS(T2 and ready) to RS;
+ * 
+ ***********************************************************/
+
 `timescale 1ns/100ps
+
+`define DEBUG_MAP_TABLE
+
 module Map_Table (
   input  en, clock, reset,
   input  MAP_TABLE_PACKET_IN  map_table_packet_in,
+
+  `ifdef DEBUG_MAP_TABLE
+  output MAP_TABLE_t [`NUM_MAP_TABLE-1:0] map_table_out,
+  `endif
   output MAP_TABLE_PACKET_OUT map_table_packet_out
 );
 
   MAP_TABLE_t [`NUM_MAP_TABLE-1:0] map_table, next_map_table;
    
+  `ifdef DEBUG
+  assign map_table_out = map_table;
+  `endif
+
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i=0; i < `NUM_MAP_TABLE; i++) begin
