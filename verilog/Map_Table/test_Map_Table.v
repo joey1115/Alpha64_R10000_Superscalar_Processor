@@ -66,6 +66,9 @@ module test_Map_Table;
   initial begin
     // ********* Test Case *********
     // test[c]: input at cycle c, the corresponding output will be at cycle c+1
+    // {Dispatch_enable, Dispatch_T_idx, Dispatch_T1_idx, Dispatch_T2_idx, Freelist_T,
+    //  CDB_T, CDB_enable}
+    test_in[0] = '{0,  0,  0,  0,  0,  0, 0};
 
     // test_out[c]: output at cycle c (test[c]'s effect is shown by test_out[c+1])
     // {Told_to_ROB, {T1, ready}, {T2, ready}}

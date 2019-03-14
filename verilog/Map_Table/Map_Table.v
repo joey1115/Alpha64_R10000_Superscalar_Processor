@@ -12,8 +12,7 @@
  * 2. if no hazard,
  * send T_old to ROB, get new T from PR,
  * send T1 (and ready bit) and T2 (and ready bit) to RS
- * input: reg_dest (Dispatch_T_idx), reg_a (Dispatch_T1_idx), and
- *        reg_b (Dispatch_T2_idx) from decoder;
+ * input: reg_dest, reg_a, and reg_b from decoder;
  *        Freelist_T from PR
  * output: Told_to_ROB to ROB;
  *         T1_to_RS(T1 and ready) and T1_to_RS(T2 and ready) to RS;
@@ -54,8 +53,8 @@ module Map_Table (
   always_comb begin
     next_map_table = map_table;
     // PR updata T_idx
-    if ( map_table_packet_in.Dispatch_enable && map_table_packet_in.Dispatch_T_idx != `ZERO_REG ) begin     // no dispatch hazard
-      next_map_table[map_table_packet_in.Dispatch_T_idx] = '{map_table_packet_in.Freelist_T, `FALSE};       //renew maptable from freelist but not ready yet
+    if ( map_table_packet_in.Dispatch_enable && map_table_packet_in.reg_dest != `ZERO_REG ) begin     // no dispatch hazard
+      next_map_table[map_table_packet_in.reg_dest] = '{map_table_packet_in.Freelist_T, `FALSE};       //renew maptable from freelist but not ready yet
     end
     // CDB_T updata ready
     if (map_table_packet_in.CDB_enable) begin
@@ -68,7 +67,7 @@ module Map_Table (
     end
   end
 
-  assign map_table_packet_out.Told_to_ROB = map_table[map_table_packet_in.Dispatch_T_idx].PR_idx;
-  assign map_table_packet_out.T1_to_RS    = map_table[map_table_packet_in.Dispatch_T1_idx];
-  assign map_table_packet_out.T2_to_RS    = map_table[map_table_packet_in.Dispatch_T2_idx];
+  assign map_table_packet_out.Told_to_ROB = map_table[map_table_packet_in.reg_dest].PR_idx;
+  assign map_table_packet_out.T1_to_RS    = map_table[map_table_packet_in.reg_a];
+  assign map_table_packet_out.T2_to_RS    = map_table[map_table_packet_in.reg_b];
 endmodule
