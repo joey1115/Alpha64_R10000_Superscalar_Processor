@@ -10,12 +10,13 @@
  * input: Dispatch_enable from dispatch control
  * 
  * 2. if no hazard,
- * send T_old to ROB, get new T from PR,
- * send T1 (and ready bit) and T2 (and ready bit) to RS
- * input: reg_dest, reg_a, and reg_b from decoder;
- *        Freelist_T from PR
- * output: Told_to_ROB to ROB;
- *         T1_to_RS(T1 and ready) and T1_to_RS(T2 and ready) to RS;
+ * (1) send T_old to ROB, get new T from PR
+ * input: reg_dest from decoder; T from PR
+ * output: T_old to ROB;
+ * 
+ * (2) send T1 (and ready bit) and T2 (and ready bit) to RS
+ * input: reg_a and reg_b from decoder
+ * output: T1 and T1_r, T2 and T2_r to RS;
  * 
  ***********************************************************/
 
@@ -60,7 +61,7 @@ module Map_Table (
     if (map_table_packet_in.CDB_enable) begin
       for ( int i=0; i< `NUM_MAP_TABLE;i++) begin  
         if (map_table[i].PR_idx == map_table_packet_in.CDB_T) begin  // if CDB_T is the same as maptable value
-          next_map_table[i].T_PLUS_STATUS = `TRUE;                   // The Tag in maptable change to ready
+          next_map_table[i].T_plus_status = `TRUE;                   // The Tag in maptable change to ready
           break;
         end
       end

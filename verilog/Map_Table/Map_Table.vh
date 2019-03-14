@@ -6,7 +6,7 @@
 
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] PR_idx;            // PR index
-  logic                       T_PLUS_STATUS;     // Tag plus state
+  logic                       T_plus_status;     // Tag plus state
 } MAP_TABLE_t;
 
 typedef struct packed {
