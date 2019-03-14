@@ -77,12 +77,12 @@ module PR (
   always_ff @(posedge clock) begin
     if (reset) begin
       for (logic [$clog2(`NUM_PR):0] i=0; i<31; i++) begin
-        pr.value <= `SD 64'b0;
-        pr.free <= `SD PR_NOT_FREE;
+        pr[i].value <= `SD 64'b0;
+        pr[i].free <= `SD PR_NOT_FREE;
       end // for
-      for (logic [$clog2(`NUM_PR):0] i=0; i<`NUM_PR; i++) begin
-        pr.value <= `SD 64'b0;
-        pr.free <= `SD PR_FREE;
+      for (logic [$clog2(`NUM_PR):0] i=32; i<`NUM_PR; i++) begin
+        pr[i].value <= `SD 64'b0;
+        pr[i].free <= `SD PR_FREE;
       end // for
     end else if (en && pr_packet_in.inst_dispatch) begin
       pr <= `SD next_pr;
