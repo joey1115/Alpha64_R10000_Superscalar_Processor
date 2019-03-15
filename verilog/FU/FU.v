@@ -256,16 +256,16 @@ module FU (
     .fu_valid(fu_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)])
   );
 
-  mult mult_0 [`NUM_MULT-1:0] (
-    // Inputs
-    .clock({`NUM_MULT{clock}}),
-    .reset({`NUM_MULT{reset}}),
-    .full_hazard(fu_m_packet_in.full_hazard[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
-    .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
-    // Output
-    .fu_packet_out(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
-    .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
-  );
+  // mult mult_0 [`NUM_MULT-1:0] (
+  //   // Inputs
+  //   .clock({`NUM_MULT{clock}}),
+  //   .reset({`NUM_MULT{reset}}),
+  //   .full_hazard(fu_m_packet_in.full_hazard[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+  //   .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+  //   // Output
+  //   .fu_packet_out(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+  //   .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
+  // );
 
   // br br_0 [`NUM_BR-1:0] (
   //   // Inputs
