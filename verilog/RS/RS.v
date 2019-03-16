@@ -66,10 +66,10 @@ module RS (
 
     for (int i = 0; i < `NUM_FU; i++) begin
 
-      T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;            // T1 is complete
-      T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;            // T2 is complete
-      T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                               // T1 is ready or updated by CDB
-      T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                                               // T2 is ready or updated by CDB
+      T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T1 is complete
+      T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T2 is complete
+      T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                    // T1 is ready or updated by CDB
+      T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                                    // T2 is ready or updated by CDB
 
       if ( rs_packet_in.rollback_en ) begin
 
@@ -171,9 +171,9 @@ module RS (
 
       // Dispatch
 `ifdef RS_FORWARDING
-      if ( RS_entry_match[i] && !FU_entry_forward[i] ) begin                   // RS entry was not busy and inst ready to dispatch and FU match
+      if ( RS_entry_match[i] && !FU_entry_forward[i] ) begin // RS entry was not busy and inst ready to dispatch and FU match
 `else
-      if ( RS_entry_match[i] ) begin                   // RS entry was not busy and inst ready to dispatch and FU match
+      if ( RS_entry_match[i] ) begin // RS entry was not busy and inst ready to dispatch and FU match
 `endif
 
         next_RS[i].busy      = RS_entry_match[i];      // RS entry busy
@@ -192,13 +192,12 @@ module RS (
 
         next_RS[i] = `RS_ENTRY_RESET; // Clear RS entry
 
-      end// if ( RS[i].busy == `FALSE && rs_packet_in.dispatch_en ) begin
+      end // if ( RS[i].busy == `FALSE && rs_packet_in.dispatch_en ) begin
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
 
   end // always_comb begin
 
-// ROB logic
   always_ff @(posedge clock) begin
     if(reset) begin
       RS <= `SD `RS_RESET;
