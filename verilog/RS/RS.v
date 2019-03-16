@@ -18,7 +18,7 @@ module RS (
   logic      [`NUM_FU-1:0] T2_CDB;             // If T2 is complete
   logic      [`NUM_FU-1:0] T1_ready;           // If T1 is ready
   logic      [`NUM_FU-1:0] T2_ready;           // If T2 is ready
-  logic      [`NUM_FU-1:0] RS_entry_ready;         // If a RS entry is ready
+  logic      [`NUM_FU-1:0] RS_entry_ready;     // If a RS entry is ready
   logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
   logic      [`NUM_FU-1:0] RS_rollback;        // If a RS entry is ready
 
