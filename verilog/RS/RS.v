@@ -28,7 +28,7 @@ module RS (
   logic                    T1_ready_in;        // If T1 is ready
   logic                    T2_ready_in;        // If T2 is ready
   logic                    T_ready_in;         // If a RS entry is ready
-  logic      [`NUM_FU-1:0] RS_entry_forward;   // If a RS entry is ready
+  logic      [`NUM_FU-1:0] FU_entry_forward;   // If a RS entry is ready
   assign T1_CDB_in = rs_packet_in.T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;
   assign T2_CDB_in = rs_packet_in.T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;
   assign T1_ready_in = rs_packet_in.T1.ready || T1_CDB_in;
@@ -122,6 +122,7 @@ module RS (
       if ( RS_rollback[i] ) begin
         
         rs_packet_out.FU_packet_out[i] = FU_PACKET_ENTRY_RESET;
+
 `ifdef RS_FORWARDING
       end else if ( FU_entry_forward[i] ) begin
 
@@ -137,6 +138,7 @@ module RS (
         rs_packet_out.FU_packet_out[i].T1_select = rs_packet_in.T1_select; // Output T2_idx
         rs_packet_out.FU_packet_out[i].T2_select = rs_packet_in.T2_select; // Output T2_idx
 `endif
+
       end else begin
 
         rs_packet_out.FU_packet_out[i].ready     = RS_entry_ready[i]; // Ready to issue
@@ -167,8 +169,11 @@ module RS (
       next_RS[i].T2.ready = T2_ready[i]; // T2 ready
 
       // Dispatch
-      // if ( RS_entry_match[i] && !RS_entry_forward[i] ) begin                   // RS entry was not busy and inst ready to dispatch and FU match
+`ifdef RS_FORWARDING
+      if ( RS_entry_match[i] && !FU_entry_forward[i] ) begin                   // RS entry was not busy and inst ready to dispatch and FU match
+`else
       if ( RS_entry_match[i] ) begin                   // RS entry was not busy and inst ready to dispatch and FU match
+`endif
 
         next_RS[i].busy      = RS_entry_match[i];      // RS entry busy
         next_RS[i].inst      = rs_packet_in.inst;      // inst
