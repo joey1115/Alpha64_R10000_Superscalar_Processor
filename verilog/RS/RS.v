@@ -29,6 +29,7 @@ module RS (
   logic                    T2_ready_in;        // If T2 is ready
   logic                    T_ready_in;         // If a RS entry is ready
   logic      [`NUM_FU-1:0] FU_entry_forward;   // If a RS entry is ready
+
   assign T1_CDB_in = rs_packet_in.T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;
   assign T2_CDB_in = rs_packet_in.T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;
   assign T1_ready_in = rs_packet_in.T1.ready || T1_CDB_in;
