@@ -11,16 +11,29 @@
 `define DEBUG
 
 module ROB (
+  //inputs
   input en, clock, reset,
-  input ROB_PACKET_IN rob_packet_in,
+  input logic dispatch_en,
+  input logic [$clog2(`NUM_PR)-1:0] T_idx, //T_idx
+  input logic [$clog2(`NUM_PR)-1:0] Told_idx, //Told_idx
+  input logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx, //from the decoder
+  
+  // rollback function
+  input logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input logic rollback_en,
+
+  // complete function
   input ROB_PACKET_COMPLETE_IN rob_packet_complete_in,
 
+  //Outputs
   `ifdef DEBUG
   output ROB_t rob,
   `endif
 
-  output ROB_PACKET_OUT rob_packet_out,
-  output ROB_PACKET_OUT_TO_FREELIST rob_packet_out_to_freelist
+  output logic ROB_valid,                   //rob_packet_out.struct_hazard
+  output ROB_PACKET_RS_OUT rob_packet_rs_out,
+  output ROB_PACKET_FREELIST_OUT rob_packet_freelist_out,
+  output ROB_PACKET_ARCHMAP_OUT rob_packet_archmap_out,
 );
 
   `ifndef DEBUG
@@ -35,17 +48,6 @@ module ROB (
   always_comb begin
     Nrob = rob;
 
-    // update complete table
-    if(rob_packet_complete_in.valid) begin
-      for(int i=0; i < `NUM_ROB; i++) begin
-        if((rob_packet_complete_in.T == rob.entry[i].T) && rob.entry[i].valid) begin
-          Nrob.entry[i].complete = 1;
-        end
-        // else
-        //   Nrob.entry[i].complete = rob.entry[i].complete;
-      end
-    end
-
     retire = Nrob.entry[rob.head].complete;
 
     // condition for Retire
@@ -53,51 +55,58 @@ module ROB (
                 && en 
                 && rob.entry[rob.head].valid;
     // condition for Dispatch
-    writeTail = (rob_packet_in.inst_dispatch) 
+    writeTail = (dispatch_en) 
                 && en 
                 && (!rob_packet_out.struct_hazard || retire) 
-                && !rob_packet_in.branch_mispredict;
+                && !rollback_en;
+
+    //complete stage
+    if(rob_packet_complete_in.complete_en) begin
+      Nrob.entry[rob_packet_complete_in.complete_ROB_idx].complete = 1;
+    end
 
     // next state logic
     Nrob.tail = (writeTail) ? (rob.tail + 1) : rob.tail;
     Nrob.head = (moveHead) ? (rob.head + 1) : rob.head;
-    Nrob.entry[rob.tail].T = (writeTail) ? rob_packet_in.T_in : rob.entry[rob.tail].T;
-    Nrob.entry[rob.tail].T_old = (writeTail) ? rob_packet_in.T_old_in : rob.entry[rob.tail].T_old;
+    Nrob.entry[rob.tail].T = (writeTail) ? T_idx : rob.entry[rob.tail].T;
+    Nrob.entry[rob.tail].T_old = (writeTail) ? Told_idx : rob.entry[rob.tail].T_old;
+    Nrob.entry[rob.tail].dest_idx = (writeTail) ? dest_idx : rob.entry[rob.tail].dest_idx;
   
-    //update valid bits of entry
+    //update valid and complete bits of entry
     if(rob.head != rob.tail) begin
       Nrob.entry[rob.head].valid = (moveHead) ? 0 : rob.entry[rob.head].valid;
       Nrob.entry[rob.head].complete = (moveHead) ? 0 : rob.entry[rob.head].valid;
       Nrob.entry[rob.tail].valid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
+      Nrob.entry[rob.tail].complete = (writeTail) ? 0 : rob.entry[rob.tail].complete;
     end
     else begin
       Nrob.entry[rob.tail].valid = (writeTail) ? 1 :
                                     (moveHead) ? 0 : rob.entry[rob.head].valid;
-      Nrob.entry[rob.tail].complete = (writeTail) ? 1 :
-                                      (moveHead) ? 0 : rob.entry[rob.head].complete;
+      Nrob.entry[rob.head].complete = (moveHead) ? 0 : rob.entry[rob.head].complete;
     end
 
-    b_t = rob_packet_in.flush_branch_idx >= rob.tail;
+    //rollback functionality
+    b_t = ROB_rollback_idx >= rob.tail;
 
-    mispredict = rob_packet_in.branch_mispredict && rob.entry[rob_packet_in.flush_branch_idx].valid;
+    mispredict = rollback_en && rob.entry[ROB_rollback_idx].valid;
 
     if(mispredict) begin
         if(b_t) begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush only branch less than tail and greater than branch
-            if( i < rob.tail || i > rob_packet_in.flush_branch_idx)
+            if( i < rob.tail || i > ROB_rollback_idx)
               Nrob.entry[i].valid = 0;
           end
         end
         else begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush instructions between tail and branch
-            if( i < rob.tail && i > rob_packet_in.flush_branch_idx)
+            if( i < rob.tail && i > ROB_rollback_idx)
               Nrob.entry[i].valid = 0;
           end
         end
         //move tail index to after branch
-        Nrob.tail = rob_packet_in.flush_branch_idx + 1;
+        Nrob.tail = ROB_rollback_idx + 1;
     end
 
     //set signals for Freeing freelist
@@ -108,15 +117,18 @@ module ROB (
 
   always_comb begin
     real_tail_idx = rob.tail - 1;
-    //outputs
-    rob_packet_out.out_correct = rob.entry[real_tail_idx].valid;
-    //rob_packet_out.ins_rob_idx = real_tail_idx;
-    rob_packet_out.T_out = rob.entry[real_tail_idx].T;
-    rob_packet_out.T_old_out = rob.entry[real_tail_idx].T_old;
-    // output for Complete
-    //rob_packet_out.head_idx_out = rob.head;
-    // output for Dispatch
-    rob_packet_out.struct_hazard = rob.entry[rob.tail].valid;
+  
+    // tail index
+    rob_packet_rs_out.ROB_tail_idx = real_tail_idx;
+    rob_packet_freelist_out.ROB_tail_idx = real_tail_idx;
+    
+    //retire archmap signal
+    rob_packet_archmap_out.retire_en = retire;
+    rob_packet_archmap_out.dest_idx = rob.entry[real_tail_idx].dest_idx;
+    rob_packet_archmap_out.T_idx_head = rob.entry[real_tail_idx].T_idx_head;
+
+    //ROB hazard
+    ROB_valid = !rob.entry[rob.tail].valid;
   end
 
   always_ff @ (posedge clock) begin
