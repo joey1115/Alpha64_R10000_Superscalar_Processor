@@ -16,18 +16,43 @@ module RS (
   FU_t       [`NUM_FU-1:0] FU_list = `FU_LIST; // List of FU
   logic      [`NUM_FU-1:0] T1_CDB;             // If T1 is complete
   logic      [`NUM_FU-1:0] T2_CDB;             // If T2 is complete
-  // logic                    T1_CDB_in;          // If T1 is complete
-  // logic                    T2_CDB_in;          // If T2 is complete
   logic      [`NUM_FU-1:0] T1_ready;           // If T1 is ready
   logic      [`NUM_FU-1:0] T2_ready;           // If T2 is ready
-  // logic                    T1_ready_in;        // If T1 is ready
-  // logic                    T2_ready_in;        // If T2 is ready
   logic      [`NUM_FU-1:0] RS_entry_ready;         // If a RS entry is ready
-  // logic                    T_ready_in;         // If a RS entry is ready
-  // logic      [`NUM_FU-1:0] RS_entry_forward;   // If a RS entry is ready
   logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
   logic      [`NUM_FU-1:0] RS_rollback;        // If a RS entry is ready
-  
+
+`ifdef RS_FORWARDING
+  logic                    T1_CDB_in;          // If T1 is complete
+  logic                    T2_CDB_in;          // If T2 is complete
+  logic                    T1_ready_in;        // If T1 is ready
+  logic                    T2_ready_in;        // If T2 is ready
+  logic                    T_ready_in;         // If a RS entry is ready
+  logic      [`NUM_FU-1:0] RS_entry_forward;   // If a RS entry is ready
+  assign T1_CDB_in = rs_packet_in.T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;
+  assign T2_CDB_in = rs_packet_in.T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;
+  assign T1_ready_in = rs_packet_in.T1.ready || T1_CDB_in;
+  assign T2_ready_in = rs_packet_in.T1.ready || T2_CDB_in;
+  assign T_ready_in = T1_ready_in && T2_ready_in;
+
+  always_comb begin
+
+    FU_entry_forward[i] = {`NUM_FU{`FALSE}};
+
+    for (int i = 0; i < `NUM_FU; i++) begin
+
+      if ( T_ready_in && ( RS[i].busy == `FALSE || !RS_entry_ready[i] ) && rs_packet_in.fu_valid[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.dispatch_en ) begin
+
+        FU_entry_forward[i] = `TRUE;
+        break;
+
+      end
+
+    end
+
+  end
+`endif
+
 `ifndef DEBUG
   logic      [`NUM_FU-1:0] RS_entry_match;     // If a RS entry is ready
 `endif
@@ -35,12 +60,6 @@ module RS (
 `ifdef DEBUG
   assign RS_out = RS;
 `endif
-
-  // assign T1_CDB_in = rs_packet_in.T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;
-  // assign T2_CDB_in = rs_packet_in.T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;
-  // assign T1_ready_in = rs_packet_in.T1.ready || T1_CDB_in;
-  // assign T2_ready_in = rs_packet_in.T1.ready || T2_CDB_in;
-  // assign T_ready_in = T1_ready_in && T2_ready_in;
 
   always_comb begin
 
@@ -93,23 +112,6 @@ module RS (
 
   end
 
-  // always_comb begin
-
-  //   FU_entry_forward[i] = {`NUM_FU{`FALSE}};
-
-  //   for (int i = 0; i < `NUM_FU; i++) begin
-
-  //     if ( T_ready_in && ( RS[i].busy == `FALSE || !RS_entry_ready[i] ) && rs_packet_in.fu_valid[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.dispatch_en ) begin
-
-  //       FU_entry_forward[i] = `TRUE;
-  //       break;
-
-  //     end
-
-  //   end
-
-  // end
-
   // Issue
   always_comb begin
 
@@ -120,21 +122,21 @@ module RS (
       if ( RS_rollback[i] ) begin
         
         rs_packet_out.FU_packet_out[i] = FU_PACKET_ENTRY_RESET;
+`ifdef RS_FORWARDING
+      end else if ( FU_entry_forward[i] ) begin
 
-      // end else if ( FU_entry_forward[i] ) begin
-
-      //   rs_packet_out.FU_packet_out[i].ready     = FU_entry_forward[i];    // Ready to issue
-      //   rs_packet_out.FU_packet_out[i].inst      = rs_packet_in.inst;      // inst
-      //   rs_packet_out.FU_packet_out[i].func      = rs_packet_in.func;      // op code
-      //   rs_packet_out.FU_packet_out[i].NPC       = rs_packet_in.NPC;       // op code
-      //   rs_packet_out.FU_packet_out[i].ROB_idx   = rs_packet_in.ROB_idx;   // op code
-      //   rs_packet_out.FU_packet_out[i].FL_idx    = rs_packet_in.FL_idx;    // op code
-      //   rs_packet_out.FU_packet_out[i].T_idx     = rs_packet_in.T_idx;     // Output T_idx
-      //   rs_packet_out.FU_packet_out[i].T1_idx    = rs_packet_in.T1.idx;    // Output T1_idx
-      //   rs_packet_out.FU_packet_out[i].T2_idx    = rs_packet_in.T2.idx;    // Output T2_idx
-      //   rs_packet_out.FU_packet_out[i].T1_select = rs_packet_in.T1_select; // Output T2_idx
-      //   rs_packet_out.FU_packet_out[i].T2_select = rs_packet_in.T2_select; // Output T2_idx
-
+        rs_packet_out.FU_packet_out[i].ready     = FU_entry_forward[i];    // Ready to issue
+        rs_packet_out.FU_packet_out[i].inst      = rs_packet_in.inst;      // inst
+        rs_packet_out.FU_packet_out[i].func      = rs_packet_in.func;      // op code
+        rs_packet_out.FU_packet_out[i].NPC       = rs_packet_in.NPC;       // op code
+        rs_packet_out.FU_packet_out[i].ROB_idx   = rs_packet_in.ROB_idx;   // op code
+        rs_packet_out.FU_packet_out[i].FL_idx    = rs_packet_in.FL_idx;    // op code
+        rs_packet_out.FU_packet_out[i].T_idx     = rs_packet_in.T_idx;     // Output T_idx
+        rs_packet_out.FU_packet_out[i].T1_idx    = rs_packet_in.T1.idx;    // Output T1_idx
+        rs_packet_out.FU_packet_out[i].T2_idx    = rs_packet_in.T2.idx;    // Output T2_idx
+        rs_packet_out.FU_packet_out[i].T1_select = rs_packet_in.T1_select; // Output T2_idx
+        rs_packet_out.FU_packet_out[i].T2_select = rs_packet_in.T2_select; // Output T2_idx
+`endif
       end else begin
 
         rs_packet_out.FU_packet_out[i].ready     = RS_entry_ready[i]; // Ready to issue
