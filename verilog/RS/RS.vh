@@ -11,12 +11,17 @@ typedef struct packed {
 } T_t;
 
 typedef struct packed {
-  logic                       busy;  // RS entry busy
-  INST_t                      inst;
-  ALU_FUNC                    func;
-  logic [$clog2(`NUM_PR)-1:0] T_idx; // Dest idx
-  T_t                         T1;    // T1
-  T_t                         T2;    // T2
+  logic                        busy;  // RS entry busy
+  INST_t                       inst;
+  ALU_FUNC                     func;
+  logic [63:0]                 NPC;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  logic [$clog2(`NUM_FL)-1:0]  FL_idx;
+  logic [$clog2(`NUM_PR)-1:0]  T_idx; // Dest idx
+  T_t                          T1;    // T1
+  T_t                          T2;    // T2
+  ALU_OPA_SELECT               T1_select;
+  ALU_OPB_SELECT               T2_select;
 } RS_ENTRY_t;
 
 `define FU_LIST '{      \
@@ -29,37 +34,40 @@ typedef struct packed {
 
 `define ZERO_PR {{($clog2(`NUM_PR)-5){1'b0}}, `ZERO_REG}
 `define T_RESET {`ZERO_PR, 1'b0}                                                     // T reset
-`define RS_ENTRY_RESET  {`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_PR, `T_RESET, `T_RESET} // RS entry reset
+`define RS_ENTRY_RESET  {`FALSE, `NOOP_INST, ALU_ADDQ, 0, 0, 0, `ZERO_PR, `T_RESET, `T_RESET} // RS entry reset
 `define RS_RESET '{`NUM_FU{`RS_ENTRY_RESET}}                                         // RS reset
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0]    dest_idx;    // Dest idx
-  INST_t                         inst;        // Inst
-  T_t                            T1;          // T1
-  T_t                            T2;          // T2
-  logic                          complete_en; // If CDB is ready
-  logic                          dispatch_en; // If can be dispatched
-  FU_t                           FU;          // Required FU
-  ALU_FUNC                       func;        // Required ALU operation
-  ALU_OPA_SELECT                 T1_select;
-  ALU_OPB_SELECT                 T2_select;
-  logic    [$clog2(`NUM_PR)-1:0] CDB_T;       // CDB tag
-  logic    [`NUM_FU-1:0]         fu_valid;   // FU done
+  logic          [$clog2(`NUM_PR)-1:0]  T_idx;       // Dest idx
+  INST_t                                inst;        // Inst
+  logic          [63:0]                 NPC;
+  logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
+  T_t                                   T1;          // T1
+  T_t                                   T2;          // T2
+  logic                                 complete_en; // If CDB is ready
+  logic                                 dispatch_en; // If can be dispatched
+  FU_t                                  FU;          // Required FU
+  ALU_FUNC                              func;        // Required ALU operation
+  ALU_OPA_SELECT                        T1_select;
+  ALU_OPB_SELECT                        T2_select;
+  logic          [$clog2(`NUM_PR)-1:0]  CDB_T;       // CDB tag
+  logic          [`NUM_FU-1:0]          fu_valid;   // FU done
 } RS_PACKET_IN;
 
 typedef struct packed {
-  logic                       ready;  // If an entry is ready
-  INST_t                      inst;
-  ALU_FUNC                    func;
-  logic [$clog2(`NUM_PR)-1:0] T_idx;  // Dest idx
-  logic [$clog2(`NUM_PR)-1:0] T1_idx; // T1 idx
-  logic [$clog2(`NUM_PR)-1:0] T2_idx; // T2 idx
-  ALU_OPA_SELECT              T1_select;
-  ALU_OPB_SELECT              T2_select;
+  logic                                 ready;  // If an entry is ready
+  INST_t                                inst;
+  ALU_FUNC                              func;
+  logic          [63:0]                 NPC;
+  logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
+  logic          [$clog2(`NUM_PR)-1:0]  T_idx;  // Dest idx
+  logic          [$clog2(`NUM_PR)-1:0]  T1_idx; // T1 idx
+  logic          [$clog2(`NUM_PR)-1:0]  T2_idx; // T2 idx
+  ALU_OPA_SELECT                        T1_select;
+  ALU_OPB_SELECT                        T2_select;
 } FU_PACKET_t;
-
-`define FU_ENTRY_RESET {`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_PR, `ZERO_PR, `ZERO_PR} // FU entry reset
-`define FU_RESET '{`NUM_FU{`FU_ENTRY_RESET}}                                          // FU reset
 
 typedef struct packed {
   FU_PACKET_t [`NUM_FU-1:0]         FU_packet_out; // List of output fu

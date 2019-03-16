@@ -4,6 +4,7 @@
 `define NUM_SUPER      1
 `define NUM_ROB        8
 `define NUM_PR         64
+`define NUM_FL         `NUM_PR - `NUM_ROB
 `define NUM_ALU        1
 `define NUM_MULT       1
 `define NUM_BR         1
