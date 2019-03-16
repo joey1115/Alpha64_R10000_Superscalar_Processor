@@ -13,8 +13,108 @@
 `include "../../sys_defs.vh"
 `include "ROB.vh"
 
-// module test_ROB;
+module test_ROB;
 
+  //input
+  logic en;
+  logic clock;
+  logic reset;
+  logic dispatch_en;
+  logic [$clog2(`NUM_PR)-1:0] T_idx;
+  logic [$clog2(`NUM_PR)-1:0] Told_idx;
+  logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
+  logic rollback_en;
+  ROB_PACKET_COMPLETE_IN rob_packet_complete_in;
+
+  //output
+  ROB_t rob;
+  logic ROB_valid;
+  ROB_PACKET_RS_OUT rob_packet_rs_out;
+  ROB_PACKET_FREELIST_OUT rob_packet_freelist_out;
+  ROB_PACKET_ARCHMAP_OUT rob_packet_archmap_out;
+
+  ROB UUT(.en(en),
+          .clock(clock),
+          .reset(reset),
+          .dispatch_en(dispatch_en),
+          .T_idx(T_idx),
+          .Told_idx(Told_idx),
+          .dest_idx(dest_idx),
+          .ROB_rollback_idx(ROB_rollback_idx),
+          .rollback_en(rollback_en),
+          .rob(rob),
+          .ROB_valid(ROB_valid),
+          .rob_packet_rs_out(rob_packet_rs_out),
+          .rob_packet_freelist_out(rob_packet_freelist_out),
+          .rob_packet_archmap_out(rob_packet_archmap_out)
+  );
+
+  task setInput(
+                logic en,
+                logic clock,
+                logic reset,
+                logic dispatch_en,
+                logic [$clog2(`NUM_PR)-1:0] T_idx,
+                logic [$clog2(`NUM_PR)-1:0] Told_idx,
+                logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx,
+                logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+                logic rollback_en,
+                logic complete_en,
+                logic [$clog2(`NUM_ROB)-1:0] complete_ROB_idx);
+    begin
+      
+    end
+  endtask
+
+  task printInput;
+      begin
+        $display("---------------------------INPUT START----------------------------");
+        $display(" en | reset | dispatch_en | T_idx | T_old_idx | dest_idx | ROB_rollback_idx | rollback_en | dispatch en | complete_en | complete_ROB_idx");
+        $display(" %b  |  %b    |      %b     | %d | %d | %d | %d | %b | %b | %d |",
+                  en,
+                  reset,
+                  dispatch_en,
+                  [$clog2(`NUM_PR)-1:0] T_idx,
+                  [$clog2(`NUM_PR)-1:0] Told_idx,
+                  [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx,
+                  [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+                  rollback_en,
+                  complete_en,
+                  [$clog2(`NUM_ROB)-1:0] complete_ROB_idx);
+        $display("---------------------------INPUT END-----------------------------");
+      end
+  endtask
+
+  task printOutput;
+    begin
+      $display("---------------------------OUTPUT START----------------------------");
+      $display(" ROB_valid: %b", ROB_valid);
+      $display(" rob_packet_rs_out.rob_tail_idx: %d", rob_packet_rs_out.rob_tail_idx);
+      $display("rob_packet_freelist_out.ROB_tail_idx: %d", rob_packet_freelist_out.ROB_tail_idx);
+      $display("rob_packet_archmap_out.dest_idx: %d", rob_packet_archmap_out.dest_idx);
+      $display("rob_packet_archmap_out.T_idx_head: %d", rob_packet_archmap_out.T_idx_head);
+      $display("rob_packet_archmap_out.retire_en: %d", rob_packet_archmap_out.retire_en);
+    end
+  endtask
+
+  task printOut;
+    begin
+      $display("---------------------------ROB START----------------------------");
+      $display("head: %d\ntail: %d", rob.head, rob.tail - 1);
+      $display(" # | valid | T | T_old | dest_idx | complete");
+      for(int i = 0; i < NUM_ROB; i++) begin
+        $display(" %d |   %b   | %d | %d | %d | %b",
+                i,
+                rob.entry[i].valid,
+                rob.entry[i].T,
+                rob.entry[i].T_old,
+                rob.entry[i].dest_idx,
+                rob.entry[i].complete);
+      end
+      $display("---------------------------ROB END-----------------------------");
+    end
+  endtask
 //   // DUT input stimulus
 //   logic en, clock, reset;
 //   ROB_PACKET_IN rob_packet_in;
@@ -305,4 +405,4 @@
 
 //   end // initial
 
-// endmodule  // module testbench_ROB
+endmodule  // module testbench_ROB

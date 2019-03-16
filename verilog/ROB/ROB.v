@@ -14,9 +14,9 @@ module ROB (
   //inputs
   input en, clock, reset,
   input logic dispatch_en,
-  input logic [$clog2(`NUM_PR)-1:0] T_idx, //T_idx
-  input logic [$clog2(`NUM_PR)-1:0] Told_idx, //Told_idx
-  input logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx, //from the decoder
+  input logic [$clog2(`NUM_PR)-1:0] T_idx,
+  input logic [$clog2(`NUM_PR)-1:0] Told_idx,
+  input logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx,
   
   // rollback function
   input logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
