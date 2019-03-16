@@ -9,23 +9,33 @@ module testbench();
   FU_RESULT_ENTRY_t fu_packet_out;
   logic fu_valid;
 
-  logic [63:0] cres;
-  logic [$clog2(`NUM_PR)-1:0] T_idx;
+  logic [(64*`NUM_MULT_STAGE)-1:0] cres;
+  logic [($clog2(`NUM_PR)*`NUM_MULT_STAGE)-1:0] T_idx;
 
   logic last_done;
   logic [63:0] product_out;
   logic [$clog2(`NUM_PR)-1:0] last_T_idx;
+
   
-  assign cres = fu_packet_in.T1_value*fu_packet_in.T2_value;
-  assign T_idx = fu_packet_in.T_idx;
+  // fu_packet_in.T1_value*fu_packet_in.T2_value |-> [1:7] cres;
+  // assign T_idx = fu_packet_in.T_idx;
+
+  logic [63:0] cres1 = fu_packet_in.T1_value*fu_packet_in.T2_value;
+  always @ (posedge fu_packet_in.ready)
+  always @ (negedge clock) begin 
+    if(fu_packet_in.ready) begin
+      cres <= #1 {cres[((64*`NUM_MULT_STAGE)-1):64], cres1};
+      T_idx <= #1 {T_idx[($clog2(`NUM_PR)*`NUM_MULT_STAGE)-1:$clog2(`NUM_PR)],fu_packet_in.T_idx};
+    end;
+  end
 
   // always_ff @(negedge clock) begin
   //   cres <=  #(`NUM_MULT_STAGE) fu_packet_in.T1_value*fu_packet_in.T2_value;
   //   T_idx <= #(`NUM_MULT_STAGE) fu_packet_in.T_idx;
   // end
 
-  //wire correct = ((cres===fu_packet_out.result) && (T_idx === fu_packet_out.T_idx))|~fu_packet_out.done;
-  wire correct = ((cres===product_out))|~last_done;
+  wire correct = ((cres[(64*`NUM_MULT_STAGE)-1:(64*`NUM_MULT_STAGE)-64]===fu_packet_out.result) && (T_idx[$clog2(`NUM_PR)*`NUM_MULT_STAGE: ($clog2(`NUM_PR)*`NUM_MULT_STAGE)-5] === fu_packet_out.T_idx))|~fu_packet_out.done;
+  //wire correct = ((cres===product_out))|~last_done;
 
 
   mult m0(	.clock(clock),
@@ -42,12 +52,16 @@ module testbench();
     #2 if(!correct) begin 
         $display("Incorrect at time %4.0f",$time);
         $display("cres = %h fu_packet_out.result = %h product_out = %h",cres,fu_packet_out.result, product_out);
-        //$finish;
+        $finish;
     end
 
   always begin
     #5;
     clock=~clock;
+  end
+
+  always_ff @(posedge clock) begin
+    $display("Time:%4.0f fu_valid:%b fu_packet_in.T_idx:%d fu_packet_in.T1_value:%d fu_packet_in.T2_value:%d product:%d fu_packet_out.result:%d fu_packet_out.T_idx:%d fu_packet_out.done:%b product_out:%d last_T_idx:%d last_done:%b FULLHAZARD:%b",$time,fu_valid,fu_packet_in.T_idx, fu_packet_in.T1_value,fu_packet_in.T2_value,cres,fu_packet_out.result, fu_packet_out.T_idx, fu_packet_out.done, product_out, last_T_idx,last_done,full_hazard);
   end
 
   // Some students have had problems just using "@(posedge fu_valid)" because their
@@ -67,7 +81,7 @@ module testbench();
   initial begin
 
     //$vcdpluson;
-    $monitor("Time:%4.0f fu_valid:%b fu_packet_in.T1_value:%h fu_packet_in.T2_value:%h product:%h fu_packet_out.result:%h fu_packet_out.T_idx:%h fu_packet_out.done:%b product_out:%h last_T_idx:%h last_done:%b",$time,fu_valid,fu_packet_in.T1_value,fu_packet_in.T2_value,cres,fu_packet_out.result, fu_packet_out.T_idx, fu_packet_out.done, product_out, last_T_idx,last_done);
+    //$display("Time:%4.0f fu_valid:%b fu_packet_in.T1_value:%d fu_packet_in.T2_value:%d product:%d fu_packet_out.result:%d fu_packet_out.T_idx:%d fu_packet_out.done:%b product_out:%d last_T_idx:%d last_done:%b",$time,fu_valid,fu_packet_in.T1_value,fu_packet_in.T2_value,cres,fu_packet_out.result, fu_packet_out.T_idx, fu_packet_out.done, product_out, last_T_idx,last_done);
     fu_packet_in.T1_value=2;
     fu_packet_in.T2_value=3;
     fu_packet_in.T_idx=4;
@@ -77,11 +91,12 @@ module testbench();
 
     reset=1;
     clock=0;
-    fu_packet_in.ready=1;
+    fu_packet_in.ready=0;
 
     @(negedge clock);
     reset=0;
-
+    @(negedge clock);
+    @(negedge clock);
     fu_packet_in.ready=1;
     fu_packet_in.T1_value=4;
     fu_packet_in.T2_value=5;
@@ -161,7 +176,7 @@ module testbench();
     fu_packet_in.ready=0;
     //wait_until_fu_valid();
 
-    full_hazard = 1;
+    
 
     fu_packet_in.ready=1;
     fu_packet_in.T1_value=20;
@@ -172,7 +187,7 @@ module testbench();
     //wait_until_fu_valid();
  
 
-
+    full_hazard = 1;
     quit = 0;
     quit <= #10000 1;
     while(~quit) begin
