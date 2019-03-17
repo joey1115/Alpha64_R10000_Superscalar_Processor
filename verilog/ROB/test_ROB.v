@@ -50,23 +50,6 @@ module test_ROB;
           .rob_packet_archmap_out(rob_packet_archmap_out)
   );
 
-  task setInput(
-                logic en,
-                logic clock,
-                logic reset,
-                logic dispatch_en,
-                logic [$clog2(`NUM_PR)-1:0] T_idx,
-                logic [$clog2(`NUM_PR)-1:0] Told_idx,
-                logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx,
-                logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
-                logic rollback_en,
-                logic complete_en,
-                logic [$clog2(`NUM_ROB)-1:0] complete_ROB_idx);
-    begin
-      
-    end
-  endtask
-
   task printInput;
       begin
         $display("---------------------------INPUT START----------------------------");
@@ -115,6 +98,79 @@ module test_ROB;
       $display("---------------------------ROB END-----------------------------");
     end
   endtask
+
+  task setInput(
+    logic en_in,
+    logic reset_in,
+    logic dispatch_en_in,
+    logic [$clog2(`NUM_PR)-1:0] T_idx_in,
+    logic [$clog2(`NUM_PR)-1:0] Told_idx_in,
+    logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx_in,
+    logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_in,
+    logic rollback_en_in,
+    logic complete_en_in,
+    logic [$clog2(`NUM_ROB)-1:0] complete_ROB_idx_in);
+      
+    begin
+      printInput();
+
+      //set input
+      en = en_in;
+      reset = reset_in;
+      dispatch_en = dispatch_en_in;
+      T_idx = T_idx_in;
+      Told_idx = Told_idx_in;
+      dest_idx = dest_idx_in;
+      ROB_rollback_idx = ROB_rollback_idx_in;
+      rollback_en = rollback_en_in;
+      rob_packet_complete_in.complete_en = complete_en;
+      rob_packet_complete_in.complete_ROB_idx = complete_ROB_idx_in;
+      //wait unitl clocks
+      @ (negedge clock);
+      @ (posedge clock);
+      printOut();
+      printOutput();
+      
+    end
+  endtask
+
+  initial begin
+    
+    // Reset
+    en    = 1'b1;
+    clock = 1'b0;
+    reset = 1'b1;
+    rob_packet_in = 0;
+
+    @(negedge clock);
+
+    setInput(en_in.(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(11),
+            .Told_idx_in(01),
+            .dest_idx_in(1),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en(0),
+            .complete_ROB_idx_in(0));
+
+    setInput(en_in.(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(12),
+            .Told_idx_in(02),
+            .dest_idx_in(2),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en(0),
+            .complete_ROB_idx_in(0));
+
+    $finish;
+  end
+
+
+
 //   // DUT input stimulus
 //   logic en, clock, reset;
 //   ROB_PACKET_IN rob_packet_in;
