@@ -1,28 +1,19 @@
 /***********************************************
- * PR/FL procedure:
- * 
- * ----- Retire -----
- * 1. free the tag retired from ROB
- * input: r from complete stage, T_old from ROB
+ * PR procedure:
  * 
  * --- Complete ---
  * 1. X stage result write back to PR
- * input: X_C_valid, X_C_T, X_C_result from X/C reg
+ * input: write_en (CDB), T_idx (CDB), T_value (CDB)
  * 
  * ---- Excution ----
  * 1. send reg values to FU
- * input: S_X_T1, S_X_T2
- * output: T1_value, T2_value (X_C_result can be interally
- * forward to T1 or T2)
- * 
- * ---- Dispatch ---
- * 1. struct hazard when full
- *   input: inst_dispatch from dispatch control
- *   output: struct_hazard to dispatch control
- * 2. send tag to ROB, RS and MapTable
- *   output: T to ROB, RS, and MapTable
+ * input: T1_idx, T2_idx
+ * output: T1_value, T2_value (T_value can be interally
+ * forward to T1_value or T2_value)
  * 
  ************************************************/
+
+`timescale 1ns/100ps
 
 module PR (
   input  en, clock, reset,
@@ -30,63 +21,41 @@ module PR (
   output PR_PACKET_OUT pr_packet_out
 );
 
-  PR_entry_t [`NUM_PR-1:0] pr, next_pr;
+  logic [`NUM_PR-1:0] [63:0] pr, next_pr;
 
   always_comb begin
     next_pr = pr;
-    pr_packet_out.struct_hazard = 1;
-    pr_packet_out.T = 0;
 
-    // Retire
-    if (pr_packet_in.r) begin
-      next_pr[pr_packet_in.T_old].free = PR_FREE;
-    end
     // Complete
-    if (pr_packet_in.X_C_valid) begin
-      next_pr[pr_packet_in.X_C_T].value = pr_packet_in.X_C_result;
-    end // if
+    if (pr_packet_in.write_en) begin
+      next_pr[pr_packet_in.T_idx] = pr_packet_in.T_value;
+    end
+
     // Execution
     for (int i=0; i<`NUM_FU; i++) begin
-      if (pr_packet_in.X_C_T == pr_packet_in.S_X_T1[i]) begin
-        pr_packet_out.T1_value[i] = pr_packet_in.X_C_result;             // forwarding
+      if (pr_packet_in.T_idx == pr_packet_in.T1_idx[i]) begin
+        pr_packet_out.T1_value[i] = pr_packet_in.T_value;             // forwarding
       end else begin
-        pr_packet_out.T1_value[i] = next_pr[pr_packet_in.S_X_T1[i]].value;
+        pr_packet_out.T1_value[i] = next_pr[pr_packet_in.T1_idx[i]];
       end
-      if (pr_packet_in.X_C_T == pr_packet_in.S_X_T2[i]) begin
-        pr_packet_out.T2_value[i] = pr_packet_in.X_C_result;             // forwarding
-      end else begin 
-        pr_packet_out.T2_value[i] = next_pr[pr_packet_in.S_X_T2[i]].value;
-      end
-    end
-    // Dispatch
-    for (logic [$clog2(`NUM_PR):0] i=0; i<`NUM_PR; i++) begin
-      if (i != 31) begin
-        if (next_pr[i].free == PR_FREE) begin
-          pr_packet_out.struct_hazard = 1'b0;
-          pr_packet_out.T = i;
-          if (pr_packet_in.inst_dispatch) begin
-            next_pr[i].free = PR_NOT_FREE;
-          end
-          break;
-        end // if
+
+      if (pr_packet_in.T_idx == pr_packet_in.T2_idx[i]) begin
+        pr_packet_out.T2_value[i] = pr_packet_in.T_value;             // forwarding
       end else begin
+        pr_packet_out.T2_value[i] = next_pr[pr_packet_in.T2_idx[i]];
       end
     end // for
-  end
+
+  end // always_comb
 
   always_ff @(posedge clock) begin
     if (reset) begin
-      for (logic [$clog2(`NUM_PR):0] i=0; i<31; i++) begin
-        pr[i].value <= `SD 64'b0;
-        pr[i].free <= `SD PR_NOT_FREE;
-      end // for
-      for (logic [$clog2(`NUM_PR):0] i=32; i<`NUM_PR; i++) begin
-        pr[i].value <= `SD 64'b0;
-        pr[i].free <= `SD PR_FREE;
-      end // for
-    end else if (en && pr_packet_in.inst_dispatch) begin
+      for (int i=0; i<`NUM_PR; i++) begin
+        pr[i] <= `SD 64'b0;
+      end
+    end else begin
       pr <= `SD next_pr;
-    end // if
-  end // always
+    end
+  end // always_ff
 
 endmodule
