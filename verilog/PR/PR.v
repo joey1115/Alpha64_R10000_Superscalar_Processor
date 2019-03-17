@@ -1,6 +1,10 @@
 /***********************************************
  * PR procedure:
  * 
+ * Important Note:
+ * Physical Register 31 is read-only.
+ * It is the zero register and contains value zero
+ * 
  * --- Complete ---
  * 1. X stage result write back to PR
  * input: write_en (CDB), T_idx (CDB), T_value (CDB)
@@ -27,20 +31,20 @@ module PR (
     next_pr = pr;
 
     // Complete
-    if (pr_packet_in.write_en) begin
+    if (pr_packet_in.write_en && pr_packet_in.T_idx != 31) begin
       next_pr[pr_packet_in.T_idx] = pr_packet_in.T_value;
     end
 
     // Execution
     for (int i=0; i<`NUM_FU; i++) begin
-      if (pr_packet_in.T_idx == pr_packet_in.T1_idx[i]) begin
-        pr_packet_out.T1_value[i] = pr_packet_in.T_value;             // forwarding
+      if (pr_packet_in.T_idx == pr_packet_in.T1_idx[i] && pr_packet_in.T_idx != 31) begin
+        pr_packet_out.T1_value[i] = pr_packet_in.T_value;    // forwarding
       end else begin
         pr_packet_out.T1_value[i] = next_pr[pr_packet_in.T1_idx[i]];
       end
 
-      if (pr_packet_in.T_idx == pr_packet_in.T2_idx[i]) begin
-        pr_packet_out.T2_value[i] = pr_packet_in.T_value;             // forwarding
+      if (pr_packet_in.T_idx == pr_packet_in.T2_idx[i] && pr_packet_in.T_idx != 31) begin
+        pr_packet_out.T2_value[i] = pr_packet_in.T_value;    // forwarding
       end else begin
         pr_packet_out.T2_value[i] = next_pr[pr_packet_in.T2_idx[i]];
       end
