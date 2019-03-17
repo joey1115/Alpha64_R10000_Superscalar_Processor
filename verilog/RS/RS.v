@@ -12,15 +12,19 @@ module RS (
   output RS_PACKET_OUT rs_packet_out
 );
 
-  RS_ENTRY_t [`NUM_FU-1:0] RS, next_RS;
-  FU_t       [`NUM_FU-1:0] FU_list = `FU_LIST; // List of FU
-  logic      [`NUM_FU-1:0] T1_CDB;             // If T1 is complete
-  logic      [`NUM_FU-1:0] T2_CDB;             // If T2 is complete
-  logic      [`NUM_FU-1:0] T1_ready;           // If T1 is ready
-  logic      [`NUM_FU-1:0] T2_ready;           // If T2 is ready
-  logic      [`NUM_FU-1:0] RS_entry_ready;     // If a RS entry is ready
-  logic      [`NUM_FU-1:0] RS_entry_empty;     // If a RS entry is ready
-  logic      [`NUM_FU-1:0] RS_rollback;        // If a RS entry is ready
+  RS_ENTRY_t [`NUM_FU-1:0]          RS, next_RS;
+  FU_t       [`NUM_FU-1:0]          FU_list = `FU_LIST; // List of FU
+  logic      [`NUM_FU-1:0]          T1_CDB;             // If T1 is complete
+  logic      [`NUM_FU-1:0]          T2_CDB;             // If T2 is complete
+  logic      [`NUM_FU-1:0]          T1_ready;           // If T1 is ready
+  logic      [`NUM_FU-1:0]          T2_ready;           // If T2 is ready
+  logic      [`NUM_FU-1:0]          RS_entry_ready;     // If a RS entry is ready
+  logic      [`NUM_FU-1:0]          RS_entry_empty;     // If a RS entry is ready
+  logic      [`NUM_FU-1:0]          RS_rollback;        // If a RS entry is ready
+  logic      [`NUM_FU-1:0]          RS_entry_FU;
+  logic      [$clog2(`NUM_ROB)-1:0] diff;
+
+  assign diff = rs_packet_in.ROB_tail_idx - rs_packet_in.ROB_rollback_idx;
 
 `ifdef RS_FORWARDING
   logic                    T1_CDB_in;          // If T1 is complete
@@ -42,7 +46,7 @@ module RS (
 
     for (int i = 0; i < `NUM_FU; i++) begin
 
-      if ( T_ready_in && ( RS[i].busy == `FALSE || !RS_entry_ready[i] ) && rs_packet_in.fu_valid[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.dispatch_en ) begin
+      if ( T_ready_in && !RS_entry_ready[i] && rs_packet_in.fu_valid[i] && RS_entry_FU[i] && rs_packet_in.dispatch_en ) begin
 
         FU_entry_forward[i] = `TRUE;
         break;
@@ -66,31 +70,14 @@ module RS (
 
     for (int i = 0; i < `NUM_FU; i++) begin
 
-      T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T1 is complete
-      T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en; // T2 is complete
-      T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                    // T1 is ready or updated by CDB
-      T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                                    // T2 is ready or updated by CDB
-
-      if ( rs_packet_in.rollback_en ) begin
-
-        if ( rs_packet_in.ROB_tail_idx > rs_packet_in.ROB_rollback_idx ) begin
-
-          RS_rollback[i] = rs_packet_in.rollback_en && ( RS[i].ROB_idx >= rs_packet_in.ROB_tail_idx || RS[i].ROB_idx < rs_packet_in.ROB_rollback_idx );
-
-        end else begin
-
-          RS_rollback[i] = rs_packet_in.rollback_en && ( RS[i].ROB_idx >= rs_packet_in.ROB_tail_idx && RS[i].ROB_idx < rs_packet_in.ROB_rollback_idx );
-
-        end
-
-      end else begin
-
-        RS_rollback[i] = `FALSE;
-
-      end
-
+      RS_entry_FU[i]    = FU_list[i] == rs_packet_in.FU;
+      T1_CDB[i]         = RS[i].T1.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;                              // T1 is complete
+      T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;                              // T2 is complete
+      T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                                                 // T1 is ready or updated by CDB
+      T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                                                                 // T2 is ready or updated by CDB
+      RS_rollback[i]    = diff >= (RS[i].ROB_idx - rs_packet_in.ROB_rollback_idx) && rs_packet_in.rollback_en;         // Rollback
       RS_entry_ready[i] = T1_ready[i] && T2_ready[i] && !RS_rollback[i];                                               // T1 and T2 are ready to issue
-      RS_entry_empty[i] = ( RS_entry_ready[i] && rs_packet_in.fu_valid[i] ) || RS[i].busy == `FALSE || RS_rollback[i];
+      RS_entry_empty[i] = ( RS_entry_ready[i] && rs_packet_in.fu_valid[i] ) || RS[i].busy == `FALSE || RS_rollback[i]; // Entry is going to be empty
 
     end // for (int i = 0; i < `NUM_FU; i++) begin
 
@@ -102,7 +89,7 @@ module RS (
 
     for (int i = 0; i < `NUM_FU; i++) begin
 
-      if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.dispatch_en ) begin
+      if ( RS_entry_empty[i] && RS_entry_FU[i] && rs_packet_in.dispatch_en ) begin
 
         RS_entry_match[i] = `TRUE; // RS entry match
         break;
