@@ -102,7 +102,7 @@ module RS (
 
     for (int i = 0; i < `NUM_FU; i++) begin
 
-      if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.fu_valid[i] && rs_packet_in.dispatch_en ) begin
+      if ( RS_entry_empty[i] && FU_list[i] == rs_packet_in.FU && rs_packet_in.dispatch_en ) begin
 
         RS_entry_match[i] = `TRUE; // RS entry match
         break;
@@ -183,8 +183,10 @@ module RS (
         next_RS[i].ROB_idx   = rs_packet_in.ROB_idx;   // Write T1 select
         next_RS[i].FL_idx    = rs_packet_in.FL_idx;    // Write T1 select
         next_RS[i].T_idx     = rs_packet_in.T_idx;     // Write T
-        next_RS[i].T1        = rs_packet_in.T1;        // Write T1
-        next_RS[i].T2        = rs_packet_in.T2;        // Write T2
+        next_RS[i].T1.ready  = T1_ready[i];            // Write T1
+        next_RS[i].T2.ready  = T2_ready[i];            // Write T2
+        next_RS[i].T1.idx    = rs_packet_in.T1.idx;    // Write T1
+        next_RS[i].T2.idx    = rs_packet_in.T2.idx;    // Write T2
         next_RS[i].T1_select = rs_packet_in.T1_select; // Write T1 select
         next_RS[i].T2_select = rs_packet_in.T2_select; // Write T1 select
 
