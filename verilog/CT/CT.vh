@@ -6,22 +6,28 @@
 typedef struct packed {
   logic taken;
   logic [$clog2(`NUM_PR)-1:0] T;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic [63:0] result;
 } CT_entry_t;
 
 
 
 typedef struct packed {
-  logic                       [$clog2(`NUM_FU)-1:0] X_C_valid;      // valid signal from ALU
-  logic [$clog2(`NUM_PR)-1:0] [$clog2(`NUM_FU)-1:0] X_C_T;          // tag from ALU
-  logic [63:0]                [$clog2(`NUM_FU)-1:0] X_C_result;     // result from ALU
+  logic                                         rollback_en;        // rollback_en from X/C
+  logic                [$clog2(`NUM_ROB)-1:0]   ROB_rollback_idx;   // ROB# of mispredicted branch/incorrect load from br module/LSQ
+  logic                [$clog2(`NUM_ROB)-1:0]   ROB_tail_idx;       // ROB tail idx from ROB
+  logic  [`NUM_FU-1:0]                          FU_done;            // valid signal from FU
+  logic  [`NUM_FU-1:0]  [$clog2(`NUM_PR)-1:0]   T_idx;              // tag from FU
+  logic  [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0]   ROB_idx             // ROB_idx from FU
+  logic  [`NUM_FU-1:0]                 [63:0]   FU_result;          // result from FU
 } CT_PACKET_IN;
 
 typedef struct packed {
-  logic [$clog2(`NUM_FU)-1:0] full_hazard;                          // full entry means hazard
-  logic                       valid;                                // valid signal to PR
-  logic [$clog2(`NUM_PR)-1:0] T;                                    // tag to PR
-  logic [63:0]                result;                               // result to PR
+  logic [`NUM_FU-1:0]         CDB_valid;                            // valid=0, entry is free, to FU
+  logic                       complete_en;                          // RS, ROB, MapTable
+  logic                       write_en;                             // valid signal to PR
+  logic [$clog2(`NUM_PR)-1:0] T_idx;                                // tag to PR
+  logic [63:0]                T_value;                              // result to PR
 } CT_PACKET_OUT;
 
 `endif
