@@ -75,7 +75,7 @@ module RS (
       T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;                              // T2 is complete
       T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                                                 // T1 is ready or updated by CDB
       T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                                                                 // T2 is ready or updated by CDB
-      RS_rollback[i]    = diff >= (RS[i].ROB_idx - rs_packet_in.ROB_rollback_idx) && rs_packet_in.rollback_en;         // Rollback
+      RS_rollback[i]    = ( diff >= (RS[i].ROB_idx - rs_packet_in.ROB_rollback_idx) ) && rs_packet_in.rollback_en;     // Rollback
       RS_entry_ready[i] = T1_ready[i] && T2_ready[i] && !RS_rollback[i];                                               // T1 and T2 are ready to issue
       RS_entry_empty[i] = ( RS_entry_ready[i] && rs_packet_in.fu_valid[i] ) || RS[i].busy == `FALSE || RS_rollback[i]; // Entry is going to be empty
 
