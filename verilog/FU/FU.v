@@ -130,21 +130,21 @@ module mult (
   input  FU_PACKET_IN_t    fu_packet,
   output FU_RESULT_ENTRY_t fu_packet_out,
 
-  `ifdef DEBUG
+`ifdef DEBUG
     output logic last_done,
     output logic [63:0] product_out,
     output logic [$clog2(`NUM_PR)-1:0] last_T_idx,
-  `endif
+`endif
 
 
   output logic             fu_valid
 );
 
-  `ifndef DEBUG
+`ifndef DEBUG
     logic last_done;
     logic [63:0] product_out;
     logic [$clog2(`NUM_PR)-1:0] last_T_idx;
-  `endif
+`endif
 
   logic start, first_harzard;
   logic [63:0] mcand_out, mplier_out, regA, regB;
