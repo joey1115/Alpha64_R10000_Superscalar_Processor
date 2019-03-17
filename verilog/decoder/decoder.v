@@ -10,7 +10,7 @@
 //                   output ALU_OPA_SELECT opa_select,                        //
 //                   output ALU_OPB_SELECT opb_select,                        //
 //                   output DEST_REG_SEL   dest_reg,                          //
-//                   output ALU_FUNC       alu_func,                          //
+//                   output ALU_FUNC       func    ,                          //
 //                   output logic rd_mem, wr_mem, ldl_mem, \                  //
 //                                stc_mem, cond_branch, uncond_branch,        //
 //                   output logic halt,                                       //
@@ -37,7 +37,7 @@ module decoder(
   always_comb begin
     // default control values:
     // - valid instructions must override these defaults as necessary.
-    //   decoder_packet_out.opa_select, decoder_packet_out.opb_select, and decoder_packet_out.alu_func should be set explicitly.
+    //   decoder_packet_out.opa_select, decoder_packet_out.opb_select, and decoder_packet_out.func     should be set explicitly.
     // - invalid instructions should clear decoder_packet_out.valid_inst.
     // - These defaults are equivalent to a noop
     // * see sys_defs.vh for the constants used here
@@ -72,7 +72,7 @@ module decoder(
         `LDA_INST: begin
           decoder_packet_out.opa_select   = ALU_OPA_IS_MEM_DISP;
           decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func     = ALU_ADDQ;
+          decoder_packet_out.func         = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
           decoder_packet_out.FU           = FU_LD;
         end
@@ -87,13 +87,13 @@ module decoder(
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.regc_idx;
           decoder_packet_out.FU           = FU_ALU;
           case (decoder_packet_in.inst.i.func)
-            `CMPULT_INST: decoder_packet_out.alu_func = ALU_CMPULT;
-            `ADDQ_INST:   decoder_packet_out.alu_func = ALU_ADDQ;
-            `SUBQ_INST:   decoder_packet_out.alu_func = ALU_SUBQ;
-            `CMPEQ_INST:  decoder_packet_out.alu_func = ALU_CMPEQ;
-            `CMPULE_INST: decoder_packet_out.alu_func = ALU_CMPULE;
-            `CMPLT_INST:  decoder_packet_out.alu_func = ALU_CMPLT;
-            `CMPLE_INST:  decoder_packet_out.alu_func = ALU_CMPLE;
+            `CMPULT_INST: decoder_packet_out.func     = ALU_CMPULT;
+            `ADDQ_INST:   decoder_packet_out.func     = ALU_ADDQ;
+            `SUBQ_INST:   decoder_packet_out.func     = ALU_SUBQ;
+            `CMPEQ_INST:  decoder_packet_out.func     = ALU_CMPEQ;
+            `CMPULE_INST: decoder_packet_out.func     = ALU_CMPULE;
+            `CMPLT_INST:  decoder_packet_out.func     = ALU_CMPLT;
+            `CMPLE_INST:  decoder_packet_out.func     = ALU_CMPLE;
             default: begin
               decoder_packet_out.illegal = `TRUE;
               decoder_packet_out.valid   = `FALSE;
@@ -107,12 +107,12 @@ module decoder(
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.regc_idx;
           decoder_packet_out.FU           = FU_ALU;
           case (decoder_packet_in.inst.i.func)
-            `AND_INST:   decoder_packet_out.alu_func = ALU_AND;
-            `BIC_INST:   decoder_packet_out.alu_func = ALU_BIC;
-            `BIS_INST:   decoder_packet_out.alu_func = ALU_BIS;
-            `ORNOT_INST: decoder_packet_out.alu_func = ALU_ORNOT;
-            `XOR_INST:   decoder_packet_out.alu_func = ALU_XOR;
-            `EQV_INST:   decoder_packet_out.alu_func = ALU_EQV;
+            `AND_INST:   decoder_packet_out.func     = ALU_AND;
+            `BIC_INST:   decoder_packet_out.func     = ALU_BIC;
+            `BIS_INST:   decoder_packet_out.func     = ALU_BIS;
+            `ORNOT_INST: decoder_packet_out.func     = ALU_ORNOT;
+            `XOR_INST:   decoder_packet_out.func     = ALU_XOR;
+            `EQV_INST:   decoder_packet_out.func     = ALU_EQV;
             default: begin
               decoder_packet_out.illegal = `TRUE;
               decoder_packet_out.valid   = `FALSE;
@@ -126,9 +126,9 @@ module decoder(
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.regc_idx;
           decoder_packet_out.FU           = FU_ALU;
           case (decoder_packet_in.inst.i.func)
-            `SRL_INST: decoder_packet_out.alu_func = ALU_SRL;
-            `SLL_INST: decoder_packet_out.alu_func = ALU_SLL;
-            `SRA_INST: decoder_packet_out.alu_func = ALU_SRA;
+            `SRL_INST: decoder_packet_out.func     = ALU_SRL;
+            `SLL_INST: decoder_packet_out.func     = ALU_SLL;
+            `SRA_INST: decoder_packet_out.func     = ALU_SRA;
             default: begin
               decoder_packet_out.illegal = `TRUE;
               decoder_packet_out.valid   = `FALSE;
@@ -142,7 +142,7 @@ module decoder(
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.regc_idx;
           decoder_packet_out.FU           = FU_ALU;
           case (decoder_packet_in.inst.i.func)
-            `MULQ_INST: decoder_packet_out.alu_func = ALU_MULQ;
+            `MULQ_INST: decoder_packet_out.func     = ALU_MULQ;
             default: begin
               decoder_packet_out.illegal = `TRUE;
               decoder_packet_out.valid   = `FALSE;
@@ -154,20 +154,10 @@ module decoder(
         //   decoder_packet_out.illegal = `TRUE;       // unimplemented
         // end
 
-        `JSR_GRP: begin
-          // JMP, JSR, RET, and JSR_CO have identical semantics
-          decoder_packet_out.opa_select    = ALU_OPA_IS_NOT3;
-          decoder_packet_out.opb_select    = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func      = ALU_AND; // clear low 2 bits (word-align)
-          decoder_packet_out.dest_reg_idx  = decoder_packet_in.inst.r.rega_idx;
-          decoder_packet_out.uncond_branch = `TRUE;
-          decoder_packet_out.FU            = FU_BR;
-        end
-
         `LDQ_INST: begin
           decoder_packet_out.opa_select   = ALU_OPA_IS_MEM_DISP;
           decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func     = ALU_ADDQ;
+          decoder_packet_out.func         = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
           decoder_packet_out.rd_mem       = `TRUE;
           decoder_packet_out.FU           = FU_LD;
@@ -180,7 +170,7 @@ module decoder(
         `LDQ_L_INST: begin
           decoder_packet_out.opa_select   = ALU_OPA_IS_MEM_DISP;
           decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func     = ALU_ADDQ;
+          decoder_packet_out.func         = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
           decoder_packet_out.rd_mem       = `TRUE;
           decoder_packet_out.ldl_mem      = `TRUE;
@@ -190,7 +180,7 @@ module decoder(
         `STQ_INST: begin
           decoder_packet_out.opa_select   = ALU_OPA_IS_MEM_DISP;
           decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func     = ALU_ADDQ;
+          decoder_packet_out.func         = ALU_ADDQ;
           decoder_packet_out.wr_mem       = `TRUE;
           decoder_packet_out.dest_reg_idx = `ZERO_REG;
           decoder_packet_out.FU           = FU_ST;
@@ -199,7 +189,7 @@ module decoder(
         `STQ_C_INST: begin
           decoder_packet_out.opa_select   = ALU_OPA_IS_MEM_DISP;
           decoder_packet_out.opb_select   = ALU_OPB_IS_REGB;
-          decoder_packet_out.alu_func     = ALU_ADDQ;
+          decoder_packet_out.func         = ALU_ADDQ;
           decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
           decoder_packet_out.wr_mem       = `TRUE;
           decoder_packet_out.stc_mem      = `TRUE;
@@ -211,7 +201,7 @@ module decoder(
           decoder_packet_out.uncond_branch = `TRUE;
           decoder_packet_out.opa_select    = ALU_OPA_IS_NPC;
           decoder_packet_out.opb_select    = ALU_OPB_IS_BR_DISP;
-          decoder_packet_out.alu_func      = ALU_ADDQ;
+          decoder_packet_out.func          = ALU_ADDQ;
           decoder_packet_out.FU            = FU_ALU;
         end
 
@@ -222,9 +212,19 @@ module decoder(
         `BLBC_INST, `BEQ_INST, `BLT_INST, `BLE_INST, `BLBS_INST, `BNE_INST, `BGE_INST, `BGT_INST: begin
           decoder_packet_out.opa_select  = ALU_OPA_IS_NPC;
           decoder_packet_out.opb_select  = ALU_OPB_IS_BR_DISP;
-          decoder_packet_out.alu_func    = ALU_ADDQ;
+          decoder_packet_out.func        = ALU_ADDQ;
           decoder_packet_out.cond_branch = `TRUE; // all others are conditional
           decoder_packet_out.FU          = FU_BR;
+        end
+
+        `JSR_GRP: begin
+          // JMP, JSR, RET, and JSR_CO have identical semantics
+          decoder_packet_out.opa_select    = ALU_OPA_IS_NOT3;
+          decoder_packet_out.opb_select    = ALU_OPB_IS_REGB;
+          decoder_packet_out.func          = ALU_AND; // clear low 2 bits (word-align)
+          decoder_packet_out.dest_reg_idx  = decoder_packet_in.inst.r.rega_idx;
+          decoder_packet_out.uncond_branch = `TRUE;
+          decoder_packet_out.FU            = FU_BR;
         end
 
         default: begin

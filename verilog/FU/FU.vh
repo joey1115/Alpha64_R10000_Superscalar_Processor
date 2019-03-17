@@ -6,26 +6,6 @@
 `include "../../sys_defs.vh"
 `include "../RS/RS.vh"
 
-// typedef struct packed {
-//   logic                       en;
-//   logic [$clog2(`NUM_PR)-1:0] T_idx;
-//   logic [$clog2(`NUM_PR)-1:0] T1_idx;
-//   logic [$clog2(`NUM_PR)-1:0] T2_idx;
-// } FU_ENTRY_t;
-
-// typedef struct packed {
-//   logic        ready;
-//   logic [63:0] T1_value;
-//   logic [63:0] T2_value;
-//   ALU_FUNC     func;
-// } FU_PACKET_t;
-
-// typedef struct packed {
-//   logic        ready;
-//   logic [63:0] T1_value;
-//   ALU_FUNC     func;
-// } BR_PACKET_t;
-
 typedef struct packed {
   FU_PACKET_t [`NUM_FU-1:0] fu_packet;
   logic       [`NUM_FU-1:0] full_hazard;
@@ -43,16 +23,25 @@ typedef struct packed {
 } FU_M_PACKET_OUT;
 
 typedef struct packed {
-  logic                       ready;    // If an entry is ready
-  INST_t                      inst;
-  ALU_FUNC                    func;
-  logic [$clog2(`NUM_PR)-1:0] T_idx;    // Dest idx
-  logic [$clog2(`NUM_PR)-1:0] T1_value; // T1 idx
-  logic [$clog2(`NUM_PR)-1:0] T2_value; // T2 idx
-  ALU_OPA_SELECT              T1_select;
-  ALU_OPB_SELECT              T2_select;
+  logic                                 ready;    // If an entry is ready
+  INST_t                                inst;
+  ALU_FUNC                              func;
+  logic          [63:0]                 NPC;
+  logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
+  logic          [$clog2(`NUM_PR)-1:0]  T_idx;    // Dest idx
+  logic          [$clog2(`NUM_PR)-1:0]  T1_value; // T1 idx
+  logic          [$clog2(`NUM_PR)-1:0]  T2_value; // T2 idx
+  ALU_OPA_SELECT                        T1_select;
+  ALU_OPB_SELECT                        T2_select;
+  logic                                 uncond_branch;
+  logic                                 cond_branch;
 } FU_PACKET_IN_t;
 
 `define FU_PACKET_IN_RESET '{`FALSE, `NOOP_INST, ALU_ADDQ, `ZERO_PR, 64{1'b0}, 64{1'b0}, ALU_OPA_IS_REGA, ALU_OPA_IS_REGA}
+
+typedef struct packed {
+
+} br_packet_in;
 
 `endif

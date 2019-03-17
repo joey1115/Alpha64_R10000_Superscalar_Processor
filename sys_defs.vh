@@ -113,7 +113,8 @@ typedef enum logic [4:0] {
 typedef union packed {
   logic [31:0] I;
   struct packed {
-    logic [5:0] opcode;
+    logic [2:0] op;
+    logic [1:0] br_func;
     logic [4:0] rega_idx;
     logic [4:0] regb_idx;
     logic [3:0] m;
