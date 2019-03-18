@@ -12,9 +12,10 @@ typedef struct packed {
 } FU_M_PACKET_IN;
 
 typedef struct packed {
-  logic        done;
-  logic [63:0] result;
-  logic [$clog2(`NUM_PR)-1:0] T_idx;  // Dest idx
+  logic                        done;
+  logic [63:0]                 result;
+  logic [$clog2(`NUM_PR)-1:0]  T_idx;  // Dest idx
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;  // Dest idx
 } FU_RESULT_ENTRY_t;
 
 typedef struct packed {
@@ -30,8 +31,8 @@ typedef struct packed {
   logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
   logic          [$clog2(`NUM_PR)-1:0]  T_idx;    // Dest idx
-  logic          [$clog2(`NUM_PR)-1:0]  T1_value; // T1 idx
-  logic          [$clog2(`NUM_PR)-1:0]  T2_value; // T2 idx
+  logic          [63:0]                 T1_value; // T1 idx
+  logic          [63:0]                 T2_value; // T2 idx
   ALU_OPA_SELECT                        T1_select;
   ALU_OPB_SELECT                        T2_select;
   logic                                 uncond_branch;

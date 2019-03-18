@@ -45,7 +45,7 @@ typedef struct packed {
   `T_RESET,               \
   `T_RESET,               \
   ALU_OPA_IS_REGA,        \
-  ALU_OPB_IS_REGB
+  ALU_OPB_IS_REGB         \
 } // RS entry reset
 `define RS_RESET '{`NUM_FU{`RS_ENTRY_RESET}}                                         // RS reset
 

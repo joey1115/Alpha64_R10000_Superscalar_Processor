@@ -22,7 +22,7 @@ module alu(
       signed_lt = a[63];   // signs differ: a is smaller if neg, larger if pos
   endfunction
 
-  assign regA = fu_packet.T1_value;
+  assign regA = regA;
 
   always_comb begin
     regB = 64'hbaadbeefdeadbeef;
@@ -77,7 +77,8 @@ module mult_stage (
 `endif
   output logic                        done, valid_out,
   output logic [63:0]                 product_out, mplier_out, mcand_out, next_product,
-  output logic [$clog2(`NUM_PR)-1:0]  T_idx_out
+  output logic [$clog2(`NUM_PR)-1:0]  T_idx_out,
+  output logic [$clog2(`NUM_ROB)-1:0] ROB_idx_out
 );
 
   logic [64/`NUM_MULT_STAGE-1:0] next_mplier_out;
@@ -92,8 +93,7 @@ module mult_stage (
   logic [63:0]            next_T1_value_out;
   logic [63:0]            next_T2_value_out;
 `endif
-  assign next_done = !ROB_rollback_en && (ready || done);
-  assign rollback_en = ROB_rollback_en && ( ROB_idx == ROB_rollback_idx );
+  assign rollback_en = ROB_rollback_en && ( ROB_rollback_idx == ( valid ? ROB_idx : next_ROB_idx_out ));
   assign valid_out = !ready || valid || rollback_en;
   assign next_product = product_in + partial_product;
   assign partial_product = mplier_in[64/`NUM_MULT_STAGE-1:0] * mcand_in;
@@ -102,20 +102,33 @@ module mult_stage (
   assign next_mplier_out  = mplier_out;
   assign next_mcand_out   = mcand_out;
   assign next_product_out = product_out;
-  assign next_T_idx_out   = T_idx;
-  assign next_ROB_idx_out = ROB_idx;
+  assign next_T_idx_out   = T_idx_out;
+  assign next_ROB_idx_out = ROB_idx_out;
+  assign next_done = done;
 `ifdef DEBUG
   assign next_T1_value_out = T1_value_out;
   assign next_T2_value_out = T2_value_out;
 `endif
   //synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
-    if ( valid ) begin
+    if ( reset || rollback_en ) begin
+      mplier_out       <= `SD 0;
+      mcand_out        <= `SD 0;
+      product_out      <= `SD 0;
+      T_idx_out        <= `SD 0;
+      ROB_idx_out      <= `SD 0;
+      done             <= `SD `FALSE;
+`ifdef DEBUG
+      T1_value_out     <= `SD 0;
+      T2_value_out     <= `SD 0;
+`endif
+    end else if ( valid ) begin
       mplier_out       <= `SD next_mplier;
       mcand_out        <= `SD next_mcand;
       product_out      <= `SD next_product;
       T_idx_out        <= `SD T_idx;
       ROB_idx_out      <= `SD ROB_idx;
+      done             <= `SD ready;
 `ifdef DEBUG
       T1_value_out     <= `SD T1_value;
       T2_value_out     <= `SD T2_value;
@@ -126,19 +139,11 @@ module mult_stage (
       product_out      <= `SD next_product_out;
       T_idx_out        <= `SD next_T_idx_out;
       ROB_idx_out      <= `SD next_ROB_idx_out;
+      done             <= `SD next_done;
 `ifdef DEBUG
       T1_value_out     <= `SD next_T1_value_out;
       T2_value_out     <= `SD next_T2_value_out;
 `endif
-    end
-  end
-
-  // synopsys sync_set_reset "reset"
-  always_ff @(posedge clock) begin
-    if( reset ) begin
-      done  <= `SD `FALSE;
-    end else begin
-      done  <= `SD next_done;
     end
   end
 
@@ -150,10 +155,12 @@ endmodule
 // allow a faster clock period than straight *
 // This module instantiates 8 pipeline stages as an array of submodules.
 module mult (
-  input  logic             clock, reset,
-  input  FU_PACKET_IN_t    fu_packet,
-  input  logic             CDB_valid,
-  output FU_RESULT_ENTRY_t fu_packet_out,
+  input  logic                                    clock, reset,
+  input  FU_PACKET_IN_t                           fu_packet,
+  input  logic                                    CDB_valid,
+  input  logic                                    ROB_rollback_en,
+  input  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  output FU_RESULT_ENTRY_t                        fu_packet_out,
 `ifdef DEBUG
   output logic                                              last_done,
   output logic [63:0]                                       product_out,
@@ -165,7 +172,7 @@ module mult (
   output logic [`NUM_MULT_STAGE-2:0]                        internal_valids,
   output logic [`NUM_MULT_STAGE-3:0]                        internal_dones,
   output logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx,
-  output logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx
+  output logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx,
 `endif
   output logic             fu_valid
 );
@@ -188,9 +195,6 @@ module mult (
 
   assign regA = fu_packet.T1_value;
 
-  //
-  // regB mux
-  //
   always_comb begin
      // Default value, Set only because the case isnt full.  If you see this
      // value on the output of the mux you have an invalid opb_select
@@ -212,6 +216,8 @@ module mult (
     .valid({CDB_valid, internal_valids}),
     .T_idx({fu_packet_out.T_idx, internal_T_idx, fu_packet.T_idx}),
     .ROB_idx({fu_packet_out.ROB_idx, internal_ROB_idx, fu_packet.ROB_idx}),
+    .ROB_rollback_en({`NUM_MULT_STAGE{ROB_rollback_en}}),
+    .ROB_rollback_idx({`NUM_MULT_STAGE{ROB_rollback_idx}}),
 `ifdef DEBUG
     .T1_value({internal_T1_values, regA}),
     .T2_value({internal_T2_values, regB}),
@@ -225,7 +231,7 @@ module mult (
     .done({last_done, fu_packet_out.done, internal_dones}),
     .valid_out({internal_valids, fu_valid}),
     .next_product({fu_packet_out.result, next_products}),
-    .T_idx_out({last_T_idx, fu_packet_out.T_idx, internal_T_idx},
+    .T_idx_out({last_T_idx, fu_packet_out.T_idx, internal_T_idx}),
     .ROB_idx_out({last_ROB_idx, fu_packet_out.ROB_idx, internal_ROB_idx})
   );
 
@@ -246,38 +252,29 @@ module br(
   assign take_branch = fu_packet.uncond_branch || (fu_packet.cond_branch && result);
 
   always_comb begin
-    if(fu_packet.ready == `TRUE)
+    if(fu_packet.ready == `TRUE) begin
       case (fu_packet.inst.r.br_func)                                               // 'full-case'  All cases covered, no need for a default
-        2'b00: result = (br_packet.T1_value[0] == 0);                               // LBC: (lsb(opa) == 0) ?
-        2'b01: result = (br_packet.T1_value == 0);                                  // EQ: (opa == 0) ?
-        2'b10: result = (br_packet.T1_value[63] == 1);                              // LT: (signed(opa) < 0) : check sign bit
-        2'b11: result = (br_packet.T1_value[63] == 1) || (br_packet.T1_value == 0); // LE: (signed(opa) <= 0)
+        2'b00: result = (regA[0] == 0);                               // LBC: (lsb(opa) == 0) ?
+        2'b01: result = (regA == 0);                                  // EQ: (opa == 0) ?
+        2'b10: result = (regA[63] == 1);                              // LT: (signed(opa) < 0) : check sign bit
+        2'b11: result = (regA[63] == 1) || (regA == 0); // LE: (signed(opa) <= 0)
       endcase
-
       // negate cond if func[2] is set
-      if (fu_packet.inst.r.br_func[2])
+      if (fu_packet.inst.r.br_func[2]) begin
         result = ~result;
+      end
     end
-
   end
 
-  //
-  // ALU opA mux
-  //
   always_comb begin
-    regB = 64'hbaadbeefdeadbeef;
+    regA = 64'hbaadbeefdeadbeef;
     case (fu_packet.T1_select)
-      ALU_OPA_IS_NPC:      regA = id_ex_packet_in.NPC;
+      ALU_OPA_IS_NPC:      regA = fu_packet.NPC;
       ALU_OPA_IS_NOT3:     regA = ~64'h3;
     endcase
   end
 
-  //
-  // regB mux
-  //
   always_comb begin
-     // Default value, Set only because the case isnt full.  If you see this
-     // value on the output of the mux you have an invalid opb_select
     regB = 64'hbaadbeefdeadbeef;
     case (fu_packet.T2_select)
       ALU_OPB_IS_REGB:    regB = fu_packet.T2_value;

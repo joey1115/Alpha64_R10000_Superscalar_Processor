@@ -114,7 +114,7 @@ typedef union packed {
   logic [31:0] I;
   struct packed {
     logic [2:0] op;
-    logic [1:0] br_func;
+    logic [2:0] br_func;
     logic [4:0] rega_idx;
     logic [4:0] regb_idx;
     logic [3:0] m;
