@@ -3,15 +3,20 @@ module alu(
   input  logic                        CDB_valid,
   input  logic                        ROB_rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input  logic [$clog2(`NUM_ROB)-1:0] ROB_tail_idx,
   output FU_RESULT_ENTRY_t            fu_packet_out,
   output logic                        fu_valid
 );
 
-  logic [63:0] regA, regB;
-  logic        rollback_en;
+  logic [63:0]                 regA, regB;
+  logic                        rollback_en;
+  logic [$clog2(`NUM_ROB)-1:0] diff_ROB;
+  logic [$clog2(`NUM_ROB)-1:0] diff;
 
-  assign rollback_en = ROB_rollback_en && ( fu_packet.ROB_idx == ROB_rollback_idx );
-  assign fu_valid = CDB_valid || !fu_packet.ready || rollback_en;
+  assign diff_ROB    = ROB_tail_idx - ROB_rollback_idx;
+  assign diff        = fu_packet.ROB_idx - ROB_rollback_idx;
+  assign rollback_en = ROB_rollback_en && diff_ROB >= diff;
+  assign fu_valid    = CDB_valid || !fu_packet.ready || rollback_en;
 
   function signed_lt;
     input [63:0] a, b;
@@ -69,6 +74,7 @@ module mult_stage (
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_idx,
   input  logic                        ROB_rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input  logic [$clog2(`NUM_ROB)-1:0] ROB_tail_idx,
 `ifdef DEBUG
   input  logic [63:0]                 T1_value,
   input  logic [63:0]                 T2_value,
@@ -89,25 +95,29 @@ module mult_stage (
   logic [64/`NUM_MULT_STAGE-1:0] partial_product, next_mplier, next_mcand;
   logic                          rollback_en;
   logic                          next_done;
+  logic [$clog2(`NUM_ROB)-1:0]   diff_ROB;
+  logic [$clog2(`NUM_ROB)-1:0]   diff;
 `ifdef DEBUG
   logic [63:0]            next_T1_value_out;
   logic [63:0]            next_T2_value_out;
 `endif
-  assign rollback_en = ROB_rollback_en && ( ROB_rollback_idx == ( valid ? ROB_idx : next_ROB_idx_out ));
-  assign valid_out = !ready || valid || rollback_en;
-  assign next_product = product_in + partial_product;
-  assign partial_product = mplier_in[64/`NUM_MULT_STAGE-1:0] * mcand_in;
-  assign next_mplier = {{64/`NUM_MULT_STAGE{1'b0}}, mplier_in[63:64/`NUM_MULT_STAGE]};
-  assign next_mcand  = {mcand_in[63-64/`NUM_MULT_STAGE:0], {(64/`NUM_MULT_STAGE){1'b0}}};
-  assign next_mplier_out  = mplier_out;
-  assign next_mcand_out   = mcand_out;
-  assign next_product_out = product_out;
-  assign next_T_idx_out   = T_idx_out;
-  assign next_ROB_idx_out = ROB_idx_out;
-  assign next_done = done;
+  assign diff_ROB         = ROB_tail_idx - ROB_rollback_idx;
+  assign diff             = next_ROB_idx_out - ROB_rollback_idx;
+  assign rollback_en      = ROB_rollback_en && diff_ROB >= diff;
+  assign valid_out        = ( !ready || valid ) && !rollback_en;
+  assign next_product     = product_in + partial_product;
+  assign partial_product  = mplier_in[64/`NUM_MULT_STAGE-1:0] * mcand_in;
+  assign next_mplier      = {{64/`NUM_MULT_STAGE{1'b0}}, mplier_in[63:64/`NUM_MULT_STAGE]};
+  assign next_mcand       = {mcand_in[63-64/`NUM_MULT_STAGE:0], {(64/`NUM_MULT_STAGE){1'b0}}};
+  assign next_mplier_out  = valid ? next_mplier : mplier_out;
+  assign next_mcand_out   = valid ? next_mcand : mcand_out;
+  assign next_product_out = valid ? next_product : product_out;
+  assign next_T_idx_out   = valid ? T_idx : T_idx_out;
+  assign next_ROB_idx_out = valid ? ROB_idx : ROB_idx_out;
+  assign next_done        = valid ? ready : done;
 `ifdef DEBUG
-  assign next_T1_value_out = T1_value_out;
-  assign next_T2_value_out = T2_value_out;
+  assign next_T1_value_out = valid ? T1_value_out;
+  assign next_T2_value_out = valid ? T2_value_out;
 `endif
   //synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
@@ -121,17 +131,6 @@ module mult_stage (
 `ifdef DEBUG
       T1_value_out     <= `SD 0;
       T2_value_out     <= `SD 0;
-`endif
-    end else if ( valid ) begin
-      mplier_out       <= `SD next_mplier;
-      mcand_out        <= `SD next_mcand;
-      product_out      <= `SD next_product;
-      T_idx_out        <= `SD T_idx;
-      ROB_idx_out      <= `SD ROB_idx;
-      done             <= `SD ready;
-`ifdef DEBUG
-      T1_value_out     <= `SD T1_value;
-      T2_value_out     <= `SD T2_value;
 `endif
     end else begin
       mplier_out       <= `SD next_mplier_out;
@@ -160,6 +159,7 @@ module mult (
   input  logic                                    CDB_valid,
   input  logic                                    ROB_rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input  logic             [$clog2(`NUM_ROB)-1:0] ROB_tail_idx,
   output FU_RESULT_ENTRY_t                        fu_packet_out,
 `ifdef DEBUG
   output logic                                              last_done,
