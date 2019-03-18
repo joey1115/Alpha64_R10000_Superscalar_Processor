@@ -12,19 +12,20 @@ module RS (
   output RS_PACKET_OUT rs_packet_out
 );
 
-  RS_ENTRY_t [`NUM_FU-1:0]          RS, next_RS;
-  FU_t       [`NUM_FU-1:0]          FU_list = `FU_LIST; // List of FU
-  logic      [`NUM_FU-1:0]          T1_CDB;             // If T1 is complete
-  logic      [`NUM_FU-1:0]          T2_CDB;             // If T2 is complete
-  logic      [`NUM_FU-1:0]          T1_ready;           // If T1 is ready
-  logic      [`NUM_FU-1:0]          T2_ready;           // If T2 is ready
-  logic      [`NUM_FU-1:0]          RS_entry_ready;     // If a RS entry is ready
-  logic      [`NUM_FU-1:0]          RS_entry_empty;     // If a RS entry is ready
-  logic      [`NUM_FU-1:0]          RS_rollback;        // If a RS entry is ready
-  logic      [`NUM_FU-1:0]          RS_entry_FU;
-  logic      [$clog2(`NUM_ROB)-1:0] diff;
+  RS_ENTRY_t [`NUM_FU-1:0]                       RS, next_RS;
+  FU_t       [`NUM_FU-1:0]                       FU_list = `FU_LIST; // List of FU
+  logic      [`NUM_FU-1:0]                       T1_CDB;             // If T1 is complete
+  logic      [`NUM_FU-1:0]                       T2_CDB;             // If T2 is complete
+  logic      [`NUM_FU-1:0]                       T1_ready;           // If T1 is ready
+  logic      [`NUM_FU-1:0]                       T2_ready;           // If T2 is ready
+  logic      [`NUM_FU-1:0]                       RS_entry_ready;     // If a RS entry is ready
+  logic      [`NUM_FU-1:0]                       RS_entry_empty;     // If a RS entry is ready
+  logic      [`NUM_FU-1:0]                       RS_rollback;        // If a RS entry is ready
+  logic      [`NUM_FU-1:0]                       RS_entry_FU;
+  logic      [$clog2(`NUM_ROB)-1:0]              diff_ROB;
+  logic      [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
 
-  assign diff = rs_packet_in.ROB_tail_idx - rs_packet_in.ROB_rollback_idx;
+  assign diff_ROB = rs_packet_in.ROB_tail_idx - rs_packet_in.ROB_rollback_idx;
 
 `ifdef RS_FORWARDING
   logic                    T1_CDB_in;          // If T1 is complete
@@ -75,7 +76,8 @@ module RS (
       T2_CDB[i]         = RS[i].T2.idx == rs_packet_in.CDB_T && rs_packet_in.complete_en;                              // T2 is complete
       T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                                                                 // T1 is ready or updated by CDB
       T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                                                                 // T2 is ready or updated by CDB
-      RS_rollback[i]    = ( diff >= (RS[i].ROB_idx - rs_packet_in.ROB_rollback_idx) ) && rs_packet_in.rollback_en;     // Rollback
+      diff[i]           = RS[i].ROB_idx - rs_packet_in.ROB_rollback_idx;
+      RS_rollback[i]    = ( diff_ROB >= diff[i] ) && rs_packet_in.rollback_en;                                         // Rollback
       RS_entry_ready[i] = T1_ready[i] && T2_ready[i] && !RS_rollback[i];                                               // T1 and T2 are ready to issue
       RS_entry_empty[i] = ( RS_entry_ready[i] && rs_packet_in.fu_valid[i] ) || RS[i].busy == `FALSE || RS_rollback[i]; // Entry is going to be empty
 

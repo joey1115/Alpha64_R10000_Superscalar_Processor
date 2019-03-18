@@ -116,8 +116,8 @@ module mult_stage (
   assign next_ROB_idx_out = valid ? ROB_idx : ROB_idx_out;
   assign next_done        = valid ? ready : done;
 `ifdef DEBUG
-  assign next_T1_value_out = valid ? T1_value_out;
-  assign next_T2_value_out = valid ? T2_value_out;
+  assign next_T1_value_out = valid ? T1_value : T1_value_out;
+  assign next_T2_value_out = valid ? T2_value : T2_value_out;
 `endif
   //synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
@@ -218,6 +218,7 @@ module mult (
     .ROB_idx({fu_packet_out.ROB_idx, internal_ROB_idx, fu_packet.ROB_idx}),
     .ROB_rollback_en({`NUM_MULT_STAGE{ROB_rollback_en}}),
     .ROB_rollback_idx({`NUM_MULT_STAGE{ROB_rollback_idx}}),
+    .ROB_tail_idx({`NUM_MULT_STAGE{ROB_tail_idx}}),
 `ifdef DEBUG
     .T1_value({internal_T1_values, regA}),
     .T2_value({internal_T2_values, regB}),
