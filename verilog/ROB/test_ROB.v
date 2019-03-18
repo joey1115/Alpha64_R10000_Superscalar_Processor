@@ -13,7 +13,537 @@
 `include "../../sys_defs.vh"
 `include "ROB.vh"
 
-// module test_ROB;
+module test_ROB;
+
+  //input
+  logic en;
+  logic clock;
+  logic reset;
+  logic dispatch_en;
+  logic [$clog2(`NUM_PR)-1:0] T_idx;
+  logic [$clog2(`NUM_PR)-1:0] Told_idx;
+  logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
+  logic rollback_en;
+  ROB_PACKET_COMPLETE_IN rob_packet_complete_in;
+
+  //output
+  ROB_t rob;
+  logic ROB_valid;
+  ROB_PACKET_RS_OUT rob_packet_rs_out;
+  ROB_PACKET_FREELIST_OUT rob_packet_freelist_out;
+  ROB_PACKET_ARCHMAP_OUT rob_packet_archmap_out;
+
+  ROB UUT(.en(en),
+          .clock(clock),
+          .reset(reset),
+          .dispatch_en(dispatch_en),
+          .T_idx(T_idx),
+          .Told_idx(Told_idx),
+          .dest_idx(dest_idx),
+          .ROB_rollback_idx(ROB_rollback_idx),
+          .rollback_en(rollback_en),
+          .rob_packet_complete_in(rob_packet_complete_in),
+          .rob(rob),
+          .ROB_valid(ROB_valid),
+          .rob_packet_rs_out(rob_packet_rs_out),
+          .rob_packet_freelist_out(rob_packet_freelist_out),
+          .rob_packet_archmap_out(rob_packet_archmap_out)
+  );
+
+  //Generate System Clock
+  always begin
+    #(`VERILOG_CLOCK_PERIOD/2.0);
+    clock = ~clock;
+  end
+
+  task printInput;
+      begin
+        $display("---------------------------INPUT START----------------------------");
+        $display(" en | reset | dispatch_en | T_idx | T_old_idx | dest_idx | ROB_rollback_idx | rollback_en | complete_en | complete_ROB_idx");
+        $display(" %b  |   %b   |      %b      |  %d   |    %d     |    %d    |         %d        |      %b      |      %b      | %d ",
+                  en,
+                  reset,
+                  dispatch_en,
+                  T_idx,
+                  Told_idx,
+                  dest_idx,
+                  ROB_rollback_idx,
+                  rollback_en,
+                  rob_packet_complete_in.complete_en,
+                  rob_packet_complete_in.complete_ROB_idx);
+        $display("---------------------------INPUT END-----------------------------");
+      end
+  endtask
+
+  task printOutput;
+    begin
+      $display("---------------------------OUTPUT START----------------------------");
+      $display(" ROB_valid: %b", ROB_valid);
+      $display(" rob_packet_rs_out.rob_tail_idx: %d", rob_packet_rs_out.ROB_tail_idx);
+      $display(" rob_packet_freelist_out.ROB_tail_idx: %d", rob_packet_freelist_out.ROB_tail_idx);
+      $display(" rob_packet_freelist_out.T_old_idx_head: %d", rob_packet_freelist_out.T_old_idx_head);
+      $display(" rob_packet_freelist_out.ROB_free_PR: %d", rob_packet_freelist_out.free_PR);
+      $display(" rob_packet_archmap_out.dest_idx: %d", rob_packet_archmap_out.dest_idx);
+      $display(" rob_packet_archmap_out.T_idx_head: %d", rob_packet_archmap_out.T_idx_head);
+      $display(" rob_packet_archmap_out.retire_en: %d", rob_packet_archmap_out.retire_en);
+    end
+  endtask
+
+  task printOut;
+    begin
+      $display("---------------------------ROB START----------------------------");
+      $display(" head: %d", rob.head);
+      $display(" tail+1: %d", rob.tail);
+      $display("           # | valid | T  | T_old | dest_idx | complete");
+      for(int i = 0; i < `NUM_ROB; i++) begin
+        $display(" %d |   %b   | %d |  %d   |    %d    | %b",
+                i,
+                rob.entry[i].valid,
+                rob.entry[i].T,
+                rob.entry[i].T_old,
+                rob.entry[i].dest_idx,
+                rob.entry[i].complete);
+      end
+      $display("---------------------------ROB END-----------------------------");
+    end
+  endtask
+
+  task setInput(
+    logic en_in,
+    logic reset_in,
+    logic dispatch_en_in,
+    logic [$clog2(`NUM_PR)-1:0] T_idx_in,
+    logic [$clog2(`NUM_PR)-1:0] Told_idx_in,
+    logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx_in,
+    logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_in,
+    logic rollback_en_in,
+    logic complete_en_in,
+    logic [$clog2(`NUM_ROB)-1:0] complete_ROB_idx_in);
+      
+    begin
+      @ (posedge clock);
+      $display(" output time (posedge): %d",$time);
+      printOutput();
+      #2;
+      $display(" ROB print time: %d",$time);
+      printOut();
+      
+
+      $display("\n\n\n\n");
+       //set input at negedge
+      @ (negedge clock);
+      en = en_in;
+      reset = reset_in;
+      dispatch_en = dispatch_en_in;
+      T_idx = T_idx_in;
+      Told_idx = Told_idx_in;
+      dest_idx = dest_idx_in;
+      ROB_rollback_idx = ROB_rollback_idx_in;
+      rollback_en = rollback_en_in;
+      rob_packet_complete_in.complete_en = complete_en_in;
+      rob_packet_complete_in.complete_ROB_idx = complete_ROB_idx_in;
+      $display(" input time: %d",$time);
+      printInput();
+      // $display(" output time (negedge): %d",$time);
+      // printOutput();
+    end
+  endtask
+
+  initial begin
+    
+    // Reset
+    en    = 1'b1;
+    clock = 1'b1;
+    reset = 1'b1;
+    dispatch_en = 0;
+    // T_idx = 0;
+    // Told_idx = 0;
+    // dest_idx = 0;
+    // ROB_rollback_idx = 0;
+    rollback_en = 0;
+    rob_packet_complete_in.complete_en = 0;
+    // rob_packet_complete_in.complete_ROB_idx = 0;
+
+    @(negedge clock);
+    //TEST#1: fill in ROB until full
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(11),
+            .Told_idx_in(01),
+            .dest_idx_in(1),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+    
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(12),
+            .Told_idx_in(02),
+            .dest_idx_in(2),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(13),
+            .Told_idx_in(03),
+            .dest_idx_in(3),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(14),
+            .Told_idx_in(04),
+            .dest_idx_in(4),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+    
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(15),
+            .Told_idx_in(05),
+            .dest_idx_in(5),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+            
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(16),
+            .Told_idx_in(06),
+            .dest_idx_in(6),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(17),
+            .Told_idx_in(7),
+            .dest_idx_in(7),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(18),
+            .Told_idx_in(8),
+            .dest_idx_in(8),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    //should be blocked here
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(19),
+            .Told_idx_in(9),
+            .dest_idx_in(9),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    //TEST#2: complete ROB
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(16),
+            .Told_idx_in(06),
+            .dest_idx_in(6),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(1),
+            .complete_ROB_idx_in(4));
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(17),
+            .Told_idx_in(7),
+            .dest_idx_in(7),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(1),
+            .complete_ROB_idx_in(1));
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(18),
+            .Told_idx_in(8),
+            .dest_idx_in(8),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(1),
+            .complete_ROB_idx_in(5));
+
+    
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(18),
+            .Told_idx_in(8),
+            .dest_idx_in(8),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(1),
+            .complete_ROB_idx_in(0));
+
+    //TEST#3: ROB retires
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(19),
+            .Told_idx_in(9),
+            .dest_idx_in(9),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(1),
+            .complete_ROB_idx_in(2));
+
+    //TEST#4: ROB retires and dispatched (diff line) and complete
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(20),
+            .Told_idx_in(10),
+            .dest_idx_in(10),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(1),
+            .complete_ROB_idx_in(3));
+
+    //stop dispatching
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(0),
+            .Told_idx_in(0),
+            .dest_idx_in(0),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+    
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(0),
+            .Told_idx_in(0),
+            .dest_idx_in(0),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(0),
+            .Told_idx_in(0),
+            .dest_idx_in(0),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+    
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(0),
+            .Told_idx_in(0),
+            .dest_idx_in(0),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(0),
+            .Told_idx_in(0),
+            .dest_idx_in(0),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+
+    //Dispatch
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(21),
+            .Told_idx_in(11),
+            .dest_idx_in(11),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+    
+   
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(22),
+            .Told_idx_in(12),
+            .dest_idx_in(12),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(23),
+            .Told_idx_in(13),
+            .dest_idx_in(13),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(24),
+            .Told_idx_in(14),
+            .dest_idx_in(14),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(25),
+            .Told_idx_in(15),
+            .dest_idx_in(15),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(1),
+            .complete_ROB_idx_in(6));
+
+    //TEST#5: retire and dispatch same time (same line)
+    //stop inputs
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(26),
+            .Told_idx_in(16),
+            .dest_idx_in(16),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+    
+
+    //TEST#6: rollback (head tail same) rollback to tail index
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(0),
+            .Told_idx_in(0),
+            .dest_idx_in(0),
+            .ROB_rollback_idx_in(6),
+            .rollback_en_in(1),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+    
+    //TEST#7: rollback to 3 index back
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(0),
+            .Told_idx_in(0),
+            .dest_idx_in(0),
+            .ROB_rollback_idx_in(3),
+            .rollback_en_in(1),
+            .complete_en_in(1),
+            .complete_ROB_idx_in(7));
+
+    //TEST#8: rollback to bottom head index and retire
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(0),
+            .Told_idx_in(0),
+            .dest_idx_in(0),
+            .ROB_rollback_idx_in(7),
+            .rollback_en_in(1),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+            $display("DONE for now!!!!");
+
+    setInput(.en_in(1),
+            .reset_in(0),
+            .dispatch_en_in(1),
+            .T_idx_in(30),
+            .Told_idx_in(10),
+            .dest_idx_in(10),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    //DONE!!!!!
+    
+    setInput(.en_in(0),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(0),
+            .Told_idx_in(0),
+            .dest_idx_in(0),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+    
+    setInput(.en_in(0),
+            .reset_in(0),
+            .dispatch_en_in(0),
+            .T_idx_in(0),
+            .Told_idx_in(0),
+            .dest_idx_in(0),
+            .ROB_rollback_idx_in(0),
+            .rollback_en_in(0),
+            .complete_en_in(0),
+            .complete_ROB_idx_in(0));
+
+    $finish;
+  end
+endmodule  // test_ROB
+
 
 //   // DUT input stimulus
 //   logic en, clock, reset;
@@ -305,4 +835,3 @@
 
 //   end // initial
 
-// endmodule  // module testbench_ROB
