@@ -87,7 +87,7 @@ module RS (
 
   always_comb begin
 
-    RS_entry_match[i] =  {`NUM_FU{`FALSE}};
+    RS_entry_match =  {`NUM_FU{`FALSE}};
 
     for (int i = 0; i < `NUM_FU; i++) begin
 
@@ -105,13 +105,13 @@ module RS (
   // Issue
   always_comb begin
 
-    rs_packet_out.rs_valid = RS_entry_match != 0;
+    rs_packet_out.RS_valid = RS_entry_match != 0;
 
     for (int i = 0; i < `NUM_FU; i++) begin
 
       if ( RS_rollback[i] ) begin
         
-        rs_packet_out.FU_packet_out[i] = FU_PACKET_ENTRY_RESET;
+        rs_packet_out.FU_packet_out[i] = `FU_PACKET_ENTRY_RESET;
 
 `ifdef RS_FORWARDING
       end else if ( FU_entry_forward[i] ) begin

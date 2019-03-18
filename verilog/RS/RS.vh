@@ -38,9 +38,9 @@ typedef struct packed {
   `FALSE,                 \
   `NOOP_INST,             \
   ALU_ADDQ,               \
-  0,                      \
-  0,                      \
-  0,                      \
+  {64{1'b0}},             \
+  {`NUM_ROB{1'b0}},       \
+  {`NUM_FL{1'b0}},        \
   `ZERO_PR,               \
   `T_RESET,               \
   `T_RESET,               \
