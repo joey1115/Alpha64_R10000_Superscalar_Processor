@@ -15,30 +15,34 @@
 
 module test_PR;
 
-  // UUT input stimulus
+  // ********* UUT Setup *********
+  // UUT input
   logic en, clock, reset;
-  PR_PACKET_IN pr_packet_in;
+  PR_PACKET_IN  uut_in;
   // UUT output
-  PR_PACKET_OUT pr_packet_out;
+  PR_PACKET_OUT uut_out;
+  logic [`NUM_PR-1:0] [63:0] uut_data; // internal register data
 
   // UUT instantiation
   PR UUT(
     .en(en),
     .clock(clock),
     .reset(reset),
-    .pr_packet_in(pr_packet_in),
-    .pr_packet_out(pr_packet_out)
+    .pr_packet_in(uut_in),
+    .pr_packet_out(uut_out),
+    .pr_data(uut_data)
   );
 
-  logic [31:0] cycle_count;
 
+  // ********* System Clock and Cycle Count *********
   // Generate System Clock
   always begin
     #(`VERILOG_CLOCK_PERIOD/2.0);
     clock = ~clock;
   end
 
-  // Update cycle count
+  // Generate cycle count
+  logic [31:0] cycle_count;
   always @(posedge clock) begin
     if(reset)
       cycle_count <= `SD 0;
@@ -46,201 +50,139 @@ module test_PR;
       cycle_count <= `SD (cycle_count + 1);
   end
 
-  // Test Case
-  `define TEST1_LEN 46
-  PR_PACKET_IN  [`TEST1_LEN-1:0] test1;
-  // solutions have one more state than test cases
-  PR_PACKET_OUT   [`TEST1_LEN:0] test1_out;
 
-  // Check Sol: compare ROB output to solution
-  task check_Sol;
-    input logic   [31:0] cycle_count;
-    input PR_PACKET_OUT uut_out;
-    input PR_PACKET_OUT sol_out;
+  // ********* Test Case Setup *********
+  // Test Case
+  `define TEST_LEN 1
+  PR_PACKET_IN  [`TEST_LEN-1:0] test_in;
+  // solutions have one more state than test cases
+  PR_PACKET_OUT   [`TEST_LEN:0] sol_out;
+  logic [`NUM_PR-1:0] [63:0]    sol_data;
+
+  // Reset sol_data
+  task reset_sol_data;
+    begin
+      for (int i=0; i<`NUM_PR; i=i+1) begin
+        sol_data[i] = 64'b0;
+      end
+    end
+  endtask
+
+  // Update sol_data entry
+  task update_test_data;
+    input [$clog2(`NUM_PR)-1:0] idx;
+    input [63:0] value;
+    begin
+      sol_data[idx] = value;
+    end
+  endtask
+
+  // Display data in a physical register
+  task display_data;
+    input [`NUM_PR-1:0] [63:0] data; // Pysical register data for display
+    begin
+      $display("| PR |      Value (in hex)     |");
+      for (int i=0; i<`NUM_PR; i=i+1) begin
+        $display("| %2d |  0x%04h_%04h_%04h_%04h  |", i, data[i][63:48], data[i][47:32], data[i][31:16], data[i][15:0]);
+      end
+      $display();
+    end
+  endtask
+
+  task display_out;
+    input PR_PACKET_OUT out; // PR output for display
+    begin
+      for (int i=0; i<`NUM_FU; i=i+1) begin
+        $display("_________________FU_%1d_________________", i);
+        $display("| T1_value |  0x %04h_%04h_%04h_%04h  |", out.T1_value[i][63:48], out.T1_value[i][47:32], out.T1_value[i][31:16], out.T1_value[i][15:0]);
+        $display("| T2_value |  0x %04h_%04h_%04h_%04h  |", out.T2_value[i][63:48], out.T2_value[i][47:32], out.T2_value[i][31:16], out.T2_value[i][15:0]);
+      end
+      $display();
+    end
+  endtask
+
+  // // Apply input to UUT
+  // task apply_input;
+  //   input logic test_en;
+  //   input PR_PACKET_IN test_in;
+  //   begin
+  //     en = test_en;
+  //     uut_in = test_in;
+  //   end
+  // endtask
+
+  // Check Solution
+  task check_solution;
     int pass;
     begin
-  //     pass = 1;
-  //     $display("********* Cycle %2d *********", cycle_count);
-  //     if (uut_out.T1_value != sol_out.T1_value && sol_out.struct_hazard == 0) begin
-  //       $display("Incorrect pr_packet_out.T1_value");
-  //       $display("UUT output: %1d", uut_out.T1_value);
-  //       $display("sol output: %1d", sol_out.T1_value);
-  //       pass = 0;
-  //     end
-  //     if (uut_out.T2_value != sol_out.T2_value && sol_out.struct_hazard == 0) begin
-  //       $display("Incorrect pr_packet_out.T2_value");
-  //       $display("UUT output: %1d", uut_out.T2_value);
-  //       $display("sol output: %1d", sol_out.T2_value);
-  //       pass = 0;
-  //     end
-  //     if (uut_out.struct_hazard != sol_out.struct_hazard) begin
-  //       $display("Incorrect pr_packet_out.struct_hazard");
-  //       $display("UUT output: %1d", uut_out.struct_hazard);
-  //       $display("sol output: %1d", sol_out.struct_hazard);
-  //       pass = 0;
-  //     end
-  //     if (uut_out.T != sol_out.T && sol_out.struct_hazard == 0) begin
-  //       $display("Incorrect pr_packet_out.T");
-  //       $display("UUT output: %1d", uut_out.T);
-  //       $display("sol output: %1d", sol_out.T);
-  //       pass = 0;
-  //     end
-  //     if (pass == 1)
-  //       $display("@@@Pass!\n");
-  //     else
-  //       $display("@@@fail\n");
+      pass = 1;
+      $display("********* Cycle %2d *********", cycle_count);
+      // Display Data
+      $display("UUT");
+      display_data(uut_data);
+      $display("Sol");
+      display_data(sol_data);
+      $display("UUT");
+      display_out(uut_out);
+      $display("Sol");
+      display_out(sol_out);
+      // Compare UUT internal data with sol_data
+      for (int i=0; i<`NUM_PR; i=i+1) begin
+        if (uut_data[i] != sol_data[i]) begin
+          $display("Incorrect internal data: pr[%2d]", i);
+          $display("UUT value: %2d", uut_data[i]);
+          $display("Sol value: %2d", sol_data[i]);
+          pass = 0;
+        end
+      end
+      // Compare UUT output with sol_out
+      for (int i=0; i<`NUM_FU; i=i+1) begin
+        if (uut_out.T1_value[i] != sol_out[cycle_count].T1_value[i]) begin
+          $display("Incorrect output: pr_packet_out.T1_value");
+          $display("UUT output: %2d", uut_out.T1_value[i]);
+          $display("Sol output: %2d", sol_out[cycle_count].T1_value[i]);
+          pass = 0;
+        end
+        if (uut_out.T2_value[i] != sol_out[cycle_count].T2_value[i]) begin
+          $display("Incorrect output: pr_packet_out.T2_value");
+          $display("UUT output: %2d", uut_out.T2_value[i]);
+          $display("Sol output: %2d", sol_out[cycle_count].T2_value[i]);
+          pass = 0;
+        end
+      end // for
+      // Verdict
+      if (pass == 1)
+        $display("@@@Pass!\n");
+      else
+        $display("@@@fail\n");
     end
-  endtask // task check_Sol
-
-  // task Insert_T1_T2   // insert T1 and T2 to test1
-  //   input logic [$clog2(`TEST1_LEN)-1:0] 
-  // endtask
+  endtask
 
 
   initial begin
+    // ********* Test Case *********
+    // test_in[c]: input at cycle c
+    // the resulting combinational logic outputs will be checked at cycle c (sol_out[c])
+    // the resulting  sequential   logic outputs will be checked at cycle c+1 (sol_out[c+1])
+    // input: {write_en, T_idx, T_value, `NUM_FU{T1_idx}, `NUM_FU{T2_idx}}
 
+    // Cycle 0
+    test_in[0] = '{0,  0, 16, '{ 0,  1, 30, 31, 46}, '{32, 63, 46, 48, 61}};
 
-  // for (int i=0; i<`TEST1_LEN; i++) begin
-  //   test1[i].r = $random %2;                // input retire signal 
-  //   test1[i].T_old = i;            // input T_old from ROB
-  //   test1[i].X_C_valid = 1;        // input ready bit from exe
-  //   test1[i].X_C_T = i+1;          // input tag of result from exe
-  //   test1[i].X_C_result = 3*i;     // input result from exe
-  //   test1[i].inst_dispatch =1 ;      // input dispatch_hazard
-  //   for (int j = 0; j<$clog2(`NUM_FU)-1;j++ ) begin
-  //     test1[i].S_X_T1[j] = i;      // input T1 from FU
-  //     test1[i].S_X_T2[j] = 0;      // input T2 from FU
-  //     test1_out[i+1].T1_value[j] = 1;    // output T1_value 
-  //     test1_out[i+1].T2_value[j] = 1;   // output T2_value
-  //   end
-  //   test1_out[i+1].struct_hazard = 1;       // output hazard
-  //   test1_out[i+1].T = 1;        // output free tag 
-  // end
+    // sol_out[c]: output at cycle c (test[c]'s effect is shown by sol_out[c+1])
+    // checks the resulting combinational logic outputs of test_in[c] (combinational outputs are labeled in quotations below)
+    // checks the resulting  sequential   logic outputs of test_in[c-1]
+    // output: {`NUM_FU{"T1_value"}, `NUM_FU{"T2_value"}}
 
-    /***** Test Case #1 *****/
-
-    // test1[c]: input at cycle c, the corresponding output will be at cycle c+1
-    // input {r, T_old, X_C_valid, X_C_T, X_C_result, S_X_T1, S_X_T2, inst_dispatch,}
-    // Cycle 0-6: simulates Lecture Slides with stalls added
-    // test1[0]  = '{1, 0,  1,  0, 2, 0, 1};
-    // test1[1]  = '{0, 0,  0,  3, 0, 0}; // test stall (inst_dispatch)
-    // test1[2]  = '{0, 1,  0,  3, 0, 0};
-    // test1[3]  = '{0, 1,  0, 31, 0, 0}; // store inst, no destination
-    // test1[4]  = '{0, 1,  0,  4, 0, 0}; // test stall (enable) here
-    // test1[5]  = '{0, 1,  0,  4, 0, 0};
-    // test1[6]  = '{1, 1,  0,  5, 0, 0};
-    // // Cycle 7-10: fill up all entries of ROB
-    // test1[7]  = '{0, 1,  1, 19, 0, 0};
-    // test1[8]  = '{0, 1,  1, 20, 0, 0};
-    // test1[9]  = '{0, 1,  1, 21, 0, 0};
-    // test1[10] = '{0, 1,  1, 22, 0, 0};
-    // // Cycle 11: check struct hazard detection
-    // test1[11] = '{0, 1, 13, 23, 0, 0};
-    // // Cycle 12: the head retires and new inst should be dispatched at the same cycle
-    // test1[12] = '{1, 1, 13, 23, 0, 0};
-    // // Cycle 13-20: retire all instructions
-    // test1[13] = '{1, 0, 14, 24, 0, 0};
-    // test1[14] = '{1, 0, 14, 24, 0, 0};
-    // test1[15] = '{1, 0, 14, 24, 0, 0};
-    // test1[16] = '{1, 0, 14, 24, 0, 0};
-    // test1[17] = '{1, 0, 14, 24, 0, 0};
-    // test1[18] = '{1, 0, 14, 24, 0, 0};
-    // test1[19] = '{1, 0, 14, 24, 0, 0};
-    // test1[20] = '{1, 0, 14, 24, 0, 0};
-    // // Cycle 21: try retire when ROB is empty
-    // test1[21] = '{1, 0, 14, 24, 0, 0};
-    // // Cycle 22-29: fill in instructions again
-    // test1[22] = '{0, 1,  2, 12, 0, 0};
-    // test1[23] = '{0, 1,  3, 13, 0, 0};
-    // test1[24] = '{0, 1,  4, 14, 0, 0};
-    // test1[25] = '{0, 1,  5, 15, 0, 0};
-    // test1[26] = '{0, 1,  6, 16, 0, 0};
-    // test1[27] = '{0, 1,  7, 17, 0, 0};
-    // test1[28] = '{0, 1, 10, 20, 0, 0};
-    // test1[29] = '{0, 1, 11, 21, 0, 0};
-    // // Cycle 30: branch exception
-    // test1[30] = '{0, 1, 12, 22, 7, 1}; // flush anything after ROB#7 (with inst_dispatch ON)
-    // test1[31] = '{0, 0, 12, 22, 4, 1}; // flush right after flush
-    // test1[32] = '{0, 1, 12, 22, 4, 0}; // write something after flush
-    // test1[33] = '{1, 1, 13, 23, 3, 1}; // flush and retire at the same time
-    // test1[34] = '{1, 0, 13, 23, 3, 1}; // flush again at the same spot, and retire
-    // // Cycle 35-43: reset and fill up the ROB and flush the head
-    // test1[35] = '{0, 1, 10, 20, 0, 0}; // reset here
-    // test1[36] = '{0, 1,  0, 10, 0, 0};
-    // test1[37] = '{0, 1,  1, 11, 0, 0};
-    // test1[38] = '{0, 1,  2, 12, 0, 0};
-    // test1[39] = '{0, 1,  3, 13, 0, 0};
-    // test1[40] = '{0, 1,  4, 14, 0, 0};
-    // test1[41] = '{0, 1,  5, 15, 0, 0};
-    // test1[42] = '{0, 1,  6, 16, 0, 0};
-    // test1[43] = '{0, 1,  7, 17, 0, 0};
-    // test1[44] = '{0, 0, 13, 23, 0, 1}; // flush at index 0 (head)
-
-    // test1_out[c]: output at cycle c (test1[c]'s effect is shown by test1_out[c+1])
-    // output {T1_value, T2_value, struct_hazard, T}
-    // Cycle 0 tests reset
-    // test1_out[0]  = '{ 2,  3, 0, 0}; // T_out, T_old_out should be don't care
-    // simulates lecture slides with stalls added
-    // test1_out[1]  = '{ 5,  2, 1, 0, 0, 0};
-    // test1_out[2]  = '{ 5,  2, 1, 0, 0, 0};
-    // test1_out[3]  = '{ 6,  3, 1, 0, 0, 1};
-    // test1_out[4]  = '{31, 31, 1, 0, 0, 2};
-    // test1_out[5]  = '{31, 31, 1, 0, 0, 2};
-    // test1_out[6]  = '{ 7,  4, 1, 0, 0, 3};
-    // test1_out[7]  = '{ 8,  5, 1, 0, 1, 4};
-    // // all entries of ROB are filled at cycle 11
-    // test1_out[8]  = '{ 9, 19, 1, 0, 1, 5};
-    // test1_out[9]  = '{10, 20, 1, 0, 1, 6};
-    // test1_out[10] = '{11, 21, 1, 0, 1, 7};
-    // test1_out[11] = '{12, 22, 1, 1, 1, 0}; // test ROB# roll-over
-    // // struct hazard happens here
-    // test1_out[12] = '{12, 22, 1, 1, 1, 0};
-    // // the head retires and the new inst takes its entry
-    // test1_out[13] = '{13, 23, 1, 1, 2, 1};
-    // // retire all instructions
-    // test1_out[14] = '{13, 23, 1, 0, 3, 1};
-    // test1_out[15] = '{13, 23, 1, 0, 4, 1};
-    // test1_out[16] = '{13, 23, 1, 0, 5, 1};
-    // test1_out[17] = '{13, 23, 1, 0, 6, 1};
-    // test1_out[18] = '{13, 23, 1, 0, 7, 1};
-    // test1_out[19] = '{13, 23, 1, 0, 0, 1}; // test ROB head idx roll-over
-    // test1_out[20] = '{13, 23, 1, 0, 1, 1};
-    // test1_out[21] = '{13, 23, 0, 0, 2, 1};
-    // // don't move head when over-retire
-    // test1_out[22] = '{13, 23, 0, 0, 2, 1};
-    // // fill in instructions again
-    // test1_out[23] = '{ 2, 12, 1, 0, 2, 2};
-    // test1_out[24] = '{ 3, 13, 1, 0, 2, 3};
-    // test1_out[25] = '{ 4, 14, 1, 0, 2, 4};
-    // test1_out[26] = '{ 5, 15, 1, 0, 2, 5};
-    // test1_out[27] = '{ 6, 16, 1, 0, 2, 6};
-    // test1_out[28] = '{ 7, 17, 1, 0, 2, 7};
-    // test1_out[29] = '{10, 20, 1, 0, 2, 0};
-    // test1_out[30] = '{11, 21, 1, 1, 2, 1};
-    // // branch exception (flush anything after ROB#7)
-    // test1_out[31] = '{ 7, 17, 1, 0, 2, 7};
-    // test1_out[32] = '{ 4, 14, 1, 0, 2, 4};
-    // test1_out[33] = '{12, 22, 1, 0, 2, 5};
-    // test1_out[34] = '{ 3, 13, 1, 0, 3, 3};
-    // test1_out[35] = '{ 3, 13, 0, 0, 4, 3};
-    // // reset and fill up the ROB and flush the head
-    // test1_out[36] = '{10, 20, 0, 0, 0, 0}; // reset here
-    // test1_out[37] = '{ 0, 10, 1, 0, 0, 0};
-    // test1_out[38] = '{ 1, 11, 1, 0, 0, 1};
-    // test1_out[39] = '{ 2, 12, 1, 0, 0, 2};
-    // test1_out[40] = '{ 3, 13, 1, 0, 0, 3};
-    // test1_out[41] = '{ 4, 14, 1, 0, 0, 4};
-    // test1_out[42] = '{ 5, 15, 1, 0, 0, 5};
-    // test1_out[43] = '{ 6, 16, 1, 0, 0, 6};
-    // test1_out[44] = '{ 7, 17, 1, 1, 0, 7};
-    // test1_out[45] = '{ 0, 10, 1, 0, 0, 0};
+    // Cycle 0: check reset
+    sol_out[0] = '{'{ 0,  0,  0,  0,  0}, '{ 0,  0,  0,  0,  0}};
 
 
     // Reset
     en    = 1'b1;
     clock = 1'b0;
     reset = 1'b0;
-    pr_packet_in = 0;
+    uut_in = 0;
 
     @(negedge clock);
     reset = 1'b1;
@@ -248,15 +190,13 @@ module test_PR;
     // Cycle 0
     @(negedge clock);
     reset = 1'b0;
-    $display("@@@Pass!!!!!!!!!!!!!!!!!!!!");
-    // check_Sol(cycle_count, pr_packet_out, test1_out[cycle_count]);
-    // $display("cycle_count = %1d", cycle_count);
-    // pr_packet_in = test1[0];
+    uut_in = test_in[0];
+    reset_sol_data();
+    @(posedge clock)
+    check_solution();
 
     // Cycle 1
     @(negedge clock);
-    // check_Sol(cycle_count, pr_packet_out, test1_out[cycle_count]);
-    // pr_packet_in = test1[1];
 
     // @(negedge clock);
     // @(negedge clock);
