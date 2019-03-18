@@ -41,19 +41,21 @@ module PR (
     next_pr = pr;
 
     // Complete
-    if (pr_packet_in.write_en && pr_packet_in.T_idx != 31) begin
+    if (en && pr_packet_in.write_en && pr_packet_in.T_idx != 31) begin
       next_pr[pr_packet_in.T_idx] = pr_packet_in.T_value;
     end
 
     // Execution
     for (int i=0; i<`NUM_FU; i++) begin
-      if (pr_packet_in.write_en && pr_packet_in.T_idx == pr_packet_in.T1_idx[i] && pr_packet_in.T_idx != 31) begin
+      if (en && pr_packet_in.write_en && (pr_packet_in.T_idx == pr_packet_in.T1_idx[i]) && (pr_packet_in.T_idx != 31)) begin
+      // if (1==2) begin
         pr_packet_out.T1_value[i] = pr_packet_in.T_value;    // forwarding
       end else begin
         pr_packet_out.T1_value[i] = next_pr[pr_packet_in.T1_idx[i]];
       end
 
-      if (pr_packet_in.write_en && pr_packet_in.T_idx == pr_packet_in.T2_idx[i] && pr_packet_in.T_idx != 31) begin
+      if (en && pr_packet_in.write_en && (pr_packet_in.T_idx == pr_packet_in.T2_idx[i]) && (pr_packet_in.T_idx != 31)) begin
+      // if (1==2) begin
         pr_packet_out.T2_value[i] = pr_packet_in.T_value;    // forwarding
       end else begin
         pr_packet_out.T2_value[i] = next_pr[pr_packet_in.T2_idx[i]];
@@ -67,7 +69,7 @@ module PR (
       for (int i=0; i<`NUM_PR; i++) begin
         pr[i] <= `SD 64'b0;
       end
-    end else begin
+    end else if (en) begin
       pr <= `SD next_pr;
     end
   end // always_ff
