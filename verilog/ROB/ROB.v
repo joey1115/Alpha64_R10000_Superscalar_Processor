@@ -40,9 +40,21 @@ module ROB (
   logic writeTail, moveHead, mispredict, b_t, retire, original_state;
   logic [$clog2(`NUM_ROB)-1:0] real_tail_idx;
 
-  always_comb begin
-    Nrob = rob;
+  //assign Nrob = rob;
 
+  //assign ROB_valid
+  assign  ROB_valid = !Nrob.entry[Nrob.tail].valid;
+
+  always_comb begin
+    //outputs
+    real_tail_idx = Nrob.tail - 1;
+    
+    //tail index to RS and Freelist
+    rob_packet_rs_out.ROB_tail_idx = real_tail_idx;
+    rob_packet_freelist_out.ROB_tail_idx = real_tail_idx;
+  end
+
+  always_comb begin
     retire = rob.entry[rob.head].complete;
 
     // condition for Retire
@@ -54,6 +66,22 @@ module ROB (
                 && en 
                 && (!rob.entry[rob.tail].valid || retire) 
                 && !rollback_en;
+  end
+
+  always_comb begin
+     Nrob = rob;
+
+    // retire = rob.entry[rob.head].complete;
+
+    // // condition for Retire
+    // moveHead = (retire) 
+    //             && en 
+    //             && rob.entry[rob.head].valid;
+    // // condition for Dispatch
+    // writeTail = (dispatch_en) 
+    //             && en 
+    //             && (!rob.entry[rob.tail].valid || retire) 
+    //             && !rollback_en;
 
     //complete stage
     if(rob_packet_complete_in.complete_en) begin
@@ -66,6 +94,8 @@ module ROB (
     Nrob.entry[rob.tail].T = (writeTail) ? T_idx : Nrob.entry[rob.tail].T;
     Nrob.entry[rob.tail].T_old = (writeTail) ? Told_idx : Nrob.entry[rob.tail].T_old;
     Nrob.entry[rob.tail].dest_idx = (writeTail) ? dest_idx : Nrob.entry[rob.tail].dest_idx;
+
+    
   
     //update valid and complete bits of entry
     if(rob.head != rob.tail) begin
@@ -104,27 +134,19 @@ module ROB (
         Nrob.tail = ROB_rollback_idx + 1;
     end
     
-    //outputs
-    real_tail_idx = Nrob.tail - 1;
-    
-    //tail index to RS and Freelist
-    rob_packet_rs_out.ROB_tail_idx = real_tail_idx;
-    rob_packet_freelist_out.ROB_tail_idx = real_tail_idx;
-
-    //ROB hazard
-    ROB_valid = !Nrob.entry[Nrob.tail].valid;
+   
   end
 
-  always_comb begin
+  //always_comb begin
     //T_old index to freelist
-    rob_packet_freelist_out.T_old_idx_head = rob.entry[rob.head].T_old;
-    rob_packet_freelist_out.free_PR = retire;
+    assign rob_packet_freelist_out.T_old_idx_head = rob.entry[rob.head].T_old;
+    assign rob_packet_freelist_out.free_PR = retire;
 
     //retire archmap signal
-    rob_packet_archmap_out.retire_en = retire;
-    rob_packet_archmap_out.dest_idx = rob.entry[rob.head].dest_idx;
-    rob_packet_archmap_out.T_idx_head = rob.entry[rob.head].T;
-  end
+    assign rob_packet_archmap_out.retire_en = retire;
+    assign rob_packet_archmap_out.dest_idx = rob.entry[rob.head].dest_idx;
+    assign rob_packet_archmap_out.T_idx_head = rob.entry[rob.head].T;
+  //end
 
   always_ff @ (posedge clock) begin
     if(reset) begin
