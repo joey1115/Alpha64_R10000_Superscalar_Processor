@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////
 //                                                                     //
 //                                                                     //
-//   Modulename :  testbench_CT.v                                      //
+//   Modulename :  testbench_CDB.v                                     //
 //                                                                     //
-//  Description :  Testbench module for CDB module;                     //
+//  Description :  Testbench module for CDB module;                    //
 //                                                                     //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
@@ -77,5 +77,5 @@ module test_CT;
 
   end // initial
 
-endmodule  // module test_ROB
+endmodule  // module test_CDB
 
