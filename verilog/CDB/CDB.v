@@ -24,10 +24,7 @@ module CDB (
 );
 
   CDB_entry_t [`NUM_FU-1:0] CDB, next_CDB;
-  logic       [$clog2(`NUM_ROB)-1:0] diff_ROB;
   logic [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0] diff;
-
-  assign diff_ROB = CDB_packet_in.ROB_tail_idx - CDB_packet_in.ROB_rollback_idx;
 
   always_comb begin
     next_CDB = CDB;
@@ -82,7 +79,7 @@ module CDB (
     if (rollback_en) begin
       for (int i=0; i<`NUM_FU; i++)begin
         diff[i] = next_CDB[i].ROB_idx - CDB_packet_in.ROB_rollback_idx;
-        if (diff_ROB >= diff[i]) begin
+        if (CDB_packet_in.diff_ROB >= diff[i]) begin
           next_CDB[i].taken = 0;
           next_CDB[i].T = 0;
           next_CDB[i].result = 0;
