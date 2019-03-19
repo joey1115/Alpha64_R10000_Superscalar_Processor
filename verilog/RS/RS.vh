@@ -1,4 +1,3 @@
-
 `ifndef __RS_VH__
 `define __RS_VH__
 

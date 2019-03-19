@@ -3,17 +3,15 @@ module alu(
   input  logic                        CDB_valid,
   input  logic                        ROB_rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
-  input  logic [$clog2(`NUM_ROB)-1:0] ROB_tail_idx,
+  input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
   output FU_RESULT_ENTRY_t            fu_packet_out,
   output logic                        fu_valid
 );
 
   logic [63:0]                 regA, regB;
   logic                        rollback_en;
-  logic [$clog2(`NUM_ROB)-1:0] diff_ROB;
   logic [$clog2(`NUM_ROB)-1:0] diff;
 
-  assign diff_ROB    = ROB_tail_idx - ROB_rollback_idx;
   assign diff        = fu_packet.ROB_idx - ROB_rollback_idx;
   assign rollback_en = ROB_rollback_en && diff_ROB >= diff;
   assign fu_valid    = CDB_valid || !fu_packet.ready || rollback_en;
@@ -74,7 +72,7 @@ module mult_stage (
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_idx,
   input  logic                        ROB_rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
-  input  logic [$clog2(`NUM_ROB)-1:0] ROB_tail_idx,
+  input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
 `ifdef DEBUG
   input  logic [63:0]                 T1_value,
   input  logic [63:0]                 T2_value,
@@ -95,7 +93,6 @@ module mult_stage (
   logic [64/`NUM_MULT_STAGE-1:0] partial_product, next_mplier, next_mcand;
   logic                          rollback_en;
   logic                          next_done;
-  logic [$clog2(`NUM_ROB)-1:0]   diff_ROB;
   logic [$clog2(`NUM_ROB)-1:0]   diff;
 `ifdef MULT_FORWARDING
   logic [$clog2(`NUM_ROB)-1:0]   diff_out;
@@ -105,7 +102,6 @@ module mult_stage (
   logic [63:0]                   next_T2_value_out;
 `endif
 
-  assign diff_ROB         = ROB_tail_idx - ROB_rollback_idx;
 `ifdef MULT_FORWARDING
   assign diff_out         = ROB_idx_out - ROB_rollback_idx;
   assign diff             = ROB_idx - ROB_rollback_idx;
@@ -208,27 +204,27 @@ endmodule
 // allow a faster clock period than straight *
 // This module instantiates 8 pipeline stages as an array of submodules.
 module mult (
-  input  logic                                    clock, reset,
-  input  FU_PACKET_IN_t                           fu_packet,
-  input  logic                                    CDB_valid,
-  input  logic                                    ROB_rollback_en,
-  input  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
-  input  logic             [$clog2(`NUM_ROB)-1:0] ROB_tail_idx,
-  output FU_RESULT_ENTRY_t                        fu_packet_out,
+  input  logic                                                          clock, reset,
+  input  FU_PACKET_IN_t                                                 fu_packet,
+  input  logic                                                          CDB_valid,
+  input  logic                                                          ROB_rollback_en,
+  input  logic             [$clog2(`NUM_ROB)-1:0]                       ROB_rollback_idx,
+  input  logic             [$clog2(`NUM_ROB)-1:0]                       diff_ROB,
 `ifdef DEBUG
-  output logic                                              last_done,
-  output logic [63:0]                                       product_out,
-  output logic [$clog2(`NUM_PR)-1:0]                        last_T_idx,
-  output logic [$clog2(`NUM_ROB)-1:0]                       last_ROB_idx,
-  output logic [63:0]                                       T1_value,
-  output logic [63:0]                                       T2_value,
-  output logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values,
-  output logic [`NUM_MULT_STAGE-2:0]                        internal_valids,
-  output logic [`NUM_MULT_STAGE-3:0]                        internal_dones,
-  output logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx,
-  output logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx,
+  output logic                                                          last_done,
+  output logic             [63:0]                                       product_out,
+  output logic             [$clog2(`NUM_PR)-1:0]                        last_T_idx,
+  output logic             [$clog2(`NUM_ROB)-1:0]                       last_ROB_idx,
+  output logic             [63:0]                                       T1_value,
+  output logic             [63:0]                                       T2_value,
+  output logic             [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values,
+  output logic             [`NUM_MULT_STAGE-2:0]                        internal_valids,
+  output logic             [`NUM_MULT_STAGE-3:0]                        internal_dones,
+  output logic             [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx,
+  output logic             [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx,
 `endif
-  output logic             fu_valid
+  output FU_RESULT_ENTRY_t                                              fu_packet_out,
+  output logic                                                          fu_valid
 );
 
 `ifndef DEBUG
@@ -270,7 +266,7 @@ module mult (
     .ROB_idx({fu_packet_out.ROB_idx, internal_ROB_idx, fu_packet.ROB_idx}),
     .ROB_rollback_en({`NUM_MULT_STAGE{ROB_rollback_en}}),
     .ROB_rollback_idx({`NUM_MULT_STAGE{ROB_rollback_idx}}),
-    .ROB_tail_idx({`NUM_MULT_STAGE{ROB_tail_idx}}),
+    .diff_ROB({`NUM_MULT_STAGE{diff_ROB}}),
 `ifdef DEBUG
     .T1_value({internal_T1_values, regA}),
     .T2_value({internal_T2_values, regB}),
@@ -295,13 +291,13 @@ module br(
   input  FU_PACKET_IN_t    fu_packet,
   input  logic             CDB_valid,
   output FU_RESULT_ENTRY_t fu_packet_out,
+  output                   fu_valid,
   output logic             take_branch
 );
 
   logic result;
   logic [63:0] regA, regB;
-  assign fu_valid = CDB_valid || !fu_packet.ready;;
-
+  assign fu_valid = CDB_valid || !fu_packet.ready;
   assign take_branch = fu_packet.uncond_branch || (fu_packet.cond_branch && result);
 
   always_comb begin
@@ -351,14 +347,24 @@ module br(
 endmodule // brcond
 
 module FU (
-  input                               clock,               // system clock
-  input                               reset,               // system reset
-  input  FU_M_PACKET_IN               fu_m_packet_in,
-  output FU_M_PACKET_OUT              fu_m_packet_out,
-  output logic          [`NUM_FU-1:0] fu_valid
+  input                                         clock,               // system clock
+  input                                         reset,               // system reset
+  input  FU_M_PACKET_IN                         fu_m_packet_in,
+  input  logic           [$clog2(`NUM_ROB)-1:0] ROB_tail_idx,
+  input  logic           [`NUM_FU-1:0]          CDB_valid,
+  output FU_M_PACKET_OUT                        fu_m_packet_out,
+  output logic           [`NUM_FU-1:0]          fu_valid,
+  output logic                                  ROB_rollback_en,
+  output logic           [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  output logic           [$clog2(`NUM_ROB)-1:0] diff_ROB
 );
 
-  // FU_PACKET_IN_t [`NUM_FU-1:0] fu_packet_in;
+  FU_PACKET_IN_t [`NUM_FU-1:0] fu_packet_in;
+  logic          [`NUM_BR-1:0] take_branch;
+
+  assign ROB_rollback_en  = take_branch[0];
+  assign ROB_rollback_idx = fu_m_packet_out.fu_result[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
+  assign diff_ROB         = ROB_tail_idx - ROB_rollback_idx;
 
   // always_comb begin
     
@@ -404,13 +410,17 @@ module FU (
   //   .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
   // );
 
-  // br br_0 [`NUM_BR-1:0] (
-  //   // Inputs
-  //   .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
-  //   // Output
-  //   .result(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
-  //   .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)])
-  // );
+  br br_0 [`NUM_BR-1:0] (
+    // Inputs
+    .clock({`NUM_BR{clock}}),
+    .reset({`NUM_BR{reset}}),
+    .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
+    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
+    // Output
+    .fu_packet_out(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
+    .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
+    .take_branch(take_branch[`NUM_BR-1:0])
+  );
 
   // st st_0 [`NUM_ST-1:0] (
   //   // Inputs

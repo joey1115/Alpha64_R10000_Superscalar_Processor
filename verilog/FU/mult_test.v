@@ -13,7 +13,7 @@ module testbench();
   logic last_done;
   logic [63:0] product_out, T1_value, T2_value;
   logic [$clog2(`NUM_PR)-1:0] last_T_idx;
-  logic [$clog2(`NUM_ROB)-1:0] last_ROB_idx, ROB_rollback_idx, ROB_tail_idx;
+  logic [$clog2(`NUM_ROB)-1:0] last_ROB_idx, ROB_rollback_idx, diff_ROB;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0] internal_T1_values, internal_T2_values;
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
   logic [`NUM_MULT_STAGE-3:0]                        internal_dones;
@@ -32,7 +32,7 @@ module testbench();
             .product_out(product_out),
             .last_T_idx(last_T_idx),
             .last_ROB_idx(last_ROB_idx),
-            .ROB_tail_idx(ROB_tail_idx),
+            .diff_ROB(diff_ROB),
             .T1_value(T1_value),
             .T2_value(T2_value),
             .internal_T1_values(internal_T1_values),
@@ -80,7 +80,7 @@ module testbench();
       CDB_valid,
       ROB_rollback_en,
       ROB_rollback_idx,
-      ROB_tail_idx
+      diff_ROB
     );
   endtask
 
@@ -123,7 +123,7 @@ module testbench();
       CDB_valid = CDB_valid_in;
       ROB_rollback_en = ROB_rollback_en_in;
       ROB_rollback_idx = ROB_rollback_idx_in;
-      ROB_tail_idx = ROB_tail_idx_in;
+      diff_ROB = ROB_tail_idx_in - ROB_rollback_idx_in;
       displays_inputs();
       @(negedge clock);
     end
