@@ -45,6 +45,10 @@ typedef struct packed {
 } ROB_PACKET_RS_OUT;
 
 typedef struct packed {
+  logic [$clog2(`NUM_ROB)-1:0] ROB_tail_idx;          // ROB tail index for dispatched insn
+} ROB_PACKET_MAPTABLE_OUT;
+
+typedef struct packed {
   logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx;       // destination idx for archmap retire
   logic [$clog2(`NUM_PR)-1:0] T_idx_head;            // T_idx at head to retire to archmap
   logic retire_en;                                    // enable retire for arch map
