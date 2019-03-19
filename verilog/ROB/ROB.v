@@ -27,6 +27,7 @@ module ROB (
 
   output logic ROB_valid,
   output ROB_PACKET_RS_OUT rob_packet_rs_out,
+  output ROB_PACKET_MAPTABLE_OUT rob_packet_maptable_out,
   output ROB_PACKET_FREELIST_OUT rob_packet_freelist_out,
   output ROB_PACKET_ARCHMAP_OUT rob_packet_archmap_out
 );
@@ -37,21 +38,35 @@ module ROB (
 
   ROB_t Nrob;
 
-  logic writeTail, moveHead, mispredict, b_t, retire, original_state;
+  logic writeTail, moveHead, mispredict, b_t, retire, stall_dispatch;
   logic [$clog2(`NUM_ROB)-1:0] real_tail_idx;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg;
+
+  logic [1:0] state, Nstate;
 
   //assign Nrob = rob;
 
   //assign ROB_valid
-  assign  ROB_valid = !Nrob.entry[Nrob.tail].valid;
+  assign stall_dispatch = (state == 1);
+  assign ROB_valid = (stall_dispatch)? 0 : !Nrob.entry[Nrob.tail].valid;
+
+  //T_old index to freelist
+  assign rob_packet_freelist_out.T_old_idx_head = rob.entry[rob.head].T_old;
+  assign rob_packet_freelist_out.free_PR = retire;
+
+  //retire archmap signal
+  assign rob_packet_archmap_out.retire_en = retire;
+  assign rob_packet_archmap_out.dest_idx = rob.entry[rob.head].dest_idx;
+  assign rob_packet_archmap_out.T_idx_head = rob.entry[rob.head].T;
 
   always_comb begin
     //outputs
     real_tail_idx = Nrob.tail - 1;
     
-    //tail index to RS and Freelist
+    //tail index to RS and Freelist and maptable
     rob_packet_rs_out.ROB_tail_idx = real_tail_idx;
     rob_packet_freelist_out.ROB_tail_idx = real_tail_idx;
+    rob_packet_maptable_out.ROB_tail_idx = real_tail_idx;
   end
 
   always_comb begin
@@ -70,18 +85,6 @@ module ROB (
 
   always_comb begin
      Nrob = rob;
-
-    // retire = rob.entry[rob.head].complete;
-
-    // // condition for Retire
-    // moveHead = (retire) 
-    //             && en 
-    //             && rob.entry[rob.head].valid;
-    // // condition for Dispatch
-    // writeTail = (dispatch_en) 
-    //             && en 
-    //             && (!rob.entry[rob.tail].valid || retire) 
-    //             && !rollback_en;
 
     //complete stage
     if(rob_packet_complete_in.complete_en) begin
@@ -137,19 +140,19 @@ module ROB (
    
   end
 
-  //always_comb begin
-    //T_old index to freelist
-    assign rob_packet_freelist_out.T_old_idx_head = rob.entry[rob.head].T_old;
-    assign rob_packet_freelist_out.free_PR = retire;
+  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx : ROB_rollback_idx_reg;
 
-    //retire archmap signal
-    assign rob_packet_archmap_out.retire_en = retire;
-    assign rob_packet_archmap_out.dest_idx = rob.entry[rob.head].dest_idx;
-    assign rob_packet_archmap_out.T_idx_head = rob.entry[rob.head].T;
-  //end
-
+  always_comb begin
+    case(state)
+      0: Nstate = (mispredict) ? 1 : state;
+      1: Nstate = (rob.head == ROB_rollback_idx_reg) ? 0 : state;
+      default: Nstate = state;
+    endcase 
+  end
   always_ff @ (posedge clock) begin
     if(reset) begin
+      state <= `SD 0;
+      ROB_rollback_idx_reg <= `SD 0;
       rob.tail <= `SD 0;
       rob.head <= `SD 0;
       for(int i=0; i < `NUM_ROB; i++) begin
@@ -162,6 +165,8 @@ module ROB (
     end // if (reset) else
     else if(en)begin
       rob <= `SD Nrob;
+      state <= `SD Nstate;
+      ROB_rollback_idx_reg <= `SD NROB_rollback_idx_reg;
     end // else if(en)begin
   end // always_ff
 
