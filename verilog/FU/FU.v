@@ -97,18 +97,23 @@ module mult_stage (
   logic                          next_done;
   logic [$clog2(`NUM_ROB)-1:0]   diff_ROB;
   logic [$clog2(`NUM_ROB)-1:0]   diff;
-`ifdef DEBUG
-  logic [63:0]            next_T1_value_out;
-  logic [63:0]            next_T2_value_out;
+`ifdef MULT_FORWARDING
+  logic [$clog2(`NUM_ROB)-1:0]   diff_out;
 `endif
+`ifdef DEBUG
+  logic [63:0]                   next_T1_value_out;
+  logic [63:0]                   next_T2_value_out;
+`endif
+
   assign diff_ROB         = ROB_tail_idx - ROB_rollback_idx;
+`ifdef MULT_FORWARDING
+  assign diff_out         = ROB_idx_out - ROB_rollback_idx;
+  assign diff             = ROB_idx - ROB_rollback_idx;
+  assign rollback_en_out  = ROB_rollback_en && diff_ROB >= diff_out;
+  assign rollback_en      = ROB_rollback_en && diff_ROB >= diff;
+`else
   assign diff             = next_ROB_idx_out - ROB_rollback_idx;
   assign rollback_en      = ROB_rollback_en && diff_ROB >= diff;
-  assign valid_out        = ( !ready || valid ) && !rollback_en;
-  assign next_product     = product_in + partial_product;
-  assign partial_product  = mplier_in[64/`NUM_MULT_STAGE-1:0] * mcand_in;
-  assign next_mplier      = {{64/`NUM_MULT_STAGE{1'b0}}, mplier_in[63:64/`NUM_MULT_STAGE]};
-  assign next_mcand       = {mcand_in[63-64/`NUM_MULT_STAGE:0], {(64/`NUM_MULT_STAGE){1'b0}}};
   assign next_mplier_out  = valid ? next_mplier : mplier_out;
   assign next_mcand_out   = valid ? next_mcand : mcand_out;
   assign next_product_out = valid ? next_product : product_out;
@@ -119,9 +124,58 @@ module mult_stage (
   assign next_T1_value_out = valid ? T1_value : T1_value_out;
   assign next_T2_value_out = valid ? T2_value : T2_value_out;
 `endif
-  //synopsys sync_set_reset "reset"
+`endif
+  assign valid_out        = ( !ready || valid ) && !rollback_en;
+  assign next_product     = product_in + partial_product;
+  assign partial_product  = mplier_in[64/`NUM_MULT_STAGE-1:0] * mcand_in;
+  assign next_mplier      = {{64/`NUM_MULT_STAGE{1'b0}}, mplier_in[63:64/`NUM_MULT_STAGE]};
+  assign next_mcand       = {mcand_in[63-64/`NUM_MULT_STAGE:0], {(64/`NUM_MULT_STAGE){1'b0}}};
+
+`ifdef MULT_FORWARDING
+  always_comb begin
+    if ( !valid && !rollback_en_out ) begin
+      next_mplier_out  = mplier_out;
+      next_mcand_out   = mcand_out;
+      next_product_out = product_out;
+      next_T_idx_out   = T_idx_out;
+      next_ROB_idx_out = ROB_idx_out;
+      next_done        = done;
+`ifdef DEBUG
+      next_T1_value_out = T1_value_out;
+      next_T2_value_out = T2_value_out;
+`endif
+    end else if ( valid && !rollback_en ) begin
+      next_mplier_out  = next_mplier;
+      next_mcand_out   = next_mcand;
+      next_product_out = next_product;
+      next_T_idx_out   = T_idx;
+      next_ROB_idx_out = ROB_idx;
+      next_done        = ready;
+`ifdef DEBUG
+      next_T1_value_out = T1_value;
+      next_T2_value_out = T2_value;
+`endif
+    end else begin
+      next_mplier_out  = 0;
+      next_mcand_out   = 0;
+      next_product_out = 0;
+      next_T_idx_out   = 0;
+      next_ROB_idx_out = 0;
+      next_done        = `FALSE;
+`ifdef DEBUG
+      next_T1_value_out = 0;
+      next_T2_value_out = 0;
+`endif
+    end
+  end
+`endif
+
   always_ff @(posedge clock) begin
+`ifdef MULT_FORWARDING
+    if ( reset ) begin
+`else
     if ( reset || rollback_en ) begin
+`endif
       mplier_out       <= `SD 0;
       mcand_out        <= `SD 0;
       product_out      <= `SD 0;
@@ -178,20 +232,18 @@ module mult (
 );
 
 `ifndef DEBUG
-  logic                        last_done;
-  logic [63:0]                 product_out;
-  logic [$clog2(`NUM_PR)-1:0]  last_T_idx;
-  logic [$clog2(`NUM_ROB)-1:0] last_ROB_idx;
-`endif
-  logic [63:0]                                       mcand_out, mplier_out, regA, regB;
-  logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_products, internal_mcands, internal_mpliers, next_products;
-`ifndef DEBUG
+  logic                                              last_done;
+  logic [63:0]                                       product_out;
+  logic [$clog2(`NUM_PR)-1:0]                        last_T_idx;
+  logic [$clog2(`NUM_ROB)-1:0]                       last_ROB_idx;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values;
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
   logic [`NUM_MULT_STAGE-3:0]                        internal_dones;
   logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
   logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
 `endif
+  logic [63:0]                                       mcand_out, mplier_out, regA, regB;
+  logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_products, internal_mcands, internal_mpliers, next_products;
 
   assign regA = fu_packet.T1_value;
 
