@@ -6,7 +6,7 @@ module FL (
   input  logic                                    retire_en,
   input  logic [$clog2(`NUM_ROB)-1:0]             T_old_idx,
   input  logic [$clog2(`NUM_FL)-1:0]              FL_rollback_idx,
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   output logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table,
   output logic [$clog2(`NUM_FL)-1:0]              head, next_head;
   output logic [$clog2(`NUM_FL)-1:0]              tail, next_tail;
@@ -16,7 +16,7 @@ module FL (
   output logic [$clog2(`NUM_FL)-1:0]              FL_idx
 );
 
-`ifndef DEBUG
+`ifdef SYNTH_TEST
   logic [$clog2(`NUM_FL)-1:0]              head, next_head;
   logic [$clog2(`NUM_FL)-1:0]              tail, next_tail;
   logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table;
