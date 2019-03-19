@@ -11,11 +11,11 @@ module test_FL;
   logic                                    retire_en,
   logic [$clog2(`NUM_ROB)-1:0]             T_old_idx,
   logic [$clog2(`NUM_FL)-1:0]              FL_rollback_idx,
-  //`ifdef DEBUG
+  `ifndef SYNTH_TEST
   logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table,
   logic [$clog2(`NUM_FL)-1:0]              head, next_head;
   logic [$clog2(`NUM_FL)-1:0]              tail, next_tail;
-  //`endif
+  `endif
   logic                                    FL_valid,
   logic [$clog2(`NUM_ROB)-1:0]             T_idx,
   logic [$clog2(`NUM_FL)-1:0]              FL_idx
@@ -28,12 +28,14 @@ module test_FL;
 	  .retire_en(retire_en),
 	  .T_old_idx(T_old_idx),
 	  .FL_rollback_idx(FL_rollback_idx),
+	`ifndef SYNTH_TEST
 	  .FL_table(FL_table),
 	  .next_FL_table(next_FL_table),
 	  .head(head),
 	  .next_head(next_head),
 	  .tail(tail),
 	  .next_tail(next_tail),
+	`endif
 	  .FL_valid(FL_valid),
 	  .T_idx(T_idx),
 	  .FL_idx(FL_idx),
@@ -45,18 +47,51 @@ module test_FL;
 
   initial begin
   
-  clock = 1'b0;
-  reset = 1'b0;
-  dispatch_en = 1'b0;
-  rollback_en = 1'b0;
-  retire_en   = 1'b0;
-
-  @(negedge clock);
-  reset = 1'b1;
-  @(negedge clock);
-  reset = 1'b0;
-  dispatch_en = 1'b1;
+    clock = 1'b0;
+    reset = 1'b0;
+    dispatch_en = 1'b0;
+    rollback_en = 1'b0;
+    retire_en   = 1'b0;
   
+    @(negedge clock);
+    reset = 1'b1;
+    @(negedge clock);
+    reset = 1'b0;
+    dispatch_en = 1'b1;
+    rollback_en = 1'b0;
+    retire_en   = 1'b0;
+    $display("----Cycle 1----");
+    $display("tail %d", tail);
+    $display("next_tail %d", next_tail);
+    $display("T_idx %d", T_idx);
+    @(negedge clock);
+    dispatch_en = 1'b1;
+    rollback_en = 1'b0;
+    retire_en   = 1'b0;
+    $display("----Cycle 2----");
+    $display("tail %d", tail);
+    $display("next_tail %d", next_tail);
+    $display("T_idx %d", T_idx);
+    @(negedge clock);
+    dispatch_en = 1'b1;
+    rollback_en = 1'b0;
+    retire_en   = 1'b0;
+    $display("----Cycle 3----");
+    $display("tail %d", tail);
+    $display("next_tail %d", next_tail);
+    $display("T_idx %d", T_idx);
+    @(negedge clock);
+    dispatch_en = 1'b1;
+    rollback_en = 1'b0;
+    retire_en   = 1'b1;
+    $display("tail %d", tail);
+    $display("next_tail %d", next_tail);
+    $display("head %d", head);
+    $display("next_head %d", next_head);
+    @(negedge clock);
+    @(negedge clock);
+    @(negedge clock);
+    $display("Finish!")
 
   end
 
