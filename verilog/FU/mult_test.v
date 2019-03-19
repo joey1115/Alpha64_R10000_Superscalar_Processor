@@ -7,7 +7,7 @@ module testbench();
   logic clock, reset, CDB_valid;
   FU_PACKET_IN_t    fu_packet_in;
   FU_RESULT_ENTRY_t fu_packet_out;
-  logic fu_valid, ROB_rollback_en;
+  logic fu_valid, rollback_en;
   logic [(64*`NUM_MULT_STAGE)-1:0] cres;
   logic [($clog2(`NUM_PR)*`NUM_MULT_STAGE)-1:0] T_idx;
   logic last_done;
@@ -19,6 +19,7 @@ module testbench();
   logic [`NUM_MULT_STAGE-3:0]                        internal_dones;
   logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
   logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
+  logic [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
 
   mult m0(  .clock(clock),
             .reset(reset),
@@ -26,7 +27,7 @@ module testbench();
             .CDB_valid(CDB_valid),
             .fu_packet_out(fu_packet_out),
             .fu_valid(fu_valid),
-            .ROB_rollback_en(ROB_rollback_en),
+            .rollback_en(rollback_en),
             .ROB_rollback_idx(ROB_rollback_idx),
             .last_done(last_done),
             .product_out(product_out),
@@ -40,7 +41,8 @@ module testbench();
             .internal_valids(internal_valids),
             .internal_dones(internal_dones),
             .internal_T_idx(internal_T_idx),
-            .internal_ROB_idx(internal_ROB_idx));
+            .internal_ROB_idx(internal_ROB_idx),
+            .internal_FL_idx(internal_FL_idx));
 
   always begin
     #5;
@@ -78,7 +80,7 @@ module testbench();
       fu_packet_in.uncond_branch,
       fu_packet_in.cond_branch,
       CDB_valid,
-      ROB_rollback_en,
+      rollback_en,
       ROB_rollback_idx,
       diff_ROB
     );
@@ -100,7 +102,7 @@ module testbench();
     logic                                 uncond_branch,
     logic                                 cond_branch,
     logic                                 CDB_valid_in,
-    logic                                 ROB_rollback_en_in,
+    logic                                 rollback_en_in,
     logic          [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_in,
     logic          [$clog2(`NUM_ROB)-1:0] ROB_tail_idx_in
   );
@@ -112,7 +114,6 @@ module testbench();
       fu_packet_in.func = func;
       fu_packet_in.NPC = NPC;
       fu_packet_in.ROB_idx = ROB_idx;
-      fu_packet_in.FL_idx = FL_idx;
       fu_packet_in.T_idx = T_idx;
       fu_packet_in.T1_value = T1_value;
       fu_packet_in.T2_value = T2_value;
@@ -120,8 +121,9 @@ module testbench();
       fu_packet_in.T2_select = T2_select;
       fu_packet_in.uncond_branch = uncond_branch;
       fu_packet_in.cond_branch = cond_branch;
+      fu_packet_in.FL_idx = FL_idx;
       CDB_valid = CDB_valid_in;
-      ROB_rollback_en = ROB_rollback_en_in;
+      rollback_en = rollback_en_in;
       ROB_rollback_idx = ROB_rollback_idx_in;
       diff_ROB = ROB_tail_idx_in - ROB_rollback_idx_in;
       displays_inputs();

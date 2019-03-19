@@ -14,8 +14,9 @@ typedef struct packed {
 typedef struct packed {
   logic                        done;
   logic [63:0]                 result;
-  logic [$clog2(`NUM_PR)-1:0]  T_idx;  // Dest idx
-  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;  // Dest idx
+  logic [$clog2(`NUM_PR)-1:0]  T_idx;   // Dest idx
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx; // Dest idx
+  logic [$clog2(`NUM_FL)-1:0]  FL_idx;  // Dest idx
 } FU_RESULT_ENTRY_t;
 
 typedef struct packed {
