@@ -23,13 +23,13 @@ module FL (
 `endif
   logic [$clog2(`NUM_FL)-1:0]              virtual_tail;
 
-  assign next_head           = retire_en ? (head + 1) : head;
-  assign virtual_tail        = tail + 1;
-  assign next_tail           = rollback_en ? FL_rollback_idx :
-                               dispatch_en ? virtual_tail    : tail;
-  assign FL_idx              = next_tail;
-  assign T_idx               = FL_table[next_tail];
-  assign FL_valid            = virtual_tail != head;
+  assign next_head   = retire_en ? (head + 1) : head;
+  assign virtual_tail= tail + 1;
+  assign next_tail   = rollback_en ? FL_rollback_idx :
+                       dispatch_en ? virtual_tail    : tail;
+  assign FL_idx      = next_tail;
+  assign T_idx       = FL_table[next_tail];
+  assign FL_valid    = virtual_tail != head;
 
   always_comb begin
     next_FL_table = FL_table;
