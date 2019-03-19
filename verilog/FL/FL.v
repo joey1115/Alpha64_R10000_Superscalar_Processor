@@ -8,8 +8,8 @@ module FL (
   input  logic [$clog2(`NUM_FL)-1:0]              FL_rollback_idx,
 `ifndef SYNTH_TEST
   output logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table,
-  output logic [$clog2(`NUM_FL)-1:0]              head, next_head;
-  output logic [$clog2(`NUM_FL)-1:0]              tail, next_tail;
+  output logic [$clog2(`NUM_FL)-1:0]              head, next_head,
+  output logic [$clog2(`NUM_FL)-1:0]              tail, next_tail,
 `endif
   output logic                                    FL_valid,
   output logic [$clog2(`NUM_ROB)-1:0]             T_idx,
