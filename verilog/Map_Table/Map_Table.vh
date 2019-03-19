@@ -10,13 +10,16 @@ typedef struct packed {
 } MAP_TABLE_t;
 
 typedef struct packed {
-  logic                       Dispatch_enable;   // no Dispatch hazard
-  logic [4:0]                 reg_dest;          // reg from dispatch
-  logic [4:0]                 reg_a;
-  logic [4:0]                 reg_b;
-  logic [$clog2(`NUM_PR)-1:0] Freelist_T;        // tags from freelist
-  logic [$clog2(`NUM_PR)-1:0] CDB_T;             // broadcast from CDB
-  logic                       CDB_enable;        // CDB enable
+  logic                         Dispatch_enable;   // no Dispatch hazard
+  logic [4:0]                   reg_dest;          // reg from dispatch
+  logic [4:0]                   reg_a;
+  logic [4:0]                   reg_b;
+  logic [$clog2(`NUM_PR)-1:0]   Freelist_T;        // tags from freelist
+  logic [$clog2(`NUM_PR)-1:0]   CDB_T;             // broadcast from CDB
+  logic                         CDB_enable;        // CDB enable
+  logic                         rollback_en;       //
+  logic [$clog2(`NUM_ROB)-1:0]  br_idx;            //
+  logic [$clog2(`NUM_ROB)-1:0]  tail_idx;
 } MAP_TABLE_PACKET_IN;
 
 typedef struct packed {

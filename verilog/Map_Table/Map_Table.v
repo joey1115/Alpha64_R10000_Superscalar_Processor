@@ -34,7 +34,8 @@ module Map_Table (
   output MAP_TABLE_PACKET_OUT map_table_packet_out
 );
 
-  MAP_TABLE_t [`NUM_MAP_TABLE-1:0] map_table, next_map_table;
+  MAP_TABLE_t [`NUM_MAP_TABLE-1:0]                map_table, next_map_table;
+  MAP_TABLE_t [`NUM_ROB-1:0][`NUM_MAP_TABLE-1:0]  backup_map_table;
    
   `ifdef DEBUG
   assign map_table_out = map_table;
@@ -43,7 +44,10 @@ module Map_Table (
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i=0; i < `NUM_MAP_TABLE; i++) begin
-        map_table[i] <= `SD '{ i, `TRUE};                  
+        map_table[i] <= `SD '{ i, `TRUE};
+        for (int j=0; j<`NUM_ROB;j++) begin
+          backup_map_table[j][i] <= `SD '{i, `TRUE};                  
+        end                  
       end
     end else if(en) begin
       map_table <= `SD next_map_table;
@@ -54,8 +58,12 @@ module Map_Table (
   always_comb begin
     next_map_table = map_table;
     // PR updata T_idx
-    if ( map_table_packet_in.Dispatch_enable && map_table_packet_in.reg_dest != `ZERO_REG ) begin     // no dispatch hazard
-      next_map_table[map_table_packet_in.reg_dest] = '{map_table_packet_in.Freelist_T, `FALSE};       //renew maptable from freelist but not ready yet
+    if ( map_table_packet_in.Dispatch_enable && map_table_packet_in.reg_dest != `ZERO_REG ) begin   // no dispatch hazard
+      next_map_table[map_table_packet_in.reg_dest] = '{map_table_packet_in.Freelist_T, `FALSE};     //renew maptable from freelist but not ready yet
+      backup_map_table[map_table_packet_in.tail_idx] = next_map_table;                              //backup the map
+      for (int i=0; i<`NUM_MAP_TABLE;i++) begin
+        backup_map_table[map_table_packet_in.tail_idx][i].T_plus_status = `TRUE;                        // ready all the bit
+      end
     end
     // CDB_T updata ready
     if (map_table_packet_in.CDB_enable) begin
@@ -66,7 +74,12 @@ module Map_Table (
         end
       end
     end
+    // Rollback
+    if (map_table_packet_in.rollback_en) begin
+      next_map_table = backup_map_table[map_table_packet_in.br_idx];
+    end
   end
+
 
   assign map_table_packet_out.Told_to_ROB = map_table[map_table_packet_in.reg_dest].PR_idx;
   assign map_table_packet_out.T1_to_RS    = map_table[map_table_packet_in.reg_a];
