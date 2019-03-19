@@ -21,19 +21,20 @@ module testbench();
   logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
   logic [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
 
-  mult m0(  .clock(clock),
+  mult m0(
+            .clock(clock),
             .reset(reset),
             .fu_packet(fu_packet_in),
             .CDB_valid(CDB_valid),
-            .fu_packet_out(fu_packet_out),
             .fu_valid(fu_valid),
             .rollback_en(rollback_en),
             .ROB_rollback_idx(ROB_rollback_idx),
+`ifndef SYNTH_TEST
             .last_done(last_done),
             .product_out(product_out),
             .last_T_idx(last_T_idx),
             .last_ROB_idx(last_ROB_idx),
-            .diff_ROB(diff_ROB),
+            .last_FL_idx(last_FL_idx),
             .T1_value(T1_value),
             .T2_value(T2_value),
             .internal_T1_values(internal_T1_values),
@@ -42,7 +43,11 @@ module testbench();
             .internal_dones(internal_dones),
             .internal_T_idx(internal_T_idx),
             .internal_ROB_idx(internal_ROB_idx),
-            .internal_FL_idx(internal_FL_idx));
+            .internal_FL_idx(internal_FL_idx)
+`endif
+            .fu_packet_out(fu_packet_out),
+            .diff_ROB(diff_ROB)
+            );
 
   always begin
     #5;
