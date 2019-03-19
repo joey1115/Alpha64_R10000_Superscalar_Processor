@@ -75,7 +75,7 @@ module mult_stage (
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
   input  logic [$clog2(`NUM_FL)-1:0]  FL_idx,
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   input  logic [63:0]                 T1_value,
   input  logic [63:0]                 T2_value,
   output logic [63:0]                 T1_value_out,
@@ -101,7 +101,7 @@ module mult_stage (
 `ifdef MULT_FORWARDING
   logic [$clog2(`NUM_ROB)-1:0]   diff_out;
 `endif
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   logic [63:0]                   next_T1_value_out;
   logic [63:0]                   next_T2_value_out;
 `endif
@@ -123,7 +123,7 @@ module mult_stage (
   assign next_ROB_idx_out   = valid ? ROB_idx : ROB_idx_out;
   assign next_FL_idx_out    = valid ? FL_idx : FL_idx_out;
   assign next_done          = valid ? ready : done;
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   assign next_T1_value_out  = valid ? T1_value : T1_value_out;
   assign next_T2_value_out  = valid ? T2_value : T2_value_out;
 `endif
@@ -143,7 +143,7 @@ module mult_stage (
       next_ROB_idx_out  = ROB_idx_out;
       next_FL_idx_out   = FL_idx_out;
       next_done         = done;
-`ifdef DEBUG
+`ifndef SYNTH_TEST
       next_T1_value_out = T1_value_out;
       next_T2_value_out = T2_value_out;
 `endif
@@ -155,7 +155,7 @@ module mult_stage (
       next_ROB_idx_out  = ROB_idx;
       next_FL_idx_out   = FL_idx;
       next_done         = ready;
-`ifdef DEBUG
+`ifndef SYNTH_TEST
       next_T1_value_out = T1_value;
       next_T2_value_out = T2_value;
 `endif
@@ -166,7 +166,7 @@ module mult_stage (
       next_T_idx_out    = 0;
       next_ROB_idx_out  = 0;
       next_done         = `FALSE;
-`ifdef DEBUG
+`ifndef SYNTH_TEST
       next_T1_value_out = 0;
       next_T2_value_out = 0;
 `endif
@@ -187,7 +187,7 @@ module mult_stage (
       ROB_idx_out      <= `SD 0;
       FL_idx_out       <= `SD 0;
       done             <= `SD `FALSE;
-`ifdef DEBUG
+`ifndef SYNTH_TEST
       T1_value_out     <= `SD 0;
       T2_value_out     <= `SD 0;
 `endif
@@ -199,7 +199,7 @@ module mult_stage (
       ROB_idx_out      <= `SD next_ROB_idx_out;
       FL_idx_out       <= `SD next_FL_idx_out;
       done             <= `SD next_done;
-`ifdef DEBUG
+`ifndef SYNTH_TEST
       T1_value_out     <= `SD next_T1_value_out;
       T2_value_out     <= `SD next_T2_value_out;
 `endif
@@ -220,7 +220,7 @@ module mult (
   input  logic                                                          rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0]                       ROB_rollback_idx,
   input  logic             [$clog2(`NUM_ROB)-1:0]                       diff_ROB,
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   output logic                                                          last_done,
   output logic             [63:0]                                       product_out,
   output logic             [$clog2(`NUM_PR)-1:0]                        last_T_idx,
@@ -239,7 +239,7 @@ module mult (
   output logic                                                          fu_valid
 );
 
-`ifndef DEBUG
+`ifdef SYNTH_TEST
   logic                                              last_done;
   logic [63:0]                                       product_out;
   logic [$clog2(`NUM_PR)-1:0]                        last_T_idx;
@@ -282,7 +282,7 @@ module mult (
     .rollback_en({`NUM_MULT_STAGE{rollback_en}}),
     .ROB_rollback_idx({`NUM_MULT_STAGE{ROB_rollback_idx}}),
     .diff_ROB({`NUM_MULT_STAGE{diff_ROB}}),
-`ifdef DEBUG
+`ifndef SYNTH_TEST
     .T1_value({internal_T1_values, regA}),
     .T2_value({internal_T2_values, regB}),
     .T1_value_out({T1_value, internal_T1_values}),

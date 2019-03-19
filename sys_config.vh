@@ -15,4 +15,6 @@
 `define NUM_MAP_TABLE  32
 `define NUM_MULT_STAGE 8
 
+`define MULT_FORWARDING
+
 `endif

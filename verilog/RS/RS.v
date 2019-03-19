@@ -4,7 +4,7 @@ module RS (
   input  logic         clock, reset, en,
   input  RS_PACKET_IN  rs_packet_in,
 
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   output RS_ENTRY_t [`NUM_FU-1:0] RS_out,
   output logic      [`NUM_FU-1:0] RS_entry_match,     // If a RS entry is ready
 `endif
@@ -59,11 +59,11 @@ module RS (
   end
 `endif
 
-`ifndef DEBUG
+`ifdef SYNTH_TEST
   logic      [`NUM_FU-1:0] RS_entry_match;     // If a RS entry is ready
 `endif
 
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   assign RS_out = RS;
 `endif
 
