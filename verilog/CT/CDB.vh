@@ -8,7 +8,7 @@ typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] T;
   logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic [63:0] result;
-} CT_entry_t;
+} CDB_entry_t;
 
 
 
@@ -20,7 +20,7 @@ typedef struct packed {
   logic  [`NUM_FU-1:0]  [$clog2(`NUM_PR)-1:0]   T_idx;              // tag from FU
   logic  [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0]   ROB_idx             // ROB_idx from FU
   logic  [`NUM_FU-1:0]                 [63:0]   FU_result;          // result from FU
-} CT_PACKET_IN;
+} CDB_PACKET_IN;
 
 typedef struct packed {
   logic [`NUM_FU-1:0]         CDB_valid;                            // valid=0, entry is free, to FU
@@ -28,6 +28,6 @@ typedef struct packed {
   logic                       write_en;                             // valid signal to PR
   logic [$clog2(`NUM_PR)-1:0] T_idx;                                // tag to PR
   logic [63:0]                T_value;                              // result to PR
-} CT_PACKET_OUT;
+} CDB_PACKET_OUT;
 
 `endif

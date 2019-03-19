@@ -3,7 +3,7 @@
 //                                                                     //
 //   Modulename :  testbench_CT.v                                      //
 //                                                                     //
-//  Description :  Testbench module for CT module;                     //
+//  Description :  Testbench module for CDB module;                     //
 //                                                                     //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
@@ -11,24 +11,24 @@
 `timescale 1ns/100ps
 
 `include "../../sys_defs.vh"
-`include "CT.vh"
+`include "CDB.vh"
 
 module test_CT;
 
   // DUT input stimulus
   logic en, clock, reset;
-  CT_PACKET_IN ct_packet_in;
+  CDB_PACKET_IN CDB_packet_in;
 
   // DUT output
-  CT_PACKET_OUT ct_packet_out;
+  CDB_PACKET_OUT CDB_packet_out;
 
   // DUT instantiation
-  CT UUT(
+  CDB UUT(
     .en(en),
     .clock(clock),
     .reset(reset),
-    .ct_packet_in(ct_packet_in),
-    .ct_packet_out(ct_packet_out)
+    .CDB_packet_in(CDB_packet_in),
+    .CDB_packet_out(CDB_packet_out)
   );
 
   logic [31:0] cycle_count;
@@ -60,7 +60,7 @@ module test_CT;
     en    = 1'b1;
     clock = 1'b0;
     reset = 1'b0;
-    ct_packet_in = 0;
+    CDB_packet_in = 0;
 
     @(negedge clock);
     reset = 1'b1;
