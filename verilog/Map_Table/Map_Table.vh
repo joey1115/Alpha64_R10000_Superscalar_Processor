@@ -84,11 +84,12 @@
 
 typedef struct packed {
   logic                         Dispatch_en;   // no Dispatch hazard
-  logic [4:0]                   reg_dest;          // reg from dispatch
+  logic [4:0]                   dest_idx;          // reg from dispatch
   logic [4:0]                   reg_a;
   logic [4:0]                   reg_b;
   logic [$clog2(`NUM_PR)-1:0]   T_idx;        // tags from freelist
-  logic [$clog2(`NUM_PR)-1:0]   CDB_T;             // broadcast from CDB
+  logic [$clog2(`NUM_PR)-1:0]   CDB_T_idx;             // broadcast from CDB
+  logic [4:0]                   CDB_dest_idx;             // broadcast from CDB
   logic                         CDB_en;        // CDB enable
   logic                         rollback_en;       //
   logic [$clog2(`NUM_ROB)-1:0]  ROB_rollback_idx;            //

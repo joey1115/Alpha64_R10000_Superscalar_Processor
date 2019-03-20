@@ -57,10 +57,11 @@ module alu (
       default:      fu_packet_out.result = 64'hdeadbeefbaadbeef;  // here only to force
     endcase
 
-    fu_packet_out.T_idx   = fu_packet.T_idx;
-    fu_packet_out.FL_idx  = fu_packet.FL_idx;
-    fu_packet_out.ROB_idx = fu_packet.ROB_idx;
-    fu_packet_out.done    = !rollback_valid && fu_packet.ready;
+    fu_packet_out.dest_idx = fu_packet.dest_idx;
+    fu_packet_out.T_idx    = fu_packet.T_idx;
+    fu_packet_out.FL_idx   = fu_packet.FL_idx;
+    fu_packet_out.ROB_idx  = fu_packet.ROB_idx;
+    fu_packet_out.done     = !rollback_valid && fu_packet.ready;
 
   end
 
@@ -69,6 +70,7 @@ endmodule // alu
 module mult_stage (
   input  logic                        clock, reset, ready, valid,
   input  logic [63:0]                 product_in, mplier_in, mcand_in,
+  input  logic [4:0]                  dest_idx,
   input  logic [$clog2(`NUM_PR)-1:0]  T_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_idx,
   input  logic                        rollback_en,
@@ -83,6 +85,7 @@ module mult_stage (
 `endif
   output logic                        done, valid_out,
   output logic [63:0]                 product_out, mplier_out, mcand_out, next_product,
+  output logic [4:0]                  dest_idx_out,
   output logic [$clog2(`NUM_PR)-1:0]  T_idx_out,
   output logic [$clog2(`NUM_ROB)-1:0] ROB_idx_out,
   output logic [$clog2(`NUM_FL)-1:0]  FL_idx_out
@@ -91,6 +94,7 @@ module mult_stage (
   logic [64/`NUM_MULT_STAGE-1:0] next_mplier_out;
   logic [64/`NUM_MULT_STAGE-1:0] next_mcand_out;
   logic [63:0]                   next_product_out;
+  logic [4:0]                    next_dest_idx_out;
   logic [$clog2(`NUM_PR)-1:0]    next_T_idx_out;
   logic [$clog2(`NUM_PR)-1:0]    next_ROB_idx_out;
   logic [$clog2(`NUM_FL)-1:0]    next_FL_idx_out;
@@ -119,6 +123,7 @@ module mult_stage (
   assign next_mplier_out    = valid ? next_mplier : mplier_out;
   assign next_mcand_out     = valid ? next_mcand : mcand_out;
   assign next_product_out   = valid ? next_product : product_out;
+  assign next_dest_idx_out  = valid ? dest_idx : dest_idx_out;
   assign next_T_idx_out     = valid ? T_idx : T_idx_out;
   assign next_ROB_idx_out   = valid ? ROB_idx : ROB_idx_out;
   assign next_FL_idx_out    = valid ? FL_idx : FL_idx_out;
@@ -139,6 +144,7 @@ module mult_stage (
       next_mplier_out   = mplier_out;
       next_mcand_out    = mcand_out;
       next_product_out  = product_out;
+      next_dest_idx_out = dest_idx_out;
       next_T_idx_out    = T_idx_out;
       next_ROB_idx_out  = ROB_idx_out;
       next_FL_idx_out   = FL_idx_out;
@@ -151,6 +157,7 @@ module mult_stage (
       next_mplier_out   = next_mplier;
       next_mcand_out    = next_mcand;
       next_product_out  = next_product;
+      next_dest_idx_out = dest_idx;
       next_T_idx_out    = T_idx;
       next_ROB_idx_out  = ROB_idx;
       next_FL_idx_out   = FL_idx;
@@ -160,15 +167,16 @@ module mult_stage (
       next_T2_value_out = T2_value;
 `endif
     end else begin
-      next_mplier_out   = 0;
-      next_mcand_out    = 0;
-      next_product_out  = 0;
-      next_T_idx_out    = 0;
-      next_ROB_idx_out  = 0;
+      next_mplier_out   = {64{1'b0}};
+      next_mcand_out    = {64{1'b0}};
+      next_product_out  = {64{1'b0}};
+      next_dest_idx_out = `ZERO_REG;
+      next_T_idx_out    = `ZERO_PR;
+      next_ROB_idx_out  = {`NUM_ROB{1'b0}};
       next_done         = `FALSE;
 `ifndef SYNTH_TEST
-      next_T1_value_out = 0;
-      next_T2_value_out = 0;
+      next_T1_value_out = {64{1'b0}};
+      next_T2_value_out = {64{1'b0}};
 `endif
     end
   end
@@ -180,16 +188,16 @@ module mult_stage (
 `else
     if ( reset || rollback_valid ) begin
 `endif
-      mplier_out       <= `SD 0;
-      mcand_out        <= `SD 0;
-      product_out      <= `SD 0;
-      T_idx_out        <= `SD 0;
-      ROB_idx_out      <= `SD 0;
-      FL_idx_out       <= `SD 0;
-      done             <= `SD `FALSE;
+      next_mplier_out   = {64{1'b0}};
+      next_mcand_out    = {64{1'b0}};
+      next_product_out  = {64{1'b0}};
+      next_dest_idx_out = `ZERO_REG;
+      next_T_idx_out    = `ZERO_PR;
+      next_ROB_idx_out  = {`NUM_ROB{1'b0}};
+      next_done         = `FALSE;
 `ifndef SYNTH_TEST
-      T1_value_out     <= `SD 0;
-      T2_value_out     <= `SD 0;
+      next_T1_value_out = {64{1'b0}};
+      next_T2_value_out = {64{1'b0}};
 `endif
     end else begin
       mplier_out       <= `SD next_mplier_out;
@@ -223,6 +231,7 @@ module mult (
 `ifndef SYNTH_TEST
   output logic                                                          last_done,
   output logic             [63:0]                                       product_out,
+  output logic             [4:0]                                        last_dest_idx,
   output logic             [$clog2(`NUM_PR)-1:0]                        last_T_idx,
   output logic             [$clog2(`NUM_ROB)-1:0]                       last_ROB_idx,
   output logic             [$clog2(`NUM_FL)-1:0]                        last_FL_idx,
@@ -231,6 +240,7 @@ module mult (
   output logic             [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values,
   output logic             [`NUM_MULT_STAGE-2:0]                        internal_valids,
   output logic             [`NUM_MULT_STAGE-3:0]                        internal_dones,
+  output logic             [5*(`NUM_MULT_STAGE-2))-1:0]                 internal_dest_idx,
   output logic             [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx,
   output logic             [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx,
   output logic             [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx,
@@ -242,12 +252,14 @@ module mult (
 `ifdef SYNTH_TEST
   logic                                              last_done;
   logic [63:0]                                       product_out;
+  logic [4:0]                                        last_dest_idx;
   logic [$clog2(`NUM_PR)-1:0]                        last_T_idx;
   logic [$clog2(`NUM_ROB)-1:0]                       last_ROB_idx;
   logic [$clog2(`NUM_FL)-1:0]                        last_FL_idx;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values;
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
   logic [`NUM_MULT_STAGE-3:0]                        internal_dones;
+  logic [5*(`NUM_MULT_STAGE-2))-1:0]                 internal_dest_idx;
   logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
   logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
   logic [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
@@ -276,6 +288,7 @@ module mult (
     .mcand_in({internal_mcands, regB}),
     .ready({fu_packet_out.done, internal_dones, fu_packet.ready}),
     .valid({CDB_valid, internal_valids}),
+    .dest_idx({fu_packet_out.dest_idx, internal_dest_idx, fu_packet.dest_idx}),
     .T_idx({fu_packet_out.T_idx, internal_T_idx, fu_packet.T_idx}),
     .ROB_idx({fu_packet_out.ROB_idx, internal_ROB_idx, fu_packet.ROB_idx}),
     .FL_idx({fu_packet_out.FL_idx, internal_FL_idx,  fu_packet.FL_idx}),
@@ -295,6 +308,7 @@ module mult (
     .done({last_done, fu_packet_out.done, internal_dones}),
     .valid_out({internal_valids, fu_valid}),
     .next_product({fu_packet_out.result, next_products}),
+    .dest_idx_out({last_dest_idx, fu_packet_out.dest_idx, internal_dest_idx}),
     .T_idx_out({last_T_idx, fu_packet_out.T_idx, internal_T_idx}),
     .ROB_idx_out({last_ROB_idx, fu_packet_out.ROB_idx, internal_ROB_idx}),
     .FL_idx_out({last_FL_idx, fu_packet_out.FL_idx, internal_FL_idx})
@@ -355,10 +369,11 @@ module br(
       default:      fu_packet_out.result = 64'hdeadbeefbaadbeef;  // here only to force
     endcase
 
-    fu_packet_out.T_idx   = fu_packet.T_idx;
-    fu_packet_out.ROB_idx = fu_packet.ROB_idx;
-    fu_packet_out.FL_idx  = fu_packet.FL_idx;
-    fu_packet_out.done    = fu_packet.ready;
+    fu_packet_out.dest_idx = fu_packet.dest_idx;
+    fu_packet_out.T_idx    = fu_packet.T_idx;
+    fu_packet_out.ROB_idx  = fu_packet.ROB_idx;
+    fu_packet_out.FL_idx   = fu_packet.FL_idx;
+    fu_packet_out.done     = fu_packet.ready;
 
   end
 

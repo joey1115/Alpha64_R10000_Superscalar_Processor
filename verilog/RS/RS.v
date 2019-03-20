@@ -120,6 +120,7 @@ module RS (
         rs_packet_out.FU_packet_out[i].inst      = rs_packet_in.inst;      // inst
         rs_packet_out.FU_packet_out[i].func      = rs_packet_in.func;      // op code
         rs_packet_out.FU_packet_out[i].NPC       = rs_packet_in.NPC;       // op code
+        rs_packet_out.FU_packet_out[i].dest_idx  = rs_packet_in.dest_idx;  // op code
         rs_packet_out.FU_packet_out[i].ROB_idx   = rs_packet_in.ROB_idx;   // op code
         rs_packet_out.FU_packet_out[i].FL_idx    = rs_packet_in.FL_idx;    // op code
         rs_packet_out.FU_packet_out[i].T_idx     = rs_packet_in.T_idx;     // Output T_idx
@@ -135,7 +136,8 @@ module RS (
         rs_packet_out.FU_packet_out[i].inst      = RS[i].inst;        // inst
         rs_packet_out.FU_packet_out[i].func      = RS[i].func;        // op code
         rs_packet_out.FU_packet_out[i].NPC       = RS[i].NPC;         // op code
-        rs_packet_out.FU_packet_out[i].ROB_idx   = RS[i].ROB_idx;     // op code
+        rs_packet_out.FU_packet_out[i].NPC       = RS[i].NPC;         // op code
+        rs_packet_out.FU_packet_out[i].dest_idx  = RS[i].dest_idx;    // op code
         rs_packet_out.FU_packet_out[i].FL_idx    = RS[i].FL_idx;      // op code
         rs_packet_out.FU_packet_out[i].T_idx     = RS[i].T_idx;       // Output T_idx
         rs_packet_out.FU_packet_out[i].T1_idx    = RS[i].T1.idx;      // Output T1_idx
@@ -169,7 +171,8 @@ module RS (
         next_RS[i].inst      = rs_packet_in.inst;      // inst
         next_RS[i].func      = rs_packet_in.func;      // func
         next_RS[i].NPC       = rs_packet_in.NPC;       // Write T1 select
-        next_RS[i].ROB_idx   = rs_packet_in.ROB_idx;   // Write T1 select
+        next_RS[i].NPC       = rs_packet_in.NPC;       // Write T1 select
+        next_RS[i].dest_idx  = rs_packet_in.dest_idx;  // Write T1 select
         next_RS[i].FL_idx    = rs_packet_in.FL_idx;    // Write T1 select
         next_RS[i].T_idx     = rs_packet_in.T_idx;     // Write T
         next_RS[i].T1.ready  = T1_ready[i];            // Write T1

@@ -14,6 +14,7 @@ typedef struct packed {
   INST_t                       inst;
   ALU_FUNC                     func;
   logic [63:0]                 NPC;
+  logic [4:0]                  dest_idx;
   logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic [$clog2(`NUM_FL)-1:0]  FL_idx;
   logic [$clog2(`NUM_PR)-1:0]  T_idx; // Dest idx
@@ -38,6 +39,7 @@ typedef struct packed {
   `NOOP_INST,             \
   ALU_ADDQ,               \
   {64{1'b0}},             \
+  `ZERO_REG,              \
   {`NUM_ROB{1'b0}},       \
   {`NUM_FL{1'b0}},        \
   `ZERO_PR,               \
@@ -52,6 +54,7 @@ typedef struct packed {
   logic          [$clog2(`NUM_PR)-1:0]  T_idx;            // Dest idx
   INST_t                                inst;             // Inst
   logic          [63:0]                 NPC;
+  logic          [4:0]                  dest_idx;
   logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
   T_t                                   T1;               // T1
@@ -74,6 +77,7 @@ typedef struct packed {
   INST_t                                inst;
   ALU_FUNC                              func;
   logic          [63:0]                 NPC;
+  logic          [4:0]                  dest_idx;
   logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
   logic          [$clog2(`NUM_PR)-1:0]  T_idx;  // Dest idx
@@ -92,9 +96,10 @@ typedef struct packed {
   `FALSE,                        \
   `NOOP_INST,                    \
   ALU_ADDQ,                      \
-  0,                             \
-  0,                             \
-  0,                             \
+  {64{1'b0}},                    \
+  `ZERO_REG,                     \
+  {`NUM_ROB{1'b0}},              \
+  {`NUM_FL{1'b0}},               \
   `ZERO_PR,                      \
   `ZERO_PR,                      \
   `ZERO_PR,                      \

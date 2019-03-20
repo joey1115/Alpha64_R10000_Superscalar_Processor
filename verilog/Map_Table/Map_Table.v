@@ -59,20 +59,15 @@ module Map_Table (
       next_map_table = backup_map_table[map_table_packet_in.ROB_rollback_idx];
     end
     // CDB_T updata ready
-    if (map_table_packet_in.CDB_en) begin
-      for ( int i=0; i< `NUM_MAP_TABLE;i++) begin  
-        if (map_table[i].idx == map_table_packet_in.CDB_T) begin  // if CDB_T is the same as maptable value
-          next_map_table[i].ready = `TRUE;                   // The Tag in maptable change to ready
-          break;
-        end
-      end
+    if ( map_table_packet_in.CDB_en && map_table[map_table_packet_in.CDB_dest_idx].idx == map_table_packet_in.CDB_T_idx ) begin
+      map_table[map_table_packet_in.CDB_dest_idx].ready = `TRUE;
     end
     // PR updata T_idx
     if ( map_table_packet_in.Dispatch_en ) begin   // no dispatch hazard
-      next_map_table[map_table_packet_in.reg_dest] = '{map_table_packet_in.T_idx, `FALSE};     //renew maptable from freelist but not ready yet
+      next_map_table[map_table_packet_in.dest_idx] = '{map_table_packet_in.T_idx, `FALSE};     //renew maptable from freelist but not ready yet
       next_map_table[31].ready = `TRUE;
       next_backup_map_table[map_table_packet_in.ROB_tail_idx] = next_map_table;                              //backup the map
-      // for (int i=0; i<`NUM_MAP_TABLE;i++) begin
+      // for (int i=0; i<32;i++) begin
       //   backup_map_table[map_table_packet_in.tail_idx][i].ready = `TRUE;                        // ready all the bit
       // end
     end
