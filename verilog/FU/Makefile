@@ -69,13 +69,13 @@ all:    simv
 
 # Simulation:
 dve:	$(SIMFILES) $(TESTBENCH) 
-	$(VCS) +memcbk $(TESTBENCH) $(SIMFILES) +define+SYNTH_TEST -o dve -R -gui
+	$(VCS) +memcbk $(TESTBENCH) $(SIMFILES) -o dve -R -gui
 	
 dve_syn:	$(SYNFILES) $(TESTBENCH)
 	$(VCS) $(TESTBENCH) $(SYNFILES) $(LIB) +define+SYNTH_TEST -o syn_simv -R -gui
 
 simv:	$(SIMFILES) $(TESTBENCH)
-	$(VCS) $(TESTBENCH) $(SIMFILES) +define+SYNTH_TEST -o simv
+	$(VCS) $(TESTBENCH) $(SIMFILES) -o simv
 
 syn_simv:	$(SYNFILES) $(TESTBENCH)
 	$(VCS) $(TESTBENCH) $(SYNFILES) $(LIB) +define+SYNTH_TEST -o syn_simv
