@@ -35,7 +35,7 @@ module Map_Table (
 );
 
   T_t [31:0]                map_table, next_map_table;
-  T_t [`NUM_ROB-1:0][31:0]  backup_map_table;
+  T_t [`NUM_ROB-1:0][31:0]  backup_map_table, next_backup_map_table;
    
   `ifdef DEBUG
   assign map_table_out = map_table;
@@ -46,7 +46,8 @@ module Map_Table (
       map_table        <= `SD `MAP_TABLE_RESET;
       backup_map_table <= `SD `MAP_TABLE_STACK_RESET;
     end else if(en) begin
-      map_table <= `SD next_map_table;
+      map_table        <= `SD next_map_table;
+      backup_map_table <= `SD next_backup_map_table;
     end // if (f_d_enable)
   end  // always
 
@@ -70,7 +71,7 @@ module Map_Table (
     if ( map_table_packet_in.Dispatch_en ) begin   // no dispatch hazard
       next_map_table[map_table_packet_in.reg_dest] = '{map_table_packet_in.T_idx, `FALSE};     //renew maptable from freelist but not ready yet
       next_map_table[31].ready = `TRUE;
-      backup_map_table[map_table_packet_in.ROB_tail_idx] = next_map_table;                              //backup the map
+      next_backup_map_table[map_table_packet_in.ROB_tail_idx] = next_map_table;                              //backup the map
       // for (int i=0; i<`NUM_MAP_TABLE;i++) begin
       //   backup_map_table[map_table_packet_in.tail_idx][i].ready = `TRUE;                        // ready all the bit
       // end
