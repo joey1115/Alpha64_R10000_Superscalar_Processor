@@ -43,12 +43,8 @@ module Map_Table (
 
   always_ff @(posedge clock) begin
     if(reset) begin
-      for(int i=0; i < `NUM_MAP_TABLE; i++) begin
-        map_table[i] <= `SD '{ i, `TRUE};
-        for (int j=0; j<`NUM_ROB;j++) begin
-          backup_map_table[j][i] <= `SD '{i, `TRUE};                  
-        end                  
-      end
+      map_table        <= `SD `MAP_TABLE_RESET;
+      backup_map_table <= `SD `MAP_TABLE_STACK_RESET;
     end else if(en) begin
       map_table <= `SD next_map_table;
     end // if (f_d_enable)
