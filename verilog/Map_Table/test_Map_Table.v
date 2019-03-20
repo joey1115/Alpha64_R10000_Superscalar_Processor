@@ -28,9 +28,11 @@ module test_Map_Table;
     .en(en),
     .clock(clock),
     .reset(reset),
+`ifndef SYNTH_TEST
+    .map_table_out(uut_table),
+`endif
     .map_table_packet_in(uut_in),
-    .map_table_packet_out(uut_out),
-    .map_table_out(uut_table)
+    .map_table_packet_out(uut_out)
   );
 
 

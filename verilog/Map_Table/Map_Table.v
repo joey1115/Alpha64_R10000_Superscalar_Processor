@@ -22,24 +22,22 @@
 
 `timescale 1ns/100ps
 
-`define DEBUG_MAP_TABLE
-
 module Map_Table (
   input  en, clock, reset,
   input  MAP_TABLE_PACKET_IN  map_table_packet_in,
 
-  `ifdef DEBUG_MAP_TABLE
+`ifndef SYNTH_TEST
   output T_t [31:0] map_table_out,
-  `endif
+`endif
   output MAP_TABLE_PACKET_OUT map_table_packet_out
 );
 
   T_t [31:0]                map_table, next_map_table;
   T_t [`NUM_ROB-1:0][31:0]  backup_map_table, next_backup_map_table;
    
-  `ifdef DEBUG
+`ifndef SYNTH_TEST
   assign map_table_out = map_table;
-  `endif
+`endif
 
   always_ff @(posedge clock) begin
     if(reset) begin
@@ -50,7 +48,6 @@ module Map_Table (
       backup_map_table <= `SD next_backup_map_table;
     end
   end
-
 
   always_comb begin
     next_map_table = map_table;
