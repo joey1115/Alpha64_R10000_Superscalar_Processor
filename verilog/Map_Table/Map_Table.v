@@ -78,7 +78,7 @@ module Map_Table (
   end
 
 
-  assign map_table_packet_out.Told_to_ROB = map_table[map_table_packet_in.reg_dest].idx;
-  assign map_table_packet_out.T1_to_RS    = map_table[map_table_packet_in.reg_a];
-  assign map_table_packet_out.T2_to_RS    = map_table[map_table_packet_in.reg_b];
+  assign map_table_packet_out.Told_idx = map_table[map_table_packet_in.reg_dest].idx;
+  assign map_table_packet_out.T1       = map_table[map_table_packet_in.reg_a];
+  assign map_table_packet_out.T2       = map_table[map_table_packet_in.reg_b];
 endmodule
