@@ -258,7 +258,7 @@ module mult (
   logic [$clog2(`NUM_FL)-1:0]                        last_FL_idx;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values;
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
-  logic [`NUM_MULT_STAGE-3:0]                        internal_dones;
+  logic [`NUM_MULT_STAGE-2:0]                        internal_dones;
   logic [5*(`NUM_MULT_STAGE-2)-1:0]                  internal_dest_idx;
   logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
   logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
@@ -279,22 +279,22 @@ module mult (
     endcase 
   end
 
-  mult_stage mstage [`NUM_MULT_STAGE-1:0] (
+  mult_stage mult_stage_0 [`NUM_MULT_STAGE-1:0] (
     // input
-    .clock(clock),
-    .reset(reset),
+    .clock({`NUM_MULT_STAGE{clock}}),
+    .reset({`NUM_MULT_STAGE{reset}}),
     .product_in({internal_products, {64{1'b0}}}),
     .mplier_in({internal_mpliers, regA}),
     .mcand_in({internal_mcands, regB}),
-    .ready({fu_packet_out.done, internal_dones, fu_packet.ready}),
     .valid({CDB_valid, internal_valids}),
+    .rollback_en({`NUM_MULT_STAGE{rollback_en}}),
+    .ROB_rollback_idx({`NUM_MULT_STAGE{ROB_rollback_idx}}),
+    .diff_ROB({`NUM_MULT_STAGE{diff_ROB}}),
+    .ready({fu_packet_out.done, internal_dones, fu_packet.ready}),
     .dest_idx({fu_packet_out.dest_idx, internal_dest_idx, fu_packet.dest_idx}),
     .T_idx({fu_packet_out.T_idx, internal_T_idx, fu_packet.T_idx}),
     .ROB_idx({fu_packet_out.ROB_idx, internal_ROB_idx, fu_packet.ROB_idx}),
     .FL_idx({fu_packet_out.FL_idx, internal_FL_idx,  fu_packet.FL_idx}),
-    .rollback_en({`NUM_MULT_STAGE{rollback_en}}),
-    .ROB_rollback_idx({`NUM_MULT_STAGE{ROB_rollback_idx}}),
-    .diff_ROB({`NUM_MULT_STAGE{diff_ROB}}),
 `ifndef SYNTH_TEST
     .T1_value({internal_T1_values, regA}),
     .T2_value({internal_T2_values, regB}),
@@ -305,9 +305,9 @@ module mult (
     .product_out({product_out, internal_products}),
     .mplier_out({mplier_out, internal_mpliers}),
     .mcand_out({mcand_out, internal_mcands}),
-    .done({last_done, fu_packet_out.done, internal_dones}),
     .valid_out({internal_valids, fu_valid}),
     .next_product({fu_packet_out.result, next_products}),
+    .done({last_done, fu_packet_out.done, internal_dones}),
     .dest_idx_out({last_dest_idx, fu_packet_out.dest_idx, internal_dest_idx}),
     .T_idx_out({last_T_idx, fu_packet_out.T_idx, internal_T_idx}),
     .ROB_idx_out({last_ROB_idx, fu_packet_out.ROB_idx, internal_ROB_idx}),

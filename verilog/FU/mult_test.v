@@ -18,7 +18,7 @@ module testbench();
   logic [$clog2(`NUM_ROB)-1:0] last_ROB_idx, ROB_rollback_idx, diff_ROB;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0] internal_T1_values, internal_T2_values;
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
-  logic [`NUM_MULT_STAGE-3:0]                        internal_dones;
+  logic [`NUM_MULT_STAGE-2:0]                        internal_dones;
   logic [5*(`NUM_MULT_STAGE-2)-1:0]                  internal_dest_idx;
   logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
   logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
