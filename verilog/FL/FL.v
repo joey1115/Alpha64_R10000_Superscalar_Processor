@@ -28,7 +28,7 @@ module FL (
   assign next_tail    = rollback_en ? FL_rollback_idx :
                         dispatch_en ? virtual_tail    : tail;
   assign FL_idx       = next_tail;
-  assign T_idx        = (next_tail + 1 == next_head && retire_en) ? T_old_idx : FL_table[next_tail];
+  assign T_idx        = (next_tail == head && retire_en) ? T_old_idx : FL_table[next_tail];
   assign FL_valid     = virtual_tail != next_head;
 
   always_comb begin
