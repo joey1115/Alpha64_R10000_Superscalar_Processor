@@ -21,7 +21,7 @@ module test_Map_Table;
 
   // UUT output
   MAP_TABLE_PACKET_OUT           uut_out;
-  MAP_TABLE_t [`NUM_MAP_TABLE:0] uut_table;
+  T_t                     [31:0] uut_table;
 
   // UUT instantiation
   Map_Table UUT(
@@ -56,36 +56,36 @@ module test_Map_Table;
   MAP_TABLE_PACKET_IN   [`TEST_LEN-1:0] test_in;
   // solutions have one more state than test cases
   MAP_TABLE_PACKET_OUT    [`TEST_LEN:0] test_out;
-  MAP_TABLE_t        [`NUM_MAP_TABLE:0] test_table;
+  T_t                            [31:0] test_table;
 
   // Reset test_table
   task resetTestTable;
     begin
-      for (int i=0; i<`NUM_MAP_TABLE; i=i+1) begin
-        test_table[i].PR_idx        = i;
-        test_table[i].T_plus_status = `TRUE;
+      for (int i=0; i<32; i=i+1) begin
+        test_table[i].idx        = i;
+        test_table[i].ready      = `TRUE;
       end
     end
   endtask
 
   // Update test_table
   task updateTestTable;
-    input logic [4:0] reg_dest;
-    input logic [$clog2(`NUM_PR)-1:0] PR_idx;
+    input logic [4:0] dest_idx;
+    input logic [$clog2(`NUM_PR)-1:0] T_idx;
     input logic ready;
     begin
-      test_table[reg_dest].PR_idx        = PR_idx;
-      test_table[reg_dest].T_plus_status = ready;
+      test_table[dest_idx].idx   = T_idx;
+      test_table[dest_idx].ready = ready;
     end
   endtask
 
   // Display table
   task displayTable;
-    input MAP_TABLE_t [`NUM_MAP_TABLE:0] map_table_to_display;
+    input T_t [31:0] map_table_to_display;
     begin
       $display("| REG | PR Tag | + |");
-      for (int i=0; i<`NUM_MAP_TABLE; i=i+1) begin
-        $display("|  %2d |   %2d   | %1d |", i, map_table_to_display[i].PR_idx, map_table_to_display[i].T_plus_status);
+      for (int i=0; i<32; i=i+1) begin
+        $display("|  %2d |   %2d   | %1d |", i, map_table_to_display[i].idx, map_table_to_display[i].ready);
       end
       $display("\n");
     end
@@ -117,27 +117,27 @@ module test_Map_Table;
       // displayTable(test_table);
       
       // Compare UUT internal data with test_table
-      for (int i=0; i<`NUM_MAP_TABLE; i=i+1) begin
-        if (uut_table[i].PR_idx != test_table[i].PR_idx) begin
+      for (int i=0; i<32; i=i+1) begin
+        if (uut_table[i].idx != test_table[i].idx) begin
           $display("Incorrect PR_idx in entry %2d", i);
-          $display("UUT PR_idx: %2d", uut_table[i].PR_idx);
-          $display("Sol PR_idx: %2d", test_table[i].PR_idx);
+          $display("UUT PR_idx: %2d", uut_table[i].idx);
+          $display("Sol PR_idx: %2d", test_table[i].idx);
           pass = 0;
         end
-        if (uut_table[i].T_plus_status != test_table[i].T_plus_status) begin
+        if (uut_table[i].ready != test_table[i].ready) begin
           $display("Incorrect T_plus_status in entry %2d", i);
-          $display("UUT T_plus_status: %1d", uut_table[i].T_plus_status);
-          $display("Sol T_plus_status: %1d", test_table[i].T_plus_status);
+          $display("UUT T_plus_status: %1d", uut_table[i].ready);
+          $display("Sol T_plus_status: %1d", test_table[i].ready);
           pass = 0;
         end
       end
       
       // Compare UUT output with test_out (solution)
       if (!output_dont_care) begin
-        if (uut_out.Told_to_ROB != sol_packet_out.PR_idx) begin
+        if (uut_out.Told_idx != sol_packet_out.Told_idx) begin
           $display("Incorrect PR_idx in entry %2d", i);
-          $display("UUT PR_idx: %2d", uut_table[i].PR_idx);
-          $display("Sol PR_idx: %2d", test_table[i].PR_idx);
+          $display("UUT PR_idx: %2d", uut_table[i].idx);
+          $display("Sol PR_idx: %2d", test_table[i].idx);
           pass = 0;
         end
         
