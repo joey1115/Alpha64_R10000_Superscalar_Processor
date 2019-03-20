@@ -72,9 +72,9 @@ module Map_Table (
       next_map_table[map_table_packet_in.reg_dest] = '{map_table_packet_in.T_idx, `FALSE};     //renew maptable from freelist but not ready yet
       next_map_table[31].ready = `TRUE;
       next_backup_map_table[map_table_packet_in.ROB_tail_idx] = next_map_table;                              //backup the map
-      // for (int i=0; i<`NUM_MAP_TABLE;i++) begin
-      //   backup_map_table[map_table_packet_in.tail_idx][i].ready = `TRUE;                        // ready all the bit
-      // end
+      for (int i=0; i<`NUM_MAP_TABLE;i++) begin
+        backup_map_table[map_table_packet_in.tail_idx][i].ready = `TRUE;                        // ready all the bit
+      end
     end
   end
 
