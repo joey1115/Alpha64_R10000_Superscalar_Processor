@@ -48,8 +48,8 @@ module Map_Table (
     end else if(en) begin
       map_table        <= `SD next_map_table;
       backup_map_table <= `SD next_backup_map_table;
-    end // if (f_d_enable)
-  end  // always
+    end
+  end
 
 
   always_comb begin
