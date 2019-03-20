@@ -22,16 +22,23 @@
 module CDB (
   input  en, clock, reset, 
   input  CDB_PACKET_IN  CDB_packet_in,
+
+  `ifndef SYNTH_TEST
+  output CDB_entry_t [`NUM_FU-1:0] CDB,
+  `endif
   output CDB_PACKET_OUT CDB_packet_out
 );
 
-  CDB_entry_t [`NUM_FU-1:0] CDB, next_CDB;
+  `ifdef SYNTH_TEST
+  CDB_entry_t [`NUM_FU-1:0] CDB;
+  `endif
+  CDB_entry_t [`NUM_FU-1:0] next_CDB;
   logic [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0] diff;
 
   always_comb begin
     next_CDB = CDB;
     CDB_packet_out.write_en   = 0;
-    CDB_packet_out.T_idx      = 0;
+    CDB_packet_out.T_idx      = 31;
     CDB_packet_out.T_value    = 0;
     CDB_packet_out.complete_en= 0;
     
@@ -80,7 +87,7 @@ module CDB (
       end // if
     end // for
 
-  end // always
+  end // always_comb
 
   always_ff @(posedge clock) begin
     if (reset) begin
@@ -93,5 +100,5 @@ module CDB (
     end else if (en) begin
       CDB <= `SD next_CDB;
     end
-  end
+  end // always_ff
 endmodule

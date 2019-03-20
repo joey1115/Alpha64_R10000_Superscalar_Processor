@@ -13,22 +13,24 @@
 `include "../../sys_defs.vh"
 `include "CDB.vh"
 
-module test_CT;
+module test_CDB;
 
-  // DUT input stimulus
+  // ********* UUT Setup *********
+  // UUT input
   logic en, clock, reset;
-  CDB_PACKET_IN CDB_packet_in;
-
-  // DUT output
-  CDB_PACKET_OUT CDB_packet_out;
+  CDB_PACKET_IN uut_in;
+  // UUT output
+  CDB_PACKET_OUT uut_out;
+  CDB_entry_t [`NUM_FU-1:0] uut_data;
 
   // DUT instantiation
   CDB UUT(
     .en(en),
     .clock(clock),
     .reset(reset),
-    .CDB_packet_in(CDB_packet_in),
-    .CDB_packet_out(CDB_packet_out)
+    .CDB_packet_in(uut_in),
+    .CDB_packet_out(uut_out),
+    .CDB(uut_data)
   );
 
   logic [31:0] cycle_count;
@@ -60,7 +62,7 @@ module test_CT;
     en    = 1'b1;
     clock = 1'b0;
     reset = 1'b0;
-    CDB_packet_in = 0;
+    uut_in = 0;
 
     @(negedge clock);
     reset = 1'b1;
