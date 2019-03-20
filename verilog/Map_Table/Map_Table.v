@@ -62,6 +62,9 @@ module Map_Table (
     if ( map_table_packet_in.CDB_en && map_table[map_table_packet_in.CDB_dest_idx].idx == map_table_packet_in.CDB_T_idx ) begin
       map_table[map_table_packet_in.CDB_dest_idx].ready = `TRUE;
     end
+    map_table_packet_out.Told_idx = next_map_table[map_table_packet_in.reg_dest].idx;
+    map_table_packet_out.T1.idx   = next_map_table[map_table_packet_in.reg_a].idx;
+    map_table_packet_out.T2.idx   = next_map_table[map_table_packet_in.reg_b].idx;
     // PR updata T_idx
     if ( map_table_packet_in.Dispatch_en ) begin   // no dispatch hazard
       next_map_table[map_table_packet_in.dest_idx] = '{map_table_packet_in.T_idx, `FALSE};     //renew maptable from freelist but not ready yet
@@ -72,9 +75,4 @@ module Map_Table (
       end
     end
   end
-
-
-  assign map_table_packet_out.Told_idx = map_table[map_table_packet_in.reg_dest].idx;
-  assign map_table_packet_out.T1       = map_table[map_table_packet_in.reg_a];
-  assign map_table_packet_out.T2       = map_table[map_table_packet_in.reg_b];
 endmodule
