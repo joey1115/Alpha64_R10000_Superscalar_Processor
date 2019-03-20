@@ -188,16 +188,16 @@ module mult_stage (
 `else
     if ( reset || rollback_valid ) begin
 `endif
-      next_mplier_out   = {64{1'b0}};
-      next_mcand_out    = {64{1'b0}};
-      next_product_out  = {64{1'b0}};
-      next_dest_idx_out = `ZERO_REG;
-      next_T_idx_out    = `ZERO_PR;
-      next_ROB_idx_out  = {`NUM_ROB{1'b0}};
-      next_done         = `FALSE;
+      mplier_out   = {64{1'b0}};
+      mcand_out    = {64{1'b0}};
+      product_out  = {64{1'b0}};
+      dest_idx_out = `ZERO_REG;
+      T_idx_out    = `ZERO_PR;
+      ROB_idx_out  = {`NUM_ROB{1'b0}};
+      done         = `FALSE;
 `ifndef SYNTH_TEST
-      next_T1_value_out = {64{1'b0}};
-      next_T2_value_out = {64{1'b0}};
+      T1_value_out = {64{1'b0}};
+      T2_value_out = {64{1'b0}};
 `endif
     end else begin
       mplier_out       <= `SD next_mplier_out;
@@ -240,7 +240,7 @@ module mult (
   output logic             [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values,
   output logic             [`NUM_MULT_STAGE-2:0]                        internal_valids,
   output logic             [`NUM_MULT_STAGE-3:0]                        internal_dones,
-  output logic             [5*(`NUM_MULT_STAGE-2))-1:0]                 internal_dest_idx,
+  output logic             [5*(`NUM_MULT_STAGE-2)-1:0]                  internal_dest_idx,
   output logic             [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx,
   output logic             [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx,
   output logic             [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx,
@@ -259,7 +259,7 @@ module mult (
   logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values;
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
   logic [`NUM_MULT_STAGE-3:0]                        internal_dones;
-  logic [5*(`NUM_MULT_STAGE-2))-1:0]                 internal_dest_idx;
+  logic [5*(`NUM_MULT_STAGE-2)-1:0]                  internal_dest_idx;
   logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
   logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
   logic [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
