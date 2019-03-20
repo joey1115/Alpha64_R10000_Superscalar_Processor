@@ -64,6 +64,9 @@ module test_FL;
     $display("tail %d", tail);
     $display("next_tail %d", next_tail);
     $display("T_idx %d", T_idx);
+	for (int i = 0; i < `NUM_FL; i++) begin
+        $display("i %d", i, "FL_table[i] %d", FL_table[i]);
+    end
     @(negedge clock);
     dispatch_en = 1'b1;
     rollback_en = 1'b0;
@@ -72,6 +75,9 @@ module test_FL;
     $display("tail %d", tail);
     $display("next_tail %d", next_tail);
     $display("T_idx %d", T_idx);
+	for (int i = 0; i < `NUM_FL; i++) begin
+        $display("i %d", i, "FL_table[i] %d", FL_table[i]);
+    end
     @(negedge clock);
     dispatch_en = 1'b1;
     rollback_en = 1'b0;
@@ -80,16 +86,23 @@ module test_FL;
     $display("tail %d", tail);
     $display("next_tail %d", next_tail);
     $display("T_idx %d", T_idx);
+	for (int i = 0; i < `NUM_FL; i++) begin
+        $display("i %d", i, "FL_table[i] %d", FL_table[i]);
+    end
     @(negedge clock);
     dispatch_en = 1'b1;
     rollback_en = 1'b0;
     retire_en   = 1'b1;
+	T_old_idx   = 1'b0;
     @(negedge clock);
     $display("----Cycle 4----");
     $display("tail %d", tail);
     $display("next_tail %d", next_tail);
     $display("head %d", head);
     $display("next_head %d", next_head);
+	for (int i = 0; i < `NUM_FL; i++) begin
+        $display("i %d", i, "FL_table[i] %d", FL_table[i]);
+    end
     @(negedge clock);
     @(negedge clock);
     @(negedge clock);
