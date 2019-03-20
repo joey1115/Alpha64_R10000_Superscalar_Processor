@@ -6,6 +6,7 @@ module FL (
   input  logic                                    retire_en,
   input  logic [$clog2(`NUM_PR)-1:0]              T_old_idx,
   input  logic [$clog2(`NUM_FL)-1:0]              FL_rollback_idx,
+  input  logic [4:0]                              dest_idx,
 `ifndef SYNTH_TEST
   output logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table,
   output logic [$clog2(`NUM_FL)-1:0]              head, next_head,
@@ -22,18 +23,21 @@ module FL (
   logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table;
 `endif
   logic [$clog2(`NUM_FL)-1:0]              virtual_tail;
+  logic                                    move_head;
 
-  assign next_head    = retire_en ? (head + 1) : head;
-  assign virtual_tail = tail + 1;
+  assign move_head    = retire_en && T_old_idx != `ZERO_PR;
+  assign next_head    = move_head ? (head + 1) : head;
+  assign virtual_tail = dest_idx == `ZERO_REG ? tail : tail + 1;
   assign next_tail    = rollback_en ? FL_rollback_idx :
                         dispatch_en ? virtual_tail    : tail;
   assign FL_idx       = next_tail;
-  assign T_idx        = (next_tail == head && retire_en) ? T_old_idx : FL_table[next_tail];
+  assign T_idx        = dest_idx == `ZERO_REG ? `ZERO_PR  :
+                        next_tail == head     ? T_old_idx : FL_table[head];
   assign FL_valid     = virtual_tail != next_head;
 
   always_comb begin
     next_FL_table = FL_table;
-    next_FL_table[head] = retire_en ? T_old_idx : FL_table[head];
+    next_FL_table[head] = move_head ? T_old_idx : FL_table[head];
   end
 
   always_ff @(posedge clock) begin

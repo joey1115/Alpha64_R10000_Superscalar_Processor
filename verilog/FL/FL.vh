@@ -4,4 +4,6 @@
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
 
+`include "../RS/RS.vh"
+
 `endif
