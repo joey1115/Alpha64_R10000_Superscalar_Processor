@@ -4,7 +4,7 @@ module FL (
   input  logic                                    dispatch_en,
   input  logic                                    rollback_en,
   input  logic                                    retire_en,
-  input  logic [$clog2(`NUM_ROB)-1:0]             T_old_idx,
+  input  logic [$clog2(`NUM_PR)-1:0]              T_old_idx,
   input  logic [$clog2(`NUM_FL)-1:0]              FL_rollback_idx,
 `ifndef SYNTH_TEST
   output logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table,
@@ -12,7 +12,7 @@ module FL (
   output logic [$clog2(`NUM_FL)-1:0]              tail, next_tail,
 `endif
   output logic                                    FL_valid,
-  output logic [$clog2(`NUM_ROB)-1:0]             T_idx,
+  output logic [$clog2(`NUM_PR)-1:0]              T_idx,
   output logic [$clog2(`NUM_FL)-1:0]              FL_idx
 );
 
@@ -40,7 +40,7 @@ module FL (
     if ( reset ) begin
       head <= `SD 0;
       tail <= `SD 0;
-      for (int i = 0; i < `NUM_ROB; i++) begin
+      for (int i = 0; i < `NUM_FL; i++) begin
         FL_table[i] <= `SD i + 32;
       end
     end else begin

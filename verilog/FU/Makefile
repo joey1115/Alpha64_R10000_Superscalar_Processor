@@ -72,13 +72,13 @@ dve:	$(SIMFILES) $(TESTBENCH)
 	$(VCS) +memcbk $(TESTBENCH) $(SIMFILES) -o dve -R -gui
 	
 dve_syn:	$(SYNFILES) $(TESTBENCH)
-	$(VCS) $(TESTBENCH) $(SYNFILES) $(LIB) +define+SYNTH_TEST -o syn_simv -R -gui
+	$(VCS) $(TESTBENCH) $(SYNFILES) $(LIB) +define+SYNTH_TEST +lint=TFIPC-L -o syn_simv -R -gui
 
 simv:	$(SIMFILES) $(TESTBENCH)
 	$(VCS) $(TESTBENCH) $(SIMFILES)	-o simv
 
 syn_simv:	$(SYNFILES) $(TESTBENCH)
-	$(VCS) $(TESTBENCH) $(SYNFILES) $(LIB) +define+SYNTH_TEST -o syn_simv
+	$(VCS) $(TESTBENCH) $(SYNFILES) $(LIB) +define+SYNTH_TEST +lint=TFIPC-L -o syn_simv
 
 syn:	syn_simv
 	./syn_simv | tee syn_program.out
