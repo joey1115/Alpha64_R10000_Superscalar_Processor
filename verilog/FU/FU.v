@@ -99,7 +99,7 @@ module mult_stage (
   logic [$clog2(`NUM_PR)-1:0]    next_ROB_idx_out;
   logic [$clog2(`NUM_FL)-1:0]    next_FL_idx_out;
   logic [64/`NUM_MULT_STAGE-1:0] partial_product, next_mplier, next_mcand;
-  logic                          rollback_valid;
+  logic                          rollback_valid_out, rollback_valid;
   logic                          next_done;
   logic [$clog2(`NUM_ROB)-1:0]   diff;
 `ifdef MULT_FORWARDING
@@ -188,16 +188,16 @@ module mult_stage (
 `else
     if ( reset || rollback_valid ) begin
 `endif
-      mplier_out   = {64{1'b0}};
-      mcand_out    = {64{1'b0}};
-      product_out  = {64{1'b0}};
-      dest_idx_out = `ZERO_REG;
-      T_idx_out    = `ZERO_PR;
-      ROB_idx_out  = {`NUM_ROB{1'b0}};
-      done         = `FALSE;
+      mplier_out   <= `SD {64{1'b0}};
+      mcand_out    <= `SD {64{1'b0}};
+      product_out  <= `SD {64{1'b0}};
+      dest_idx_out <= `SD `ZERO_REG;
+      T_idx_out    <= `SD `ZERO_PR;
+      ROB_idx_out  <= `SD {`NUM_ROB{1'b0}};
+      done         <= `SD `FALSE;
 `ifndef SYNTH_TEST
-      T1_value_out = {64{1'b0}};
-      T2_value_out = {64{1'b0}};
+      T1_value_out <= `SD {64{1'b0}};
+      T2_value_out <= `SD {64{1'b0}};
 `endif
     end else begin
       mplier_out       <= `SD next_mplier_out;
@@ -432,16 +432,56 @@ module FU (
   //   .fu_valid(fu_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)])
   // );
 
-  // mult mult_0 [`NUM_MULT-1:0] (
-  //   // Inputs
-  //   .clock({`NUM_MULT{clock}}),
-  //   .reset({`NUM_MULT{reset}}),
-  //   .full_valid(fu_m_packet_in.full_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
-  //   .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
-  //   // Output
-  //   .fu_packet_out(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
-  //   .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
-  // );
+`ifndef SYNTH_TEST
+    logic [`NUM_MULT-1:0]                                             last_done;
+    logic [`NUM_MULT-1:0][63:0]                                       product_out;
+    logic [`NUM_MULT-1:0][4:0]                                        last_dest_idx;
+    logic [`NUM_MULT-1:0][$clog2(`NUM_PR)-1:0]                        last_T_idx;
+    logic [`NUM_MULT-1:0][$clog2(`NUM_ROB)-1:0]                       last_ROB_idx;
+    logic [`NUM_MULT-1:0][$clog2(`NUM_FL)-1:0]                        last_FL_idx;
+    logic [`NUM_MULT-1:0][63:0]                                       T1_value;
+    logic [`NUM_MULT-1:0][63:0]                                       T2_value;
+    logic [`NUM_MULT-1:0][((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values;
+    logic [`NUM_MULT-1:0][((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T2_values;
+    logic [`NUM_MULT-1:0][`NUM_MULT_STAGE-2:0]                        internal_valids;
+    logic [`NUM_MULT-1:0][`NUM_MULT_STAGE-3:0]                        internal_dones;
+    logic [`NUM_MULT-1:0][5*(`NUM_MULT_STAGE-2)-1:0]                  internal_dest_idx;
+    logic [`NUM_MULT-1:0][($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
+    logic [`NUM_MULT-1:0][($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
+    logic [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
+`endif
+
+  mult mult_0 [`NUM_MULT-1:0] (
+    // Inputs
+    .clock({`NUM_MULT{clock}}),
+    .reset({`NUM_MULT{reset}}),
+    .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .rollback_en({`NUM_MULT{rollback_en}}),
+    .ROB_rollback_idx({`NUM_MULT{ROB_rollback_idx}}),
+    .diff_ROB({`NUM_MULT{diff_ROB}}),
+    // Outputs
+`ifndef SYNTH_TEST
+    .last_done(last_done),
+    .product_out(product_out),
+    .last_dest_idx(last_dest_idx),
+    .last_T_idx(last_T_idx),
+    .last_ROB_idx(last_ROB_idx),
+    .last_FL_idx(last_FL_idx),
+    .T1_value(T1_value),
+    .T2_value(T2_value),
+    .internal_T1_values(internal_T1_values),
+    .internal_T2_values(internal_T2_values),
+    .internal_valids(internal_valids),
+    .internal_dones(internal_dones),
+    .internal_dest_idx(internal_dest_idx),
+    .internal_T_idx(internal_T_idx),
+    .internal_ROB_idx(internal_ROB_idx),
+    .internal_FL_idx(internal_FL_idx),
+`endif
+    .fu_packet_out(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
+  );
 
   br br_0 [`NUM_BR-1:0] (
     // Inputs

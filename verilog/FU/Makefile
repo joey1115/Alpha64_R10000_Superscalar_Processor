@@ -27,15 +27,15 @@
 ## CONFIGURATION
 ################################################################################
 
-VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD) +lint=TFIPC-L
+VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD) +lint=TFIPC-L +lint=PCWM
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 # SIMULATION CONFIG
 MOD_NAME     = FU
 HEADERS      = $(wildcard ../../*.vh)
 HEADERS     += $(wildcard $(MOD_NAME).vh)
-TESTBENCH    = mult_test.v
-#TESTBENCH    = $(wildcard test_$(MOD_NAME).v)
+# TESTBENCH    = mult_test.v
+TESTBENCH    = $(wildcard test_$(MOD_NAME).v)
 MODFILE      = $(wildcard $(MOD_NAME).v)
 
 SIMFILES     = $(MODFILE)
@@ -69,16 +69,16 @@ all:    simv
 
 # Simulation:
 dve:	$(SIMFILES) $(TESTBENCH) 
-	$(VCS) +memcbk $(TESTBENCH) $(SIMFILES) -o dve -R -gui
+	$(VCS) +memcbk $(TESTBENCH) $(SIMFILES) +define+SYNTH_TEST -o dve -R -gui
 	
 dve_syn:	$(SYNFILES) $(TESTBENCH)
-	$(VCS) $(TESTBENCH) $(SYNFILES) $(LIB) +define+SYNTH_TEST +lint=TFIPC-L -o syn_simv -R -gui
+	$(VCS) $(TESTBENCH) $(SYNFILES) $(LIB) +define+SYNTH_TEST -o syn_simv -R -gui
 
 simv:	$(SIMFILES) $(TESTBENCH)
-	$(VCS) $(TESTBENCH) $(SIMFILES)	-o simv
+	$(VCS) $(TESTBENCH) $(SIMFILES) +define+SYNTH_TEST -o simv
 
 syn_simv:	$(SYNFILES) $(TESTBENCH)
-	$(VCS) $(TESTBENCH) $(SYNFILES) $(LIB) +define+SYNTH_TEST +lint=TFIPC-L -o syn_simv
+	$(VCS) $(TESTBENCH) $(SYNFILES) $(LIB) +define+SYNTH_TEST -o syn_simv
 
 syn:	syn_simv
 	./syn_simv | tee syn_program.out

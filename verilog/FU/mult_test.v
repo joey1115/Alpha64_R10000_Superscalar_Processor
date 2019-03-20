@@ -14,6 +14,7 @@ module testbench();
   logic [63:0] product_out, T1_value, T2_value;
   logic [4:0]                 last_dest_idx;
   logic [$clog2(`NUM_PR)-1:0] last_T_idx;
+  logic [$clog2(`NUM_FL)-1:0] last_FL_idx;
   logic [$clog2(`NUM_ROB)-1:0] last_ROB_idx, ROB_rollback_idx, diff_ROB;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0] internal_T1_values, internal_T2_values;
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
@@ -28,9 +29,9 @@ module testbench();
             .reset(reset),
             .fu_packet(fu_packet_in),
             .CDB_valid(CDB_valid),
-            .fu_valid(fu_valid),
             .rollback_en(rollback_en),
             .ROB_rollback_idx(ROB_rollback_idx),
+            .diff_ROB(diff_ROB),
 `ifndef SYNTH_TEST
             .last_done(last_done),
             .product_out(product_out),
@@ -50,7 +51,7 @@ module testbench();
             .internal_FL_idx(internal_FL_idx),
 `endif
             .fu_packet_out(fu_packet_out),
-            .diff_ROB(diff_ROB)
+            .fu_valid(fu_valid)
             );
 
   always begin
@@ -91,7 +92,7 @@ module testbench();
       CDB_valid,
       rollback_en,
       ROB_rollback_idx,
-      diff_ROB
+      fu_valid
     );
   endtask
 
