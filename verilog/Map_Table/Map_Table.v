@@ -89,5 +89,4 @@ module Map_Table (
       backup_map_table <= `SD next_backup_map_table;
     end
   end
-
 endmodule
