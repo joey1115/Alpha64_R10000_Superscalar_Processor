@@ -5,7 +5,7 @@
 `include "../../sys_defs.vh"
 `include "../RS/RS.vh"
 
-`define MAP_TABLE_RESET '{                     \
+`define MAP_TABLE_RESET '{                       \
   {{{($clog2(`NUM_PR)-5){1'b0}}, 5'h00}, `TRUE}, \
   {{{($clog2(`NUM_PR)-5){1'b0}}, 5'h01}, `TRUE}, \
   {{{($clog2(`NUM_PR)-5){1'b0}}, 5'h02}, `TRUE}, \
@@ -40,7 +40,7 @@
   {{{($clog2(`NUM_PR)-5){1'b0}}, 5'h1f}, `TRUE}  \
 }
 
-`define MAP_TABLE_STACK_ENTRY_RESET {          \
+`define MAP_TABLE_STACK_ENTRY_RESET {            \
   {{{($clog2(`NUM_PR)-5){1'b0}}, 5'h00}, `TRUE}, \
   {{{($clog2(`NUM_PR)-5){1'b0}}, 5'h01}, `TRUE}, \
   {{{($clog2(`NUM_PR)-5){1'b0}}, 5'h02}, `TRUE}, \
