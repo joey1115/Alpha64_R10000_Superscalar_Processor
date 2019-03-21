@@ -65,10 +65,11 @@ typedef struct packed {
   ALU_FUNC                              func;             // Required ALU operation
   ALU_OPA_SELECT                        T1_select;
   ALU_OPB_SELECT                        T2_select;
-  logic          [$clog2(`NUM_PR)-1:0]  CDB_T;            // CDB tag
+  logic          [$clog2(`NUM_PR)-1:0]  CDB_T_idx;        // CDB tag
   logic          [`NUM_FU-1:0]          fu_valid;         // FU done
   logic          [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx; // FU done
   logic          [$clog2(`NUM_ROB)-1:0] ROB_tail_idx;     // FU done
+  logic          [$clog2(`NUM_ROB)-1:0] diff_ROB;
   logic                                 rollback_en;      // FU done
 } RS_PACKET_IN;
 

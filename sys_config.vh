@@ -15,5 +15,6 @@
 `define NUM_MULT_STAGE 8
 
 `define MULT_FORWARDING
+`define RS_FORWARDING
 
 `endif
