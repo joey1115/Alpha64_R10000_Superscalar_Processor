@@ -96,7 +96,7 @@ module CDB (
     if (reset) begin
       for (int i=0; i<`NUM_FU; i++) begin
         CDB[i].taken   <= `SD 0;
-        CDB[i].T_idx   <= `SD 0;
+        CDB[i].T_idx   <= `SD `ZERO_PR;
         CDB[i].result  <= `SD 0;
         CDB[i].ROB_idx <= `SD 0;
       end
