@@ -27,11 +27,15 @@
 ## CONFIGURATION
 ################################################################################
 
-VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD) +lint=TFIPC-L
+VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD)
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
+PROGRAM = test_progs/evens.s
+ASSEMBLED = program.mem
+ASSEMBLER = vs-asm
+
 # SIMULATION CONFIG
-MOD_NAME     = ROB
+MOD_NAME     = PR
 HEADERS      = $(wildcard ../../*.vh)
 HEADERS     += $(wildcard $(MOD_NAME).vh)
 TESTBENCH    = $(wildcard test_$(MOD_NAME).v)
@@ -50,7 +54,7 @@ SYNFILES  = $(MOD_NAME).vg $(MOD_NAME)_svsim.sv
 export MOD_NAME
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD = 2.75
+export CLOCK_PERIOD = 2.1
 # TODO: You will want to make this more aggresive
 
 ################################################################################

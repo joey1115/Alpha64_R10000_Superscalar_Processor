@@ -1,21 +1,35 @@
-//READ T and T_old of head or tail.
-//WRITE T_old and T for Head or tail.
-//Increment head (oldest inst).
-//Increment tail (newer inst).
-
 `timescale 1ns/100ps
+
+`include "../../sys_defs.vh"
+`include "ROB.vh"
 
 `define DEBUG
 
 module ROB (
+  //inputs
   input en, clock, reset,
-  input ROB_PACKET_IN rob_packet_in,
+  input logic dispatch_en,
+  input logic [$clog2(`NUM_PR)-1:0] T_idx,
+  input logic [$clog2(`NUM_PR)-1:0] Told_idx,
+  input logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx,
+  
+  // rollback function
+  input logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input logic rollback_en,
 
+  // complete function
+  input ROB_PACKET_COMPLETE_IN rob_packet_complete_in,
+
+  //Outputs
   `ifdef DEBUG
   output ROB_t rob,
   `endif
 
-  output ROB_PACKET_OUT rob_packet_out
+  output logic ROB_valid,
+  output ROB_PACKET_RS_OUT rob_packet_rs_out,
+  output ROB_PACKET_MAPTABLE_OUT rob_packet_maptable_out,
+  output ROB_PACKET_FREELIST_OUT rob_packet_freelist_out,
+  output ROB_PACKET_ARCHMAP_OUT rob_packet_archmap_out
 );
 
   `ifndef DEBUG
@@ -24,89 +38,136 @@ module ROB (
 
   ROB_t Nrob;
 
-
-  //logic nextTailValid;
-  //logic nextHeadValid;
-  //logic [$clog2(`NUM_ROB)-1:0] nextTailPointer, nextHeadPointer;
-  //logic [$clog2(`NUM_PR)-1:0] nextT, nextT_old;
-  logic writeTail, moveHead, mispredict, b_t;
+  logic writeTail, moveHead, mispredict, b_t, retire, stall_dispatch;
   logic [$clog2(`NUM_ROB)-1:0] real_tail_idx;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg;
+
+  logic [1:0] state, Nstate;
+
+  //assign Nrob = rob;
+
+  //assign ROB_valid
+  assign stall_dispatch = (state == 1);
+  assign ROB_valid = (stall_dispatch)? 0 : !Nrob.entry[Nrob.tail].valid;
+
+  //T_old index to freelist
+  assign rob_packet_freelist_out.T_old_idx_head = rob.entry[rob.head].T_old;
+  assign rob_packet_freelist_out.free_PR = retire;
+
+  //retire archmap signal
+  assign rob_packet_archmap_out.retire_en = retire;
+  assign rob_packet_archmap_out.dest_idx = rob.entry[rob.head].dest_idx;
+  assign rob_packet_archmap_out.T_idx_head = rob.entry[rob.head].T;
 
   always_comb begin
-    Nrob = rob;
+    //outputs
+    real_tail_idx = Nrob.tail - 1;
+    
+    //tail index to RS and Freelist and maptable
+    rob_packet_rs_out.ROB_tail_idx = real_tail_idx;
+    rob_packet_freelist_out.ROB_tail_idx = real_tail_idx;
+    rob_packet_maptable_out.ROB_tail_idx = real_tail_idx;
+  end
+
+  always_comb begin
+    retire = rob.entry[rob.head].complete;
+
     // condition for Retire
-    moveHead = (rob_packet_in.r) 
+    moveHead = (retire) 
                 && en 
                 && rob.entry[rob.head].valid;
     // condition for Dispatch
-    writeTail = (rob_packet_in.inst_dispatch) 
+    writeTail = (dispatch_en) 
                 && en 
-                && (!rob_packet_out.struct_hazard || rob_packet_in.r) 
-                && !rob_packet_in.branch_mispredict;
+                && (!rob.entry[rob.tail].valid || retire) 
+                && !rollback_en;
+  end
 
-    // next state logic
-    Nrob.tail = (writeTail) ? (rob.tail + 1) : rob.tail;
-    Nrob.head = (moveHead) ? (rob.head + 1) : rob.head;
-    Nrob.entry[rob.tail].T = (writeTail) ? rob_packet_in.T_in : rob.entry[rob.tail].T;
-    Nrob.entry[rob.tail].T_old = (writeTail) ? rob_packet_in.T_old_in : rob.entry[rob.tail].T_old;
+  always_comb begin
+     Nrob = rob;
+
+    //complete stage
+    if(rob_packet_complete_in.complete_en) begin
+      Nrob.entry[rob_packet_complete_in.complete_ROB_idx].complete = 1;
+    end
+    
+    //Next state logic
+    Nrob.tail = (writeTail) ? (rob.tail + 1) : Nrob.tail;
+    Nrob.head = (moveHead) ? (rob.head + 1) : Nrob.head;
+    Nrob.entry[rob.tail].T = (writeTail) ? T_idx : Nrob.entry[rob.tail].T;
+    Nrob.entry[rob.tail].T_old = (writeTail) ? Told_idx : Nrob.entry[rob.tail].T_old;
+    Nrob.entry[rob.tail].dest_idx = (writeTail) ? dest_idx : Nrob.entry[rob.tail].dest_idx;
+
+    
   
-    //update valid bits of entry
+    //update valid and complete bits of entry
     if(rob.head != rob.tail) begin
-      Nrob.entry[rob.head].valid = (moveHead) ? 0 : rob.entry[rob.head].valid;
-      Nrob.entry[rob.tail].valid = (writeTail) ? 1 : rob.entry[rob.tail].valid;
+      Nrob.entry[rob.head].valid = (moveHead) ? 0 : Nrob.entry[rob.head].valid;
+      Nrob.entry[rob.head].complete = (moveHead) ? 0 : Nrob.entry[rob.head].complete;
+      Nrob.entry[rob.tail].valid = (writeTail) ? 1 : Nrob.entry[rob.tail].valid;
+      Nrob.entry[rob.tail].complete = (writeTail) ? 0 : Nrob.entry[rob.tail].complete;
     end
     else begin
       Nrob.entry[rob.tail].valid = (writeTail) ? 1 :
-                                    (moveHead) ? 0 : rob.entry[rob.head].valid;
+                                    (moveHead) ? 0 : Nrob.entry[rob.head].valid;
+      Nrob.entry[rob.head].complete = (moveHead) ? 0 : Nrob.entry[rob.head].complete;
     end
 
-    b_t = rob_packet_in.flush_branch_idx >= rob.tail;
+    //rollback functionality
+    b_t = ROB_rollback_idx >= rob.tail;
 
-    mispredict = rob_packet_in.branch_mispredict && rob.entry[rob_packet_in.flush_branch_idx].valid;
+    mispredict = rollback_en && rob.entry[ROB_rollback_idx].valid;
 
     if(mispredict) begin
         if(b_t) begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush only branch less than tail and greater than branch
-            if( i < rob.tail || i > rob_packet_in.flush_branch_idx)
+            if( i < rob.tail || i > ROB_rollback_idx)
               Nrob.entry[i].valid = 0;
           end
         end
         else begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush instructions between tail and branch
-            if( i < rob.tail && i > rob_packet_in.flush_branch_idx)
+            if( i < rob.tail && i > ROB_rollback_idx)
               Nrob.entry[i].valid = 0;
           end
         end
         //move tail index to after branch
-        Nrob.tail = rob_packet_in.flush_branch_idx + 1;
+        Nrob.tail = ROB_rollback_idx + 1;
     end
-
-    real_tail_idx = rob.tail - 1;
-    //outputs
-    rob_packet_out.out_correct = rob.entry[real_tail_idx].valid;
-    rob_packet_out.ins_rob_idx = real_tail_idx;
-    rob_packet_out.T_out = rob.entry[real_tail_idx].T;
-    rob_packet_out.T_old_out = rob.entry[real_tail_idx].T_old;
-    // output for Complete
-    rob_packet_out.head_idx_out = rob.head;
-    // output for Dispatch
-    rob_packet_out.struct_hazard = rob.entry[rob.tail].valid;
-
+    
+   
   end
 
+  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx : ROB_rollback_idx_reg;
+
+  always_comb begin
+    case(state)
+      0: Nstate = (mispredict) ? 1 : state;
+      1: Nstate = (rob.head == ROB_rollback_idx_reg) ? 0 : state;
+      default: Nstate = state;
+    endcase 
+  end
   always_ff @ (posedge clock) begin
     if(reset) begin
+      state <= `SD 0;
+      ROB_rollback_idx_reg <= `SD 0;
       rob.tail <= `SD 0;
       rob.head <= `SD 0;
       for(int i=0; i < `NUM_ROB; i++) begin
          rob.entry[i].valid <= `SD 0;
+         rob.entry[i].complete <= `SD 0;
+         rob.entry[i].T <= `SD 0;
+         rob.entry[i].T_old <= `SD 0;
+         rob.entry[i].dest_idx <= `SD 0;
       end
-    end
-    else begin
-      rob <= `SD Nrob;
     end // if (reset) else
+    else if(en)begin
+      rob <= `SD Nrob;
+      state <= `SD Nstate;
+      ROB_rollback_idx_reg <= `SD NROB_rollback_idx_reg;
+    end // else if(en)begin
   end // always_ff
 
 endmodule

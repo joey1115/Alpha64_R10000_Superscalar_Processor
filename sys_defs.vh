@@ -30,6 +30,7 @@
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
+
 // probably not a good idea to change this second one
 `define VIRTUAL_CLOCK_PERIOD   30.0 // Clock period from dc_shell
 `define VERILOG_CLOCK_PERIOD   10.0 // Clock period from test bench
@@ -113,7 +114,8 @@ typedef enum logic [4:0] {
 typedef union packed {
   logic [31:0] I;
   struct packed {
-    logic [5:0] opcode;
+    logic [2:0] op;
+    logic [2:0] br_func;
     logic [4:0] rega_idx;
     logic [4:0] regb_idx;
     logic [3:0] m;
@@ -210,11 +212,12 @@ typedef struct packed {
 //
 //////////////////////////////////////////////
 
-typedef enum logic [1:0] {
-  FU_ALU  = 2'b00,
-  FU_ST   = 2'b01,
-  FU_LD   = 2'b10,
-  FU_MULT = 2'b11
+typedef enum logic [2:0] {
+  FU_ALU  = 3'b000,
+  FU_ST   = 3'b001,
+  FU_LD   = 3'b010,
+  FU_MULT = 3'b011,
+  FU_BR   = 3'b100
 } FU_t;
 
 typedef struct packed {
