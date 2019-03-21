@@ -44,7 +44,7 @@ module RS (
     FU_forward_idx = {$clog2(`NUM_FU){1'b0}};
     if ( rs_packet_in.T1.ready && rs_packet_in.T2.ready ) begin
       for (int i = 0; i < `NUM_FU; i++) begin
-        if ( ( !RS_entry_ready[i] || RS_rollback[i] || RS[i].busy == `FALSE ) && rs_packet_in.fu_valid[i] && FU_entry_match[i] ) begin
+        if ( ( !RS_entry_ready[i] || RS[i].busy == `FALSE ) && rs_packet_in.fu_valid[i] && FU_entry_match[i] ) begin
           FU_forward_hit = `TRUE;
           FU_forward_idx = i;
           break;
