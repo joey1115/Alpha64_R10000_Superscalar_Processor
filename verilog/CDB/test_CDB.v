@@ -23,7 +23,7 @@ module test_CDB;
   CDB_PACKET_OUT uut_out;
   CDB_entry_t [`NUM_FU-1:0] uut_data;
 
-  // DUT instantiation
+  // UUT instantiation
   CDB UUT(
     .en(en),
     .clock(clock),
@@ -33,19 +33,16 @@ module test_CDB;
     .CDB(uut_data)
   );
 
-  logic [31:0] cycle_count;
 
-  // Test Cases Define
-
-  // Check Sol task
-
+  // ********* System Clock and Cycle Count *********
   // Generate System Clock
   always begin
     #(`VERILOG_CLOCK_PERIOD/2.0);
     clock = ~clock;
   end
 
-  // Update cycle count
+  // Generate cycle count
+  logic [31:0] cycle_count;
   always @(posedge clock) begin
     if(reset)
       cycle_count <= `SD 0;
@@ -54,10 +51,59 @@ module test_CDB;
   end
 
 
+  // ********* Test Case Setup *********
+  // Test Case
+  `define TEST_LEN 1
+  CDB_PACKET_IN  [`TEST_LEN-1:0] test_in_raw; // diff_ROB is changed to ROB_tail_idx of the cycle
+  CDB_PACKET_IN  [`TEST_LEN-1:0] test_in;     // the real test_in
+  // solutions have one more state than test cases
+  CDB_PACKET_OUT   [`TEST_LEN:0] sol_out;
+
+
+  // Apply test input
+  task apply_input;
+    begin
+      test_in[cycle_count] = test_in_raw[cycle_count];
+      test_in[cycle_count].diff_ROB = test_in[cycle_count].diff_ROB - test_in[cycle_count].ROB_rollback_idx;
+      uut_in = test_in[cycle_count];
+    end
+  endtask
+
+  // Display input, internal data, and output at the end of a cycle
+  task display_cycle_info;
+    begin
+      // dest_idx
+      $display("____dest_idx______");
+      $display("| input | output |");
+      $display("|   %2d  |   %2d  |", uut_in.dest_idx, uut_out.dest_idx);
+      // rollback info
+      $display("____Rollback_______________________________________________");
+      $display("| rollback_en | ROB_rollback_idx | ROB_tail_idx | diff_ROB |");
+      $display("|          %1d  |         %1d       |      %1d      |     %1d    |",
+                uut_in.rollback_en, uut_in.ROB_rollback_idx, test_in_raw[cycle_count].diff_ROB, uut_in.diff_ROB);
+      // input
+      $display("____Input_Data______________________________________________");
+      $display("| FU# | FU_done | T_idx | ROB_idx |        FU_result        |");
+      for (int i=`NUM_FU-1; i>-1; i=i-1) begin
+        $display("|  %1d  |    %1d    |   %2d  |    %1d    |  0x%04h_%04h_%04h_%04h  |",
+              i, uut_in.FU_done[i], uut_in.T_idx[i], uut_in.ROB_idx[i],
+              uut_in.FU_result[i][63:48], uut_in.FU_result[i][47:32], uut_in.FU_result[i][31:16], uut_in.FU_result[i][15:0]);
+      end
+      // internal data and output
+      $display("____Internal_Data_and_Output___________________________________________");
+      $display("| FU# |  taken | T_idx | ROB_idx |        FU_result        | CDB_valid |");
+      for (int i=`NUM_FU-1; i>-1; i=i-1) begin
+        $display("|  %1d  |    %1d    |   %2d  |    %1d    |  0x%04h_%04h_%04h_%04h  |     %1d     |",
+              i, uut_data[i].taken, uut_data[i].T_idx, uut_data[i].ROB_idx,
+              uut_data[i].FU_result[63:48], uut_data[i].FU_result[47:32], uut_data[i].FU_result[31:16], uut_data[i].FU_result[15:0]);
+      end
+      $display();
+    end
+  endtask
+
+
   initial begin
 
-    $display("@@@Pass!!!!!!!!!!!!!!!!!!!!!!!!!");
-    /***** Test Case #1 *****/
     // Reset
     en    = 1'b1;
     clock = 1'b0;
@@ -66,14 +112,14 @@ module test_CDB;
 
     @(negedge clock);
     reset = 1'b1;
-    
+
     // Cycle 0
     @(negedge clock);
     reset = 1'b0;
-
-    @(negedge clock);
-    @(negedge clock);
-    @(negedge clock);
+    // uut_in = test_in[0];
+    @(posedge clock)
+    display_cycle_info();
+    #2;
 
     $finish;
 

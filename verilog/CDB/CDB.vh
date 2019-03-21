@@ -15,7 +15,7 @@ typedef struct packed {
 typedef struct packed {
   logic                                         rollback_en;        // rollback_en from X/C
   logic                [$clog2(`NUM_ROB)-1:0]   ROB_rollback_idx;   // ROB# of mispredicted branch/incorrect load from br module/LSQ
-  logic                [$clog2(`NUM_ROB)-1:0]   diff_ROB;           // difference value of ROB_rollback_idx & ROB_tail_idx from FU
+  logic                [$clog2(`NUM_ROB)-1:0]   diff_ROB;           // diff_ROB = ROB_tail of the current cycle - ROB_rollback_idx
   logic  [`NUM_FU-1:0]                          FU_done;            // valid signal from FU
   logic  [`NUM_FU-1:0]  [$clog2(`NUM_PR)-1:0]   T_idx;              // tag from FU
   logic  [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0]   ROB_idx;            // ROB_idx from FU

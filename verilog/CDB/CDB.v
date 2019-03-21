@@ -44,13 +44,13 @@ module CDB (
     CDB_packet_out.T_value    = 0;
     CDB_packet_out.complete_en= 0;
     
-    // Update taken, T & result for each empty entry
+    // Update taken, T_idx & result for each empty entry
     // and give CDB_valid to FU, CDB_valid=1 means the entry is free
     for (int i=0; i<`NUM_FU; i++) begin
       CDB_packet_out.CDB_valid[i] = !next_CDB[i].taken;
       if (!(next_CDB[i].taken) && CDB_packet_in.FU_done[i]) begin
         next_CDB[i].taken   = 1;
-        next_CDB[i].T       = CDB_packet_in.T_idx[i];
+        next_CDB[i].T_idx   = CDB_packet_in.T_idx[i];
         next_CDB[i].result  = CDB_packet_in.FU_result[i];
         next_CDB[i].ROB_idx = CDB_packet_in.ROB_idx[i];
         CDB_packet_out.CDB_valid[i] = 0;
@@ -62,7 +62,7 @@ module CDB (
         diff[i] = next_CDB[i].ROB_idx - CDB_packet_in.ROB_rollback_idx;
         if (CDB_packet_in.diff_ROB >= diff[i]) begin
           next_CDB[i].taken   = 0;
-          next_CDB[i].T       = 0;
+          next_CDB[i].T_idx   = 0;
           next_CDB[i].result  = 0;
           next_CDB[i].ROB_idx = 0;
           CDB_packet_out.CDB_valid[i] = 1;
@@ -73,13 +73,13 @@ module CDB (
     for (int i=0; i<`NUM_FU; i++) begin
       if (next_CDB[i].taken) begin
         CDB_packet_out.write_en    = 1'b1;
-        CDB_packet_out.T_idx       = next_CDB[i].T;
+        CDB_packet_out.T_idx       = next_CDB[i].T_idx;
         CDB_packet_out.T_value     = next_CDB[i].result;
         CDB_packet_out.complete_en = 1'b1;
         // try filling this entry if X_C reg wants to write a new input here
-        // (compare T to prevent re-writing the entry with the same inst.)
-        if (CDB_packet_in.FU_done[i] && CDB_packet_in.T_idx[i] != next_CDB[i].T) begin
-          next_CDB[i].T = CDB_packet_in.T_idx[i];
+        // (compare T_idx to prevent re-writing the entry with the same inst.)
+        if (CDB_packet_in.FU_done[i] && CDB_packet_in.T_idx[i] != next_CDB[i].T_idx) begin
+          next_CDB[i].T_idx  = CDB_packet_in.T_idx[i];
           next_CDB[i].result = CDB_packet_in.FU_result[i];
         end else begin
           next_CDB[i].taken = 0;
@@ -95,7 +95,7 @@ module CDB (
     if (reset) begin
       for (int i=0; i<`NUM_FU; i++) begin
         CDB[i].taken   <= `SD 0;
-        CDB[i].T       <= `SD 0;
+        CDB[i].T_idx   <= `SD 0;
         CDB[i].result  <= `SD 0;
         CDB[i].ROB_idx <= `SD 0;
       end
