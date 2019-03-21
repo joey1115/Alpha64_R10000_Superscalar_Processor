@@ -18,7 +18,6 @@ module alu (
 
   function signed_lt;
     input [63:0] a, b;
-
     if (a[63] == b[63]) 
       signed_lt = (a < b); // signs match: signed compare same as unsigned
     else
@@ -36,7 +35,6 @@ module alu (
   end
 
   always_comb begin
-
     case (fu_packet.func)
       ALU_ADDQ:     fu_packet_out.result = regA + regB;
       ALU_SUBQ:     fu_packet_out.result = regA - regB;
@@ -56,15 +54,12 @@ module alu (
       ALU_CMPLE:    fu_packet_out.result = { 63'd0, (signed_lt(regA, regB) || (regA == regB)) };
       default:      fu_packet_out.result = 64'hdeadbeefbaadbeef;  // here only to force
     endcase
-
     fu_packet_out.dest_idx = fu_packet.dest_idx;
     fu_packet_out.T_idx    = fu_packet.T_idx;
     fu_packet_out.FL_idx   = fu_packet.FL_idx;
     fu_packet_out.ROB_idx  = fu_packet.ROB_idx;
     fu_packet_out.done     = !rollback_valid && fu_packet.ready;
-
   end
-
 endmodule // alu
 
 module mult_stage (
@@ -213,7 +208,6 @@ module mult_stage (
 `endif
     end
   end
-
 endmodule
 
 // This is an 8 stage (9 depending on how you look at it) pipelined 
@@ -362,21 +356,17 @@ module br(
   end
 
   always_comb begin
-
     case (fu_packet.func)
       ALU_ADDQ:     fu_packet_out.result = regA + regB;
       ALU_AND:      fu_packet_out.result = regA & regB;
       default:      fu_packet_out.result = 64'hdeadbeefbaadbeef;  // here only to force
     endcase
-
     fu_packet_out.dest_idx = fu_packet.dest_idx;
     fu_packet_out.T_idx    = fu_packet.T_idx;
     fu_packet_out.ROB_idx  = fu_packet.ROB_idx;
     fu_packet_out.FL_idx   = fu_packet.FL_idx;
     fu_packet_out.done     = fu_packet.ready;
-
   end
-
 endmodule // brcond
 
 module FU (
