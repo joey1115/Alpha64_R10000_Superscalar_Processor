@@ -35,7 +35,6 @@ module CDB (
   CDB_entry_t [`NUM_FU-1:0] next_CDB;
   logic [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0] diff;
 
-  assign CDB_packet_out.dest_idx = CDB_packet_in.dest_idx;
 
   always_comb begin
     next_CDB = CDB;
@@ -53,6 +52,7 @@ module CDB (
         next_CDB[i].T_idx   = CDB_packet_in.T_idx[i];
         next_CDB[i].result  = CDB_packet_in.FU_result[i];
         next_CDB[i].ROB_idx = CDB_packet_in.ROB_idx[i];
+        next_CDB[i].dest_idx= CDB_packet_in.dest_idx[i];
         CDB_packet_out.CDB_valid[i] = 0;
       end
     end
@@ -76,6 +76,7 @@ module CDB (
         CDB_packet_out.T_idx       = next_CDB[i].T_idx;
         CDB_packet_out.T_value     = next_CDB[i].result;
         CDB_packet_out.complete_en = 1'b1;
+        CDB_packet_out.dest_idx    = next_CDB[i].dest_idx;
         // try filling this entry if X_C reg wants to write a new input here
         // (compare T_idx to prevent re-writing the entry with the same inst.)
         if (CDB_packet_in.FU_done[i] && CDB_packet_in.T_idx[i] != next_CDB[i].T_idx) begin

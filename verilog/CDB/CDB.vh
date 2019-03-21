@@ -5,9 +5,10 @@
 
 typedef struct packed {
   logic taken;
-  logic [$clog2(`NUM_PR)-1:0] T;
+  logic [$clog2(`NUM_PR)-1:0]  T;
   logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
-  logic [63:0] result;
+  logic [63:0]                 result;
+  logic [$clog2(`NUM_PR)-1:0]  dest_idx;
 } CDB_entry_t;
 
 
@@ -20,7 +21,7 @@ typedef struct packed {
   logic  [`NUM_FU-1:0]  [$clog2(`NUM_PR)-1:0]   T_idx;              // tag from FU
   logic  [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0]   ROB_idx;            // ROB_idx from FU
   logic  [`NUM_FU-1:0]                 [63:0]   FU_result;          // result from FU
-  logic                 [$clog2(`NUM_PR)-1:0]   dest_idx;           // from FU
+  logic  [`NUM_FU-1:0]  [$clog2(`NUM_PR)-1:0]   dest_idx;           // from FU
 } CDB_PACKET_IN;
 
 typedef struct packed {
