@@ -53,6 +53,13 @@ module Map_Table (
       next_map_table = backup_map_table[map_table_packet_in.ROB_rollback_idx];
     end
     // CDB_T updata ready
+    // if ( map_table_packet_in.CDB_en ) begin
+    //   for (int i = 0; i < 32; i++) begin
+    //     if ( map_table[i].idx == map_table_packet_in.CDB_T_idx ) begin
+    //       map_table[i].ready = `TRUE;
+    //     end
+    //   end
+    // end
     if ( map_table_packet_in.CDB_en && map_table[map_table_packet_in.CDB_dest_idx].idx == map_table_packet_in.CDB_T_idx ) begin
       next_map_table[map_table_packet_in.CDB_dest_idx].ready = `TRUE;
     end
