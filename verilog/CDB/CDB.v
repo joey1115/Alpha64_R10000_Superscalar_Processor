@@ -35,6 +35,8 @@ module CDB (
   CDB_entry_t [`NUM_FU-1:0] next_CDB;
   logic [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0] diff;
 
+  assign CDB_packet_out.dest_idx = CDB_packet_in.dest_idx;
+
   always_comb begin
     next_CDB = CDB;
     CDB_packet_out.write_en   = 0;
