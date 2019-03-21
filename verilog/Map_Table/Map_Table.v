@@ -34,7 +34,7 @@ module Map_Table (
   T_t                       T1, T2;
   T_t [31:0]                map_table, next_map_table;
   T_t [`NUM_ROB-1:0][31:0]  backup_map_table, next_backup_map_table;
-   
+
 `ifndef SYNTH_TEST
   assign map_table_out                 = map_table;
 `endif
