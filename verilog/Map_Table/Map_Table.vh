@@ -77,11 +77,6 @@
 
 `define MAP_TABLE_STACK_RESET '{`NUM_ROB{`MAP_TABLE_STACK_ENTRY_RESET}}
 
-// typedef struct packed {
-//   logic [$clog2(`NUM_PR)-1:0] T_idx;            // PR index
-//   logic                       T_plus_status;     // Tag plus state
-// } MAP_TABLE_t;
-
 typedef struct packed {
   logic                         Dispatch_en;   // no Dispatch hazard
   logic [4:0]                   dest_idx;          // reg from dispatch
