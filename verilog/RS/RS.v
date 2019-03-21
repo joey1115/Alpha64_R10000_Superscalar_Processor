@@ -1,14 +1,19 @@
 `timescale 1ns/100ps
 
 module RS (
-  input  logic         clock, reset, en,
-  input  RS_PACKET_IN  rs_packet_in,
+  input  logic                               clock, reset, en,
+  input  RS_PACKET_IN                        rs_packet_in,
 `ifndef SYNTH_TEST
-  output RS_ENTRY_t    [`NUM_FU-1:0] RS_out,
-  output logic         [`NUM_FU-1:0] RS_match_hit,     // If a RS entry is ready
+  output RS_ENTRY_t    [`NUM_FU-1:0]         RS_out,
+  output logic         [`NUM_FU-1:0]         RS_match_hit,     // If a RS entry is ready
+  output logic         [$clog2(`NUM_FU)-1:0] RS_match_idx,
+`ifdef RS_FORWARDING
+  output logic                               FU_forward_hit,     // If a RS entry is ready
+  output logic         [$clog2(`NUM_FU)-1:0] FU_forward_idx,     // If a RS entry is ready
 `endif
-  output RS_PACKET_OUT rs_packet_out,
-  output logic         RS_valid
+`endif
+  output RS_PACKET_OUT                       rs_packet_out,
+  output logic                               RS_valid
 );
 
   RS_ENTRY_t [`NUM_FU-1:0]                       RS, next_RS;
@@ -25,10 +30,10 @@ module RS (
 `ifdef SYNTH_TEST
   logic                                          RS_match_hit;       // If a RS entry is ready
   logic      [$clog2(`NUM_FU)-1:0]               RS_match_idx;
-`endif
 `ifdef RS_FORWARDING
   logic                                          FU_forward_hit;     // If a RS entry is ready
   logic      [$clog2(`NUM_FU)-1:0]               FU_forward_idx;     // If a RS entry is ready
+`endif
 `endif
 
 `ifndef SYNTH_TEST
