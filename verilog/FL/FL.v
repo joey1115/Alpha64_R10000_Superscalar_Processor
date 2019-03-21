@@ -53,5 +53,4 @@ module FL (
       FL_table <= `SD next_FL_table;
     end
   end
-
 endmodule
