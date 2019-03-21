@@ -17,7 +17,6 @@
  * 
  ************************************************/
 
-`define DEBUG_PR
 
 `timescale 1ns/100ps
 
@@ -25,7 +24,7 @@ module PR (
   input  en, clock, reset,
   input  PR_PACKET_IN  pr_packet_in,
 
-  `ifdef DEBUG_PR
+  `ifndef SYNTH_TEST
   output logic [`NUM_PR-1:0] [63:0] pr_data,
   `endif
   output PR_PACKET_OUT pr_packet_out
@@ -33,7 +32,7 @@ module PR (
 
   logic [`NUM_PR-1:0] [63:0] pr, next_pr;
 
-  `ifdef DEBUG_PR
+  `ifndef SYNTH_TEST
   assign pr_data = pr;
   `endif
 
