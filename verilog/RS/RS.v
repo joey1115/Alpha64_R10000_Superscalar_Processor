@@ -140,8 +140,8 @@ module RS (
       next_RS[RS_match_idx].dest_idx  = rs_packet_in.dest_idx;  // Write T1 select
       next_RS[RS_match_idx].FL_idx    = rs_packet_in.FL_idx;    // Write T1 select
       next_RS[RS_match_idx].T_idx     = rs_packet_in.T_idx;     // Write T
-      next_RS[RS_match_idx].T1.ready  = T1_ready[i];            // Write T1
-      next_RS[RS_match_idx].T2.ready  = T2_ready[i];            // Write T2
+      next_RS[RS_match_idx].T1.ready  = rs_packet_in.T1.ready;  // Write T1
+      next_RS[RS_match_idx].T2.ready  = rs_packet_in.T2.ready;  // Write T2
       next_RS[RS_match_idx].T1.idx    = rs_packet_in.T1.idx;    // Write T1
       next_RS[RS_match_idx].T2.idx    = rs_packet_in.T2.idx;    // Write T2
       next_RS[RS_match_idx].T1_select = rs_packet_in.T1_select; // Write T1 select

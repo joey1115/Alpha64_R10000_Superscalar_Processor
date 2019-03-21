@@ -14,13 +14,13 @@ module test_RS;
   RS_ENTRY_t [`NUM_FU-1:0] RS;
   logic [`NUM_FU-1:0] RS_entry_match;
 
-  RS UUT(.clock(clock),
-      .reset(reset),
-      .en(en),
-      .rs_packet_in(rs_packet_in),
-      .rs_packet_out(rs_packet_out),
-      .RS_out(RS),
-      .RS_entry_match(RS_entry_match));
+  // RS UUT(.clock(clock),
+  //     .reset(reset),
+  //     .en(en),
+  //     .rs_packet_in(rs_packet_in),
+  //     .rs_packet_out(rs_packet_out),
+  //     .RS_out(RS),
+  //     .RS_entry_match(RS_entry_match));
 
   task printRS;
     begin
@@ -206,7 +206,7 @@ module test_RS;
   task printInput;
     begin
       $display("---------------------------INPUT START----------------------------");
-      $display(" RESET | en | T_idx |   inst   |        NPC       | ROB_idx | Fl_idx | T1 | T1.ready | T2 | complete_en | dispatch_en | FU | func | T1_select | T2_select | CDB_T | fu_valid | ROB_rollback_idx | ROB_tail_idx | rollback_en");
+      $display(" RESET | en | T_idx |   inst   |        NPC       | ROB_idx | Fl_idx | T1 | T1.ready | T2 | complete_en | dispatch_en | FU | func | T1_select | T2_select | CDB_T_idx | fu_valid | ROB_rollback_idx | ROB_tail_idx | rollback_en");
       $display("   %b   |  %b |  %d   | %h | %h |    %d   |   %d   | %d |     %b    | %d |     %b    |      %b      |      %b      | %d  |  %h  |     %h     |     %h     |   %d  |     %b    |        %d       |    %d     | %b",
                 reset,
                 en,
@@ -225,7 +225,7 @@ module test_RS;
                 rs_packet_in.func,
                 rs_packet_in.T1_select,
                 rs_packet_in.T2_select,
-                rs_packet_in.CDB_T,
+                rs_packet_in.CDB_T_idx,
                 rs_packet_in.fu_valid,
                 rs_packet_in.ROB_rollback_idx,
                 rs_packet_in.ROB_tail_idx,
@@ -284,7 +284,7 @@ module test_RS;
       rs_packet_in.func = func_in;
       rs_packet_in.T1_select = T1_select_in;
       rs_packet_in.T2_select = T2_select_in;
-      rs_packet_in.CDB_T = CDB_T_in;
+      rs_packet_in.CDB_T_idx = CDB_T_in;
       rs_packet_in.fu_valid = fu_valid_in;
       rs_packet_in.ROB_rollback_idx = ROB_rollback_idx_in;
       rs_packet_in.ROB_tail_idx = ROB_tail_idx_in;
@@ -306,7 +306,7 @@ module test_RS;
     begin
       //reset device
       reset = 1'b1;
-      setinput(0,0,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 0);
+      // setinput(0,0,`NOOP_INST,1,11,0,21,0, FU_ALU, ALU_ADDQ, 0);
       @(negedge clock);
       reset = 1'b0;
       // @(negedge clock);
@@ -348,9 +348,8 @@ module test_RS;
 
   // reset
   initial begin
-    $monitor("RS hazard: %b", rs_hazard);
-
-    
+    $finish;
+  end
 //     en = 1'b0;
 //     clock = 1'b0;
 //     reset = 1'b1;
