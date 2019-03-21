@@ -4,6 +4,7 @@
 
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
+`include "../RS/RS.vh"
 
 typedef struct packed {
   logic write_en;                                      // (complete) write enable  from CDB
