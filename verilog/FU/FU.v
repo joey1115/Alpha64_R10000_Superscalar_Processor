@@ -110,7 +110,7 @@ module mult_stage (
   assign diff               = ROB_idx - ROB_rollback_idx;
   assign rollback_valid_out = rollback_en && diff_ROB >= diff_out;
   assign rollback_valid     = rollback_en && diff_ROB >= diff;
-  assign valid_out          = !ready || valid;
+  assign valid_out          = !ready || valid || rollback_valid_out;
 `else
   assign diff               = next_ROB_idx_out - ROB_rollback_idx;
   assign valid_out          = ( !ready || valid ) && !rollback_valid;
@@ -189,6 +189,7 @@ module mult_stage (
       dest_idx_out <= `SD `ZERO_REG;
       T_idx_out    <= `SD `ZERO_PR;
       ROB_idx_out  <= `SD {`NUM_ROB{1'b0}};
+      FL_idx_out   <= `SD {`NUM_FL{1'b0}};
       done         <= `SD `FALSE;
 `ifndef SYNTH_TEST
       T1_value_out <= `SD {64{1'b0}};
@@ -368,6 +369,52 @@ module br(
     fu_packet_out.done     = fu_packet.ready;
   end
 endmodule // brcond
+
+// module st (
+//   input  FU_PACKET_IN_t               fu_packet,
+//   input  logic                        CDB_valid,
+//   input  logic                        rollback_en,
+//   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+//   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
+//   output FU_RESULT_ENTRY_t            fu_packet_out,
+//   output logic                        fu_valid
+// );
+
+// assign fu_packet_out = '{
+//   `FALSE,
+//   64'h0,
+//   `ZERO_REG,
+//   `ZERO_PR,
+//   {`NUM_ROB{1'b0}},
+//   {`NUM_FL{1'b0}}
+// }
+
+// assign fu_valid = `TRUE;
+
+// endmodule
+
+module ld (
+  input  FU_PACKET_IN_t               fu_packet,
+  input  logic                        CDB_valid,
+  input  logic                        rollback_en,
+  input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
+  output FU_RESULT_ENTRY_t            fu_packet_out,
+  output logic                        fu_valid
+);
+
+assign fu_packet_out = '{
+  `FALSE,
+  64'h0,
+  `ZERO_REG,
+  `ZERO_PR,
+  {`NUM_ROB{1'b0}},
+  {`NUM_FL{1'b0}}
+};
+
+assign fu_valid = `TRUE;
+
+endmodule
 
 module FU (
   input  logic                                                                       clock,               // system clock
