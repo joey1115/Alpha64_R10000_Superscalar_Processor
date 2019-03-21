@@ -57,12 +57,18 @@ module Map_Table (
       next_map_table[map_table_packet_in.CDB_dest_idx].ready = `TRUE;
     end
     // PR update T_idx
-    if ( map_table_packet_in.Dispatch_en ) begin                                                      // no dispatch hazard
-      next_map_table[map_table_packet_in.dest_idx]            = '{map_table_packet_in.T_idx, `FALSE}; // renew maptable from freelist but not ready yet
-      next_map_table[31].ready                                = `TRUE;                                // Force ZERO_REG to be rady
-      next_backup_map_table[map_table_packet_in.ROB_tail_idx] = next_map_table;                       // backup the map
+    if ( map_table_packet_in.Dispatch_en ) begin // no dispatch hazard
+      next_map_table[map_table_packet_in.dest_idx] = '{map_table_packet_in.T_idx, `FALSE}; // renew maptable from freelist but not ready yet
+      next_map_table[31].ready                     = `TRUE;                                // Force ZERO_REG to be rady
+    end
+  end
+
+  always_comb begin
+    next_backup_map_table = backup_map_table;
+    if ( map_table_packet_in.Dispatch_en ) begin                                // no dispatch hazard
+      next_backup_map_table[map_table_packet_in.ROB_tail_idx] = next_map_table; // backup the map
       for (int i=0; i<32;i++) begin
-        backup_map_table[map_table_packet_in.tail_idx][i].ready = `TRUE;                              // ready all the bit
+        next_backup_map_table[map_table_packet_in.tail_idx][i].ready = `TRUE;   // ready all the bit
       end
     end
   end
