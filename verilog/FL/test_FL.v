@@ -9,7 +9,7 @@ module test_FL;
   logic                                    dispatch_en;
   logic                                    rollback_en;
   logic                                    retire_en;
-  logic [$clog2(`NUM_PR)-1:0]              T_old_idx;
+  logic [$clog2(`NUM_PR)-1:0]              Told_idx;
   logic [$clog2(`NUM_FL)-1:0]              FL_rollback_idx;
   logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table;
   logic [$clog2(`NUM_FL)-1:0]              head, next_head;
@@ -24,7 +24,7 @@ module test_FL;
 	  .dispatch_en(dispatch_en),
 	  .rollback_en(rollback_en),
 	  .retire_en(retire_en),
-	  .T_old_idx(T_old_idx),
+	  .Told_idx(Told_idx),
 	  .FL_rollback_idx(FL_rollback_idx),
 	`ifndef SYNTH_TEST
 	  .FL_table(FL_table),
@@ -93,7 +93,7 @@ module test_FL;
     dispatch_en = 1'b1;
     rollback_en = 1'b0;
     retire_en   = 1'b1;
-	T_old_idx   = 1'b0;
+	Told_idx   = 1'b0;
     @(negedge clock);
     $display("----Cycle 4----");
     $display("tail %d", tail);
