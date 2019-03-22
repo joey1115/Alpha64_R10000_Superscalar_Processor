@@ -370,30 +370,53 @@ module br(
   end
 endmodule // brcond
 
-// module st (
-//   input  FU_PACKET_IN_t               fu_packet,
-//   input  logic                        CDB_valid,
-//   input  logic                        rollback_en,
-//   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
-//   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
-//   output FU_RESULT_ENTRY_t            fu_packet_out,
-//   output logic                        fu_valid
-// );
-
-// assign fu_packet_out = '{
-//   `FALSE,
-//   64'h0,
-//   `ZERO_REG,
-//   `ZERO_PR,
-//   {`NUM_ROB{1'b0}},
-//   {`NUM_FL{1'b0}}
-// }
-
-// assign fu_valid = `TRUE;
-
-// endmodule
-
 module ld (
+  input  logic                                    clock, reset,
+  input  FU_PACKET_IN_t                           fu_packet,
+  input  logic                                    CDB_valid,
+  input  logic                                    rollback_en,
+  input  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input  logic             [$clog2(`NUM_ROB)-1:0] diff_ROB,
+  // input  logic             [63:0]                 Dmem2proc_data,
+  // input  logic             [3:0]                  Dmem2proc_tag, Dmem2proc_response,
+  // output logic             [1:0]                  proc2Dmem_command,
+  // output logic             [63:0]                 proc2Dmem_addr,      // Address sent to data-memory
+  // output logic             [63:0]                 proc2Dmem_data      // Data sent to data-memory
+  output FU_RESULT_ENTRY_t                        fu_packet_out,
+  output logic                                    fu_valid
+);
+
+  logic          [63:0]                 regA, regB;
+  logic                                 rollback_valid;
+  logic          [$clog2(`NUM_ROB)-1:0] diff;
+
+  assign diff           = fu_packet.ROB_idx - ROB_rollback_idx;
+  assign rollback_valid = rollback_en && diff_ROB >= diff;
+  assign fu_valid       = CDB_valid || !fu_packet.ready || rollback_valid;
+
+  function signed_lt;
+    input [63:0] a, b;
+    if (a[63] == b[63]) 
+      signed_lt = (a < b); // signs match: signed compare same as unsigned
+    else
+      signed_lt = a[63];   // signs differ: a is smaller if neg, larger if pos
+  endfunction
+
+  assign regA = { {48{fu_packet.inst[15]}}, fu_packet.m.mem_disp };
+  assign regB = fu_packet.T2_value;
+
+  always_comb begin
+    fu_packet_out.result   = regA + regB;
+    fu_packet_out.dest_idx = fu_packet.dest_idx;
+    fu_packet_out.T_idx    = fu_packet.T_idx;
+    fu_packet_out.FL_idx   = fu_packet.FL_idx;
+    fu_packet_out.ROB_idx  = fu_packet.ROB_idx;
+    fu_packet_out.done     = !rollback_valid && fu_packet.ready;
+  end
+
+endmodule
+
+module st (
   input  FU_PACKET_IN_t               fu_packet,
   input  logic                        CDB_valid,
   input  logic                        rollback_en,

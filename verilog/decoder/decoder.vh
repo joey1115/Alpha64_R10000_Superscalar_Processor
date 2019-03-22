@@ -20,21 +20,21 @@ typedef struct packed {
 } DECODER_PACKET_OUT;
 
 `define DECODER_PACKET_OUT_DEFAULT '{ \
-  ALU_OPA_IS_REGA, \
-  ALU_OPB_IS_REGB, \
-  ALU_ADDQ, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `FALSE, \
-  `ZERO_REG, \
-  FU_ALU \
+  ALU_OPA_IS_REGA,                    \
+  ALU_OPB_IS_REGB,                    \
+  ALU_ADDQ,                           \
+  `FALSE,                             \
+  `FALSE,                             \
+  `FALSE,                             \
+  `FALSE,                             \
+  `FALSE,                             \
+  `FALSE,                             \
+  `FALSE,                             \
+  `FALSE,                             \
+  `FALSE,                             \
+  `FALSE,                             \
+  `ZERO_REG,                          \
+  FU_ALU                              \
 }
 
 `endif

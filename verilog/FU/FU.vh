@@ -22,7 +22,6 @@ typedef struct packed {
 
 typedef struct packed {
   FU_RESULT_ENTRY_t [`NUM_FU-1:0] fu_result;
-  //logic             [`NUM_BR-1:0]  br_cond;
 } FU_M_PACKET_OUT;
 
 typedef struct packed {
