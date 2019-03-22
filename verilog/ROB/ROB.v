@@ -107,14 +107,14 @@ module ROB (
     //update valid and complete bits of entry
     if(rob.head != rob.tail) begin
       Nrob.entry[rob.head].valid = (moveHead) ? 0 : Nrob.entry[rob.head].valid;
-      Nrob.entry[rob.head].complete = (moveHead) ? 0 : Nrob.entry[rob.head].complete;
+      // Nrob.entry[rob.head].complete = (moveHead) ? 0 : Nrob.entry[rob.head].complete;
       Nrob.entry[rob.tail].valid = (writeTail) ? 1 : Nrob.entry[rob.tail].valid;
       Nrob.entry[rob.tail].complete = (writeTail) ? 0 : Nrob.entry[rob.tail].complete;
     end
     else begin
       Nrob.entry[rob.tail].valid = (writeTail) ? 1 :
                                     (moveHead) ? 0 : Nrob.entry[rob.head].valid;
-      Nrob.entry[rob.head].complete = (moveHead) ? 0 : Nrob.entry[rob.head].complete;
+      Nrob.entry[rob.tail].complete = (writeTail) ? 0 : Nrob.entry[rob.head].complete;
     end
 
     //rollback functionality
