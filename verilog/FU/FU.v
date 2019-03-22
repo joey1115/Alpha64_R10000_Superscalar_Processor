@@ -402,7 +402,7 @@ module ld (
       signed_lt = a[63];   // signs differ: a is smaller if neg, larger if pos
   endfunction
 
-  assign regA = { {48{fu_packet.inst[15]}}, fu_packet.m.mem_disp };
+  assign regA = { {48{fu_packet.inst[15]}}, fu_packet.inst.m.mem_disp };
   assign regB = fu_packet.T2_value;
 
   always_comb begin
