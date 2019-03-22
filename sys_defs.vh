@@ -30,7 +30,6 @@
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
-
 // probably not a good idea to change this second one
 `define VIRTUAL_CLOCK_PERIOD   30.0 // Clock period from dc_shell
 `define VERILOG_CLOCK_PERIOD   10.0 // Clock period from test bench
