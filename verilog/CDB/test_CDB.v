@@ -72,30 +72,27 @@ module test_CDB;
   // Display input, internal data, and output at the end of a cycle
   task display_cycle_info;
     begin
-      // dest_idx
-      $display("____dest_idx______");
-      $display("| input | output |");
-      $display("|   %2d  |   %2d  |", uut_in.dest_idx, uut_out.dest_idx);
       // rollback info
       $display("____Rollback_______________________________________________");
       $display("| rollback_en | ROB_rollback_idx | ROB_tail_idx | diff_ROB |");
-      $display("|          %1d  |         %1d       |      %1d      |     %1d    |",
+      $display("|          %1d  |         %1d        |      %1d      |     %1d    |",
                 uut_in.rollback_en, uut_in.ROB_rollback_idx, test_in_raw[cycle_count].diff_ROB, uut_in.diff_ROB);
       // input
-      $display("____Input_Data______________________________________________");
-      $display("| FU# | FU_done | T_idx | ROB_idx |        FU_result        |");
+      $display("____Input_Data_________________________________________________________");
+      $display("| FU# | FU_done | T_idx | ROB_idx | dest_idx |        FU_result        |");
       for (int i=`NUM_FU-1; i>-1; i=i-1) begin
-        $display("|  %1d  |    %1d    |   %2d  |    %1d    |  0x%04h_%04h_%04h_%04h  |",
-              i, uut_in.FU_done[i], uut_in.T_idx[i], uut_in.ROB_idx[i],
+        $display("|  %1d  |    %1d    |   %2d  |    %1d    |    %2d    |  0x%04h_%04h_%04h_%04h  |",
+              i, uut_in.FU_done[i], uut_in.T_idx[i], uut_in.ROB_idx[i], uut_in.dest_idx,
               uut_in.FU_result[i][63:48], uut_in.FU_result[i][47:32], uut_in.FU_result[i][31:16], uut_in.FU_result[i][15:0]);
       end
       // internal data and output
-      $display("____Internal_Data_and_Output___________________________________________");
-      $display("| FU# |  taken | T_idx | ROB_idx |        FU_result        | CDB_valid |");
+      $display("____Internal_Data_and_Output_______________________________________________________");
+      $display("| FU# |  taken  | T_idx | ROB_idx | dest_idx |        FU_result        | CDB_valid |");
       for (int i=`NUM_FU-1; i>-1; i=i-1) begin
-        $display("|  %1d  |    %1d    |   %2d  |    %1d    |  0x%04h_%04h_%04h_%04h  |     %1d     |",
-              i, uut_data[i].taken, uut_data[i].T_idx, uut_data[i].ROB_idx,
-              uut_data[i].FU_result[63:48], uut_data[i].FU_result[47:32], uut_data[i].FU_result[31:16], uut_data[i].FU_result[15:0]);
+        $display("|  %1d  |    %1d    |   %2d  |    %1d    |    %2d    |  0x%04h_%04h_%04h_%04h  |     %1d     |",
+              i, uut_data[i].taken, uut_data[i].T_idx, uut_data[i].ROB_idx, uut_data[i].dest_idx,
+              uut_data[i].T_value[63:48], uut_data[i].T_value[47:32], uut_data[i].T_value[31:16], uut_data[i].T_value[15:0],
+              uut_out.CDB_valid[i]);
       end
       $display();
     end
