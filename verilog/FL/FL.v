@@ -33,7 +33,7 @@ module FL (
   assign FL_idx       = next_tail;
   assign T_idx        = dest_idx == `ZERO_REG ? `ZERO_PR :
                         next_tail == head     ? Told_idx : FL_table[tail];
-  assign FL_valid     = virtual_tail != next_head;
+  assign FL_valid     = dest_idx == `ZERO_REG || virtual_tail != next_head;
 
   always_comb begin
     next_FL_table = FL_table;
