@@ -24,7 +24,7 @@ module alu (
       signed_lt = a[63];   // signs differ: a is smaller if neg, larger if pos
   endfunction
 
-  assign regA = regA;
+  assign regA = fu_packet.T1_value;
 
   always_comb begin
     regB = 64'hbaadbeefdeadbeef;
