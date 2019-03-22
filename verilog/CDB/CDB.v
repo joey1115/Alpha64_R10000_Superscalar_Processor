@@ -71,6 +71,7 @@ module CDB (
     end
     // broadcast one completed instruction (if one is found)
     for (int i=0; i<`NUM_FU; i++) begin
+      // if ((next_CDB[i].taken && `FU_LIST[i] != FU_LD) || (next_CDB[i].taken && `FU_LIST[i] == FU_LD && next_CDB[i].ROB_idx == CDB_packet_in.ROB_head_idx))  begin
       if (next_CDB[i].taken) begin
         CDB_packet_out.write_en    = 1'b1;
         CDB_packet_out.T_idx       = next_CDB[i].T_idx;
