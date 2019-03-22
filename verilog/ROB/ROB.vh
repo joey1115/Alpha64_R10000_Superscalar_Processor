@@ -2,6 +2,7 @@
 `define __ROB_VH__
 
 `include "../../sys_config.vh"
+`include "../../sys_defs.vh"
 
 typedef struct packed {
   logic valid;
