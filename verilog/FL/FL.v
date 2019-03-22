@@ -32,7 +32,7 @@ module FL (
                         dispatch_en ? virtual_tail    : tail;
   assign FL_idx       = next_tail;
   assign T_idx        = dest_idx == `ZERO_REG ? `ZERO_PR :
-                        next_tail == head     ? Told_idx : FL_table[head];
+                        next_tail == head     ? Told_idx : FL_table[tail];
   assign FL_valid     = virtual_tail != next_head;
 
   always_comb begin
