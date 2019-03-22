@@ -52,6 +52,16 @@ module Map_Table (
     if (map_table_packet_in.rollback_en) begin
       next_map_table = backup_map_table[map_table_packet_in.ROB_rollback_idx];
     end
+    // if (map_table_packet_in.rollback_en) begin
+    //   for (logic [$clog2(`NUM_ROB)-1:0] i = ROB_tail_idx; i != ROB_rollback_idx; i--) begin
+    //     next_map_table[dest_idx[i]] = {Told_idx[i], `TRUE};
+    //   end
+    //   for (logic [$clog2(`NUM_ROB)-1:0] i = ROB_head_idx; i != ROB_rollback_idx - 1; i++) begin
+    //     if (next_map_table[dest_idx[i]] == T_idx[i] && !Complete) begin
+    //       next_map_table[dest_idx[i]].ready = `FALSE;
+    //     end
+    //   end
+    // end
     // CDB_T updata ready
     // if ( map_table_packet_in.CDB_en ) begin
     //   for (int i = 0; i < 32; i++) begin
