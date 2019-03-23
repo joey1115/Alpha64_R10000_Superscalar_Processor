@@ -53,7 +53,7 @@ module test_PR;
 
   // ********* Test Case Setup *********
   // Test Case
-  `define TEST_LEN 23
+  `define TEST_LEN 27
   PR_PACKET_IN  [`TEST_LEN-1:0] test_in;
   // solutions have one more state than test cases
   PR_PACKET_OUT   [`TEST_LEN:0] sol_out;
@@ -122,24 +122,27 @@ module test_PR;
 
 
   initial begin
+
+    $display("\nNumber of PR = %2d\n", `NUM_PR);
+
     // ********* Test Case *********
     // test_in[c]: input at cycle c
     // the resulting combinational logic outputs will be checked at cycle c (sol_out[c])
     // the resulting  sequential   logic outputs will be checked at cycle c+1 (sol_out[c+1])
     // input: {write_en, T_idx, T_value, `NUM_FU{T1_idx}, `NUM_FU{T2_idx}}
 
-    test_in[0]  = '{0, 40, 16, '{40,  1, 30, 31, 46}, '{32, 63, 56, 48, 61}};
+    test_in[0]  = '{0, 36, 16, '{36,  1, 30, 31, 16}, '{32, 23, 36, 39, 11}};
 
-    test_in[1]  = '{1,  0, 10, '{ 0, 10, 20, 31, 45}, '{33, 62, 55, 49, 60}};
-    test_in[2]  = '{1,  1, 11, '{ 0,  1, 20, 31, 45}, '{33, 62, 55, 49, 60}};
-    test_in[3]  = '{1,  2, 12, '{ 1, 10,  2, 31, 45}, '{33, 62, 55, 49, 60}};
-    test_in[4]  = '{1,  3, 13, '{ 2, 10, 20,  3, 45}, '{33, 62, 55, 49, 60}};
-    test_in[5]  = '{1,  4, 14, '{ 3, 10, 20, 31,  4}, '{33, 62, 55, 49, 60}};
-    test_in[6]  = '{1,  5, 15, '{ 4, 10, 20, 31, 45}, '{ 5, 62, 55, 49, 60}};
-    test_in[7]  = '{1,  6, 16, '{ 5, 10, 20, 31, 45}, '{33,  6, 55, 49, 60}};
-    test_in[8]  = '{1,  7, 17, '{ 6, 10, 20, 31, 45}, '{33, 62,  7, 49, 60}};
-    test_in[9]  = '{1,  8, 18, '{ 7, 10, 20, 31, 45}, '{33, 62, 55,  8, 60}};
-    test_in[10] = '{1,  9, 19, '{ 8, 10, 20, 31, 45}, '{33, 62, 55, 49,  9}};
+    test_in[1]  = '{1,  0, 10, '{ 0, 10, 20, 31, 35}, '{33, 12, 35, 39, 30}};
+    test_in[2]  = '{1,  1, 11, '{ 0,  1, 20, 31, 35}, '{33, 12, 35, 39, 30}};
+    test_in[3]  = '{1,  2, 12, '{ 1, 10,  2, 31, 35}, '{33, 12, 35, 39, 30}};
+    test_in[4]  = '{1,  3, 13, '{ 2, 10, 20,  3, 35}, '{33, 12, 35, 39, 30}};
+    test_in[5]  = '{1,  4, 14, '{ 3, 10, 20, 31,  4}, '{33, 12, 35, 39, 30}};
+    test_in[6]  = '{1,  5, 15, '{ 4, 10, 20, 31, 35}, '{ 5, 12, 35, 39, 30}};
+    test_in[7]  = '{1,  6, 16, '{ 5, 10, 20, 31, 35}, '{33,  6, 35, 39, 30}};
+    test_in[8]  = '{1,  7, 17, '{ 6, 10, 20, 31, 35}, '{33, 12,  7, 39, 30}};
+    test_in[9]  = '{1,  8, 18, '{ 7, 10, 20, 31, 35}, '{33, 12, 35,  8, 30}};
+    test_in[10] = '{1,  9, 19, '{ 8, 10, 20, 31, 35}, '{33, 12, 35, 39,  9}};
 
     test_in[11] = '{1, 28, 64'hFFFFFFFFFFFFFFFF, '{29, 29, 29, 29, 29}, '{29, 29, 29, 29, 29}};
     test_in[12] = '{1, 29, 64'hFFFFFFFFFFFFFFFE, '{29, 29, 29, 29, 29}, '{29, 29, 29, 29, 29}};
@@ -147,14 +150,19 @@ module test_PR;
     test_in[14] = '{1, 31, 64'hFFFFFFFFFFFFFFFC, '{31, 31, 31, 31, 31}, '{31, 31, 31, 31, 31}};
     test_in[15] = '{1, 32, 64'hFFFFFFFFFFFFFFFB, '{31, 31, 31, 31, 31}, '{31, 31, 31, 31, 31}};
 
-    test_in[16] = '{0, 63, 63, '{63, 59, 49, 39, 29}, '{19,  9,  3,  1,  0}};
-    test_in[17] = '{1, 63, 64, '{63, 59, 49, 39, 29}, '{19,  9,  3,  1,  0}};
-    test_in[18] = '{1, 62, 65, '{63, 59, 49, 39, 29}, '{19,  9,  3,  1,  0}};
-    test_in[19] = '{1, 61, 66, '{63, 59, 49, 39, 29}, '{19,  9,  3,  1,  0}};
+    test_in[16] = '{0, 39, 39, '{39, 27, 19, 22, 29}, '{15,  9,  3,  1,  0}};
+    test_in[17] = '{1, 39, 40, '{39, 27, 19, 22, 29}, '{15,  9,  3,  1,  0}};
+    test_in[18] = '{1, 38, 41, '{39, 27, 19, 22, 29}, '{15,  9,  3,  1,  0}};
+    test_in[19] = '{1, 37, 42, '{39, 27, 19, 22, 29}, '{15,  9,  3,  1,  0}};
 
-    test_in[20] = '{1, 60, 67, '{63, 59, 49, 39, 29}, '{19,  9,  3,  1,  0}}; // en = 0
-    test_in[21] = '{1, 60, 68, '{63, 59, 49, 39, 29}, '{19,  9, 60,  1,  0}}; // en = 0
-    test_in[22] = '{1, 60, 69, '{63, 59, 49, 39, 29}, '{19,  9, 60,  1,  0}}; // en = 1
+    test_in[20] = '{1, 36, 43, '{39, 27, 19, 22, 29}, '{15,  9,  3,  1,  0}}; // en = 0
+    test_in[21] = '{1, 36, 44, '{39, 27, 19, 22, 29}, '{15,  9, 36,  1,  0}}; // en = 0
+    test_in[22] = '{1, 36, 45, '{39, 27, 19, 22, 29}, '{15,  9, 36,  1,  0}}; // en = 1
+
+    test_in[23] = '{0, 40, 56, '{10, 27, 19, 22, 29}, '{15,  9, 36,  1,  0}};
+    test_in[24] = '{1, 40, 57, '{10, 27, 19, 22, 29}, '{15,  9, 36,  1,  0}};
+    test_in[25] = '{1, 40, 58, '{40, 27, 19, 22, 29}, '{15,  9, 36,  1,  0}};
+    test_in[26] = '{0, 40, 59, '{40, 27, 19, 22, 29}, '{15,  9, 36,  1,  0}};
 
     // sol_out[c]: output at cycle c (test[c]'s effect is shown by sol_out[c+1])
     // checks the resulting combinational logic outputs of test_in[c] (combinational outputs are labeled in quotations below)
@@ -182,17 +190,23 @@ module test_PR;
                     '{64'hFFFFFFFFFFFFFFFE, 64'hFFFFFFFFFFFFFFFE, 64'hFFFFFFFFFFFFFFFE, 64'hFFFFFFFFFFFFFFFE, 64'hFFFFFFFFFFFFFFFE}};
     sol_out[14] = '{'{ 0,  0,  0,  0,  0}, '{ 0,  0,  0,  0,  0}};
     sol_out[15] = '{'{ 0,  0,  0,  0,  0}, '{ 0,  0,  0,  0,  0}};
-    // Cycle 16-19: Check PR[63], PR[62], and PR[61] (correctness at boundary)
+    // Cycle 16-19: Check PR[39], PR[38], and PR[37] (correctness at boundary)
     sol_out[16] = '{'{ 0,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 13, 11, 10}};
-    sol_out[17] = '{'{64,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 13, 11, 10}};
-    sol_out[18] = '{'{64,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 13, 11, 10}};
-    sol_out[19] = '{'{64,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 13, 11, 10}};
+    sol_out[17] = '{'{40,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 13, 11, 10}};
+    sol_out[18] = '{'{40,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 13, 11, 10}};
+    sol_out[19] = '{'{40,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 13, 11, 10}};
     // Cycle 20-22: Check en signal
-    sol_out[20] = '{'{64,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 13, 11, 10}};
-    sol_out[21] = '{'{64,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19,  0, 11, 10}};
-    sol_out[22] = '{'{64,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 69, 11, 10}};
+    sol_out[20] = '{'{40,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 13, 11, 10}};
+    sol_out[21] = '{'{40,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19,  0, 11, 10}};
+    sol_out[22] = '{'{40,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 45, 11, 10}};
+    // Cycle 23-26: Check out of boundary read and write (allow forwarding. when read, output should be don't care)
+    sol_out[23] = '{'{ 0,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 45, 11, 10}};
+    sol_out[24] = '{'{ 0,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 45, 11, 10}};
+    sol_out[25] = '{'{58,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 45, 11, 10}};
+    sol_out[26] = '{'{ 0,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 45, 11, 10}}; // FU#4 T1_value should be don't care
+
     // Don't care about the output. Only check PR internal data in this cycle
-    sol_out[23] = '{'{64,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 69, 11, 10}}; // don't care
+    sol_out[27] = '{'{ 0,  0,  0,  0, 64'hFFFFFFFFFFFFFFFE}, '{ 0, 19, 45, 11, 10}}; // don't care
 
 
     // Reset
@@ -244,7 +258,17 @@ module test_PR;
     check_solution();
     #2;
 
-    // Cycle 23
+    // Cycle 23-26
+    while (cycle_count < 27) begin
+      @(negedge clock);
+      uut_in = test_in[cycle_count];
+      @(posedge clock)
+      check_solution();
+      #2;
+    end
+    $display("Note: For cycle 26 and 27, FU#4 T1_value should be don't care.\n");
+
+    // Cycle 27
     @(negedge clock);
     @(posedge clock)
     check_solution();
