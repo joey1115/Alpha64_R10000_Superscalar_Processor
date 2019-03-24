@@ -10,10 +10,10 @@
 `include "../../sys_defs.vh"
 `endif
 
-typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] Told_idx;  // Told from ROB
-  logic [$clog2(`NUM_PR)-1:0] T_idx;     // T from ROB
-} ARCH_MAP_PACKET_IN;
+// typedef struct packed {
+//   logic [$clog2(`NUM_PR)-1:0] Told_idx;  // Told from ROB
+//   logic [$clog2(`NUM_PR)-1:0] T_idx;     // T from ROB
+// } ARCH_MAP_PACKET_IN;
 
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] T_idx;           // PR index

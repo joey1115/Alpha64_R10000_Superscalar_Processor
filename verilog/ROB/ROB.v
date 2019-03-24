@@ -49,7 +49,7 @@ module ROB (
 
  //retire archmap signal
   assign rob_packet_archmap_out.dest_idx = rob.entry[rob.head].dest_idx;
-  assign rob_packet_archmap_out.T_idx_head = rob.entry[rob.head].T;
+  assign rob_packet_archmap_out.T_idx = rob.entry[rob.head].T;
 
   //assign halt out
   assign halt_out = retire_en & rob.entry[rob.head].halt;
