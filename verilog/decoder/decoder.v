@@ -42,30 +42,22 @@ module decoder(
     // - These defaults are equivalent to a noop
     // * see sys_defs.vh for the constants used here
     decoder_packet_out = `DECODER_PACKET_OUT_DEFAULT;
-
     if(decoder_packet_in.valid) begin
-
       decoder_packet_out.valid = `TRUE;
-
       case(decoder_packet_in.inst.m.opcode)
-
         `PAL_INST: begin
           case (decoder_packet_in.inst.p.func)
-
             `PAL_HALT: begin
               decoder_packet_out.halt = `TRUE;
             end
-
             `PAL_WHAMI: begin
               decoder_packet_out.cpuid        = `TRUE;
               decoder_packet_out.dest_reg_idx = decoder_packet_in.inst.r.rega_idx;
             end
-
             default: begin
               decoder_packet_out.illegal = `TRUE;
               decoder_packet_out.valid   = `FALSE;
             end
-
           endcase
         end
 
@@ -207,8 +199,8 @@ module decoder(
 
         // `FBEQ_INST, `FBLT_INST, `FBLE_INST, `FBNE_INST, `FBGE_INST, `FBGT_INST: begin
         //   decoder_packet_out.illegal = `TRUE;
+        // end
 
-        end
         `BLBC_INST, `BEQ_INST, `BLT_INST, `BLE_INST, `BLBS_INST, `BNE_INST, `BGE_INST, `BGT_INST: begin
           decoder_packet_out.opa_select  = ALU_OPA_IS_NPC;
           decoder_packet_out.opb_select  = ALU_OPB_IS_BR_DISP;

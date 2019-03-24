@@ -2,9 +2,15 @@
 `ifndef __FU_VH__
 `define __FU_VH__
 
+`ifdef PIPELINE
+`include "sys_config.vh"
+`include "sys_defs.vh"
+`include "verilog/RS/RS.vh"
+`else
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
 `include "../RS/RS.vh"
+`endif
 
 typedef struct packed {
   FU_PACKET_t [`NUM_FU-1:0] fu_packet;

@@ -1,9 +1,15 @@
 `ifndef __MAP_TABLE_VH__
 `define __MAP_TABLE_VH__
 
+`ifdef PIPELINE
+`include "sys_config.vh"
+`include "sys_defs.vh"
+`include "verilog/RS/RS.vh"
+`else
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
 `include "../RS/RS.vh"
+`endif
 
 `define MAP_TABLE_RESET '{                       \
   {{{($clog2(`NUM_PR)-5){1'b0}}, 5'h00}, `TRUE}, \

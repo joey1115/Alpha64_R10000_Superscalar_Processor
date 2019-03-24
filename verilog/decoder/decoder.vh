@@ -1,6 +1,14 @@
 `ifndef __DECODER_VH__
 `define __DECODER_VH__
 
+`ifdef PIPELINE
+`include "sys_config.vh"
+`include "sys_defs.vh"
+`else
+`include "../../sys_config.vh"
+`include "../../sys_defs.vh"
+`endif
+
 typedef struct packed {
   INST_t inst;  // fetched instruction out
   logic  valid; // PC + 4 
@@ -17,6 +25,7 @@ typedef struct packed {
   logic          valid; // for counting valid instructions executed
   logic [4:0]    dest_reg_idx;
   FU_t           FU;
+  logic [4:0]    func;
 } DECODER_PACKET_OUT;
 
 `define DECODER_PACKET_OUT_DEFAULT '{ \
@@ -34,7 +43,8 @@ typedef struct packed {
   `FALSE,                             \
   `FALSE,                             \
   `ZERO_REG,                          \
-  FU_ALU                              \
+  FU_ALU,                             \
+  ALU_ADDQ                            \
 }
 
 `endif

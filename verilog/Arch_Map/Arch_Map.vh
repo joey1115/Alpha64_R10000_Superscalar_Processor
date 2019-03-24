@@ -2,8 +2,13 @@
 `ifndef __Arch_Map_VH__
 `define __Arch_Map_VH__
 
+`ifdef PIPELINE
+`include "sys_config.vh"
+`include "sys_defs.vh"
+`else
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
+`endif
 
 typedef struct packed {
   logic                       r;   // retire enable

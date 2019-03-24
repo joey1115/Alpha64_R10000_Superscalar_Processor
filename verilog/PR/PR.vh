@@ -2,9 +2,15 @@
 `ifndef __PR_VH__
 `define __PR_VH__
 
+`ifdef PIPELINE
+`include "sys_config.vh"
+`include "sys_defs.vh"
+`include "verilog/RS/RS.vh"
+`else
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
 `include "../RS/RS.vh"
+`endif
 
 typedef struct packed {
   logic write_en;                                      // (complete) write enable  from CDB

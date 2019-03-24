@@ -38,7 +38,7 @@ module Map_Table (
 `ifndef SYNTH_TEST
   assign map_table_out                 = map_table;
 `endif
-  assign map_table_packet_out.Told_idx = map_table[map_table_packet_in.reg_dest].idx;
+  assign map_table_packet_out.Told_idx = map_table[map_table_packet_in.dest_idx].idx;
   assign T1                            = map_table[map_table_packet_in.reg_a_idx];
   assign T2                            = map_table[map_table_packet_in.reg_b_idx];
   assign map_table_packet_out.T1.idx   = T1.idx;
@@ -85,7 +85,7 @@ module Map_Table (
     if ( map_table_packet_in.Dispatch_en ) begin                                // no dispatch hazard
       next_backup_map_table[map_table_packet_in.ROB_tail_idx] = next_map_table; // backup the map
       for (int i=0; i<32;i++) begin
-        next_backup_map_table[map_table_packet_in.tail_idx][i].ready = `TRUE;   // ready all the bit
+        next_backup_map_table[map_table_packet_in.ROB_tail_idx][i].ready = `TRUE;   // ready all the bit
       end
     end
   end

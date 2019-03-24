@@ -1,9 +1,5 @@
 `timescale 1ns/100ps
 
-`include "ROB.vh"
-
-`define DEBUG
-
 module ROB (
   //inputs
   input en, clock, reset,
@@ -21,9 +17,9 @@ module ROB (
   input ROB_PACKET_COMPLETE_IN rob_packet_complete_in,
 
   //Outputs
-  `ifdef DEBUG
+`ifndef SYNTH_TEST
   output ROB_t rob,
-  `endif
+`endif
 
   output logic ROB_valid,
   output logic retire_en,
@@ -34,9 +30,9 @@ module ROB (
   output ROB_PACKET_ARCHMAP_OUT rob_packet_archmap_out
 );
 
-  `ifndef DEBUG
+`ifdef SYNTH_TEST
   ROB_t rob;
-  `endif
+`endif
 
   ROB_t Nrob;
 

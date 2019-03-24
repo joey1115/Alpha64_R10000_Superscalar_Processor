@@ -1,8 +1,13 @@
 `ifndef __RS_VH__
 `define __RS_VH__
 
+`ifdef PIPELINE
+`include "sys_config.vh"
+`include "sys_defs.vh"
+`else
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
+`endif
 
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] idx;   // T idx

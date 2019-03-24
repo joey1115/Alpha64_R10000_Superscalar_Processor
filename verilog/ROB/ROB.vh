@@ -1,8 +1,13 @@
 `ifndef __ROB_VH__
 `define __ROB_VH__
 
+`ifdef PIPELINE
+`include "sys_config.vh"
+`include "sys_defs.vh"
+`else
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
+`endif
 
 typedef struct packed {
   logic valid;
