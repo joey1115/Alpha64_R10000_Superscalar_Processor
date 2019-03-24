@@ -23,18 +23,17 @@
 module PR (
   input  en, clock, reset,
   input  PR_PACKET_IN  pr_packet_in,
-
-  `ifndef SYNTH_TEST
+`ifndef SYNTH_TEST
   output logic [`NUM_PR-1:0] [63:0] pr_data,
-  `endif
+`endif
   output PR_PACKET_OUT pr_packet_out
 );
 
   logic [`NUM_PR-1:0] [63:0] pr, next_pr;
 
-  `ifndef SYNTH_TEST
+`ifndef SYNTH_TEST
   assign pr_data = pr;
-  `endif
+`endif
 
   always_comb begin
     next_pr = pr;

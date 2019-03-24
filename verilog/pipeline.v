@@ -25,305 +25,216 @@ module pipeline (
   output logic [4:0]  pipeline_commit_wr_idx,
   output logic [63:0] pipeline_commit_wr_data,
   output logic        pipeline_commit_wr_en,
-  output logic [63:0] pipeline_commit_NPC,
-  // testing hooks (these must be exported so we can test
-  // the synthesized version) data is tested by looking at
-  // the final values in memory
-  // Outputs from IF-Stage 
-  output logic [63:0] if_NPC_out,
-  output logic [31:0] if_IR_out,
-  output logic        if_valid_inst_out,
-  // Outputs from IF/ID Pipeline Register
-  output logic [63:0] if_id_NPC,
-  output logic [31:0] if_id_IR,
-  output logic        if_id_valid_inst,
-  // Outputs from ID/EX Pipeline Register
-  output logic [63:0] id_ex_NPC,
-  output logic [31:0] id_ex_IR,
-  output logic        id_ex_valid_inst,
-  // Outputs from EX/MEM Pipeline Register
-  output logic [63:0] ex_mem_NPC,
-  output logic [31:0] ex_mem_IR,
-  output logic        ex_mem_valid_inst,
-  // Outputs from MEM/WB Pipeline Register
-  output logic [63:0] mem_wb_NPC,
-  output logic [31:0] mem_wb_IR,
-  output logic        mem_wb_valid_inst
+  output logic [63:0] pipeline_commit_NPC
 );
 
-  // // Pipeline register enables
-  // logic f_d_enable, s_x_enable, x_c_enable, c_r_enable;
+  Arch_Map arch_map_0 (
+    .en(en),
+    .clock(clock),
+    .reset(reset),
+    .retire_en(retire_en),
+    .arch_map_packet_in(arch_map_packet_in),
+`ifndef SYNTH_TEST
+    .next_arch_map(next_arch_map)
+`endif
+  );
 
-  // // Outputs from IF stage
-  // F_D_PACKET f_packet_out;
-  // // Outputs from ID/EX Pipeline Register
-  // F_D_PACKET f_d_packet;
+  CDB cdb_0 (
+    .en(en),
+    .cdb_packet_in(cdb_packet_in),
+    .cdb_packet_out(cdb_packet_out)
+  );
 
-  // // Outputs from IF stage
-  // D_S_PACKET d_packet_out;
-  // // Outputs from ID/EX Pipeline Register
-  // D_S_PACKET d_s_packet;
+  decoder decoder_0 (
+    .decoder_packet_in(decoder_packet_in),
+    .decoder_packet_out(decoder_packet_out)
+  );
 
-  // // Outputs from ID stage
-  // S_X_PACKET s_packet_out;
-  // // Outputs from ID/EX Pipeline Register
-  // S_X_PACKET s_x_packet;
+  FL fl_0 (
+    .clock(clock),
+    .reset(reset),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .retire_en(retire_en),
+    .Told_idx(Told_idx),
+    .FL_rollback_idx(FL_rollback_idx),
+`ifndef SYNTH_TEST
+    .FL_table(FL_table),
+    .next_FL_table(next_FL_table),
+    .head(head),
+    .next_head(next_head),
+    .tail(tail),
+    .next_tail(next_tail),
+`endif
+    .FL_valid(FL_valid),
+    .T_idx(T_idx),
+    .FL_idx(FL_idx)
+  );
 
-  // // Outputs from EX-Stage
-  // X_C_PACKET x_packet_out;
-  // // Outputs from EX/MEM Pipeline Register
-  // X_C_PACKET x_c_packet;
+  FU fu_0 (
+    .clock(clock),
+    .reset(reset),
+    .fu_m_packet_in(fu_m_packet_in),
+    .CDB_valid(CDB_valid),
+`ifndef SYNTH_TEST
+    .last_done(last_done),
+    .product_out(product_out),
+    .last_dest_idx(last_dest_idx),
+    .last_T_idx(last_T_idx),
+    .last_ROB_idx(last_ROB_idx),
+    .last_FL_idx(last_FL_idx),
+    .T1_value(T1_value),
+    .T2_value(T2_value),
+    .internal_T1_values(internal_T1_values),
+    .internal_T2_values(internal_T2_values),
+    .internal_valids(internal_valids),
+    .internal_dones(internal_dones),
+    .internal_dest_idx(internal_dest_idx),
+    .internal_T_idx(internal_T_idx),
+    .internal_ROB_idx(internal_ROB_idx),
+    .internal_FL_idx(internal_FL_idx),
+`endif
+    .fu_m_packet_out(fu_m_packet_out),
+    .fu_valid(fu_valid),
+    .rollback_en(rollback_en),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB)
+  );
 
-  // // Outputs from MEM-Stage
-  // C_R_PACKET c_packet_out;
-  // // Outputs from MEM/WB Pipeline Register
-  // C_R_PACKET c_r_packet;
+  Map_Table map_table_0 (
+    .en(en),
+    .clock(clock),
+    .reset(reset),
+    .map_table_packet_in(map_table_packet_in),
+`ifndef SYNTH_TEST
+    .map_table_out(map_table_out),
+`endif
+    .map_table_packet_out(map_table_packet_out)
+  );
 
-  // // Outputs from WB-Stage  (These loop back to the register file in ID)
-  // R_REG_PACKET r_packet_out;
+  PR pr_0 (
+    .en(en),
+    .clock(clock),
+    .reset(reset),
+    .pr_packet_in(pr_packet_in),
+`ifndef SYNTH_TEST
+    .pr_data(pr_data),
+`endif
+    .pr_packet_out(pr_packet_out)
+  );
 
-  // // Memory interface/arbiter wires
-  // logic [63:0] proc2Dmem_addr, proc2Imem_addr;
-  // logic  [1:0] proc2Dmem_command, proc2Imem_command;
-  // logic  [3:0] Imem2proc_response, Dmem2proc_response;
+  ROB rob_0 (
+    .en(en),
+    .clock(clock),
+    .reset(reset),
+    .dispatch_en(dispatch_en),
+    .halt(halt),
+    .T_idx(T_idx),
+    .Told_idx(Told_idx),
+    .dest_idx(dest_idx),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .rollback_en(rollback_en),
+    .rob_packet_complete_in(rob_packet_complete_in),
+`ifndef SYNTH_TEST
+    .rob(rob),
+`endif
+    .ROB_valid(ROB_valid),
+    .retire_en(retire_en),
+    .halt_out(halt_out),
+    .rob_packet_rs_out(rob_packet_rs_out),
+    .rob_packet_maptable_out(rob_packet_maptable_out),
+    .rob_packet_freelist_out(rob_packet_freelist_out),
+    .rob_packet_archmap_out(rob_packet_archmap_out)
+  );
 
-  // // Icache wires
-  // logic [63:0] cachemem_data;
-  // logic        cachemem_valid;
-  // logic  [4:0] Icache_rd_idx;
-  // logic  [7:0] Icache_rd_tag;
-  // logic  [4:0] Icache_wr_idx;
-  // logic  [7:0] Icache_wr_tag;
-  // logic        Icache_wr_en;
-  // logic [63:0] Icache_data_out, proc2Icache_addr;
-  // logic        Icache_valid_out;
+  RS rs_0 (
+    .clock(clock),
+    .reset(reset),
+    .en(en),
+    .rs_packet_in(rs_packet_in),
+`ifndef SYNTH_TEST
+    .RS_out(RS_out),
+    .RS_match_hit(RS_match_hit),   // If a RS entry is ready
+    .RS_match_idx(RS_match_idx),
+`ifdef RS_FORWARDING
+    .FU_forward_hit(FU_forward_hit), // If a RS entry is ready
+    .FU_forward_idx(FU_forward_idx), // If a RS entry is ready
+`endif
+`endif
+    .rs_packet_out(rs_packet_out),
+    .RS_valid(RS_valid)
+  );
 
-  // assign pipeline_completed_insts = {3'b0, c_r_packet.valid};
-  // assign pipeline_error_status    = c_r_packet.illegal  ? HALTED_ON_ILLEGAL :
-  //                                   c_r_packet.halt     ? HALTED_ON_HALT :
-  //                                   NO_ERROR;
-
-  // assign pipeline_commit_wr_idx  = r_packet_out.wr_idx;
-  // assign pipeline_commit_wr_data = r_packet_out.wr_data;
-  // assign pipeline_commit_wr_en   = r_packet_out.wr_en;
-  // assign pipeline_commit_NPC     = mem_wb_NPC;
-
-  // assign proc2mem_command   = (proc2Dmem_command == BUS_NONE) ? proc2Imem_command:proc2Dmem_command;
-  // assign proc2mem_addr      = (proc2Dmem_command == BUS_NONE) ? proc2Imem_addr:proc2Dmem_addr;
-  // assign Dmem2proc_response = (proc2Dmem_command == BUS_NONE) ? 0 : mem2proc_response;
-  // assign Imem2proc_response = (proc2Dmem_command == BUS_NONE) ? mem2proc_response : 0;
-
-  // // Actual cache (data and tag RAMs)
-  // cache cachememory (// inputs
-  //   .clock(clock),
-  //   .reset(reset),
-  //   .wr1_en(Icache_wr_en),
-  //   .wr1_idx(Icache_wr_idx),
-  //   .wr1_tag(Icache_wr_tag),
-  //   .wr1_data(mem2proc_data),
-  //   .rd1_idx(Icache_rd_idx),
-  //   .rd1_tag(Icache_rd_tag),
-  //   // outputs
-  //   .rd1_data(cachemem_data),
-  //   .rd1_valid(cachemem_valid)
-  // );
-  // // Cache controller
-  // icache icache_0(// inputs 
-  //   .clock(clock),
-  //   .reset(reset),
-  //   .Imem2proc_response(Imem2proc_response),
-  //   .Imem2proc_data(mem2proc_data),
-  //   .Imem2proc_tag(mem2proc_tag),
-  //   .proc2Icache_addr(proc2Icache_addr),
-  //   .cachemem_data(cachemem_data),
-  //   .cachemem_valid(cachemem_valid),
-  //   // outputs
-  //   .proc2Imem_command(proc2Imem_command),
-  //   .proc2Imem_addr(proc2Imem_addr),
-  //   .Icache_data_out(Icache_data_out),
-  //   .Icache_valid_out(Icache_valid_out),
-  //   .current_index(Icache_rd_idx),
-  //   .current_tag(Icache_rd_tag),
-  //   .last_index(Icache_wr_idx),
-  //   .last_tag(Icache_wr_tag),
-  //   .data_write_enable(Icache_wr_en)
-  // );
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //                  F-Stage                     //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // assign if_NPC_out = f_packet_out.NPC;
-  // assign if_IR_out = f_packet_out.inst;
-  // assign if_valid_inst_out = f_packet_out.valid;
-  // f_stage f_stage_0 (
-  //   // Inputs
-  //   .clock (clock),
-  //   .reset (reset),
-  //   .c_r_packet_in(c_r_packet),
-  //   .x_c_packet_in(x_c_packet),
-  //   .Imem2proc_data(Icache_data_out),
-  //   .Imem_valid(Icache_valid_out),
-  //   // Outputs
-  //   .proc2Imem_addr(proc2Icache_addr),
-  //   .f_packet_out(f_packet_out)
-  // );
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //            F/D Pipeline Register             //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // assign if_id_NPC        = f_d_packet.NPC;
-  // assign if_id_IR         = f_d_packet.inst;
-  // assign if_id_valid_inst = f_d_packet.valid;
-  // assign f_d_enable = 1'b1; // always enabled
-  // // synopsys sync_set_reset "reset"
-  // always_ff @(posedge clock) begin
-  //   if(reset) begin
-  //     f_d_packet <= `SD `F_D_PACKET_RESET;
-  //   end else if (f_d_enable) begin
-  //     f_d_packet <= `SD f_packet_out; 
-  //   end // if (f_d_enable)
-  // end // always
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //                  D-Stage                     //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // d_stage d_stage_0 (// Inputs
-  //   .clock(clock),
-  //   .reset(reset),
-  //   .f_d_packet_in(f_d_packet),
-  //   .r_packet_in(r_packet_out),
-  //   // Outputs
-  //   .s_packet_out(s_packet_out)
-  // );
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //            D/S Pipeline Register             //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // assign id_ex_NPC        = s_x_packet.NPC;
-  // assign id_ex_IR         = s_x_packet.inst;
-  // assign id_ex_valid_inst = s_x_packet.valid;
-  // assign s_x_enable = 1'b1; // always enabled
-  // // synopsys sync_set_reset "reset"
-  // always_ff @(posedge clock) begin
-  //   if (reset) begin
-  //     s_x_packet <= `SD `S_X_PACKET_RESET; 
-  //   end else if (s_x_enable) begin
-  //     s_x_packet <= `SD s_packet_out;
-  //   end // else: !if(reset)
-  // end // always
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //                  S-Stage                     //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // s_stage s_stage_0 (// Inputs
-  //   .clock(clock),
-  //   .reset(reset),
-  //   .f_d_packet_in(f_d_packet),
-  //   .r_packet_in(r_packet_out),
-  //   // Outputs
-  //   .s_packet_out(s_packet_out)
-  // );
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //              S/X Pipeline Register           //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // assign id_ex_NPC        = s_x_packet.NPC;
-  // assign id_ex_IR         = s_x_packet.inst;
-  // assign id_ex_valid_inst = s_x_packet.valid;
-  // assign s_x_enable = 1'b1; // always enabled
-  // // synopsys sync_set_reset "reset"
-  // always_ff @(posedge clock) begin
-  //   if (reset) begin
-  //     s_x_packet <= `SD `S_X_PACKET_RESET; 
-  //   end else if (s_x_enable) begin
-  //     s_x_packet <= `SD s_packet_out;
-  //   end // else: !if(reset)
-  // end // always
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //                  X-Stage                     //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // x_stage x_stage_0 (
-  //   // Inputs
-  //   .clock(clock),
-  //   .reset(reset),
-  //   .s_x_packet_in(s_x_packet),
-  //   // Outputs
-  //   .x_packet_out(x_packet_out)
-  // );
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //           X/C Pipeline Register              //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // assign ex_mem_NPC = x_c_packet.NPC;
-  // assign ex_mem_IR = x_c_packet.inst;
-  // assign ex_mem_valid_inst = x_c_packet.valid;
-  // assign x_c_enable = ~c_packet_out.stall;
-  // // synopsys sync_set_reset "reset"
-  // always_ff @(posedge clock) begin
-  //   if (reset) begin
-  //     x_c_packet <= `SD `X_C_PACKET_RESET;
-  //   end else if (x_c_enable) begin
-  //     // these are forwarded directly from ID/EX latches
-  //     x_c_packet <= `SD x_packet_out;
-  //   end // else: !if(reset)
-  // end // always
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //                 C-Stage                      //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // c_stage c_stage_0 (
-  //   // Inputs
-  //   .clock(clock),
-  //   .reset(reset),
-  //   .x_c_packet_in(x_c_packet),
-  //   .Dmem2proc_data(mem2proc_data),
-  //   .Dmem2proc_tag(mem2proc_tag),
-  //   .Dmem2proc_response(Dmem2proc_response),
-  //    // Outputs
-  //   .c_packet_out(c_packet_out),
-  //   .proc2Dmem_command(proc2Dmem_command),
-  //   .proc2Dmem_addr(proc2Dmem_addr),
-  //   .proc2Dmem_data(proc2mem_data)
-  // );
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //           C/R Pipeline Register              //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // assign mem_wb_NPC        = c_r_packet.NPC;
-  // assign mem_wb_IR         = c_r_packet.inst;
-  // assign mem_wb_valid_inst = c_r_packet.valid;
-  // assign c_r_enable = 1'b1; // always enabled
-  // // synopsys sync_set_reset "reset"
-  // always_ff @(posedge clock) begin
-  //   if (reset) begin
-  //     c_r_packet <= `SD `C_R_PACKET_RESET;
-  //   end else if (c_r_enable) begin
-  //     // these are forwarded directly from EX/MEM latches
-  //     c_r_packet <= `SD c_packet_out;
-  //   end // else: !if(reset)
-  // end // always
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //                  R-Stage                     //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // r_stage r_stage_0 (
-  //   // Inputs
-  //   .clock(clock),
-  //   .reset(reset),
-  //   .c_r_packet_in(c_r_packet),
-  //   // Outputs
-  //   .r_packet_out(r_packet_out)
-  // );
+  //////////////////////////////////////////////////
+  //                                              //
+  //            F/D Pipeline Register             //
+  //                                              //
+  //////////////////////////////////////////////////
+  assign f_d_enable = `TRUE; // always enabled
+  // synopsys sync_set_reset "reset"
+  always_ff @(posedge clock) begin
+    if(reset) begin
+      f_d_packet <= `SD `F_D_PACKET_RESET;
+    end else if (f_d_enable) begin
+      f_d_packet <= `SD f_packet_out; 
+    end // if (f_d_enable)
+  end // always
+  //////////////////////////////////////////////////
+  //                                              //
+  //            D/S Pipeline Register             //
+  //                                              //
+  //////////////////////////////////////////////////
+  assign s_x_enable = `TRUE; // always enabled
+  // synopsys sync_set_reset "reset"
+  always_ff @(posedge clock) begin
+    if (reset) begin
+      s_x_packet <= `SD `S_X_PACKET_RESET; 
+    end else if (s_x_enable) begin
+      s_x_packet <= `SD s_packet_out;
+    end // else: !if(reset)
+  end // always
+  //////////////////////////////////////////////////
+  //                                              //
+  //              S/X Pipeline Register           //
+  //                                              //
+  //////////////////////////////////////////////////
+  assign s_x_enable = `TRUE; // always enabled
+  // synopsys sync_set_reset "reset"
+  always_ff @(posedge clock) begin
+    if (reset) begin
+      s_x_packet <= `SD `S_X_PACKET_RESET; 
+    end else if (s_x_enable) begin
+      s_x_packet <= `SD s_packet_out;
+    end // else: !if(reset)
+  end // always
+  //////////////////////////////////////////////////
+  //                                              //
+  //           X/C Pipeline Register              //
+  //                                              //
+  //////////////////////////////////////////////////
+  assign x_c_enable = `TRUE;
+  // synopsys sync_set_reset "reset"
+  always_ff @(posedge clock) begin
+    if (reset) begin
+      x_c_packet <= `SD `X_C_PACKET_RESET;
+    end else if (x_c_enable) begin
+      // these are forwarded directly from ID/EX latches
+      x_c_packet <= `SD x_packet_out;
+    end // else: !if(reset)
+  end // always
+  //////////////////////////////////////////////////
+  //                                              //
+  //           C/R Pipeline Register              //
+  //                                              //
+  //////////////////////////////////////////////////
+  assign c_r_enable = `TRUE; // always enabled
+  // synopsys sync_set_reset "reset"
+  always_ff @(posedge clock) begin
+    if (reset) begin
+      c_r_packet <= `SD `C_R_PACKET_RESET;
+    end else if (c_r_enable) begin
+      // these are forwarded directly from EX/MEM latches
+      c_r_packet <= `SD c_packet_out;
+    end // else: !if(reset)
+  end // always
 endmodule  // module verisimple

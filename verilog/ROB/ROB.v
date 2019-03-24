@@ -8,19 +8,15 @@ module ROB (
   input logic [$clog2(`NUM_PR)-1:0] T_idx,
   input logic [$clog2(`NUM_PR)-1:0] Told_idx,
   input logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx,
-  
   // rollback function
   input logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input logic rollback_en,
-
   // complete function
   input ROB_PACKET_COMPLETE_IN rob_packet_complete_in,
-
   //Outputs
 `ifndef SYNTH_TEST
   output ROB_t rob,
 `endif
-
   output logic ROB_valid,
   output logic retire_en,
   output logic halt_out,

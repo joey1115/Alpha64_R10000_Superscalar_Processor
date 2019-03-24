@@ -19,24 +19,24 @@ module test_FL;
   logic [$clog2(`NUM_FL)-1:0]              FL_idx;
 
   FL UUT(
-	  .clock(clock),
-	  .reset(reset),
-	  .dispatch_en(dispatch_en),
-	  .rollback_en(rollback_en),
-	  .retire_en(retire_en),
-	  .Told_idx(Told_idx),
-	  .FL_rollback_idx(FL_rollback_idx),
-	`ifndef SYNTH_TEST
-	  .FL_table(FL_table),
-	  .next_FL_table(next_FL_table),
-	  .head(head),
-	  .next_head(next_head),
-	  .tail(tail),
-	  .next_tail(next_tail),
-	`endif
-	  .FL_valid(FL_valid),
-	  .T_idx(T_idx),
-	  .FL_idx(FL_idx)
+    .clock(clock),
+    .reset(reset),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .retire_en(retire_en),
+    .Told_idx(Told_idx),
+    .FL_rollback_idx(FL_rollback_idx),
+`ifndef SYNTH_TEST
+    .FL_table(FL_table),
+    .next_FL_table(next_FL_table),
+    .head(head),
+    .next_head(next_head),
+    .tail(tail),
+    .next_tail(next_tail),
+`endif
+    .FL_valid(FL_valid),
+    .T_idx(T_idx),
+    .FL_idx(FL_idx)
   );
 
   always begin

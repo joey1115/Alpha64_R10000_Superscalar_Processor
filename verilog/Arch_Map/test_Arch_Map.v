@@ -10,7 +10,6 @@
 
 `timescale 1ns/100ps
 
-`include "../../sys_defs.vh"
 `include "Arch_Map.vh"
 
 module test_Arch_Map;

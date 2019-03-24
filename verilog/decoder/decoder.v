@@ -30,7 +30,7 @@
   // This is a *combinational* module (basically a PLA).
   //
 module decoder(
-  input  F_D_PACKET       decoder_packet_in,
+  input  F_D_PACKET         decoder_packet_in,
   output DECODER_PACKET_OUT decoder_packet_out
 );
 
