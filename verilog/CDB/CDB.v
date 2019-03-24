@@ -1,28 +1,114 @@
-/***********************************************
- * CDB procedure:
- * ----complete----
- * 1. put complete tag in CDB
- * input: complete enable signal, tag
- * 
- * 2. give CDB tag to Map Table & RS
- * output: CDB enable signal, tag
-  
- ************************************************/
+/*****************CDB******************
+*   Fetch
+*   Dispatch
+*   Issue
+*   Execute
+*     Input: rollback_en (X/C)
+*     Input: ROB_rollback_idx (br module, LSQ)
+*     Input: diff_ROB (FU)    // diff_ROB = ROB_tail of the current cycle - ROB_rollback idx
+*   Complete
+*     Input: FU_done   (X/C)  // valid signal from FU
+*     Input: T_idx     (X/C)  // tag from FU
+*     Input: ROB_idx   (X/C)
+*     Input: FU_result (X/C)  // result from FU
+*     Input: dest_idx  (X/C)
+*     Output: CDB_valid (FU)  // full entry means hazard(valid=0, entry is free)
+*     Output: complete_en (RS, ROB, Map table) 
+*     Output: write_en (PR)   // valid signal to PR
+*     Output: T_idx 	 (PR)   // tag to PR
+*     Output: T_value  (PR)   // result to PR
+*     Output: dest_idx (Map table)
+*   Retire
+***************************************/
 
 module CDB (
-  input  en,
-  input  CDB_PACKET_IN  cdb_packet_in,
-  output CDB_PACKET_OUT cdb_packet_out
+  input  en, clock, reset, 
+  input  CDB_PACKET_IN  CDB_packet_in,
+
+  `ifndef SYNTH_TEST
+  output CDB_entry_t [`NUM_FU-1:0] CDB,
+  `endif
+  output CDB_PACKET_OUT CDB_packet_out
 );
 
-  always_comb begin
-    if (cdb_packet_in.C_en == 1) begin
-      cdb_packet_out.CDB_T = cdb_packet_in.C_T;
-      cdb_packet_out.CDB_en = 1;
-    end else begin
-      cdb_packet_out.CDB_T = 0;
-      cdb_packet_out.CDB_en = 0;
-    end // else
-  end
+  `ifdef SYNTH_TEST
+  CDB_entry_t [`NUM_FU-1:0] CDB;
+  `endif
+  CDB_entry_t [`NUM_FU-1:0] next_CDB;
+  logic [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0] diff;
 
+
+  always_comb begin
+    next_CDB = CDB;
+    CDB_packet_out.complete_en = 0;
+    CDB_packet_out.write_en    = 0;
+    CDB_packet_out.T_idx       = `ZERO_PR;
+    CDB_packet_out.dest_idx    = `ZERO_REG;
+    CDB_packet_out.T_value     = 0;
+    
+    // Update taken, T_idx & T_value for each empty entry
+    // and give CDB_valid to FU, CDB_valid=1 means the entry is free
+    for (int i=0; i<`NUM_FU; i++) begin
+      CDB_packet_out.CDB_valid[i] = !next_CDB[i].taken;
+      if (!(next_CDB[i].taken) && CDB_packet_in.FU_done[i]) begin
+        next_CDB[i].taken    = 1;
+        next_CDB[i].T_idx    = CDB_packet_in.T_idx[i];
+        next_CDB[i].ROB_idx  = CDB_packet_in.ROB_idx[i];
+        next_CDB[i].dest_idx = CDB_packet_in.dest_idx[i];
+        next_CDB[i].T_value  = CDB_packet_in.FU_result[i];
+        CDB_packet_out.CDB_valid[i] = 0;
+      end
+    end
+    // rollback
+    if (CDB_packet_in.rollback_en) begin
+      for (int i=0; i<`NUM_FU; i++)begin
+        diff[i] = next_CDB[i].ROB_idx - CDB_packet_in.ROB_rollback_idx;
+        if (CDB_packet_in.diff_ROB >= diff[i]) begin
+          next_CDB[i].taken    = 0;
+          next_CDB[i].T_idx    = 0;
+          next_CDB[i].ROB_idx  = 0;
+          next_CDB[i].dest_idx = 0;
+          next_CDB[i].T_value  = 0;
+          CDB_packet_out.CDB_valid[i] = 1;
+        end
+      end
+    end
+    // broadcast one completed instruction (if one is found)
+    for (int i=0; i<`NUM_FU; i++) begin
+      // if ((next_CDB[i].taken && `FU_LIST[i] != FU_LD) || (next_CDB[i].taken && `FU_LIST[i] == FU_LD && next_CDB[i].ROB_idx == CDB_packet_in.ROB_head_idx))  begin
+      if (next_CDB[i].taken) begin
+        CDB_packet_out.complete_en = 1'b1;
+        CDB_packet_out.write_en    = 1'b1;
+        CDB_packet_out.T_idx       = next_CDB[i].T_idx;
+        CDB_packet_out.dest_idx    = next_CDB[i].dest_idx;
+        CDB_packet_out.T_value     = next_CDB[i].T_value;
+        // try filling this entry if X_C reg wants to write a new input here
+        // (compare T_idx to prevent re-writing the entry with the same inst.)
+        if (CDB_packet_in.FU_done[i] && CDB_packet_in.T_idx[i] != next_CDB[i].T_idx) begin
+          next_CDB[i].T_idx    = CDB_packet_in.T_idx[i];
+          next_CDB[i].dest_idx = CDB_packet_in.dest_idx[i];
+          next_CDB[i].T_value  = CDB_packet_in.FU_result[i];
+        end else begin
+          next_CDB[i].taken = 0;
+          CDB_packet_out.CDB_valid[i] = 1;
+        end // else
+        break;
+      end // if
+    end // for
+
+  end // always_comb
+
+  always_ff @(posedge clock) begin
+    if (reset) begin
+      for (int i=0; i<`NUM_FU; i++) begin
+        CDB[i].taken    <= `SD 0;
+        CDB[i].T_idx    <= `SD `ZERO_PR;
+        CDB[i].ROB_idx  <= `SD 0;
+        CDB[i].dest_idx <= `SD 0;
+        CDB[i].T_value  <= `SD 0;
+      end
+    end else if (en) begin
+      CDB <= `SD next_CDB;
+    end
+  end // always_ff
 endmodule
