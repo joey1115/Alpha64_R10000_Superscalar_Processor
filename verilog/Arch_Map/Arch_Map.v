@@ -4,8 +4,8 @@
 
 module Arch_Map (
   input  logic                     en, clock, reset,
-  input  logic                     retire_en; // retire enable
-  input  ARCH_MAP_PACKET_IN        arch_map_packet_in,
+  input  logic                     retire_en,
+  input  ROB_ARCHMAP_PACKET        rob_archmap_packet,
 `ifndef SYNTH_TEST
   output ARCH_MAP_t         [31:0] next_arch_map
 `endif
@@ -18,14 +18,15 @@ module Arch_Map (
 
   always_comb begin
     next_arch_map = arch_map;
-    if (arch_map_packet_in.retire_en && en) begin
-      for (logic [$clog2(`NUM_ARCH_TABLE):0] i=0; i< `NUM_ARCH_TABLE;i++) begin
-        if (next_arch_map[i].T_idx == arch_map_packet_in.Told_idx) begin
-          next_arch_map[i].T_idx = arch_map_packet_in.T_idx;
-          break;
-        end // if
-      end // for
-    end // if(arch_map_packet_in.retire_en && en)
+    if (retire_en && en) begin
+      // for (logic [$clog2(`NUM_ARCH_TABLE):0] i=0; i< `NUM_ARCH_TABLE;i++) begin
+      //   if (next_arch_map[i].T_idx == rob_archmap_packet.Told_idx) begin
+      //     next_arch_map[i].T_idx = rob_archmap_packet.T_idx;
+      //     break;
+      //   end // if
+      // end // for
+      next_arch_map[rob_archmap_packet.dest_idx].T_idx = rob_archmap_packet.T_idx;
+    end // if(rob_archmap_packet.retire_en && en)
   end // always
 
   always_ff @(posedge clock) begin
