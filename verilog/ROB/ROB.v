@@ -23,7 +23,7 @@ module ROB (
   output ROB_PACKET_RS_OUT rob_packet_rs_out,
   output ROB_PACKET_MAPTABLE_OUT rob_packet_maptable_out,
   output ROB_PACKET_FREELIST_OUT rob_packet_freelist_out,
-  output ROB_PACKET_ARCHMAP_OUT rob_packet_archmap_out
+  output ROB_ARCHMAP_PACKET rob_archmap_packet
 );
 
 `ifdef SYNTH_TEST
@@ -48,8 +48,8 @@ module ROB (
   assign rob_packet_freelist_out.T_old_idx_head = rob.entry[rob.head].T_old;
 
  //retire archmap signal
-  assign rob_packet_archmap_out.dest_idx = rob.entry[rob.head].dest_idx;
-  assign rob_packet_archmap_out.T_idx = rob.entry[rob.head].T;
+  assign rob_archmap_packet.dest_idx = rob.entry[rob.head].dest_idx;
+  assign rob_archmap_packet.T_idx = rob.entry[rob.head].T;
 
   //assign halt out
   assign halt_out = retire_en & rob.entry[rob.head].halt;
