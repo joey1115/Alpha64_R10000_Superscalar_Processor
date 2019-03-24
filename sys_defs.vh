@@ -226,7 +226,7 @@ typedef struct packed {
   ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
   ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
   INST_t         inst;                 // instruction
-  logic [4:0]    dest_reg_idx;  // destination (writeback) register index      
+  logic [4:0]    dest_idx;  // destination (writeback) register index      
   ALU_FUNC       alu_func;      // ALU function select (ALU_xxx *)
   logic          rd_mem;        // does inst read memory?
   logic          wr_mem;        // does inst write memory?
@@ -272,7 +272,7 @@ typedef struct packed {
   //pass throughs from decode stage
   logic [63:0] rega_value;
   logic        rd_mem, wr_mem;
-  logic [4:0]  dest_reg_idx;
+  logic [4:0]  dest_idx;
   logic        halt, illegal, valid;
 } X_C_PACKET;
 
@@ -295,7 +295,7 @@ typedef struct packed {
   logic [63:0] NPC; //pc + 4
   logic             halt, illegal, valid, stall;
   logic             take_branch; // is this a taken branch?
-  logic [4:0]       dest_reg_idx;
+  logic [4:0]       dest_idx;
   logic [63:0]      result;
 } C_R_PACKET;
 

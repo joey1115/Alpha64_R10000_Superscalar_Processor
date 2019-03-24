@@ -57,25 +57,15 @@ typedef struct packed {
 
 typedef struct packed {
   logic          [$clog2(`NUM_PR)-1:0]  T_idx;            // Dest idx
-  INST_t                                inst;             // Inst
-  logic          [63:0]                 NPC;
-  logic          [4:0]                  dest_idx;
   logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
   T_t                                   T1;               // T1
   T_t                                   T2;               // T2
-  logic                                 complete_en;      // If CDB is ready
-  logic                                 dispatch_en;      // If can be dispatched
-  FU_t                                  FU;               // Required FU
-  ALU_FUNC                              func;             // Required ALU operation
-  ALU_OPA_SELECT                        T1_select;
-  ALU_OPB_SELECT                        T2_select;
   logic          [$clog2(`NUM_PR)-1:0]  CDB_T_idx;        // CDB tag
   logic          [`NUM_FU-1:0]          fu_valid;         // FU done
   logic          [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx; // FU done
   logic          [$clog2(`NUM_ROB)-1:0] ROB_tail_idx;     // FU done
   logic          [$clog2(`NUM_ROB)-1:0] diff_ROB;
-  logic                                 rollback_en;      // FU done
 } RS_PACKET_IN;
 
 typedef struct packed {

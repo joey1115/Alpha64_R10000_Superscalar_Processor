@@ -56,6 +56,7 @@ module pipeline (
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .retire_en(retire_en),
+    .dest_idx(decoder_packet_out.dest_idx),
     .Told_idx(Told_idx),
     .FL_rollback_idx(FL_rollback_idx),
 `ifndef SYNTH_TEST
@@ -128,10 +129,10 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .dispatch_en(dispatch_en),
-    .halt(halt),
+    .halt(decoder_packet_out.halt),
+    .dest_idx(decoder_packet_out.dest_idx),
     .T_idx(T_idx),
     .Told_idx(Told_idx),
-    .dest_idx(dest_idx),
     .ROB_rollback_idx(ROB_rollback_idx),
     .rollback_en(rollback_en),
     .rob_packet_complete_in(rob_packet_complete_in),
@@ -151,6 +152,7 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .en(en),
+    .decoder_packet_out(decoder_packet_out),
     .rs_packet_in(rs_packet_in),
 `ifndef SYNTH_TEST
     .RS_out(RS_out),
@@ -174,9 +176,9 @@ module pipeline (
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset) begin
-      f_d_packet <= `SD `F_D_PACKET_RESET;
+      decoder_packet_in <= `SD DECODER_PACKET_IN_RESET;
     end else if (f_d_enable) begin
-      f_d_packet <= `SD f_packet_out; 
+      decoder_packet_in <= `SD f_d_packet_out;
     end // if (f_d_enable)
   end // always
   //////////////////////////////////////////////////
