@@ -159,11 +159,13 @@ module test_Map_Table;
     // {Dispatch_enable, Dispatch_T_idx, Dispatch_T1_idx, Dispatch_T2_idx, Freelist_T,
     //  CDB_T, CDB_enable}
     test_in[0] = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // test_in[1] = '{0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
 
     // test_out[c]: output at cycle c (test[c]'s effect is shown by test_out[c+1])
     // {Told_to_ROB, {T1, ready}, {T2, ready}}
     // Cycle 0 tests reset
     test_out[0] = '{ 0, { 0, 1}, { 0, 1}}; // should all be don't care
+    // test_out[1] = '{ 0, { 0, 1}, { 0, 1}};
 
 
     en    = 1'b1;

@@ -31,7 +31,7 @@ module Map_Table (
   `ifdef DEBUG_MAP_TABLE
   output T_t [31:0] map_table_out,
   `endif
-  output MAP_TABLE_PACKET_OUT map_table_packet_out
+  output MAP_TABLE_PACKET_OUT map_table_packet_out,
 );
 
   T_t [31:0]                map_table, next_map_table;
