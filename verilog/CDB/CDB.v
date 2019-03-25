@@ -31,6 +31,7 @@ module CDB (
   output CDB_entry_t         [`NUM_FU-1:0]          CDB,
 `endif
   output logic                                      write_en,
+  output logic                                      complete_en,
   output logic               [`NUM_FU-1:0]          CDB_valid,
   output CDB_ROB_OUT_t                              CDB_ROB_out,
   output CDB_RS_OUT_t                               CDB_RS_out,
