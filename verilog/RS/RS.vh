@@ -66,8 +66,6 @@ typedef struct packed {
   logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
   logic          [$clog2(`NUM_PR)-1:0]  T_idx;  // Dest idx
-  logic          [$clog2(`NUM_PR)-1:0]  T1_idx; // T1 idx
-  logic          [$clog2(`NUM_PR)-1:0]  T2_idx; // T2 idx
   ALU_OPA_SELECT                        T1_select;
   ALU_OPB_SELECT                        T2_select;
   logic                                 uncond_branch;
@@ -78,6 +76,17 @@ typedef struct packed {
   FU_PACKET_t [`NUM_FU-1:0] FU_packet; // List of output fu
 } RS_FU_OUT_t;
 
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] T1_idx;    // (execute)  T1 index      from S/X reg
+  logic [$clog2(`NUM_PR)-1:0] T2_idx;    // (execute)  T2 index      from S/X reg
+} FU_IDX_ENTRY_t;
+
+typedef struct packed {
+  FU_IDX_ENTRY_t [`NUM_FU-1:0] FU_T_idx;
+} RS_PR_OUT_t;
+
+  logic          [$clog2(`NUM_PR)-1:0]  T1_idx; // T1 idx
+  logic          [$clog2(`NUM_PR)-1:0]  T2_idx; // T2 idx
 `define FU_PACKET_ENTRY_RESET '{ \
   `FALSE,                        \
   `NOOP_INST,                    \

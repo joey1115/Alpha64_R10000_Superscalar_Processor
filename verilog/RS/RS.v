@@ -16,32 +16,35 @@ module RS (
   output logic              [$clog2(`NUM_FU)-1:0]  RS_match_idx,
 `endif
   output logic                                     RS_valid,
-  output RS_FU_OUT_t                               RS_FU_out
+  output RS_FU_OUT_t                               RS_FU_out,
+  output RS_PR_OUT_t                               RS_PR_out
 );
 
-  FU_PACKET_t [`NUM_FU-1:0]                       FU_packet;      // List of output fu
-  RS_ENTRY_t  [`NUM_FU-1:0]                       RS, next_RS;
-  FU_t        [`NUM_FU-1:0]                       FU_list;        // List of FU
-  logic       [`NUM_FU-1:0]                       T1_CDB;         // If T1 is complete
-  logic       [`NUM_FU-1:0]                       T2_CDB;         // If T2 is complete
-  logic       [`NUM_FU-1:0]                       T1_ready;       // If T1 is ready
-  logic       [`NUM_FU-1:0]                       T2_ready;       // If T2 is ready
-  logic       [`NUM_FU-1:0]                       RS_entry_ready; // If a RS entry is ready
-  logic       [`NUM_FU-1:0]                       RS_entry_empty; // If a RS entry is ready
-  logic       [`NUM_FU-1:0]                       RS_rollback;    // If a RS entry is ready
-  logic       [`NUM_FU-1:0]                       FU_entry_match;
-  logic       [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
+  FU_PACKET_t    [`NUM_FU-1:0]                       FU_packet;      // List of output fu
+  RS_ENTRY_t     [`NUM_FU-1:0]                       RS, next_RS;
+  FU_t           [`NUM_FU-1:0]                       FU_list;        // List of FU
+  FU_IDX_ENTRY_t [`NUM_FU-1:0]                       FU_T_idx;
+  logic          [`NUM_FU-1:0]                       T1_CDB;         // If T1 is complete
+  logic          [`NUM_FU-1:0]                       T2_CDB;         // If T2 is complete
+  logic          [`NUM_FU-1:0]                       T1_ready;       // If T1 is ready
+  logic          [`NUM_FU-1:0]                       T2_ready;       // If T2 is ready
+  logic          [`NUM_FU-1:0]                       RS_entry_ready; // If a RS entry is ready
+  logic          [`NUM_FU-1:0]                       RS_entry_empty; // If a RS entry is ready
+  logic          [`NUM_FU-1:0]                       RS_rollback;    // If a RS entry is ready
+  logic          [`NUM_FU-1:0]                       FU_entry_match;
+  logic          [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
 `ifdef SYNTH_TEST
-  logic                                           RS_match_hit;   // If a RS entry is ready
-  logic       [$clog2(`NUM_FU)-1:0]               RS_match_idx;
+  logic                                              RS_match_hit;   // If a RS entry is ready
+  logic          [$clog2(`NUM_FU)-1:0]               RS_match_idx;
 `endif
 
   assign RS_FU_out = '{FU_packet};
+  assign RS_PR_out = '{FU_T_idx};
+  assign RS_valid  = RS_match_hit;
 
 `ifndef SYNTH_TEST
   assign RS_out = RS;
 `endif
-  assign RS_valid   = RS_match_hit;
 
   always_comb begin
     RS_match_hit =  `FALSE;
@@ -83,8 +86,8 @@ module RS (
       FU_packet[i].cond_branch   = RS[i].cond_branch;                    // Output T2_idx
       FU_packet[i].FL_idx        = RS[i].FL_idx;                         // op code
       FU_packet[i].T_idx         = RS[i].T_idx;                          // Output T_idx
-      FU_packet[i].T1_idx        = RS[i].T1.idx;                         // Output T1_idx
-      FU_packet[i].T2_idx        = RS[i].T2.idx;                         // Output T2_idx
+      FU_idx[i].T1_idx           = RS[i].T1.idx;                         // Output T1_idx
+      FU_idx[i].T2_idx           = RS[i].T2.idx;                         // Output T2_idx
     end
   end
 

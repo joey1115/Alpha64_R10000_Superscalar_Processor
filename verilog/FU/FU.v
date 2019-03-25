@@ -479,10 +479,10 @@ module FU (
   FU_IN_t    [`NUM_FU-1:0]          FU_in;
   logic             [`NUM_BR-1:0]          take_branch;
   logic             [$clog2(`NUM_ROB)-1:0] diff_ROB;
-  FU_IDX_ENTRY_t    [`NUM_FU-1:0]          FU_idx;
+  FU_IDX_ENTRY_t    [`NUM_FU-1:0]          FU_T_idx;
 
   assign FU_CDB_out = '{FU_out};
-  assign FU_PR_out  = '{FU_idx};
+  assign FU_PR_out  = '{FU_T_idx};
 
   assign rollback_en      = take_branch[0];
   assign ROB_rollback_idx = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
@@ -491,8 +491,8 @@ module FU (
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
-      FU_idx[i].T1_idx = RS_FU_out.FU_packet[i].T1_idx;
-      FU_idx[i].T2_idx = RS_FU_out.FU_packet[i].T2_idx;
+      FU_T_idx[i].T1_idx = RS_FU_out.FU_packet[i].T1_idx;
+      FU_T_idx[i].T2_idx = RS_FU_out.FU_packet[i].T2_idx;
     end
   end
 
