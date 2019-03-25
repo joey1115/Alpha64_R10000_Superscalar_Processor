@@ -28,6 +28,7 @@ module FL (
   logic [$clog2(`NUM_PR)-1:0]              T_idx;
   logic [$clog2(`NUM_FL)-1:0]              FL_idx;
 
+  assign FL_ROB_out       = '{T_idx};
   assign FL_RS_out        = '{T_idx, FL_idx};
   assign FL_Map_Table_out = '{T_idx};
 
