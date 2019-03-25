@@ -3,7 +3,7 @@
  * 
  * --- Complete ---
  * 1. Update ready bit from CDB
- * input: CDB_T; CDB_enable from CDB
+ * input: CDB_T; complete_en from CDB
  * 
  * ---- Dispatch ---
  * 1. see if there is a struct hazard
@@ -23,7 +23,7 @@
 `timescale 1ns/100ps
 
 module Map_Table (
-  input  logic                                          en, clock, reset, dispatch_en, rollback_en, CDB_enable,
+  input  logic                                          en, clock, reset, dispatch_en, rollback_en, complete_en,
   input  logic                   [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
   input  logic                   [$clog2(`NUM_ROB)-1:0] ROB_idx;
   input  DECODER_MAP_TABLE_OUT_t                        decoder_Map_Table_out,
@@ -50,8 +50,8 @@ module Map_Table (
   assign Told_idx = map_table[decoder_Map_Table_out.dest_idx].idx;
   assign T1.idx   = map_table[decoder_Map_Table_out.rega_idx].idx;
   assign T2.idx   = map_table[decoder_Map_Table_out.regb_idx].idx;
-  assign T1.ready = ( CDB_enable && T1.idx == CDB_Map_Table_out.T_idx ) || map_table[decoder_Map_Table_out.rega_idx].ready;
-  assign T2.ready = ( CDB_enable && T2.idx == CDB_Map_Table_out.T_idx ) || map_table[decoder_Map_Table_out.rega_idx].ready;
+  assign T1.ready = ( complete_en && T1.idx == CDB_Map_Table_out.T_idx ) || map_table[decoder_Map_Table_out.rega_idx].ready;
+  assign T2.ready = ( complete_en && T2.idx == CDB_Map_Table_out.T_idx ) || map_table[decoder_Map_Table_out.rega_idx].ready;
 
   always_comb begin
     next_map_table = map_table;
@@ -70,14 +70,14 @@ module Map_Table (
     //   end
     // end
     // CDB_T updata ready
-    // if ( CDB_enable ) begin
+    // if ( complete_en ) begin
     //   for (int i = 0; i < 32; i++) begin
     //     if ( map_table[i].idx == CDB_Map_Table_out.T_idx ) begin
     //       map_table[i].ready = `TRUE;
     //     end
     //   end
     // end
-    if ( CDB_enable && map_table[CDB_Map_Table_out.dest_idx].idx == CDB_Map_Table_out.T_idx ) begin
+    if ( complete_en && map_table[CDB_Map_Table_out.dest_idx].idx == CDB_Map_Table_out.T_idx ) begin
       next_map_table[CDB_Map_Table_out.dest_idx].ready = `TRUE;
     end
     // PR update T_idx

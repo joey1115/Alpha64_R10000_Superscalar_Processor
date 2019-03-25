@@ -72,6 +72,7 @@ module pipeline (
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .retire_en(retire_en),
+    .FL_rollback_idx(FL_rollback_idx),
     .decoder_FL_out(decoder_FL_out),
     .ROB_FL_out(ROB_FL_out),
     .FU_FL_out(FU_FL_out),
@@ -84,6 +85,7 @@ module pipeline (
     .next_tail(next_tail),
 `endif
     .FL_valid(FL_valid),
+    .FL_ROB_out(FL_ROB_out),
     .FL_RS_out(FL_RS_out),
     .FL_Map_Table_out(FL_Map_Table_out)
   );
@@ -91,9 +93,10 @@ module pipeline (
   FU fu_0 (
     .clock(clock),
     .reset(reset),
-    .CDB_valid(CDB_valid),
     .ROB_idx(ROB_idx),
+    .CDB_valid(CDB_valid),
     .RS_FU_out(RS_FU_out),
+    .PR_FU_out(PR_FU_out),
 `ifndef SYNTH_TEST
     .last_done(last_done),
     .product_out(product_out),
@@ -127,6 +130,8 @@ module pipeline (
     .reset(reset),
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
+    .complete_en(complete_en),
+    .ROB_rollback_idx(ROB_rollback_idx),
     .ROB_idx(ROB_idx),
     .decoder_Map_Table_out(decoder_Map_Table_out),
     .FL_Map_Table_out(FL_Map_Table_out),
@@ -169,7 +174,10 @@ module pipeline (
     .ROB_valid(ROB_valid),
     .retire_en(retire_en),
     .halt_out(halt_out),
-    .ROB_idx(ROB_idx)
+    .ROB_idx(ROB_idx),
+    .ROB_RS_out(ROB_RS_out),
+    .ROB_Arch_Map_out(ROB_Arch_Map_out),
+    .ROB_FL_out(ROB_FL_out)
   );
 
   RS rs_0 (

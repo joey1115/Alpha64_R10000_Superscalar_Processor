@@ -4,16 +4,12 @@ module ROB (
   //inputs
   input  logic                               en, clock, reset,
   input  logic                               dispatch_en,
-  input  logic                               halt,
-  input  logic [$clog2(`NUM_PR)-1:0]         T_idx,
-  input  logic [$clog2(`NUM_PR)-1:0]         Told_idx,
-  input  logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx,
-  // rollback function
-  input  logic [$clog2(`NUM_ROB)-1:0]        ROB_rollback_idx,
   input  logic                               rollback_en,
-  // complete function
   input  logic                               complete_en,
-  input  logic [$clog2(`NUM_ROB)-1:0]        complete_ROB_idx,
+  input  DECODER_ROB_OUT_t                   decoder_ROB_out,
+  input  FL_ROB_OUT_t                        FL_ROB_out,
+  input  Map_Table_ROB_OUT_t                 Map_Table_ROB_out,
+  input  CDB_ROB_OUT_t                       CDB_ROB_out,
   //Outputs
 `ifndef SYNTH_TEST
   output ROB_t                               rob,
@@ -22,10 +18,6 @@ module ROB (
   output logic                               retire_en,
   output logic                               halt_out,
   output logic [$clog2(`NUM_ROB)-1:0]        ROB_idx;
-  // output ROB_PACKET_RS_OUT rob_packet_rs_out,
-  // output ROB_PACKET_MAPTABLE_OUT rob_packet_maptable_out,
-  // output ROB_PACKET_FREELIST_OUT rob_packet_freelist_out,
-  // output ROB_PACKET_OUT rob_packet_out,
   output ROB_RS_OUT_t                        ROB_RS_out,
   output ROB_ARCH_MAP_OUT_t                  ROB_Arch_Map_out
   output ROB_FL_OUT_t                        ROB_FL_out
@@ -91,16 +83,16 @@ module ROB (
 
     //complete stage
     if(complete_en) begin
-      Nrob.entry[complete_ROB_idx].complete = 1;
+      Nrob.entry[CDB_ROB_out.ROB_idx].complete = 1;
     end
     
     //Next state logic
     Nrob.tail = (writeTail) ? (rob.tail + 1) : Nrob.tail;
     Nrob.head = (moveHead) ? (rob.head + 1) : Nrob.head;
-    Nrob.entry[rob.tail].T = (writeTail) ? T_idx : Nrob.entry[rob.tail].T;
+    Nrob.entry[rob.tail].T = (writeTail) ? FL_ROB_out.T_idx : Nrob.entry[rob.tail].T;
     Nrob.entry[rob.tail].T_old = (writeTail) ? Told_idx : Nrob.entry[rob.tail].T_old;
-    Nrob.entry[rob.tail].dest_idx = (writeTail) ? dest_idx : Nrob.entry[rob.tail].dest_idx;
-    Nrob.entry[rob.tail].halt = writeTail & halt;
+    Nrob.entry[rob.tail].dest_idx = (writeTail) ? decoder_ROB_out.dest_idx : Nrob.entry[rob.tail].dest_idx;
+    Nrob.entry[rob.tail].halt = writeTail & decoder_ROB_out.halt;
 
     
   
