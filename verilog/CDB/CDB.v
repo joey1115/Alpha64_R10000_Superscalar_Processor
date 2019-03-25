@@ -10,7 +10,7 @@
 *     Input: done   (X/C)  // valid signal from FU
 *     Input: T_idx     (X/C)  // tag from FU
 *     Input: ROB_idx   (X/C)
-*     Input: FU_result (X/C)  // result from FU
+*     Input: FU_out (X/C)  // result from FU
 *     Input: dest_idx  (X/C)
 *     Output: CDB_valid (FU)  // full entry means hazard(valid=0, entry is free)
 *     Output: complete_en (RS, ROB, Map table) 
@@ -65,12 +65,12 @@ module CDB (
     // and give CDB_valid to FU, CDB_valid=1 means the entry is free
     for (int i=0; i<`NUM_FU; i++) begin
       CDB_packet_out.CDB_valid[i] = !next_CDB[i].taken;
-      if (!(next_CDB[i].taken) && FU_CDB_out.FU_result[i].done) begin
+      if (!(next_CDB[i].taken) && FU_CDB_out.FU_out[i].done) begin
         next_CDB[i].taken    = 1;
-        next_CDB[i].T_idx    = FU_CDB_out.FU_result[i].T_idx;
-        next_CDB[i].ROB_idx  = FU_CDB_out.FU_result[i].ROB_idx;
-        next_CDB[i].dest_idx = FU_CDB_out.FU_result[i].dest_idx;
-        next_CDB[i].T_value  = FU_CDB_out.FU_result[i].FU_result;
+        next_CDB[i].T_idx    = FU_CDB_out.FU_out[i].T_idx;
+        next_CDB[i].ROB_idx  = FU_CDB_out.FU_out[i].ROB_idx;
+        next_CDB[i].dest_idx = FU_CDB_out.FU_out[i].dest_idx;
+        next_CDB[i].T_value  = FU_CDB_out.FU_out[i].FU_out;
         CDB_packet_out.CDB_valid[i] = 0;
       end
     end
@@ -100,10 +100,10 @@ module CDB (
         ROB_idx     = next_CDB[i].ROB_idx;
         // try filling this entry if X_C reg wants to write a new input here
         // (compare T_idx to prevent re-writing the entry with the same inst.)
-        if (FU_CDB_out.FU_result[i].done && FU_CDB_out.FU_result[i].T_idx != next_CDB[i].T_idx) begin
-          next_CDB[i].T_idx    = FU_CDB_out.FU_result[i].T_idx;
-          next_CDB[i].dest_idx = FU_CDB_out.FU_result[i].dest_idx;
-          next_CDB[i].T_value  = FU_CDB_out.FU_result[i].FU_result;
+        if (FU_CDB_out.FU_out[i].done && FU_CDB_out.FU_out[i].T_idx != next_CDB[i].T_idx) begin
+          next_CDB[i].T_idx    = FU_CDB_out.FU_out[i].T_idx;
+          next_CDB[i].dest_idx = FU_CDB_out.FU_out[i].dest_idx;
+          next_CDB[i].T_value  = FU_CDB_out.FU_out[i].FU_out;
         end else begin
           next_CDB[i].taken = 0;
           CDB_valid[i] = 1;

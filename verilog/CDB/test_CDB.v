@@ -79,15 +79,15 @@ module test_CDB;
                 uut_in.rollback_en, uut_in.ROB_rollback_idx, test_in_raw[cycle_count].diff_ROB, uut_in.diff_ROB);
       // input
       $display("____Input______________________________________________________________");
-      $display("| FU# | done | T_idx | ROB_idx | dest_idx |        FU_result        |");
+      $display("| FU# | done | T_idx | ROB_idx | dest_idx |        FU_out        |");
       for (int i=`NUM_FU-1; i>-1; i=i-1) begin
         $display("|  %1d  |    %1d    |   %2d  |    %1d    |    %2d    |  0x%04h_%04h_%04h_%04h  |",
               i, uut_in.done[i], uut_in.T_idx[i], uut_in.ROB_idx[i], uut_in.dest_idx,
-              uut_in.FU_result[i][63:48], uut_in.FU_result[i][47:32], uut_in.FU_result[i][31:16], uut_in.FU_result[i][15:0]);
+              uut_in.FU_out[i][63:48], uut_in.FU_out[i][47:32], uut_in.FU_out[i][31:16], uut_in.FU_out[i][15:0]);
       end
       // internal data and CDB_valid_output
       $display("____Internal_Data_and_CDB_valid_Output_____________________________________________");
-      $display("| FU# |  taken  | T_idx | ROB_idx | dest_idx |        FU_result        | CDB_valid |");
+      $display("| FU# |  taken  | T_idx | ROB_idx | dest_idx |        FU_out        | CDB_valid |");
       for (int i=`NUM_FU-1; i>-1; i=i-1) begin
         $display("|  %1d  |    %1d    |   %2d  |    %1d    |    %2d    |  0x%04h_%04h_%04h_%04h  |     %1d     |",
               i, uut_data[i].taken, uut_data[i].T_idx, uut_data[i].ROB_idx, uut_data[i].dest_idx,
@@ -167,7 +167,7 @@ module test_CDB;
     //             `NUM_FU{T_idx},
     //             `NUM_FU{ROB_idx},
     //             `NUM_FU{dest_idx},
-    //             `NUM_FU{FU_result}}
+    //             `NUM_FU{FU_out}}
     test_in_raw[0] = '{0, 0, 0,
                        '{ 0,  0,  0,  0,  0},
                        '{ 0,  0,  0,  0,  0},
