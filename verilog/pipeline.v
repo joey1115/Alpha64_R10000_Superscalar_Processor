@@ -133,7 +133,7 @@ module pipeline (
 `ifndef SYNTH_TEST
     .map_table_out(map_table_out),
 `endif
-    .MAP_TABLE_ROB_out(MAP_TABLE_ROB_out),
+    .Map_Table_ROB_out(Map_Table_ROB_out),
     .Map_Table_RS_out(Map_Table_RS_out)
   );
 
@@ -160,7 +160,7 @@ module pipeline (
     .ROB_rollback_idx(ROB_rollback_idx),
     .decoder_ROB_out(decoder_ROB_out),
     .FL_ROB_out(FL_ROB_out),
-    .MAP_TABLE_ROB_out(MAP_TABLE_ROB_out),
+    .Map_Table_ROB_out(Map_Table_ROB_out),
     .CDB_ROB_out(CDB_ROB_out),
 `ifndef SYNTH_TEST
     .rob(rob),

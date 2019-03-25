@@ -32,7 +32,7 @@ module Map_Table (
 `ifndef SYNTH_TEST
   output T_t                     [31:0]                 map_table_out,
 `endif
-  output MAP_TABLE_ROB_OUT_t                            MAP_TABLE_ROB_out,
+  output MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out,
   output MAP_TABLE_RS_OUT_t                             Map_Table_RS_out
 );
 
@@ -41,7 +41,8 @@ module Map_Table (
   T_t [`NUM_ROB-1:0][31:0]    backup_map_table, next_backup_map_table;
   logic [$clog2(`NUM_PR)-1:0] Told_idx;       // output Told to ROB
 
-  assign Map_Table_RS_out = '{T1, T2};
+  assign Map_Table_ROB_out = '{Told_idx};
+  assign Map_Table_RS_out  = '{T1, T2};
 
 `ifndef SYNTH_TEST
   assign map_table_out = map_table;
