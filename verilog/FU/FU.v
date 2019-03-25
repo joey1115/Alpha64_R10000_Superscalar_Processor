@@ -1,4 +1,5 @@
 module alu (
+  input  logic                        clock, reset,
   input  FU_PACKET_IN_t               FU_in,
   input  logic                        CDB_valid,
   input  logic                        rollback_en,
@@ -417,6 +418,7 @@ module ld (
 endmodule
 
 module st (
+  input  logic                        clock, reset,
   input  FU_PACKET_IN_t               FU_in,
   input  logic                        CDB_valid,
   input  logic                        rollback_en,
@@ -518,11 +520,13 @@ module FU (
 
   alu alu_0 [`NUM_ALU-1:0] (
     // Inputs
+    .clock({`NUM_ALU{clock}}),
+    .reset({`NUM_ALU{reset}}),
+    .rollback_en({`NUM_ALU{rollback_en}}),
+    .ROB_rollback_idx({`NUM_ALU{ROB_rollback_idx}}),
+    .diff_ROB({`NUM_ALU{diff_ROB}}),
     .FU_in(FU_in[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     .CDB_valid(CDB_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
-    .rollback_en({`NUM_MULT{rollback_en}}),
-    .ROB_rollback_idx({`NUM_MULT{ROB_rollback_idx}}),
-    .diff_ROB({`NUM_MULT{diff_ROB}}),
     // Output
     .FU_out(FU_result[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     .FU_valid(FU_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)])
@@ -532,11 +536,11 @@ module FU (
     // Inputs
     .clock({`NUM_MULT{clock}}),
     .reset({`NUM_MULT{reset}}),
-    .FU_in(FU_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
-    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     .rollback_en({`NUM_MULT{rollback_en}}),
     .ROB_rollback_idx({`NUM_MULT{ROB_rollback_idx}}),
     .diff_ROB({`NUM_MULT{diff_ROB}}),
+    .FU_in(FU_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     // Outputs
 `ifndef SYNTH_TEST
     .last_done(last_done),
@@ -574,7 +578,13 @@ module FU (
 
   st st_0 [`NUM_ST-1:0] (
     // Inputs
+    .clock({`NUM_ST{clock}}),
+    .reset({`NUM_ST{reset}}),
+    .rollback_en({`NUM_ST{rollback_en}}),
+    .ROB_rollback_idx({`NUM_ST{ROB_rollback_idx}}),
+    .diff_ROB({`NUM_ST{diff_ROB}}),
     .FU_in(FU_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
+    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
     // Output
     .FU_out(FU_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
     .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)])
@@ -582,7 +592,13 @@ module FU (
 
   ld ld_0 [`NUM_LD-1:0] (
     // Inputs
+    .clock({`NUM_LD{clock}}),
+    .reset({`NUM_LD{reset}}),
+    .rollback_en({`NUM_LD{rollback_en}}),
+    .ROB_rollback_idx({`NUM_LD{ROB_rollback_idx}}),
+    .diff_ROB({`NUM_LD{diff_ROB}}),
     .FU_in(FU_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
+    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
     // Output
     .FU_out(FU_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
     .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)])
