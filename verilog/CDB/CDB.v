@@ -67,12 +67,12 @@ module CDB (
     // and give CDB_valid to FU, CDB_valid=1 means the entry is free
     for (int i=0; i<`NUM_FU; i++) begin
       CDB_packet_out.CDB_valid[i] = !next_CDB[i].taken;
-      if (!(next_CDB[i].taken) && FU_CDB_out.fu_result[i].done) begin
+      if (!(next_CDB[i].taken) && FU_CDB_out.FU_result[i].done) begin
         next_CDB[i].taken    = 1;
-        next_CDB[i].T_idx    = FU_CDB_out.fu_result[i].T_idx;
-        next_CDB[i].ROB_idx  = FU_CDB_out.fu_result[i].ROB_idx;
-        next_CDB[i].dest_idx = FU_CDB_out.fu_result[i].dest_idx;
-        next_CDB[i].T_value  = FU_CDB_out.fu_result[i].FU_result;
+        next_CDB[i].T_idx    = FU_CDB_out.FU_result[i].T_idx;
+        next_CDB[i].ROB_idx  = FU_CDB_out.FU_result[i].ROB_idx;
+        next_CDB[i].dest_idx = FU_CDB_out.FU_result[i].dest_idx;
+        next_CDB[i].T_value  = FU_CDB_out.FU_result[i].FU_result;
         CDB_packet_out.CDB_valid[i] = 0;
       end
     end
@@ -102,10 +102,10 @@ module CDB (
         ROB_idx     = next_CDB[i].ROB_idx;
         // try filling this entry if X_C reg wants to write a new input here
         // (compare T_idx to prevent re-writing the entry with the same inst.)
-        if (FU_CDB_out.fu_result[i].done && FU_CDB_out.fu_result[i].T_idx != next_CDB[i].T_idx) begin
-          next_CDB[i].T_idx    = FU_CDB_out.fu_result[i].T_idx;
-          next_CDB[i].dest_idx = FU_CDB_out.fu_result[i].dest_idx;
-          next_CDB[i].T_value  = FU_CDB_out.fu_result[i].FU_result;
+        if (FU_CDB_out.FU_result[i].done && FU_CDB_out.FU_result[i].T_idx != next_CDB[i].T_idx) begin
+          next_CDB[i].T_idx    = FU_CDB_out.FU_result[i].T_idx;
+          next_CDB[i].dest_idx = FU_CDB_out.FU_result[i].dest_idx;
+          next_CDB[i].T_value  = FU_CDB_out.FU_result[i].FU_result;
         end else begin
           next_CDB[i].taken = 0;
           CDB_valid[i] = 1;

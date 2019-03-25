@@ -22,7 +22,7 @@ typedef struct packed {
 } FU_RESULT_ENTRY_t;
 
 typedef struct packed {
-  FU_RESULT_ENTRY_t [`NUM_FU-1:0] fu_result;
+  FU_RESULT_ENTRY_t [`NUM_FU-1:0] FU_result;
 } FU_CDB_OUT_t;
 
 typedef struct packed {
@@ -53,7 +53,7 @@ typedef struct packed {
   ALU_OPB_SELECT                        T2_select;
   logic                                 uncond_branch;
   logic                                 cond_branch;
-} FU_PACKET_IN_t;
+} FU_IN_t;
 
 `define FU_PACKET_IN_RESET '{ \
   `FALSE,                     \

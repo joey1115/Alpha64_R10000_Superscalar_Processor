@@ -1,6 +1,6 @@
 module alu (
   input  logic                        clock, reset,
-  input  FU_PACKET_IN_t               FU_in,
+  input  FU_IN_t               FU_in,
   input  logic                        CDB_valid,
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
@@ -219,7 +219,7 @@ endmodule
 // This module instantiates 8 pipeline stages as an array of submodules.
 module mult (
   input  logic                                                          clock, reset,
-  input  FU_PACKET_IN_t                                                 FU_in,
+  input  FU_IN_t                                                 FU_in,
   input  logic                                                          CDB_valid,
   input  logic                                                          rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0]                       ROB_rollback_idx,
@@ -314,7 +314,7 @@ endmodule
 
 module br(
   input  logic             clock, reset,
-  input  FU_PACKET_IN_t    FU_in,
+  input  FU_IN_t    FU_in,
   input  logic             CDB_valid,
   output FU_RESULT_ENTRY_t FU_out,
   output                   FU_valid,
@@ -373,7 +373,7 @@ endmodule // brcond
 
 module ld (
   input  logic                                    clock, reset,
-  input  FU_PACKET_IN_t                           FU_in,
+  input  FU_IN_t                           FU_in,
   input  logic                                    CDB_valid,
   input  logic                                    rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
@@ -419,7 +419,7 @@ endmodule
 
 module st (
   input  logic                        clock, reset,
-  input  FU_PACKET_IN_t               FU_in,
+  input  FU_IN_t               FU_in,
   input  logic                        CDB_valid,
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
@@ -476,7 +476,7 @@ module FU (
 );
 
   FU_RESULT_ENTRY_t [`NUM_FU-1:0]          FU_result;
-  FU_PACKET_IN_t    [`NUM_FU-1:0]          FU_in;
+  FU_IN_t    [`NUM_FU-1:0]          FU_in;
   logic             [`NUM_BR-1:0]          take_branch;
   logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
   logic             [$clog2(`NUM_ROB)-1:0] diff_ROB;
