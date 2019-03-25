@@ -14,7 +14,7 @@
 *     Input: dest_idx  (X/C)
 *     Output: CDB_valid (FU)  // full entry means hazard(valid=0, entry is free)
 *     Output: complete_en (RS, ROB, Map table) 
-*     Output: write_enable (PR)   // valid signal to PR
+*     Output: write_en (PR)   // valid signal to PR
 *     Output: T_idx 	 (PR)   // tag to PR
 *     Output: T_value  (PR)   // result to PR
 *     Output: dest_idx (Map table)
@@ -30,7 +30,7 @@ module CDB (
 `ifndef SYNTH_TEST
   output CDB_entry_t         [`NUM_FU-1:0]          CDB,
 `endif
-  output logic                                      write_enable,
+  output logic                                      write_en,
   output CDB_ROB_OUT_t                              CDB_ROB_out,
   output CDB_RS_OUT_t                               CDB_RS_out,
   output CDB_MAP_TABLE_OUT_t                        CDB_Map_Table_out,
@@ -44,12 +44,12 @@ module CDB (
   logic       [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
   logic       [`NUM_FU-1:0]                       CDB_valid;     // valid=0, entry is free, to FU
   logic                                           complete_en;   // RS, ROB, MapTable
-  logic                                           write_enable;      // valid signal to PR
   logic                    [$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
   logic                    [4:0]                  dest_idx;      // to map_table
   logic                    [63:0]                 T_value;       // result to PR
   logic                    [$clog2(`NUM_ROB)-1:0] ROB_idx;
 
+  assign CDB_ROB_out       = '{ROB_idx};
   assign CDB_RS_out        = '{T_idx};
   assign CDB_Map_Table_out = '{T_idx, dest_idx};
   assign CDB_PR_out        = '{T_idx, T_value};
@@ -57,12 +57,11 @@ module CDB (
   always_comb begin
     next_CDB = CDB;
     complete_en = 0;
-    write_enable    = 0;
+    write_en    = 0;
     T_idx       = `ZERO_PR;
     dest_idx    = `ZERO_REG;
     T_value     = 0;
     ROB_idx     = 0;
-    
     // Update taken, T_idx & T_value for each empty entry
     // and give CDB_valid to FU, CDB_valid=1 means the entry is free
     for (int i=0; i<`NUM_FU; i++) begin
@@ -94,8 +93,8 @@ module CDB (
     for (int i=0; i<`NUM_FU; i++) begin
       // if ((next_CDB[i].taken && `FU_LIST[i] != FU_LD) || (next_CDB[i].taken && `FU_LIST[i] == FU_LD && next_CDB[i].ROB_idx == ROB_head_idx))  begin
       if (next_CDB[i].taken) begin
-        complete_en = 1'b1;
-        write_enable    = 1'b1;
+        complete_en = `TRUE;
+        write_en    = `TRUE;
         T_idx       = next_CDB[i].T_idx;
         dest_idx    = next_CDB[i].dest_idx;
         T_value     = next_CDB[i].T_value;
@@ -113,7 +112,6 @@ module CDB (
         break;
       end // if
     end // for
-
   end // always_comb
 
   always_ff @(posedge clock) begin

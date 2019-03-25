@@ -7,7 +7,7 @@
  * 
  * --- Complete ---
  * 1. X stage result write back to PR
- * input: write_enable (CDB), T_idx (CDB), T_value (CDB)
+ * input: write_en (CDB), T_idx (CDB), T_value (CDB)
  * 
  * ---- Excution ----
  * 1. send reg values to FU
@@ -22,7 +22,7 @@
 
 module PR (
   input  logic                                            en, clock, reset,
-  input  logic                                            write_enable;                                      // (complete) write enable  from CDB
+  input  logic                                            write_en;                                      // (complete) write enable  from CDB
   input  CDB_PR_OUT_t                                     CDB_PR_out,
   input  FU_PR_OUT_t                                      FU_PR_out;
 `ifndef SYNTH_TEST
@@ -40,7 +40,7 @@ module PR (
   always_comb begin
     next_pr = pr;
     // Complete
-    if (write_enable && CDB_PR_out.T_idx != `ZERO_PR) begin
+    if (write_en && CDB_PR_out.T_idx != `ZERO_PR) begin
       next_pr[T_idx] = CDB_PR_out.T_value;
     end
   end
@@ -48,12 +48,12 @@ module PR (
   always_comb begin
     // Execution
     for (int i=0; i<`NUM_FU; i++) begin
-      if (write_enable && CDB_PR_out.T_idx == FU_PR_out.T1_idx[i] && CDB_PR_out.T_idx != `ZERO_PR) begin
+      if (write_en && CDB_PR_out.T_idx == FU_PR_out.T1_idx[i] && CDB_PR_out.T_idx != `ZERO_PR) begin
         PR_FU_out.T1_value[i] = CDB_PR_out.T_value;    // forwarding
       end else begin
         PR_FU_out.T1_value[i] = pr[FU_PR_out.T1_idx[i]];
       end
-      if (write_enable && CDB_PR_out.T_idx == FU_PR_out.T2_idx[i] && CDB_PR_out.T_idx != `ZERO_PR) begin
+      if (write_en && CDB_PR_out.T_idx == FU_PR_out.T2_idx[i] && CDB_PR_out.T_idx != `ZERO_PR) begin
         PR_FU_out.T2_value[i] = CDB_PR_out.T_value;    // forwarding
       end else begin
         PR_FU_out.T2_value[i] = pr[FU_PR_out.T2_idx[i]];

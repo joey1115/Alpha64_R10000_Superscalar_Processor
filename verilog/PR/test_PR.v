@@ -126,7 +126,7 @@ module test_PR;
     // test_in[c]: input at cycle c
     // the resulting combinational logic outputs will be checked at cycle c (sol_out[c])
     // the resulting  sequential   logic outputs will be checked at cycle c+1 (sol_out[c+1])
-    // input: {write_enable, T_idx, T_value, `NUM_FU{T1_idx}, `NUM_FU{T2_idx}}
+    // input: {write_en, T_idx, T_value, `NUM_FU{T1_idx}, `NUM_FU{T2_idx}}
 
     test_in[0]  = '{0, 40, 16, '{40,  1, 30, 31, 46}, '{32, 63, 56, 48, 61}};
 
@@ -161,9 +161,9 @@ module test_PR;
     // checks the resulting  sequential   logic outputs of test_in[c-1]
     // output: {`NUM_FU{"T1_value"}, `NUM_FU{"T2_value"}}
 
-    // Cycle 0: reset and no forwarding when write_enable is low
+    // Cycle 0: reset and no forwarding when write_en is low
     sol_out[0]  = '{'{ 0,  0,  0,  0,  0}, '{ 0,  0,  0,  0,  0}};
-    // Cycle 1-10: test write_enable and forwarding (fill in PR[0]-PR[9])
+    // Cycle 1-10: test write_en and forwarding (fill in PR[0]-PR[9])
     sol_out[1]  = '{'{10,  0,  0,  0,  0}, '{ 0,  0,  0,  0,  0}};
     sol_out[2]  = '{'{10, 11,  0,  0,  0}, '{ 0,  0,  0,  0,  0}};
     sol_out[3]  = '{'{11,  0, 12,  0,  0}, '{ 0,  0,  0,  0,  0}};

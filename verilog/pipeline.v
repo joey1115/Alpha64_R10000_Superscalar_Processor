@@ -141,7 +141,7 @@ module pipeline (
     .en(en),
     .clock(clock),
     .reset(reset),
-    .write_enable(write_enable),
+    .write_en(write_en),
     .CDB_PR_out(CDB_PR_out),
     .FU_PR_out(FU_PR_out),
 `ifndef SYNTH_TEST
