@@ -53,6 +53,7 @@ module pipeline (
     .CDB(CDB),
 `endif
     .write_en(write_en),
+    .complete_en(complete_en),
     .CDB_valid(CDB_valid),
     .CDB_ROB_out(CDB_ROB_out),
     .CDB_RS_out(CDB_RS_out),
@@ -184,6 +185,7 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .en(en),
+    .complete_en(complete_en),
     .FU_valid(FU_valid),
     .ROB_rollback_idx(ROB_rollback_idx),
     .diff_ROB(diff_ROB),
