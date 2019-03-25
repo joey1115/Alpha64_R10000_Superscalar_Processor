@@ -27,6 +27,8 @@ typedef struct packed {
   T_t                             T2;        // T2
   ALU_OPA_SELECT                  T1_select;
   ALU_OPB_SELECT                  T2_select;
+  logic                           uncond_branch;
+  logic                           cond_branch;
 } RS_ENTRY_t;
 
 `define FU_LIST '{      \
