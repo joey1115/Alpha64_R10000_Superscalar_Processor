@@ -52,6 +52,7 @@ module pipeline (
 `ifndef SYNTH_TEST
     .CDB(CDB),
 `endif
+    .write_en(write_en),
     .CDB_ROB_out(CDB_ROB_out),
     .CDB_RS_out(CDB_RS_out),
     .CDB_Map_Table_out(CDB_Map_Table_out),
