@@ -4,9 +4,9 @@ module FL (
   input  logic                                              dispatch_en,
   input  logic                                              rollback_en,
   input  logic                                              retire_en,
+  input  logic           [4:0]                              dest_idx,
   input  logic           [$clog2(`NUM_PR)-1:0]              Told_idx,
   input  logic           [$clog2(`NUM_FL)-1:0]              FL_rollback_idx,
-  input  logic           [4:0]                              dest_idx,
 `ifndef SYNTH_TEST
   output logic           [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table,
   output logic           [$clog2(`NUM_FL)-1:0]              head, next_head,
