@@ -7,14 +7,14 @@
 *     Input: ROB_rollback_idx (br module, LSQ)
 *     Input: diff_ROB (FU)    // diff_ROB = ROB_tail of the current cycle - ROB_rollback idx
 *   Complete
-*     Input: done   (X/C)  // valid signal from FU
+*     Input: done   (X/C)  // taken signal from FU
 *     Input: T_idx     (X/C)  // tag from FU
 *     Input: ROB_idx   (X/C)
 *     Input: FU_out (X/C)  // result from FU
 *     Input: dest_idx  (X/C)
-*     Output: CDB_valid (FU)  // full entry means hazard(valid=0, entry is free)
+*     Output: CDB_valid (FU)  // full entry means hazard(taken=0, entry is free)
 *     Output: complete_en (RS, ROB, Map table) 
-*     Output: write_en (PR)   // valid signal to PR
+*     Output: write_en (PR)   // taken signal to PR
 *     Output: T_idx    (PR)   // tag to PR
 *     Output: T_value  (PR)   // result to PR
 *     Output: dest_idx (Map table)
@@ -44,6 +44,10 @@ module CDB (
 `endif
   CDB_entry_t [`NUM_FU-1:0]                       next_CDB;
   logic       [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
+  logic       [`NUM_FU-1:0]                       rollback_valid;
+  logic       [`NUM_FU-1:0]                       CDB_empty;
+  logic                                           complete_hit;
+  logic                    [$clog2(`NUM_FU)-1:0]  complete_idx;
   logic                    [$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
   logic                    [4:0]                  dest_idx;      // to map_table
   logic                    [63:0]                 T_value;       // result to PR
@@ -53,50 +57,62 @@ module CDB (
   assign CDB_RS_out        = '{T_idx};
   assign CDB_Map_Table_out = '{T_idx, dest_idx};
   assign CDB_PR_out        = '{T_idx, T_value};
+  assign complete_en       = complete_hit;
+  assign write_en          = complete_hit;
 
   always_comb begin
+    next_CDB = CDB;
     // Update taken, T_idx & T_value for each empty entry
     // and give CDB_valid to FU, CDB_valid=1 means the entry is free
     for (int i=0; i<`NUM_FU; i++) begin
-      CDB_valid[i] = !next_CDB[i].taken;
-      if (!(CDB[i].taken) && FU_CDB_out.FU_out[i].done) begin
-        next_CDB[i].taken    = `TRUE;
-        next_CDB[i].T_idx    = FU_CDB_out.FU_out[i].T_idx;
-        next_CDB[i].ROB_idx  = FU_CDB_out.FU_out[i].ROB_idx;
-        next_CDB[i].dest_idx = FU_CDB_out.FU_out[i].dest_idx;
-        next_CDB[i].T_value  = FU_CDB_out.FU_out[i].result;
-        CDB_valid[i] = `FALSE;
-      end
-    end
-    // rollback
-    if (rollback_en) begin
-      for (int i=0; i<`NUM_FU; i++)begin
-        diff[i] = next_CDB[i].ROB_idx - ROB_rollback_idx;
-        if (diff_ROB >= diff[i]) begin
+      if (CDB_empty[i]) begin
+        if (FU_CDB_out.FU_out[i].done) begin
+          next_CDB[i].taken    = `TRUE;
+          next_CDB[i].T_idx    = FU_CDB_out.FU_out[i].T_idx;
+          next_CDB[i].ROB_idx  = FU_CDB_out.FU_out[i].ROB_idx;
+          next_CDB[i].dest_idx = FU_CDB_out.FU_out[i].dest_idx;
+          next_CDB[i].T_value  = FU_CDB_out.FU_out[i].result;
+        end else begin
           next_CDB[i] = `CDB_RENTRY_RESET_PACKED;
-          CDB_valid[i] = `TRUE;
         end
       end
     end
-    
+  end
+
   always_comb begin
-    next_CDB = CDB;
-    complete_en = `FALSE;
-    write_en    = `FALSE;
-    T_idx       = `ZERO_PR;
-    dest_idx    = `ZERO_REG;
-    T_value     = 0;
-    ROB_idx     = 0;
+    for (int i=0; i<`NUM_FU; i++)begin
+      diff[i] = CDB[i].ROB_idx - ROB_rollback_idx;
+      rollback_valid[i] = diff_ROB >= diff[i] && rollback_en;
+      CDB_empty[i] = rollback_valid[i] || !CDB[i].taken;
+    end
+    if (complete_hit) begin
+      CDB_empty[complete_idx] = `TRUE;
+    end
+  end
+
+  always_comb begin
+    for (int i=0; i<`NUM_FU; i++)begin
+      CDB_valid[i] = !next_CDB[i].taken;
+    end
+  end
+
+  always_comb begin
+    T_idx        = `ZERO_PR;
+    dest_idx     = `ZERO_REG;
+    T_value      = 64'hbaadbeefdeadbeef;
+    ROB_idx      = 0;
+    complete_hit = `FALSE;
+    complete_idx = 0;
     // broadcast one completed instruction (if one is found)
     for (int i=0; i<`NUM_FU; i++) begin
       // if ((next_CDB[i].taken && `FU_LIST[i] != FU_LD) || (next_CDB[i].taken && `FU_LIST[i] == FU_LD && next_CDB[i].ROB_idx == ROB_head_idx))  begin
       if (next_CDB[i].taken) begin
-        complete_en = `TRUE;
-        write_en    = `TRUE;
-        T_idx       = CDB[i].T_idx;
-        dest_idx    = CDB[i].dest_idx;
-        T_value     = CDB[i].T_value;
-        ROB_idx     = CDB[i].ROB_idx;
+        T_idx        = CDB[i].T_idx;
+        dest_idx     = CDB[i].dest_idx;
+        T_value      = CDB[i].T_value;
+        ROB_idx      = CDB[i].ROB_idx;
+        complete_hit = `TRUE;
+        complete_idx = i;
         break;
       end // if
     end // for
