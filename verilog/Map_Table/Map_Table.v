@@ -48,8 +48,8 @@ module Map_Table (
   assign map_table_out = map_table;
 `endif
   assign Told_idx = map_table[decoder_Map_Table_out.dest_idx].idx;
-  assign T1       = map_table[decoder_Map_Table_out.rega_idx];
-  assign T2       = map_table[decoder_Map_Table_out.regb_idx];
+  assign T1.idx   = map_table[decoder_Map_Table_out.rega_idx].idx;
+  assign T2.idx   = map_table[decoder_Map_Table_out.regb_idx].idx;
   assign T1.ready = ( CDB_enable && T1.idx == CDB_Map_Table_out.T_idx ) || T1.ready;
   assign T2.ready = ( CDB_enable && T2.idx == CDB_Map_Table_out.T_idx ) || T2.ready;
 
