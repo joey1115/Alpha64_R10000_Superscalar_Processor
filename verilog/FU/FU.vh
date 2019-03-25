@@ -55,21 +55,4 @@ typedef struct packed {
   logic [$clog2(`NUM_FL)-1:0] FL_rollback_idx;
 } FU_FL_OUT_t;
 
-`define FU_PACKET_IN_RESET '{ \
-  `FALSE,                     \
-  `NOOP_INST,                 \
-  ALU_ADDQ,                   \
-  {64{1'b0}},                 \
-  `ZERO_REG,                  \
-  {`NUM_ROB{1'b0}},           \
-  {`NUM_FL{1'b0}},            \
-  `ZERO_PR,                   \
-  {64{1'b0}},                 \
-  {64{1'b0}},                 \
-  ALU_OPA_IS_REGA,            \
-  ALU_OPB_IS_REGB,            \
-  `FALSE,                     \
-  `FALSE                      \
-}
-
 `endif
