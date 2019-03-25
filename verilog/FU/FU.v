@@ -57,7 +57,7 @@ module alu (
     endcase
     FU_out.dest_idx = FU_in.dest_idx;
     FU_out.T_idx    = FU_in.T_idx;
-    FU_out.FL_idx   = FU_in.FL_idx;
+    // FU_out.FL_idx   = FU_in.FL_idx;
     FU_out.ROB_idx  = FU_in.ROB_idx;
     FU_out.done     = !rollback_valid && FU_in.ready;
   end
@@ -219,7 +219,7 @@ endmodule
 // This module instantiates 8 pipeline stages as an array of submodules.
 module mult (
   input  logic                                                          clock, reset,
-  input  FU_IN_t                                                 FU_in,
+  input  FU_IN_t                                                        FU_in,
   input  logic                                                          CDB_valid,
   input  logic                                                          rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0]                       ROB_rollback_idx,
@@ -290,7 +290,7 @@ module mult (
     .dest_idx({FU_out.dest_idx, internal_dest_idx, FU_in.dest_idx}),
     .T_idx({FU_out.T_idx, internal_T_idx, FU_in.T_idx}),
     .ROB_idx({FU_out.ROB_idx, internal_ROB_idx, FU_in.ROB_idx}),
-    .FL_idx({FU_out.FL_idx, internal_FL_idx,  FU_in.FL_idx}),
+    .FL_idx({FU_out.FL_idx, internal_FL_idx, FU_in.FL_idx}),
 `ifndef SYNTH_TEST
     .T1_value({internal_T1_values, regA}),
     .T2_value({internal_T2_values, regB}),
@@ -468,24 +468,21 @@ module FU (
 `endif
   output logic           [`NUM_FU-1:0]                                               FU_valid,
   output logic                                                                       rollback_en,
+  output logic           [$clog2(`NUM_FL)-1:0]                                       FL_rollback_idx,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_rollback_idx,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      diff_ROB,
   output FU_CDB_OUT_t                                                                FU_CDB_out,
-  output FU_PR_OUT_t                                                                 FU_PR_out,
-  output FU_FL_OUT_t                                                                 FU_FL_out
+  output FU_PR_OUT_t                                                                 FU_PR_out
 );
 
   FU_OUT_t [`NUM_FU-1:0]          FU_out;
   FU_IN_t    [`NUM_FU-1:0]          FU_in;
   logic             [`NUM_BR-1:0]          take_branch;
-  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
   logic             [$clog2(`NUM_ROB)-1:0] diff_ROB;
-  logic             [$clog2(`NUM_FL)-1:0]  FL_rollback_idx;
   FU_IDX_ENTRY_t    [`NUM_FU-1:0]          FU_idx;
 
   assign FU_CDB_out = '{FU_out};
   assign FU_PR_out  = '{FU_idx};
-  assign FU_FL_out  = '{FL_rollback_idx};
 
   assign rollback_en      = take_branch[0];
   assign ROB_rollback_idx = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
