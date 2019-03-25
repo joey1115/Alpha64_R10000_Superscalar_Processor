@@ -53,6 +53,7 @@ module pipeline (
     .CDB(CDB),
 `endif
     .write_en(write_en),
+    .CDB_valid(CDB_valid),
     .CDB_ROB_out(CDB_ROB_out),
     .CDB_RS_out(CDB_RS_out),
     .CDB_Map_Table_out(CDB_Map_Table_out),
