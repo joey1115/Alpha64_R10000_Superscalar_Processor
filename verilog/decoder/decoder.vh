@@ -68,4 +68,10 @@ typedef struct packed {
   logic          [4:0]  dest_idx;
 } DECODER_FL_OUT_t;
 
+typedef struct packed {
+  logic [4:0] dest_idx;
+  logic [4:0] rega_idx;
+  logic [4:0] regb_idx;
+} DECODER_MAP_TABLE_OUT_t;
+
 `endif

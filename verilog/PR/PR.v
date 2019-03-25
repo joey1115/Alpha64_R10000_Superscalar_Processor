@@ -23,10 +23,8 @@
 module PR (
   input  logic                                            en, clock, reset,
   input  logic                                            write_en;                                      // (complete) write enable  from CDB
-  input  logic         [$clog2(`NUM_PR)-1:0]              T_idx;                   // (complete) PR index      from CDB
-  input  logic         [63:0]                             T_value;                                // (complete) Value         from CDB
-  input  logic         [`NUM_FU-1:0][$clog2(`NUM_PR)-1:0] T1_idx;    // (execute)  T1 index      from S/X reg
-  input  logic         [`NUM_FU-1:0][$clog2(`NUM_PR)-1:0] T2_idx;    // (execute)  T2 index      from S/X reg
+  input  CDB_PR_OUT_t                                     CDB_PR_out,
+  input  FU_PR_OUT_t                                      FU_PR_out;
 `ifndef SYNTH_TEST
   output logic         [`NUM_PR-1:0][63:0]                pr_data,
 `endif

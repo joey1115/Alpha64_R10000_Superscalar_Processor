@@ -8,7 +8,7 @@ module RS (
   input  T_t                                       T1,               // T1
   input  T_t                                       T2,               // T2
   input  logic              [$clog2(`NUM_PR)-1:0]  CDB_T_idx,        // CDB tag
-  input  logic              [`NUM_FU-1:0]          fu_valid,         // FU done
+  input  logic              [`NUM_FU-1:0]          FU_valid,         // FU done
   input  logic              [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx, // FU done
   input  logic              [$clog2(`NUM_ROB)-1:0] diff_ROB,
 `ifndef SYNTH_TEST
@@ -60,7 +60,7 @@ module RS (
     FU_forward_idx = {$clog2(`NUM_FU){1'b0}};
     if ( rs_packet_in.T1.ready && rs_packet_in.T2.ready ) begin
       for (int i = 0; i < `NUM_FU; i++) begin
-        if ( ( !RS_entry_ready[i] || RS[i].busy == `FALSE ) && rs_packet_in.fu_valid[i] && FU_entry_match[i] ) begin
+        if ( ( !RS_entry_ready[i] || RS[i].busy == `FALSE ) && rs_packet_in.FU_valid[i] && FU_entry_match[i] ) begin
           FU_forward_hit = `TRUE;
           FU_forward_idx = i;
           break;
@@ -92,7 +92,7 @@ module RS (
       T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                           // T1 is ready or updated by CDB
       T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                           // T2 is ready or updated by CDB
       RS_entry_ready[i] = T1_ready[i] && T2_ready[i];                            // T1 and T2 are ready to issue
-      RS_entry_empty[i] = RS_entry_ready[i] && rs_packet_in.fu_valid[i];         // Entry is going to be empty
+      RS_entry_empty[i] = RS_entry_ready[i] && rs_packet_in.FU_valid[i];         // Entry is going to be empty
     end // for (int i = 0; i < `NUM_FU; i++) begin
   end // always_comb begin
 

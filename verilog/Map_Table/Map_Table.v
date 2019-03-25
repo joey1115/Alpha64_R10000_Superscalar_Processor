@@ -23,16 +23,16 @@
 `timescale 1ns/100ps
 
 module Map_Table (
-  input  logic                en, clock, reset, dispatch_en, rollback_en,
-  input  logic [4:0]          dest_idx;             // reg from decoder
-  input  logic [4:0]          rega_idx;             // rega from decoder
-  input  logic [4:0]          regb_idx;             // regb from decoder
-  input  MAP_TABLE_PACKET_IN  map_table_packet_in,
+  input  logic                                          en, clock, reset, dispatch_en, rollback_en, CDB_enable,
+  input  logic                   [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
+  input  logic                   [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  input  DECODER_MAP_TABLE_OUT_t                        decoder_Map_Table_out,
+  input  FL_MAP_TABLE_OUT_t                             FL_Map_Table_out,
+  input  CDB_MAP_TABLE_OUT_t                            CDB_Map_Table_out,
 `ifndef SYNTH_TEST
-  output T_t [31:0]           map_table_out,
+  output T_t                     [31:0]                 map_table_out,
 `endif
-  output MAP_TABLE_PACKET_OUT map_table_packet_out,
-  output MAP_TABLE_RS_OUT_t   map_table_rs_out
+  output MAP_TABLE_RS_OUT_t                             map_table_rs_out
 );
 
   T_t                         T1, T2;
@@ -45,11 +45,11 @@ module Map_Table (
 `ifndef SYNTH_TEST
   assign map_table_out = map_table;
 `endif
-  assign Told_idx = map_table[dest_idx].idx;
-  assign T1       = map_table[rega_idx];
-  assign T2       = map_table[regb_idx];
-  assign T1.ready = ( map_table_packet_in.CDB_en && T1.idx == map_table_packet_in.CDB_T_idx ) || T1.ready;
-  assign T2.ready = ( map_table_packet_in.CDB_en && T2.idx == map_table_packet_in.CDB_T_idx ) || T2.ready;
+  assign Told_idx = map_table[decoder_Map_Table_out.dest_idx].idx;
+  assign T1       = map_table[decoder_Map_Table_out.rega_idx];
+  assign T2       = map_table[decoder_Map_Table_out.regb_idx];
+  assign T1.ready = ( CDB_enable && T1.idx == CDB_Map_Table_out.T_idx ) || T1.ready;
+  assign T2.ready = ( CDB_enable && T2.idx == CDB_Map_Table_out.T_idx ) || T2.ready;
 
   always_comb begin
     next_map_table = map_table;
@@ -59,38 +59,38 @@ module Map_Table (
     end
     // if (map_table_packet_in.rollback_en) begin
     //   for (logic [$clog2(`NUM_ROB)-1:0] i = ROB_idx; i != ROB_rollback_idx; i--) begin
-    //     next_map_table[dest_idx[i]] = {Told_idx[i], `TRUE};
+    //     next_map_table[decoder_Map_Table_out.dest_idx[i]] = {Told_idx[i], `TRUE};
     //   end
     //   for (logic [$clog2(`NUM_ROB)-1:0] i = ROB_head_idx; i != ROB_rollback_idx - 1; i++) begin
-    //     if (next_map_table[dest_idx[i]] == T_idx[i] && !Complete) begin
-    //       next_map_table[dest_idx[i]].ready = `FALSE;
+    //     if (next_map_table[decoder_Map_Table_out.dest_idx[i]] == T_idx[i] && !Complete) begin
+    //       next_map_table[decoder_Map_Table_out.dest_idx[i]].ready = `FALSE;
     //     end
     //   end
     // end
     // CDB_T updata ready
-    // if ( map_table_packet_in.CDB_en ) begin
+    // if ( CDB_enable ) begin
     //   for (int i = 0; i < 32; i++) begin
-    //     if ( map_table[i].idx == map_table_packet_in.CDB_T_idx ) begin
+    //     if ( map_table[i].idx == CDB_Map_Table_out.T_idx ) begin
     //       map_table[i].ready = `TRUE;
     //     end
     //   end
     // end
-    if ( map_table_packet_in.CDB_en && map_table[map_table_packet_in.CDB_dest_idx].idx == map_table_packet_in.CDB_T_idx ) begin
-      next_map_table[map_table_packet_in.CDB_dest_idx].ready = `TRUE;
+    if ( CDB_enable && map_table[CDB_Map_Table_out.dest_idx].idx == CDB_Map_Table_out.T_idx ) begin
+      next_map_table[CDB_Map_Table_out.dest_idx].ready = `TRUE;
     end
     // PR update T_idx
     if ( dispatch_en ) begin // no dispatch hazard
-      next_map_table[dest_idx] = '{map_table_packet_in.T_idx, `FALSE}; // renew maptable from freelist but not ready yet
-      next_map_table[31].ready                     = `TRUE;                                // Force ZERO_REG to be rady
+      next_map_table[decoder_Map_Table_out.dest_idx] = '{FL_Map_Table_out.T_idx, `FALSE}; // renew maptable from freelist but not ready yet
+      next_map_table[31].ready                       = `TRUE;                                // Force ZERO_REG to be rady
     end
   end
 
   always_comb begin
     next_backup_map_table = backup_map_table;
     if ( dispatch_en ) begin                                // no dispatch hazard
-      next_backup_map_table[map_table_packet_in.ROB_idx] = next_map_table; // backup the map
+      next_backup_map_table[ROB_idx] = next_map_table; // backup the map
       for (int i=0; i<32;i++) begin
-        next_backup_map_table[map_table_packet_in.ROB_idx][i].ready = `TRUE;   // ready all the bit
+        next_backup_map_table[ROB_idx][i].ready = `TRUE;   // ready all the bit
       end
     end
   end

@@ -22,31 +22,36 @@
 ***************************************/
 
 module CDB (
-  input  logic                                                en, clock, reset,
-  input  logic                                                rollback_en,        // rollback_en from X/C
-  input  logic                         [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,   // ROB# of mispredicted branch/incorrect load from br module/LSQ
-  input  logic                         [$clog2(`NUM_ROB)-1:0] diff_ROB,           // diff_ROB = ROB_tail of the current cycle - ROB_rollback_idx
-  input  FU_CDB_OUT_t                           [`NUM_FU-1:0] FU_CDB_out,          // done,T_idx,ROB_idx,dest_idx,result from FU
+  input  logic                                      en, clock, reset,
+  input  logic                                      rollback_en,        // rollback_en from X/C
+  input  logic               [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,   // ROB# of mispredicted branch/incorrect load from br module/LSQ
+  input  logic               [$clog2(`NUM_ROB)-1:0] diff_ROB,           // diff_ROB = ROB_tail of the current cycle - ROB_rollback_idx
+  input  FU_CDB_OUT_t        [`NUM_FU-1:0]          FU_CDB_out,          // done,T_idx,ROB_idx,dest_idx,result from FU
 `ifndef SYNTH_TEST
-  output CDB_entry_t    [`NUM_FU-1:0]                         CDB,
+  output CDB_entry_t         [`NUM_FU-1:0]          CDB,
 `endif
-  output CDB_RS_OUT_t                                         CDB_RS_out
+  output logic                                      write_en,
+  output CDB_RS_OUT_t                               CDB_RS_out,
+  output CDB_MAP_TABLE_OUT_t                        CDB_Map_Table_out,
+  output CDB_PR_OUT_t                               CDB_PR_out
 );
 
 `ifdef SYNTH_TEST
-  CDB_entry_t [`NUM_FU-1:0] CDB;
+  CDB_entry_t [`NUM_FU-1:0]                       CDB;
 `endif
-  CDB_entry_t [`NUM_FU-1:0] next_CDB;
-  logic [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0] diff;
-  logic [`NUM_FU-1:0]                        CDB_valid;     // valid=0, entry is free, to FU
-  logic                                      complete_en;   // RS, ROB, MapTable
-  logic                                      write_en;      // valid signal to PR
-  logic               [$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
-  logic               [4:0]                  dest_idx;      // to map_table
-  logic               [63:0]                 T_value;       // result to PR
-  logic               [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  CDB_entry_t [`NUM_FU-1:0]                       next_CDB;
+  logic       [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
+  logic       [`NUM_FU-1:0]                       CDB_valid;     // valid=0, entry is free, to FU
+  logic                                           complete_en;   // RS, ROB, MapTable
+  logic                                           write_en;      // valid signal to PR
+  logic                    [$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
+  logic                    [4:0]                  dest_idx;      // to map_table
+  logic                    [63:0]                 T_value;       // result to PR
+  logic                    [$clog2(`NUM_ROB)-1:0] ROB_idx;
 
-  assign CDB_RS_out = '{T_idx};
+  assign CDB_RS_out        = '{T_idx};
+  assign CDB_Map_Table_out = '{T_idx, dest_idx};
+  assign CDB_PR_out        = '{T_idx, T_value};
 
   always_comb begin
     next_CDB = CDB;

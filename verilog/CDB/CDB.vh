@@ -23,23 +23,33 @@ typedef struct packed {
   logic                        done;
   logic [63:0]                 FU_result;
   logic [4:0]                  dest_idx;
-  logic [$clog2(`NUM_PR)-1:0]  T_idx;   // Dest idx
-  logic [$clog2(`NUM_ROB)-1:0] ROB_idx; // Dest idx
-  logic [$clog2(`NUM_FL)-1:0]  FL_idx;  // Dest idx
+  logic [$clog2(`NUM_PR)-1:0]  T_idx;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  logic [$clog2(`NUM_FL)-1:0]  FL_idx;
 } FU_CDB_ENTRY_t;
 
-typedef struct packed {
-  logic [`NUM_FU-1:0]                        CDB_valid;     // valid=0, entry is free, to FU
-  logic                                      complete_en;   // RS, ROB, MapTable
-  logic                                      write_en;      // valid signal to PR
-  logic               [$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
-  logic               [4:0]                  dest_idx;      // to map_table
-  logic               [63:0]                 T_value;       // result to PR
-  logic               [$clog2(`NUM_ROB)-1:0] ROB_idx;
-} CDB_PACKET_OUT;
+// typedef struct packed {
+//   logic [`NUM_FU-1:0]                        CDB_valid;     // valid=0, entry is free, to FU
+//   logic                                      complete_en;   // RS, ROB, MapTable
+//   logic                                      write_en;      // valid signal to PR
+//   logic               [$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
+//   logic               [4:0]                  dest_idx;      // to map_table
+//   logic               [63:0]                 T_value;       // result to PR
+//   logic               [$clog2(`NUM_ROB)-1:0] ROB_idx;
+// } CDB_PACKET_OUT;
 
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] T_idx;         // tag to PR
 } CDB_RS_OUT_t;
+
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] T_idx;        // broadcast from CDB
+  logic [4:0]                 dest_idx;     // broadcast from CDB
+} CDB_MAP_TABLE_OUT_t;
+
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] T_idx;        // broadcast from CDB
+  logic [4:0]                 T_value;     // broadcast from CDB
+} CDB_PR_OUT_t;
 
 `endif

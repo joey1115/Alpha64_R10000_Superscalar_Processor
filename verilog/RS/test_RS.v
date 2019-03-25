@@ -206,7 +206,7 @@ module test_RS;
   task printInput;
     begin
       $display("---------------------------INPUT START----------------------------");
-      $display(" RESET | en | T_idx |   inst   |        NPC       | ROB_idx | Fl_idx | T1 | T1.ready | T2 | complete_en | dispatch_en | FU | func | T1_select | T2_select | CDB_T_idx | fu_valid | ROB_rollback_idx | ROB_idx | rollback_en");
+      $display(" RESET | en | T_idx |   inst   |        NPC       | ROB_idx | Fl_idx | T1 | T1.ready | T2 | complete_en | dispatch_en | FU | func | T1_select | T2_select | CDB_T_idx | FU_valid | ROB_rollback_idx | ROB_idx | rollback_en");
       $display("   %b   |  %b |  %d   | %h | %h |    %d   |   %d   | %d |     %b    | %d |     %b    |      %b      |      %b      | %d  |  %h  |     %h     |     %h     |   %d  |     %b    |        %d       |    %d     | %b",
                 reset,
                 en,
@@ -226,7 +226,7 @@ module test_RS;
                 rs_packet_in.T1_select,
                 rs_packet_in.T2_select,
                 rs_packet_in.CDB_T_idx,
-                rs_packet_in.fu_valid,
+                rs_packet_in.FU_valid,
                 rs_packet_in.ROB_rollback_idx,
                 rs_packet_in.ROB_idx,
                 rs_packet_in.rollback_en);
@@ -238,7 +238,7 @@ module test_RS;
     begin
       $display("---------------------------CHANGE FU-----------------------------");
       $display("ALU: %b MULT: %b BR: %b ST: %b LD: %b", ALUdone, MULTdone, BRdone, STdone, LDdone);
-      rs_packet_in.fu_valid = '{
+      rs_packet_in.FU_valid = '{
         {`NUM_ALU{ALUdone}},
         {`NUM_MULT{MULTdone}},
         {`NUM_BR{BRdone}},
@@ -285,7 +285,7 @@ module test_RS;
       rs_packet_in.T1_select = T1_select_in;
       rs_packet_in.T2_select = T2_select_in;
       rs_packet_in.CDB_T_idx = CDB_T_in;
-      rs_packet_in.fu_valid = fu_valid_in;
+      rs_packet_in.FU_valid = fu_valid_in;
       rs_packet_in.ROB_rollback_idx = ROB_rollback_idx_in;
       rs_packet_in.ROB_idx = ROB_tail_idx_in;
       rs_packet_in.rollback_en = rollback_en_in;
