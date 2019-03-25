@@ -120,7 +120,7 @@ module CDB (
         CDB[i].taken    <= `SD 0;
         CDB[i].T_idx    <= `SD `ZERO_PR;
         CDB[i].ROB_idx  <= `SD 0;
-        CDB[i].dest_idx <= `SD 0;
+        CDB[i].dest_idx <= `SD `ZERO_REG;
         CDB[i].T_value  <= `SD 0;
       end
     end else if (en) begin
