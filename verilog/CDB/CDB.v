@@ -56,8 +56,8 @@ module CDB (
 
   always_comb begin
     next_CDB = CDB;
-    complete_en = 0;
-    write_en    = 0;
+    complete_en = `FALSE;
+    write_en    = `FALSE;
     T_idx       = `ZERO_PR;
     dest_idx    = `ZERO_REG;
     T_value     = 0;
