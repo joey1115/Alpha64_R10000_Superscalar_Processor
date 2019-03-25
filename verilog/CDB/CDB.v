@@ -60,12 +60,12 @@ module CDB (
     for (int i=0; i<`NUM_FU; i++) begin
       CDB_valid[i] = !next_CDB[i].taken;
       if (!(next_CDB[i].taken) && FU_CDB_out.FU_out[i].done) begin
-        next_CDB[i].taken    = 1;
+        next_CDB[i].taken    = `TRUE;
         next_CDB[i].T_idx    = FU_CDB_out.FU_out[i].T_idx;
         next_CDB[i].ROB_idx  = FU_CDB_out.FU_out[i].ROB_idx;
         next_CDB[i].dest_idx = FU_CDB_out.FU_out[i].dest_idx;
-        next_CDB[i].T_value  = FU_CDB_out.FU_out[i].FU_out;
-        CDB_packet_out.CDB_valid[i] = 0;
+        next_CDB[i].T_value  = FU_CDB_out.FU_out[i].result;
+        CDB_packet_out.CDB_valid[i] = `FALSE;
       end
     end
     // rollback
@@ -73,12 +73,8 @@ module CDB (
       for (int i=0; i<`NUM_FU; i++)begin
         diff[i] = next_CDB[i].ROB_idx - ROB_rollback_idx;
         if (diff_ROB >= diff[i]) begin
-          next_CDB[i].taken    = 0;
-          next_CDB[i].T_idx    = 0;
-          next_CDB[i].ROB_idx  = 0;
-          next_CDB[i].dest_idx = 0;
-          next_CDB[i].T_value  = 0;
-          CDB_valid[i] = 1;
+          next_CDB[i] = `CDB_RENTRY_RESET_PACKED;
+          CDB_valid[i] = `TRUE;
         end
       end
     end
