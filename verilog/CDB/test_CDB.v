@@ -96,9 +96,9 @@ module test_CDB;
       end
       // output (not including CDB_valid)
       $display("____Output____________________________________________________________");
-      $display("| complete_en | write_en | T_idx | dest_idx |          T_value        |");
+      $display("| complete_en | write_enable | T_idx | dest_idx |          T_value        |");
       $display("|        %1d    |     %1d    |   %2d  |    %2d    |  0x%04h_%04h_%04h_%04h  |",
-              uut_out.complete_en, uut_out.write_en, uut_out.T_idx, uut_out.dest_idx,
+              uut_out.complete_en, uut_out.write_enable, uut_out.T_idx, uut_out.dest_idx,
               uut_out.T_value[63:48], uut_out.T_value[47:32], uut_out.T_value[31:16], uut_out.T_value[15:0]);
       $display();
     end
@@ -179,7 +179,7 @@ module test_CDB;
     // checks the resulting combinational logic outputs of test_in[c] (combinational outputs are labeled in quotations below)
     // checks the resulting  sequential   logic outputs of test_in[c-1]
     // output: {`NUM_FU{CDB_valid},
-    //           complete_en, write_en, T_idx, dest_idx, T_value}
+    //           complete_en, write_enable, T_idx, dest_idx, T_value}
     sol_out[0] = '{'{1, 1, 1, 1, 1},
                    0, 0, 31, 31, 0};
 
