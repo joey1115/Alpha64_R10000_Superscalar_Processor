@@ -55,17 +55,10 @@ module CDB (
   assign CDB_PR_out        = '{T_idx, T_value};
 
   always_comb begin
-    next_CDB = CDB;
-    complete_en = `FALSE;
-    write_en    = `FALSE;
-    T_idx       = `ZERO_PR;
-    dest_idx    = `ZERO_REG;
-    T_value     = 0;
-    ROB_idx     = 0;
     // Update taken, T_idx & T_value for each empty entry
     // and give CDB_valid to FU, CDB_valid=1 means the entry is free
     for (int i=0; i<`NUM_FU; i++) begin
-      CDB_packet_out.CDB_valid[i] = !next_CDB[i].taken;
+      CDB_valid[i] = !next_CDB[i].taken;
       if (!(next_CDB[i].taken) && FU_CDB_out.FU_out[i].done) begin
         next_CDB[i].taken    = 1;
         next_CDB[i].T_idx    = FU_CDB_out.FU_out[i].T_idx;
@@ -89,26 +82,25 @@ module CDB (
         end
       end
     end
+    
+  always_comb begin
+    next_CDB = CDB;
+    complete_en = `FALSE;
+    write_en    = `FALSE;
+    T_idx       = `ZERO_PR;
+    dest_idx    = `ZERO_REG;
+    T_value     = 0;
+    ROB_idx     = 0;
     // broadcast one completed instruction (if one is found)
     for (int i=0; i<`NUM_FU; i++) begin
       // if ((next_CDB[i].taken && `FU_LIST[i] != FU_LD) || (next_CDB[i].taken && `FU_LIST[i] == FU_LD && next_CDB[i].ROB_idx == ROB_head_idx))  begin
       if (next_CDB[i].taken) begin
         complete_en = `TRUE;
         write_en    = `TRUE;
-        T_idx       = next_CDB[i].T_idx;
-        dest_idx    = next_CDB[i].dest_idx;
-        T_value     = next_CDB[i].T_value;
-        ROB_idx     = next_CDB[i].ROB_idx;
-        // try filling this entry if X_C reg wants to write a new input here
-        // (compare T_idx to prevent re-writing the entry with the same inst.)
-        if (FU_CDB_out.FU_out[i].done && FU_CDB_out.FU_out[i].T_idx != next_CDB[i].T_idx) begin
-          next_CDB[i].T_idx    = FU_CDB_out.FU_out[i].T_idx;
-          next_CDB[i].dest_idx = FU_CDB_out.FU_out[i].dest_idx;
-          next_CDB[i].T_value  = FU_CDB_out.FU_out[i].FU_out;
-        end else begin
-          next_CDB[i].taken = 0;
-          CDB_valid[i] = 1;
-        end // else
+        T_idx       = CDB[i].T_idx;
+        dest_idx    = CDB[i].dest_idx;
+        T_value     = CDB[i].T_value;
+        ROB_idx     = CDB[i].ROB_idx;
         break;
       end // if
     end // for
@@ -116,13 +108,7 @@ module CDB (
 
   always_ff @(posedge clock) begin
     if (reset) begin
-      for (int i=0; i<`NUM_FU; i++) begin
-        CDB[i].taken    <= `SD 0;
-        CDB[i].T_idx    <= `SD `ZERO_PR;
-        CDB[i].ROB_idx  <= `SD 0;
-        CDB[i].dest_idx <= `SD `ZERO_REG;
-        CDB[i].T_value  <= `SD 0;
-      end
+      CDB <= `SD `CDB_RESET;
     end else if (en) begin
       CDB <= `SD next_CDB;
     end

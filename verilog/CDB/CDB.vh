@@ -19,6 +19,9 @@ typedef struct packed {
   logic [63:0]                 T_value;
 } CDB_entry_t;
 
+`define CDB_RENTRY_RESET {`FALSE, `ZERO_PR, 0, `ZERO_REG, 0}
+`define CDB_RESET '{`NUM_FU{`CDB_RENTRY_RESET}}
+
 typedef struct packed {
   logic [$clog2(`NUM_ROB)-1:0] ROB_idx;         // tag to PR
 } CDB_ROB_OUT_t;
