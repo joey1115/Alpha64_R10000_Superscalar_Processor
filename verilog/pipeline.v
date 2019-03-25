@@ -76,7 +76,6 @@ module pipeline (
     .FL_rollback_idx(FL_rollback_idx),
     .decoder_FL_out(decoder_FL_out),
     .ROB_FL_out(ROB_FL_out),
-    .FU_FL_out(FU_FL_out),
 `ifndef SYNTH_TEST
     .FL_table(FL_table),
     .next_FL_table(next_FL_table),
@@ -119,10 +118,10 @@ module pipeline (
     .FU_valid(FU_valid),
     .rollback_en(rollback_en),
     .ROB_rollback_idx(ROB_rollback_idx),
+    .FL_rollback_idx(FL_rollback_idx),
     .diff_ROB(diff_ROB),
     .FU_CDB_out(FU_CDB_out),
-    .FU_PR_out(FU_PR_out),
-    .FU_FL_out(FU_FL_out)
+    .FU_PR_out(FU_PR_out)
   );
 
   Map_Table map_table_0 (
