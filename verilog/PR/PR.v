@@ -28,7 +28,7 @@ module PR (
 `ifndef SYNTH_TEST
   output logic         [`NUM_PR-1:0][63:0]                pr_data,
 `endif
-  output PR_PACKET_OUT                                    pr_packet_out
+  output PR_FU_OUT_t                                      PR_FU_out
 );
 
   logic [`NUM_PR-1:0] [63:0] pr, next_pr;
@@ -39,27 +39,26 @@ module PR (
 
   always_comb begin
     next_pr = pr;
-
     // Complete
-    if (en && write_en && T_idx != `ZERO_PR) begin
-      next_pr[T_idx] = T_value;
+    if (write_en && CDB_PR_out.T_idx != `ZERO_PR) begin
+      next_pr[T_idx] = CDB_PR_out.T_value;
     end
+  end
 
+  always_comb begin
     // Execution
     for (int i=0; i<`NUM_FU; i++) begin
-      if (en && write_en && (T_idx == T1_idx[i]) && (T_idx != `ZERO_PR)) begin
-        pr_packet_out.T1_value[i] = T_value;    // forwarding
+      if (write_en && (CDB_PR_out.T_idx == FU_PR_out.T1_idx[i]) && (CDB_PR_out.T_idx != `ZERO_PR)) begin
+        PR_FU_out.T1_value[i] = CDB_PR_out.T_value;    // forwarding
       end else begin
-        pr_packet_out.T1_value[i] = next_pr[T1_idx[i]];
+        PR_FU_out.T1_value[i] = pr[T1_idx[i]];
       end
-
-      if (en && write_en && (T_idx == T2_idx[i]) && (T_idx != `ZERO_PR)) begin
-        pr_packet_out.T2_value[i] = T_value;    // forwarding
+      if (write_en && (CDB_PR_out.T_idx == FU_PR_out.T2_idx[i]) && (CDB_PR_out.T_idx != `ZERO_PR)) begin
+        PR_FU_out.T2_value[i] = CDB_PR_out.T_value;    // forwarding
       end else begin
-        pr_packet_out.T2_value[i] = next_pr[T2_idx[i]];
+        PR_FU_out.T2_value[i] = pr[T2_idx[i]];
       end
     end // for
-
   end // always_comb
 
   always_ff @(posedge clock) begin

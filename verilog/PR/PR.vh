@@ -15,6 +15,6 @@
 typedef struct packed {
   logic [`NUM_FU-1:0] [63:0] T1_value;    // (execute) T1 values to FUs
   logic [`NUM_FU-1:0] [63:0] T2_value;    // (execute) T2 values to FUs
-} PR_PACKET_OUT;
+} PR_FU_OUT_t;
 
 `endif

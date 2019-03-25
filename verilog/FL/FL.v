@@ -13,6 +13,7 @@ module FL (
   output logic           [$clog2(`NUM_FL)-1:0]              tail, next_tail,
 `endif
   output logic                                              FL_valid,
+  output FL_ROB_OUT_t                                       FL_ROB_out,
   output FL_RS_OUT_t                                        FL_RS_out,
   output FL_MAP_TABLE_OUT_t                                 FL_Map_Table_out
 );

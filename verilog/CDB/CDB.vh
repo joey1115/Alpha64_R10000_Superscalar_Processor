@@ -20,23 +20,8 @@ typedef struct packed {
 } CDB_entry_t;
 
 typedef struct packed {
-  logic                        done;
-  logic [63:0]                 FU_result;
-  logic [4:0]                  dest_idx;
-  logic [$clog2(`NUM_PR)-1:0]  T_idx;
-  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
-  logic [$clog2(`NUM_FL)-1:0]  FL_idx;
-} FU_CDB_ENTRY_t;
-
-// typedef struct packed {
-//   logic [`NUM_FU-1:0]                        CDB_valid;     // valid=0, entry is free, to FU
-//   logic                                      complete_en;   // RS, ROB, MapTable
-//   logic                                      write_en;      // valid signal to PR
-//   logic               [$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
-//   logic               [4:0]                  dest_idx;      // to map_table
-//   logic               [63:0]                 T_value;       // result to PR
-//   logic               [$clog2(`NUM_ROB)-1:0] ROB_idx;
-// } CDB_PACKET_OUT;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;         // tag to PR
+} CDB_ROB_OUT_t;
 
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] T_idx;         // tag to PR

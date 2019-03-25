@@ -85,9 +85,7 @@
 
 typedef struct packed {
   logic [$clog2(`NUM_PR)-1:0] Told_idx;           // output Told to ROB
-  T_t                         T1;
-  T_t                         T2;
-} MAP_TABLE_PACKET_OUT_t;
+} MAP_TABLE_ROB_OUT_t;
 
 typedef struct packed {
   T_t T1;

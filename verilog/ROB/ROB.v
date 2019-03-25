@@ -21,6 +21,7 @@ module ROB (
   output logic                               ROB_valid,
   output logic                               retire_en,
   output logic                               halt_out,
+  output logic [$clog2(`NUM_ROB)-1:0]        ROB_idx;
   // output ROB_PACKET_RS_OUT rob_packet_rs_out,
   // output ROB_PACKET_MAPTABLE_OUT rob_packet_maptable_out,
   // output ROB_PACKET_FREELIST_OUT rob_packet_freelist_out,
@@ -45,6 +46,7 @@ module ROB (
   assign ROB_RS_out       = '{ROB_tail_idx};
   assign ROB_Arch_Map_out = '{T_idx, dest_idx};
   assign ROB_FL_out       = '{Told_idx};
+  assign ROB_idx =        = real_tail_idx;
 
   //assign ROB_valid
   assign stall_dispatch = (state == 1);

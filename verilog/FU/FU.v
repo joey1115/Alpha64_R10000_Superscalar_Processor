@@ -468,7 +468,8 @@ module FU (
   output logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_rollback_idx,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      diff_ROB,
   output FU_CDB_OUT_t                                                                FU_CDB_out,
-  output FU_PR_OUT_t                                                                 FU_PR_out
+  output FU_PR_OUT_t                                                                 FU_PR_out,
+  output FU_FL_OUT_t                                                                 FU_FL_out
 );
 
   FU_RESULT_ENTRY_t [`NUM_FU-1:0]          fu_result;
@@ -478,6 +479,7 @@ module FU (
   logic             [$clog2(`NUM_ROB)-1:0] diff_ROB;
 
   assign FU_CDB_out = '{fu_result};
+  assign FU_PR_out  = '{};
 
   assign fu_rollback_packet_out.ROB_rollback_idx = ROB_rollback_idx;
   assign fu_rollback_packet_out.diff_ROB         = diff_ROB;

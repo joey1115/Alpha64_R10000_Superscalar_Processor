@@ -32,7 +32,11 @@ typedef struct packed {
 
 typedef struct packed {
   FU_IDX_ENTRY_t [`NUM_FU-1:0] FU_idx;
-} FU_CDB_OUT_t;
+} FU_PR_OUT_t;
+
+typedef struct packed {
+  logic [$clog2(`NUM_FL)-1:0] FL_rollback_idx;
+} FU_FL_OUT_t;
 
 typedef struct packed {
   logic                                 ready;    // If an entry is ready

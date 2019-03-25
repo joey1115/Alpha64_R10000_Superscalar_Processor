@@ -55,6 +55,11 @@ typedef struct packed {
 // }
 
 typedef struct packed {
+  logic        halt;
+  logic [4:0]  dest_idx;
+} DECODER_ROB_OUT_t;
+
+typedef struct packed {
   FU_t                  FU;
   INST_t                inst;  // fetched instruction out
   ALU_FUNC              func;

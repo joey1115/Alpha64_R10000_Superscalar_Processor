@@ -31,6 +31,7 @@
   //
 module decoder(
   input  F_D_PACKET              decoder_packet_in,
+  output DECODER_ROB_OUT_t       decoder_ROB_out,
   output DECODER_RS_OUT_t        decoder_RS_out,
   output DECODER_FL_OUT_t        decoder_FL_out,
   output DECODER_MAP_TABLE_OUT_t decoder_Map_Table_out
