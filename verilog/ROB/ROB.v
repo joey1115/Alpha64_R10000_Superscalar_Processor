@@ -24,7 +24,8 @@ module ROB (
   // output ROB_PACKET_RS_OUT rob_packet_rs_out,
   // output ROB_PACKET_MAPTABLE_OUT rob_packet_maptable_out,
   // output ROB_PACKET_FREELIST_OUT rob_packet_freelist_out,
-  output ROB_PACKET_OUT rob_packet_out
+  output ROB_PACKET_OUT rob_packet_out,
+  output ROB_RS_OUT_t   rob_rs_out
 );
 
 `ifdef SYNTH_TEST
@@ -39,7 +40,7 @@ module ROB (
 
   logic [1:0] state, Nstate;
 
-  //assign Nrob = rob;
+  assign rob_rs_out = '{ROB_tail_idx};
 
   //assign ROB_valid
   assign stall_dispatch = (state == 1);

@@ -98,4 +98,9 @@ typedef struct packed {
   T_t                         T2;
 } MAP_TABLE_PACKET_OUT;
 
+typedef struct packed {
+  T_t T1;
+  T_t T2;
+} MAP_TABLE_RS_OUT_t;
+
 `endif

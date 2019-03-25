@@ -29,4 +29,8 @@ typedef struct packed {
   logic               [$clog2(`NUM_ROB)-1:0] ROB_idx;
 } CDB_PACKET_OUT;
 
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] T_idx;         // tag to PR
+} CDB_RS_OUT_t;
+
 `endif

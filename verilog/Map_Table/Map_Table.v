@@ -31,23 +31,25 @@ module Map_Table (
 `ifndef SYNTH_TEST
   output T_t [31:0]           map_table_out,
 `endif
-  output MAP_TABLE_PACKET_OUT map_table_packet_out
+  output MAP_TABLE_PACKET_OUT map_table_packet_out,
+  output MAP_TABLE_RS_OUT_t   map_table_rs_out
 );
 
-  T_t                       T1, T2;
-  T_t [31:0]                map_table, next_map_table;
-  T_t [`NUM_ROB-1:0][31:0]  backup_map_table, next_backup_map_table;
+  T_t                         T1, T2;
+  T_t [31:0]                  map_table, next_map_table;
+  T_t [`NUM_ROB-1:0][31:0]    backup_map_table, next_backup_map_table;
+  logic [$clog2(`NUM_PR)-1:0] Told_idx;       // output Told to ROB
+
+  assign map_table_rs_out = '{T1, T2};
 
 `ifndef SYNTH_TEST
-  assign map_table_out                 = map_table;
+  assign map_table_out = map_table;
 `endif
-  assign map_table_packet_out.Told_idx = map_table[dest_idx].idx;
-  assign T1                            = map_table[rega_idx];
-  assign T2                            = map_table[regb_idx];
-  assign map_table_packet_out.T1.idx   = T1.idx;
-  assign map_table_packet_out.T1.ready = ( map_table_packet_in.CDB_en && T1.idx == map_table_packet_in.CDB_T_idx ) || T1.ready;
-  assign map_table_packet_out.T2.idx   = T2.idx;
-  assign map_table_packet_out.T2.ready = ( map_table_packet_in.CDB_en && T2.idx == map_table_packet_in.CDB_T_idx ) || T2.ready;
+  assign Told_idx = map_table[dest_idx].idx;
+  assign T1       = map_table[rega_idx];
+  assign T2       = map_table[regb_idx];
+  assign T1.ready = ( map_table_packet_in.CDB_en && T1.idx == map_table_packet_in.CDB_T_idx ) || T1.ready;
+  assign T2.ready = ( map_table_packet_in.CDB_en && T2.idx == map_table_packet_in.CDB_T_idx ) || T2.ready;
 
   always_comb begin
     next_map_table = map_table;

@@ -13,7 +13,8 @@ module FL (
   output logic           [$clog2(`NUM_FL)-1:0]              tail, next_tail,
 `endif
   output logic                                              FL_valid,
-  output FL_PACKET_OUT_t                                    fl_packet_out
+  // output FL_PACKET_OUT_t                                    fl_packet_out,
+  output FL_RS_OUT_t                                        fl_rs_out
 );
 
 `ifdef SYNTH_TEST
@@ -26,8 +27,7 @@ module FL (
   logic [$clog2(`NUM_PR)-1:0]              T_idx;
   logic [$clog2(`NUM_FL)-1:0]              FL_idx;
 
-  assign fl_packet_out.T_idx  = T_idx;
-  assign fl_packet_out.FL_idx = FL_idx;
+  assign fl_rs_out = {T_idx, FL_idx};
 
   assign move_head    = retire_en && Told_idx != `ZERO_PR;
   assign next_head    = move_head ? (head + 1) : head;

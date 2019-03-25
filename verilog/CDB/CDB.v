@@ -34,7 +34,8 @@ module CDB (
 `ifndef SYNTH_TEST
   output CDB_entry_t    [`NUM_FU-1:0]                         CDB,
 `endif
-  output CDB_PACKET_OUT                                       CDB_packet_out
+  // output CDB_PACKET_OUT                                       CDB_packet_out,
+  output CDB_RS_OUT_t                                         CDB_RS_out
 );
 
 `ifdef SYNTH_TEST
@@ -42,28 +43,36 @@ module CDB (
 `endif
   CDB_entry_t [`NUM_FU-1:0] next_CDB;
   logic [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0] diff;
+  logic [`NUM_FU-1:0]                        CDB_valid;     // valid=0, entry is free, to FU
+  logic                                      complete_en;   // RS, ROB, MapTable
+  logic                                      write_en;      // valid signal to PR
+  logic               [$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
+  logic               [4:0]                  dest_idx;      // to map_table
+  logic               [63:0]                 T_value;       // result to PR
+  logic               [$clog2(`NUM_ROB)-1:0] ROB_idx;
 
+  assign CDB_RS_out = '{T_idx};
 
   always_comb begin
     next_CDB = CDB;
-    CDB_packet_out.complete_en = 0;
-    CDB_packet_out.write_en    = 0;
-    CDB_packet_out.T_idx       = `ZERO_PR;
-    CDB_packet_out.dest_idx    = `ZERO_REG;
-    CDB_packet_out.T_value     = 0;
-    CDB_packet_out.ROB_idx     = 0;
+    complete_en = 0;
+    write_en    = 0;
+    T_idx       = `ZERO_PR;
+    dest_idx    = `ZERO_REG;
+    T_value     = 0;
+    ROB_idx     = 0;
     
     // Update taken, T_idx & T_value for each empty entry
     // and give CDB_valid to FU, CDB_valid=1 means the entry is free
     for (int i=0; i<`NUM_FU; i++) begin
-      CDB_packet_out.CDB_valid[i] = !next_CDB[i].taken;
+      CDB_valid[i] = !next_CDB[i].taken;
       if (!(next_CDB[i].taken) && CDB_packet_in.FU_done[i]) begin
         next_CDB[i].taken    = 1;
         next_CDB[i].T_idx    = CDB_packet_in.T_idx[i];
         next_CDB[i].ROB_idx  = CDB_packet_in.ROB_idx[i];
         next_CDB[i].dest_idx = CDB_packet_in.dest_idx[i];
         next_CDB[i].T_value  = CDB_packet_in.FU_result[i];
-        CDB_packet_out.CDB_valid[i] = 0;
+        CDB_valid[i] = 0;
       end
     end
     // rollback
@@ -76,7 +85,7 @@ module CDB (
           next_CDB[i].ROB_idx  = 0;
           next_CDB[i].dest_idx = 0;
           next_CDB[i].T_value  = 0;
-          CDB_packet_out.CDB_valid[i] = 1;
+          CDB_valid[i] = 1;
         end
       end
     end
@@ -84,12 +93,12 @@ module CDB (
     for (int i=0; i<`NUM_FU; i++) begin
       // if ((next_CDB[i].taken && `FU_LIST[i] != FU_LD) || (next_CDB[i].taken && `FU_LIST[i] == FU_LD && next_CDB[i].ROB_idx == CDB_packet_in.ROB_head_idx))  begin
       if (next_CDB[i].taken) begin
-        CDB_packet_out.complete_en = 1'b1;
-        CDB_packet_out.write_en    = 1'b1;
-        CDB_packet_out.T_idx       = next_CDB[i].T_idx;
-        CDB_packet_out.dest_idx    = next_CDB[i].dest_idx;
-        CDB_packet_out.T_value     = next_CDB[i].T_value;
-        CDB_packet_out.ROB_idx     = next_CDB[i].ROB_idx;
+        complete_en = 1'b1;
+        write_en    = 1'b1;
+        T_idx       = next_CDB[i].T_idx;
+        dest_idx    = next_CDB[i].dest_idx;
+        T_value     = next_CDB[i].T_value;
+        ROB_idx     = next_CDB[i].ROB_idx;
         // try filling this entry if X_C reg wants to write a new input here
         // (compare T_idx to prevent re-writing the entry with the same inst.)
         if (CDB_packet_in.FU_done[i] && CDB_packet_in.T_idx[i] != next_CDB[i].T_idx) begin
@@ -98,7 +107,7 @@ module CDB (
           next_CDB[i].T_value  = CDB_packet_in.FU_result[i];
         end else begin
           next_CDB[i].taken = 0;
-          CDB_packet_out.CDB_valid[i] = 1;
+          CDB_valid[i] = 1;
         end // else
         break;
       end // if

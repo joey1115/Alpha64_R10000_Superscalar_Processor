@@ -62,6 +62,10 @@ typedef struct packed {
   logic [4:0]                  dest_idx;            // T_idx at head to retire to archmap
 } ROB_PACKET_OUT;
 
+typedef struct packed {
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;          // ROB tail index for rollback Freelist
+} ROB_RS_OUT_t;
+
 `endif
 
 
