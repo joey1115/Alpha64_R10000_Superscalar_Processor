@@ -20,13 +20,13 @@ module RS (
   output logic              [$clog2(`NUM_FU)-1:0]  FU_forward_idx, // If a RS entry is ready
 `endif
 `endif
-  output RS_FU_OUT_t                               RS_FU_out,
-  output logic                                     RS_valid
+  output logic                                     RS_valid,
+  output RS_FU_OUT_t                               RS_FU_out
 );
 
   FU_PACKET_t [`NUM_FU-1:0]                       FU_packet; // List of output fu
   RS_ENTRY_t  [`NUM_FU-1:0]                       RS, next_RS;
-  FU_t        [`NUM_FU-1:0]                       FU_list = `FU_LIST; // List of FU
+  FU_t        [`NUM_FU-1:0]                       FU_list; // List of FU
   logic       [`NUM_FU-1:0]                       T1_CDB;             // If T1 is complete
   logic       [`NUM_FU-1:0]                       T2_CDB;             // If T2 is complete
   logic       [`NUM_FU-1:0]                       T1_ready;           // If T1 is ready
@@ -161,8 +161,9 @@ module RS (
   end // always_comb begin
 
   always_ff @(posedge clock) begin
+    FU_list <= `SD `FU_LIST;
     if(reset) begin
-      RS <= `SD `RS_RESET;
+      RS      <= `SD `RS_RESET;
     end else if(en) begin
       RS <= `SD next_RS;
     end // else if(en) begin
