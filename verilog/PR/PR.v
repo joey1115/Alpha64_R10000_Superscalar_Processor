@@ -43,22 +43,22 @@ module PR (
     next_pr = pr;
 
     // Complete
-    if (en && pr_packet_in.write_en && pr_packet_in.T_idx != `ZERO_PR) begin
-      next_pr[pr_packet_in.T_idx] = pr_packet_in.T_value;
+    if (en && write_en && T_idx != `ZERO_PR) begin
+      next_pr[T_idx] = T_value;
     end
 
     // Execution
     for (int i=0; i<`NUM_FU; i++) begin
-      if (en && pr_packet_in.write_en && (pr_packet_in.T_idx == pr_packet_in.T1_idx[i]) && (pr_packet_in.T_idx != `ZERO_PR)) begin
-        pr_packet_out.T1_value[i] = pr_packet_in.T_value;    // forwarding
+      if (en && write_en && (T_idx == T1_idx[i]) && (T_idx != `ZERO_PR)) begin
+        pr_packet_out.T1_value[i] = T_value;    // forwarding
       end else begin
-        pr_packet_out.T1_value[i] = next_pr[pr_packet_in.T1_idx[i]];
+        pr_packet_out.T1_value[i] = next_pr[T1_idx[i]];
       end
 
-      if (en && pr_packet_in.write_en && (pr_packet_in.T_idx == pr_packet_in.T2_idx[i]) && (pr_packet_in.T_idx != `ZERO_PR)) begin
-        pr_packet_out.T2_value[i] = pr_packet_in.T_value;    // forwarding
+      if (en && write_en && (T_idx == T2_idx[i]) && (T_idx != `ZERO_PR)) begin
+        pr_packet_out.T2_value[i] = T_value;    // forwarding
       end else begin
-        pr_packet_out.T2_value[i] = next_pr[pr_packet_in.T2_idx[i]];
+        pr_packet_out.T2_value[i] = next_pr[T2_idx[i]];
       end
     end // for
 
