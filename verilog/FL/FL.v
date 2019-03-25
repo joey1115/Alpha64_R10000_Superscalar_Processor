@@ -1,20 +1,19 @@
 module FL (
-  input  logic                                    clock,               // system clock
-  input  logic                                    reset,               // system reset
-  input  logic                                    dispatch_en,
-  input  logic                                    rollback_en,
-  input  logic                                    retire_en,
-  input  logic [$clog2(`NUM_PR)-1:0]              Told_idx,
-  input  logic [$clog2(`NUM_FL)-1:0]              FL_rollback_idx,
-  input  logic [4:0]                              dest_idx,
+  input  logic                                              clock,               // system clock
+  input  logic                                              reset,               // system reset
+  input  logic                                              dispatch_en,
+  input  logic                                              rollback_en,
+  input  logic                                              retire_en,
+  input  logic           [$clog2(`NUM_PR)-1:0]              Told_idx,
+  input  logic           [$clog2(`NUM_FL)-1:0]              FL_rollback_idx,
+  input  logic           [4:0]                              dest_idx,
 `ifndef SYNTH_TEST
-  output logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table,
-  output logic [$clog2(`NUM_FL)-1:0]              head, next_head,
-  output logic [$clog2(`NUM_FL)-1:0]              tail, next_tail,
+  output logic           [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table,
+  output logic           [$clog2(`NUM_FL)-1:0]              head, next_head,
+  output logic           [$clog2(`NUM_FL)-1:0]              tail, next_tail,
 `endif
-  output logic                                    FL_valid,
-  output logic [$clog2(`NUM_PR)-1:0]              T_idx,
-  output logic [$clog2(`NUM_FL)-1:0]              FL_idx
+  output logic                                              FL_valid,
+  output FL_PACKET_OUT_t                                    fl_packet_out
 );
 
 `ifdef SYNTH_TEST
@@ -24,6 +23,11 @@ module FL (
 `endif
   logic [$clog2(`NUM_FL)-1:0]              virtual_tail;
   logic                                    move_head;
+  logic [$clog2(`NUM_PR)-1:0]              T_idx;
+  logic [$clog2(`NUM_FL)-1:0]              FL_idx;
+
+  assign fl_packet_out.T_idx  = T_idx;
+  assign fl_packet_out.FL_idx = FL_idx;
 
   assign move_head    = retire_en && Told_idx != `ZERO_PR;
   assign next_head    = move_head ? (head + 1) : head;

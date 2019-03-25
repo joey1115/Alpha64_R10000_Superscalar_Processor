@@ -22,18 +22,24 @@
 ***************************************/
 
 module CDB (
-  input  en, clock, reset, 
-  input  CDB_PACKET_IN  CDB_packet_in,
-
-  `ifndef SYNTH_TEST
-  output CDB_entry_t [`NUM_FU-1:0] CDB,
-  `endif
-  output CDB_PACKET_OUT CDB_packet_out
+  input  logic                                                en, clock, reset,
+  input  logic                                                rollback_en,        // rollback_en from X/C
+  input  logic                         [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,   // ROB# of mispredicted branch/incorrect load from br module/LSQ
+  input  logic                         [$clog2(`NUM_ROB)-1:0] diff_ROB,           // diff_ROB = ROB_tail of the current cycle - ROB_rollback_idx
+  // input  logic           [`NUM_FU-1:0]                        FU_done,            // valid signal from FU
+  // input  logic           [`NUM_FU-1:0]  [$clog2(`NUM_PR)-1:0] T_idx,              // tag from FU
+  // input  logic           [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0] ROB_idx,            // ROB_idx from FU
+  // input  logic           [`NUM_FU-1:0]                  [4:0] dest_idx,           // from FU
+  // input  logic           [`NUM_FU-1:0]                 [63:0] FU_result,          // result from FU
+`ifndef SYNTH_TEST
+  output CDB_entry_t    [`NUM_FU-1:0]                         CDB,
+`endif
+  output CDB_PACKET_OUT                                       CDB_packet_out
 );
 
-  `ifdef SYNTH_TEST
+`ifdef SYNTH_TEST
   CDB_entry_t [`NUM_FU-1:0] CDB;
-  `endif
+`endif
   CDB_entry_t [`NUM_FU-1:0] next_CDB;
   logic [`NUM_FU-1:0] [$clog2(`NUM_ROB)-1:0] diff;
 
@@ -45,6 +51,7 @@ module CDB (
     CDB_packet_out.T_idx       = `ZERO_PR;
     CDB_packet_out.dest_idx    = `ZERO_REG;
     CDB_packet_out.T_value     = 0;
+    CDB_packet_out.ROB_idx     = 0;
     
     // Update taken, T_idx & T_value for each empty entry
     // and give CDB_valid to FU, CDB_valid=1 means the entry is free
@@ -82,6 +89,7 @@ module CDB (
         CDB_packet_out.T_idx       = next_CDB[i].T_idx;
         CDB_packet_out.dest_idx    = next_CDB[i].dest_idx;
         CDB_packet_out.T_value     = next_CDB[i].T_value;
+        CDB_packet_out.ROB_idx     = next_CDB[i].ROB_idx;
         // try filling this entry if X_C reg wants to write a new input here
         // (compare T_idx to prevent re-writing the entry with the same inst.)
         if (CDB_packet_in.FU_done[i] && CDB_packet_in.T_idx[i] != next_CDB[i].T_idx) begin

@@ -33,6 +33,8 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .retire_en(retire_en),
+    .dest_idx(rob_packet_out.dest_idx),
+    .T_idx(rob_packet_out.T_idx),
     .arch_map_packet_in(arch_map_packet_in),
 `ifndef SYNTH_TEST
     .next_arch_map(next_arch_map)
@@ -41,7 +43,12 @@ module pipeline (
 
   CDB cdb_0 (
     .en(en),
-    .cdb_packet_in(cdb_packet_in),
+    .clock(clock),
+    .reset(reset),
+    .rollback_en(rollback_en),        // rollback_en from X/C
+    .ROB_rollback_idx(ROB_rollback_idx),   // ROB# of mispredicted branch/incorrect load from br module/LSQ
+    .diff_ROB(diff_ROB),           // diff_ROB = ROB_tail of the current cycle - ROB_rollback_idx
+    .FU_result(fu_m_packet_out.fu_result),          // result from FU
     .cdb_packet_out(cdb_packet_out)
   );
 
@@ -57,7 +64,7 @@ module pipeline (
     .rollback_en(rollback_en),
     .retire_en(retire_en),
     .dest_idx(decoder_packet_out.dest_idx),
-    .Told_idx(Told_idx),
+    .Told_idx(rob_packet_out.Told_idx),
     .FL_rollback_idx(FL_rollback_idx),
 `ifndef SYNTH_TEST
     .FL_table(FL_table),
@@ -68,14 +75,14 @@ module pipeline (
     .next_tail(next_tail),
 `endif
     .FL_valid(FL_valid),
-    .T_idx(T_idx),
-    .FL_idx(FL_idx)
+    // .T_idx(T_idx),
+    .fl_packet_out(fl_packet_out)
   );
 
   FU fu_0 (
     .clock(clock),
     .reset(reset),
-    .fu_m_packet_in(fu_m_packet_in),
+    .fu_packet(rs_packet_out.fu_packet),
     .CDB_valid(CDB_valid),
 `ifndef SYNTH_TEST
     .last_done(last_done),
@@ -98,14 +105,18 @@ module pipeline (
     .fu_m_packet_out(fu_m_packet_out),
     .fu_valid(fu_valid),
     .rollback_en(rollback_en),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .diff_ROB(diff_ROB)
+    .fu_rollback_packet_out(fu_rollback_packet_out)
   );
 
   Map_Table map_table_0 (
     .en(en),
     .clock(clock),
     .reset(reset),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .dest_idx(decoder_packet_out.dest_idx),
+    .rega_idx(decoder_packet_out.inst.r.rega_idx),
+    .regb_idx(decoder_packet_out.inst.r.regb_idx),
     .map_table_packet_in(map_table_packet_in),
 `ifndef SYNTH_TEST
     .map_table_out(map_table_out),
@@ -117,7 +128,11 @@ module pipeline (
     .en(en),
     .clock(clock),
     .reset(reset),
-    .pr_packet_in(pr_packet_in),
+    .write_en(write_en),
+    .T_idx(CDB_packet_out.T_idx),
+    .T_value(CDB_packet_out.T_value),
+    .T1_idx(fu_m_packet_out.T1_idx),
+    .T2_idx(fu_m_packet_out.T2_idx),
 `ifndef SYNTH_TEST
     .pr_data(pr_data),
 `endif
@@ -129,23 +144,21 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .complete_en(complete_en),
     .halt(decoder_packet_out.halt),
     .dest_idx(decoder_packet_out.dest_idx),
-    .T_idx(T_idx),
-    .Told_idx(Told_idx),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .rollback_en(rollback_en),
-    .rob_packet_complete_in(rob_packet_complete_in),
+    .T_idx(fl_packet_out.T_idx),
+    .Told_idx(map_table_packet_out.Told_idx),
+    .ROB_rollback_idx(fu_rollback_packet_out.ROB_rollback_idx),
+    .complete_ROB_idx(CDB_packet_out.ROB_idx),
 `ifndef SYNTH_TEST
     .rob(rob),
 `endif
     .ROB_valid(ROB_valid),
     .retire_en(retire_en),
     .halt_out(halt_out),
-    .rob_packet_rs_out(rob_packet_rs_out),
-    .rob_packet_maptable_out(rob_packet_maptable_out),
-    .rob_packet_freelist_out(rob_packet_freelist_out),
-    .rob_packet_archmap_out(rob_packet_archmap_out)
+    .rob_packet_out(rob_packet_out)
   );
 
   RS rs_0 (
@@ -153,7 +166,15 @@ module pipeline (
     .reset(reset),
     .en(en),
     .decoder_packet_out(decoder_packet_out),
-    .rs_packet_in(rs_packet_in),
+    .T_idx(fl_packet_out.T_idx),
+    .FL_idx(fl_packet_out.FL_idx),
+    .ROB_idx(rob_packet_out.ROB_idx),
+    .T1(map_table_packet_out.T1),
+    .T2(map_table_packet_out.T2),
+    .CDB_T_idx(CDB_packet_out.T_idx),
+    .fu_valid(fu_valid),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
 `ifndef SYNTH_TEST
     .RS_out(RS_out),
     .RS_match_hit(RS_match_hit),   // If a RS entry is ready

@@ -21,12 +21,16 @@
 `timescale 1ns/100ps
 
 module PR (
-  input  en, clock, reset,
-  input  PR_PACKET_IN  pr_packet_in,
+  input  logic                                            en, clock, reset,
+  input  logic                                            write_en;                                      // (complete) write enable  from CDB
+  input  logic         [$clog2(`NUM_PR)-1:0]              T_idx;                   // (complete) PR index      from CDB
+  input  logic         [63:0]                             T_value;                                // (complete) Value         from CDB
+  input  logic         [`NUM_FU-1:0][$clog2(`NUM_PR)-1:0] T1_idx;    // (execute)  T1 index      from S/X reg
+  input  logic         [`NUM_FU-1:0][$clog2(`NUM_PR)-1:0] T2_idx;    // (execute)  T2 index      from S/X reg
 `ifndef SYNTH_TEST
-  output logic [`NUM_PR-1:0] [63:0] pr_data,
+  output logic         [`NUM_PR-1:0][63:0]                pr_data,
 `endif
-  output PR_PACKET_OUT pr_packet_out
+  output PR_PACKET_OUT                                    pr_packet_out
 );
 
   logic [`NUM_PR-1:0] [63:0] pr, next_pr;

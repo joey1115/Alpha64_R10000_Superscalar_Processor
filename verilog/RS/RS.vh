@@ -56,19 +56,6 @@ typedef struct packed {
 `define RS_RESET '{`NUM_FU{`RS_ENTRY_RESET}} // RS reset
 
 typedef struct packed {
-  logic          [$clog2(`NUM_PR)-1:0]  T_idx;            // Dest idx
-  logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
-  logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
-  T_t                                   T1;               // T1
-  T_t                                   T2;               // T2
-  logic          [$clog2(`NUM_PR)-1:0]  CDB_T_idx;        // CDB tag
-  logic          [`NUM_FU-1:0]          fu_valid;         // FU done
-  logic          [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx; // FU done
-  logic          [$clog2(`NUM_ROB)-1:0] ROB_tail_idx;     // FU done
-  logic          [$clog2(`NUM_ROB)-1:0] diff_ROB;
-} RS_PACKET_IN;
-
-typedef struct packed {
   logic                                 ready;  // If an entry is ready
   INST_t                                inst;
   ALU_FUNC                              func;
@@ -84,7 +71,7 @@ typedef struct packed {
 } FU_PACKET_t;
 
 typedef struct packed {
-  FU_PACKET_t [`NUM_FU-1:0] FU_packet_out; // List of output fu
+  FU_PACKET_t [`NUM_FU-1:0] fu_packet; // List of output fu
   logic                     RS_valid;
 } RS_PACKET_OUT;
 

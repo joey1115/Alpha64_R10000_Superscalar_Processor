@@ -42,18 +42,13 @@ typedef struct packed {
 //   // logic [$clog2(`NUM_ROB)-1:0] ins_rob_idx;       //tells the rob idx of the dispatched inst
 // } ROB_PACKET_OUT;
 
-typedef struct packed {
-  logic complete_en;                                  // signal complete en
-  logic [$clog2(`NUM_ROB)-1:0] complete_ROB_idx;      // ROB index where complete
-} ROB_PACKET_COMPLETE_IN;
+// typedef struct packed {
+//   logic [$clog2(`NUM_ROB)-1:0] ROB_tail_idx;          // ROB tail index for dispatched insn
+// } ROB_PACKET_RS_OUT;
 
-typedef struct packed {
-  logic [$clog2(`NUM_ROB)-1:0] ROB_tail_idx;          // ROB tail index for dispatched insn
-} ROB_PACKET_RS_OUT;
-
-typedef struct packed {
-  logic [$clog2(`NUM_ROB)-1:0] ROB_tail_idx;          // ROB tail index for dispatched insn
-} ROB_PACKET_MAPTABLE_OUT;
+// typedef struct packed {
+//   logic [$clog2(`NUM_ROB)-1:0] ROB_tail_idx;          // ROB tail index for dispatched insn
+// } ROB_PACKET_MAPTABLE_OUT;
 
 // typedef struct packed {
 //   logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx;       // destination idx for archmap retire
@@ -61,9 +56,11 @@ typedef struct packed {
 // } ROB_PACKET_ARCHMAP_OUT;
 
 typedef struct packed {
-  logic [$clog2(`NUM_ROB)-1:0] ROB_tail_idx;          // ROB tail index for rollback Freelist
-  logic [$clog2(`NUM_PR)-1:0] T_old_idx_head;         // PR index to free
-} ROB_PACKET_FREELIST_OUT;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;          // ROB tail index for rollback Freelist
+  logic [$clog2(`NUM_PR)-1:0]  Told_idx;         // PR index to free
+  logic [$clog2(`NUM_PR)-1:0]  T_idx;            // T_idx at head to retire to archmap
+  logic [4:0]                  dest_idx;            // T_idx at head to retire to archmap
+} ROB_PACKET_OUT;
 
 `endif
 

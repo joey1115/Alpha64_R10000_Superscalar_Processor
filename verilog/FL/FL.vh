@@ -11,4 +11,8 @@
 `include "../RS/RS.vh"
 `endif
 
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] T_idx;
+} FL_PACKET_OUT_t;
+
 `endif

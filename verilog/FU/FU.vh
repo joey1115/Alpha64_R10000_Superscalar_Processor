@@ -13,11 +13,6 @@
 `endif
 
 typedef struct packed {
-  FU_PACKET_t [`NUM_FU-1:0] fu_packet;
-  logic       [`NUM_FU-1:0] CDB_valid;
-} FU_M_PACKET_IN;
-
-typedef struct packed {
   logic                        done;
   logic [63:0]                 result;
   logic [4:0]                  dest_idx;

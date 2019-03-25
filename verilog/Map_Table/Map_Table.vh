@@ -84,15 +84,10 @@
 `define MAP_TABLE_STACK_RESET '{`NUM_ROB{`MAP_TABLE_STACK_ENTRY_RESET}}
 
 typedef struct packed {
-  logic                         Dispatch_en;   // no Dispatch hazard
-  logic [4:0]                   dest_idx;          // reg from dispatch
-  logic [4:0]                   reg_a_idx;
-  logic [4:0]                   reg_b_idx;
   logic [$clog2(`NUM_PR)-1:0]   T_idx;        // tags from freelist
   logic [$clog2(`NUM_PR)-1:0]   CDB_T_idx;             // broadcast from CDB
   logic [4:0]                   CDB_dest_idx;             // broadcast from CDB
   logic                         CDB_en;        // CDB enable
-  logic                         rollback_en;       //
   logic [$clog2(`NUM_ROB)-1:0]  ROB_rollback_idx;            //
   logic [$clog2(`NUM_ROB)-1:0]  ROB_tail_idx;
 } MAP_TABLE_PACKET_IN;

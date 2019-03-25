@@ -470,12 +470,16 @@ module FU (
   output logic           [$clog2(`NUM_ROB)-1:0]                                      diff_ROB
 );
 
-  FU_PACKET_IN_t [`NUM_FU-1:0] fu_packet_in;
-  logic          [`NUM_BR-1:0] take_branch;
+  FU_PACKET_IN_t [`NUM_FU-1:0]          fu_packet_in;
+  logic          [`NUM_BR-1:0]          take_branch;
+  logic          [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
+  logic          [$clog2(`NUM_ROB)-1:0] diff_ROB;
 
-  assign rollback_en      = take_branch[0];
-  assign ROB_rollback_idx = fu_m_packet_out.fu_result[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
-  assign diff_ROB         = ROB_tail_idx - ROB_rollback_idx;
+  assign fu_rollback_packet_out.ROB_rollback_idx = ROB_rollback_idx;
+  assign fu_rollback_packet_out.diff_ROB         = diff_ROB;
+  assign rollback_en                             = take_branch[0];
+  assign ROB_rollback_idx                        = fu_m_packet_out.fu_result[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
+  assign diff_ROB                                = ROB_tail_idx - ROB_rollback_idx;
 
   // always_comb begin
   //   for (int i = 0; i < `NUM_FU; i++) begin

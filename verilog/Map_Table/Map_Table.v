@@ -23,7 +23,10 @@
 `timescale 1ns/100ps
 
 module Map_Table (
-  input  logic                en, clock, reset,
+  input  logic                en, clock, reset, dispatch_en, rollback_en,
+  input  logic [4:0]          dest_idx;          // reg from dispatch
+  input  logic [4:0]          rega_idx;
+  input  logic [4:0]          regb_idx;
   input  MAP_TABLE_PACKET_IN  map_table_packet_in,
 `ifndef SYNTH_TEST
   output T_t [31:0]           map_table_out,
@@ -38,9 +41,9 @@ module Map_Table (
 `ifndef SYNTH_TEST
   assign map_table_out                 = map_table;
 `endif
-  assign map_table_packet_out.Told_idx = map_table[map_table_packet_in.dest_idx].idx;
-  assign T1                            = map_table[map_table_packet_in.reg_a_idx];
-  assign T2                            = map_table[map_table_packet_in.reg_b_idx];
+  assign map_table_packet_out.Told_idx = map_table[dest_idx].idx;
+  assign T1                            = map_table[rega_idx];
+  assign T2                            = map_table[regb_idx];
   assign map_table_packet_out.T1.idx   = T1.idx;
   assign map_table_packet_out.T1.ready = ( map_table_packet_in.CDB_en && T1.idx == map_table_packet_in.CDB_T_idx ) || T1.ready;
   assign map_table_packet_out.T2.idx   = T2.idx;
@@ -74,15 +77,15 @@ module Map_Table (
       next_map_table[map_table_packet_in.CDB_dest_idx].ready = `TRUE;
     end
     // PR update T_idx
-    if ( map_table_packet_in.Dispatch_en ) begin // no dispatch hazard
-      next_map_table[map_table_packet_in.dest_idx] = '{map_table_packet_in.T_idx, `FALSE}; // renew maptable from freelist but not ready yet
+    if ( map_table_packet_in.dispatch_en ) begin // no dispatch hazard
+      next_map_table[dest_idx] = '{map_table_packet_in.T_idx, `FALSE}; // renew maptable from freelist but not ready yet
       next_map_table[31].ready                     = `TRUE;                                // Force ZERO_REG to be rady
     end
   end
 
   always_comb begin
     next_backup_map_table = backup_map_table;
-    if ( map_table_packet_in.Dispatch_en ) begin                                // no dispatch hazard
+    if ( map_table_packet_in.dispatch_en ) begin                                // no dispatch hazard
       next_backup_map_table[map_table_packet_in.ROB_tail_idx] = next_map_table; // backup the map
       for (int i=0; i<32;i++) begin
         next_backup_map_table[map_table_packet_in.ROB_tail_idx][i].ready = `TRUE;   // ready all the bit

@@ -1,20 +1,29 @@
 `timescale 1ns/100ps
 
 module RS (
-  input  logic                               clock, reset, en, complete_en, dispatch_en, rollback_en,
-  input  DECODER_PACKET_OUT                  decoder_packet_out,
-  input  RS_PACKET_IN                        rs_packet_in,
+  input  logic                                     clock, reset, en, complete_en, dispatch_en, rollback_en,
+  input  DECODER_PACKET_OUT                        decoder_packet_out,
+  input  logic              [$clog2(`NUM_PR)-1:0]  T_idx,            // Dest idx
+  input  logic              [$clog2(`NUM_FL)-1:0]  FL_idx,
+  input  logic              [$clog2(`NUM_ROB)-1:0] ROB_idx,
+  input  logic              [$clog2(`NUM_ROB)-1:0] ROB_tail_idx,     // FU done
+  input  T_t                                       T1,               // T1
+  input  T_t                                       T2,               // T2
+  input  logic              [$clog2(`NUM_PR)-1:0]  CDB_T_idx,        // CDB tag
+  input  logic              [`NUM_FU-1:0]          fu_valid,         // FU done
+  input  logic              [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx, // FU done
+  input  logic              [$clog2(`NUM_ROB)-1:0] diff_ROB,
 `ifndef SYNTH_TEST
-  output RS_ENTRY_t    [`NUM_FU-1:0]         RS_out,
-  output logic         [`NUM_FU-1:0]         RS_match_hit,   // If a RS entry is ready
-  output logic         [$clog2(`NUM_FU)-1:0] RS_match_idx,
+  output RS_ENTRY_t         [`NUM_FU-1:0]          RS_out,
+  output logic              [`NUM_FU-1:0]          RS_match_hit,   // If a RS entry is ready
+  output logic              [$clog2(`NUM_FU)-1:0]  RS_match_idx,
 `ifdef RS_FORWARDING
-  output logic                               FU_forward_hit, // If a RS entry is ready
-  output logic         [$clog2(`NUM_FU)-1:0] FU_forward_idx, // If a RS entry is ready
+  output logic                                     FU_forward_hit, // If a RS entry is ready
+  output logic              [$clog2(`NUM_FU)-1:0]  FU_forward_idx, // If a RS entry is ready
 `endif
 `endif
-  output RS_PACKET_OUT                       rs_packet_out,
-  output logic                               RS_valid
+  output RS_PACKET_OUT                             rs_packet_out,
+  output logic                                     RS_valid
 );
 
   RS_ENTRY_t [`NUM_FU-1:0]                       RS, next_RS;

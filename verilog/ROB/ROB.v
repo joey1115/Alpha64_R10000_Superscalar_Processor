@@ -12,7 +12,8 @@ module ROB (
   input logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input logic rollback_en,
   // complete function
-  input ROB_PACKET_COMPLETE_IN rob_packet_complete_in,
+  input logic complete_en,
+  input logic [$clog2(`NUM_ROB)-1:0] complete_ROB_idx,
   //Outputs
 `ifndef SYNTH_TEST
   output ROB_t rob,
@@ -20,10 +21,10 @@ module ROB (
   output logic ROB_valid,
   output logic retire_en,
   output logic halt_out,
-  output ROB_PACKET_RS_OUT rob_packet_rs_out,
-  output ROB_PACKET_MAPTABLE_OUT rob_packet_maptable_out,
-  output ROB_PACKET_FREELIST_OUT rob_packet_freelist_out,
-  output ROB_PACKET_ARCHMAP_OUT rob_packet_archmap_out
+  // output ROB_PACKET_RS_OUT rob_packet_rs_out,
+  // output ROB_PACKET_MAPTABLE_OUT rob_packet_maptable_out,
+  // output ROB_PACKET_FREELIST_OUT rob_packet_freelist_out,
+  output ROB_PACKET_OUT rob_packet_out
 );
 
 `ifdef SYNTH_TEST
@@ -45,11 +46,11 @@ module ROB (
   assign ROB_valid = (stall_dispatch)? 0 : !Nrob.entry[Nrob.tail].valid;
 
   //T_old index to freelist
-  assign rob_packet_freelist_out.T_old_idx_head = rob.entry[rob.head].T_old;
+  assign rob_packet_out.Told_idx = rob.entry[rob.head].T_old;
 
  //retire archmap signal
-  assign rob_packet_archmap_out.dest_idx = rob.entry[rob.head].dest_idx;
-  assign rob_packet_archmap_out.T_idx = rob.entry[rob.head].T;
+  assign rob_packet_out.dest_idx = rob.entry[rob.head].dest_idx;
+  assign rob_packet_out.T_idx = rob.entry[rob.head].T;
 
   //assign halt out
   assign halt_out = retire_en & rob.entry[rob.head].halt;
@@ -82,8 +83,8 @@ module ROB (
      Nrob = rob;
 
     //complete stage
-    if(rob_packet_complete_in.complete_en) begin
-      Nrob.entry[rob_packet_complete_in.complete_ROB_idx].complete = 1;
+    if(complete_en) begin
+      Nrob.entry[complete_ROB_idx].complete = 1;
     end
     
     //Next state logic
