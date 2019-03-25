@@ -13,16 +13,7 @@
 `endif
 
 typedef struct packed {
-  logic                        done;
-  logic [63:0]                 result;
-  logic [4:0]                  dest_idx;
-  logic [$clog2(`NUM_PR)-1:0]  T_idx;   // Dest idx
-  logic [$clog2(`NUM_ROB)-1:0] ROB_idx; // Dest idx
-  logic [$clog2(`NUM_FL)-1:0]  FL_idx;  // Dest idx
-} FU_RESULT_ENTRY_t;
-
-typedef struct packed {
-  FU_RESULT_ENTRY_t [`NUM_FU-1:0] FU_result;
+  FU_OUT_t [`NUM_FU-1:0] FU_result;
 } FU_CDB_OUT_t;
 
 typedef struct packed {
@@ -54,6 +45,15 @@ typedef struct packed {
   logic                                 uncond_branch;
   logic                                 cond_branch;
 } FU_IN_t;
+
+typedef struct packed {
+  logic                        done;
+  logic [63:0]                 result;
+  logic [4:0]                  dest_idx;
+  logic [$clog2(`NUM_PR)-1:0]  T_idx;   // Dest idx
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx; // Dest idx
+  logic [$clog2(`NUM_FL)-1:0]  FL_idx;  // Dest idx
+} FU_OUT_t;
 
 `define FU_PACKET_IN_RESET '{ \
   `FALSE,                     \

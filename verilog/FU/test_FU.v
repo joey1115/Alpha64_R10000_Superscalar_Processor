@@ -15,7 +15,7 @@
 module test_FU;
   logic clock, reset, CDB_valid;
   FU_IN_t    fu_packet_in;
-  FU_RESULT_ENTRY_t FU_out;
+  FU_OUT_t FU_out;
   logic FU_valid, rollback_en;
   logic [(64*`NUM_MULT_STAGE)-1:0] cres;
   logic [($clog2(`NUM_PR)*`NUM_MULT_STAGE)-1:0] T_idx;

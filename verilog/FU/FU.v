@@ -1,11 +1,11 @@
 module alu (
   input  logic                        clock, reset,
-  input  FU_IN_t               FU_in,
+  input  FU_IN_t                      FU_in,
   input  logic                        CDB_valid,
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  output FU_RESULT_ENTRY_t            FU_out,
+  output FU_OUT_t                     FU_out,
   output logic                        FU_valid
 );
 
@@ -37,23 +37,23 @@ module alu (
 
   always_comb begin
     case (FU_in.func)
-      ALU_ADDQ:     FU_out.result = regA + regB;
-      ALU_SUBQ:     FU_out.result = regA - regB;
-      ALU_AND:      FU_out.result = regA & regB;
-      ALU_BIC:      FU_out.result = regA & ~regB;
-      ALU_BIS:      FU_out.result = regA | regB;
-      ALU_ORNOT:    FU_out.result = regA | ~regB;
-      ALU_XOR:      FU_out.result = regA ^ regB;
-      ALU_EQV:      FU_out.result = regA ^ ~regB;
-      ALU_SRL:      FU_out.result = regA >> regB[5:0];
-      ALU_SLL:      FU_out.result = regA << regB[5:0];
-      ALU_SRA:      FU_out.result = (regA >> regB[5:0]) | ({64{regA[63]}} << (64 - regB[5:0])); // arithmetic from logical shift
-      ALU_CMPULT:   FU_out.result = { 63'd0, (regA < regB) };
-      ALU_CMPEQ:    FU_out.result = { 63'd0, (regA == regB) };
-      ALU_CMPULE:   FU_out.result = { 63'd0, (regA <= regB) };
-      ALU_CMPLT:    FU_out.result = { 63'd0, signed_lt(regA, regB) };
-      ALU_CMPLE:    FU_out.result = { 63'd0, (signed_lt(regA, regB) || (regA == regB)) };
-      default:      FU_out.result = 64'hdeadbeefbaadbeef;  // here only to force
+      ALU_ADDQ:   FU_out.result = regA + regB;
+      ALU_SUBQ:   FU_out.result = regA - regB;
+      ALU_AND:    FU_out.result = regA & regB;
+      ALU_BIC:    FU_out.result = regA & ~regB;
+      ALU_BIS:    FU_out.result = regA | regB;
+      ALU_ORNOT:  FU_out.result = regA | ~regB;
+      ALU_XOR:    FU_out.result = regA ^ regB;
+      ALU_EQV:    FU_out.result = regA ^ ~regB;
+      ALU_SRL:    FU_out.result = regA >> regB[5:0];
+      ALU_SLL:    FU_out.result = regA << regB[5:0];
+      ALU_SRA:    FU_out.result = (regA >> regB[5:0]) | ({64{regA[63]}} << (64 - regB[5:0])); // arithmetic from logical shift
+      ALU_CMPULT: FU_out.result = { 63'd0, (regA < regB) };
+      ALU_CMPEQ:  FU_out.result = { 63'd0, (regA == regB) };
+      ALU_CMPULE: FU_out.result = { 63'd0, (regA <= regB) };
+      ALU_CMPLT:  FU_out.result = { 63'd0, signed_lt(regA, regB) };
+      ALU_CMPLE:  FU_out.result = { 63'd0, (signed_lt(regA, regB) || (regA == regB)) };
+      default:    FU_out.result = 64'hdeadbeefbaadbeef;  // here only to force
     endcase
     FU_out.dest_idx = FU_in.dest_idx;
     FU_out.T_idx    = FU_in.T_idx;
@@ -241,7 +241,7 @@ module mult (
   output logic             [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx,
   output logic             [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx,
 `endif
-  output FU_RESULT_ENTRY_t                                              FU_out,
+  output FU_OUT_t                                              FU_out,
   output logic                                                          FU_valid
 );
 
@@ -316,7 +316,7 @@ module br(
   input  logic             clock, reset,
   input  FU_IN_t    FU_in,
   input  logic             CDB_valid,
-  output FU_RESULT_ENTRY_t FU_out,
+  output FU_OUT_t FU_out,
   output                   FU_valid,
   output logic             take_branch
 );
@@ -383,7 +383,7 @@ module ld (
   // output logic             [1:0]                  proc2Dmem_command,
   // output logic             [63:0]                 proc2Dmem_addr,      // Address sent to data-memory
   // output logic             [63:0]                 proc2Dmem_data      // Data sent to data-memory
-  output FU_RESULT_ENTRY_t                        FU_out,
+  output FU_OUT_t                        FU_out,
   output logic                                    FU_valid
 );
 
@@ -424,7 +424,7 @@ module st (
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  output FU_RESULT_ENTRY_t            FU_out,
+  output FU_OUT_t            FU_out,
   output logic                        FU_valid
 );
 
@@ -475,7 +475,7 @@ module FU (
   output FU_FL_OUT_t                                                                 FU_FL_out
 );
 
-  FU_RESULT_ENTRY_t [`NUM_FU-1:0]          FU_result;
+  FU_OUT_t [`NUM_FU-1:0]          FU_result;
   FU_IN_t    [`NUM_FU-1:0]          FU_in;
   logic             [`NUM_BR-1:0]          take_branch;
   logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
