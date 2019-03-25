@@ -59,13 +59,13 @@ module CDB (
     // and give CDB_valid to FU, CDB_valid=1 means the entry is free
     for (int i=0; i<`NUM_FU; i++) begin
       CDB_valid[i] = !next_CDB[i].taken;
-      if (!(next_CDB[i].taken) && FU_CDB_out.FU_out[i].done) begin
+      if (!(CDB[i].taken) && FU_CDB_out.FU_out[i].done) begin
         next_CDB[i].taken    = `TRUE;
         next_CDB[i].T_idx    = FU_CDB_out.FU_out[i].T_idx;
         next_CDB[i].ROB_idx  = FU_CDB_out.FU_out[i].ROB_idx;
         next_CDB[i].dest_idx = FU_CDB_out.FU_out[i].dest_idx;
         next_CDB[i].T_value  = FU_CDB_out.FU_out[i].result;
-        CDB_packet_out.CDB_valid[i] = `FALSE;
+        CDB_valid[i] = `FALSE;
       end
     end
     // rollback
