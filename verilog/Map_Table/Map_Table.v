@@ -57,7 +57,7 @@ module Map_Table (
     next_map_table = map_table;
     // Rollback
     if (rollback_en) begin
-      next_map_table = backup_map_table[map_table_packet_in.ROB_rollback_idx];
+      next_map_table = backup_map_table[ROB_rollback_idx];
     end
     // if (map_table_packet_in.rollback_en) begin
     //   for (logic [$clog2(`NUM_ROB)-1:0] i = ROB_idx; i != ROB_rollback_idx; i--) begin
