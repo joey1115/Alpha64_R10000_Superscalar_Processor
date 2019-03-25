@@ -23,7 +23,7 @@ typedef struct packed {
 
 typedef struct packed {
   FU_RESULT_ENTRY_t [`NUM_FU-1:0] fu_result;
-} FU_M_PACKET_OUT;
+} FU_CDB_OUT_t;
 
 typedef struct packed {
   logic                                 ready;    // If an entry is ready

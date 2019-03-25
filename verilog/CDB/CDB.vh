@@ -20,7 +20,7 @@ typedef struct packed {
 } CDB_entry_t;
 
 typedef struct packed {
-  logic                        FU_done;
+  logic                        done;
   logic [63:0]                 FU_result;
   logic [4:0]                  dest_idx;
   logic [$clog2(`NUM_PR)-1:0]  T_idx;   // Dest idx

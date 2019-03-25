@@ -442,8 +442,8 @@ endmodule
 module FU (
   input  logic                                                                       clock,               // system clock
   input  logic                                                                       reset,               // system reset
-  input  FU_M_PACKET_IN                                                              fu_m_packet_in,
-  input  logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_tail_idx,
+  input  RS_FU_OUT_t                                                                 RS_FU_out,
+  input  logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_idx,
   input  logic           [`NUM_FU-1:0]                                               CDB_valid,
 `ifndef SYNTH_TEST
   output logic           [`NUM_MULT-1:0]                                             last_done,
@@ -463,23 +463,26 @@ module FU (
   output logic           [`NUM_MULT-1:0][($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx,
   output logic           [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx,
 `endif
-  output FU_M_PACKET_OUT                                                             fu_m_packet_out,
+  output FU_CDB_OUT_t                                                                FU_CDB_out,
   output logic           [`NUM_FU-1:0]                                               fu_valid,
   output logic                                                                       rollback_en,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_rollback_idx,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      diff_ROB
 );
 
-  FU_PACKET_IN_t [`NUM_FU-1:0]          fu_packet_in;
-  logic          [`NUM_BR-1:0]          take_branch;
-  logic          [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
-  logic          [$clog2(`NUM_ROB)-1:0] diff_ROB;
+  FU_RESULT_ENTRY_t [`NUM_FU-1:0]          fu_result;
+  FU_PACKET_IN_t    [`NUM_FU-1:0]          fu_packet_in;
+  logic             [`NUM_BR-1:0]          take_branch;
+  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
+  logic             [$clog2(`NUM_ROB)-1:0] diff_ROB;
+
+  assign FU_CDB_out = '{fu_result};
 
   assign fu_rollback_packet_out.ROB_rollback_idx = ROB_rollback_idx;
   assign fu_rollback_packet_out.diff_ROB         = diff_ROB;
   assign rollback_en                             = take_branch[0];
-  assign ROB_rollback_idx                        = fu_m_packet_out.fu_result[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
-  assign diff_ROB                                = ROB_tail_idx - ROB_rollback_idx;
+  assign ROB_rollback_idx                        = fu_result[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
+  assign diff_ROB                                = ROB_idx - ROB_rollback_idx;
 
   // always_comb begin
   //   for (int i = 0; i < `NUM_FU; i++) begin
@@ -509,7 +512,7 @@ module FU (
     .ROB_rollback_idx({`NUM_MULT{ROB_rollback_idx}}),
     .diff_ROB({`NUM_MULT{diff_ROB}}),
     // Output
-    .fu_packet_out(fu_m_packet_out.fu_result[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
+    .fu_packet_out(fu_result[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     .fu_valid(fu_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)])
   );
 
@@ -541,7 +544,7 @@ module FU (
     .internal_ROB_idx(internal_ROB_idx),
     .internal_FL_idx(internal_FL_idx),
 `endif
-    .fu_packet_out(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .fu_packet_out(fu_result[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
   );
 
@@ -552,7 +555,7 @@ module FU (
     .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     // Output
-    .fu_packet_out(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
+    .fu_packet_out(fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     .take_branch(take_branch[`NUM_BR-1:0])
   );
@@ -561,7 +564,7 @@ module FU (
   //   // Inputs
   //   .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
   //   // Output
-  //   .result(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
+  //   .result(fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
   //   .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)])
   // );
 
@@ -569,7 +572,7 @@ module FU (
   //   // Inputs
   //   .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
   //   // Output
-  //   .result(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
+  //   .result(fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
   //   .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)])
   // );
 

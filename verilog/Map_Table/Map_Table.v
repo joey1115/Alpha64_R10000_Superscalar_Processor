@@ -58,7 +58,7 @@ module Map_Table (
       next_map_table = backup_map_table[map_table_packet_in.ROB_rollback_idx];
     end
     // if (map_table_packet_in.rollback_en) begin
-    //   for (logic [$clog2(`NUM_ROB)-1:0] i = ROB_tail_idx; i != ROB_rollback_idx; i--) begin
+    //   for (logic [$clog2(`NUM_ROB)-1:0] i = ROB_idx; i != ROB_rollback_idx; i--) begin
     //     next_map_table[dest_idx[i]] = {Told_idx[i], `TRUE};
     //   end
     //   for (logic [$clog2(`NUM_ROB)-1:0] i = ROB_head_idx; i != ROB_rollback_idx - 1; i++) begin
@@ -88,9 +88,9 @@ module Map_Table (
   always_comb begin
     next_backup_map_table = backup_map_table;
     if ( dispatch_en ) begin                                // no dispatch hazard
-      next_backup_map_table[map_table_packet_in.ROB_tail_idx] = next_map_table; // backup the map
+      next_backup_map_table[map_table_packet_in.ROB_idx] = next_map_table; // backup the map
       for (int i=0; i<32;i++) begin
-        next_backup_map_table[map_table_packet_in.ROB_tail_idx][i].ready = `TRUE;   // ready all the bit
+        next_backup_map_table[map_table_packet_in.ROB_idx][i].ready = `TRUE;   // ready all the bit
       end
     end
   end

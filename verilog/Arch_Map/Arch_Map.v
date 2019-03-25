@@ -3,11 +3,12 @@
 `timescale 1ns/100ps
 
 module Arch_Map (
-  input  logic                       en, clock, reset,
-  input  logic                       retire_en,    // retire signal from ROB
-  input  logic [4:0]                 dest_idx;     // dest_idx from ROB
-  input  logic [$clog2(`NUM_PR)-1:0] T_idx;        // T from ROB
-`ifndef SYNTH_TEST
+  input  logic                     en, clock, reset,
+  input  logic                     retire_en,    // retire signal from ROB
+`ifdef SYNTH_TEST
+  input  ROB_ARCH_MAP_OUT_t        ROB_Arch_Map_out
+`else
+  input  ROB_ARCH_MAP_OUT_t        ROB_Arch_Map_out,
   output ARCH_MAP_t         [31:0] next_arch_map
 `endif
 );
@@ -20,7 +21,7 @@ module Arch_Map (
   always_comb begin
     next_arch_map = arch_map;
     if (retire_en) begin
-      next_arch_map[dest_idx].T_idx = T_idx;
+      next_arch_map[ROB_Arch_Map_out.dest_idx].T_idx = ROB_Arch_Map_out.T_idx;
     end // if(rob_archmap_packet.retire_en && en)
   end // always
 

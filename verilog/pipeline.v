@@ -33,10 +33,10 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .retire_en(retire_en),
-    .dest_idx(rob_packet_out.dest_idx),
-    .T_idx(rob_packet_out.T_idx),
-    .arch_map_packet_in(arch_map_packet_in),
-`ifndef SYNTH_TEST
+`ifdef SYNTH_TEST
+    .ROB_Arch_Map_out(ROB_Arch_Map_out)
+`else
+    .ROB_Arch_Map_out(ROB_Arch_Map_out),
     .next_arch_map(next_arch_map)
 `endif
   );
@@ -48,13 +48,13 @@ module pipeline (
     .rollback_en(rollback_en),        // rollback_en from X/C
     .ROB_rollback_idx(ROB_rollback_idx),   // ROB# of mispredicted branch/incorrect load from br module/LSQ
     .diff_ROB(diff_ROB),           // diff_ROB = ROB_tail of the current cycle - ROB_rollback_idx
-    .FU_result(fu_m_packet_out.fu_result),          // result from FU
-    .cdb_packet_out(cdb_packet_out)
+    .FU_CDB_out(FU_CDB_out)          // result from FU
   );
 
   decoder decoder_0 (
     .decoder_packet_in(decoder_packet_in),
-    .decoder_packet_out(decoder_packet_out)
+    .decoder_RS_out(decoder_RS_out),
+    .decoder_FL_out(decoder_FL_out)
   );
 
   FL fl_0 (
@@ -63,8 +63,8 @@ module pipeline (
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .retire_en(retire_en),
-    .dest_idx(decoder_packet_out.dest_idx),
-    .Told_idx(rob_packet_out.Told_idx),
+    .decoder_FL_out(decoder_FL_out),
+    .ROB_FL_out(ROB_FL_out),
     .FL_rollback_idx(FL_rollback_idx),
 `ifndef SYNTH_TEST
     .FL_table(FL_table),
@@ -76,13 +76,13 @@ module pipeline (
 `endif
     .FL_valid(FL_valid),
     // .T_idx(T_idx),
-    .fl_packet_out(fl_packet_out)
+    // .fl_packet_out(fl_packet_out)
   );
 
   FU fu_0 (
     .clock(clock),
     .reset(reset),
-    .fu_packet(rs_packet_out.fu_packet),
+    .RS_FU_out(RS_FU_out),
     .CDB_valid(CDB_valid),
 `ifndef SYNTH_TEST
     .last_done(last_done),
@@ -102,7 +102,7 @@ module pipeline (
     .internal_ROB_idx(internal_ROB_idx),
     .internal_FL_idx(internal_FL_idx),
 `endif
-    .fu_m_packet_out(fu_m_packet_out),
+    .FU_CDB_out(FU_CDB_out),
     .fu_valid(fu_valid),
     .rollback_en(rollback_en),
     .fu_rollback_packet_out(fu_rollback_packet_out)
@@ -131,8 +131,8 @@ module pipeline (
     .write_en(write_en),
     .T_idx(CDB_packet_out.T_idx),
     .T_value(CDB_packet_out.T_value),
-    .T1_idx(fu_m_packet_out.T1_idx),
-    .T2_idx(fu_m_packet_out.T2_idx),
+    .T1_idx(FU_CDB_out.T1_idx),
+    .T2_idx(FU_CDB_out.T2_idx),
 `ifndef SYNTH_TEST
     .pr_data(pr_data),
 `endif
@@ -166,9 +166,9 @@ module pipeline (
     .reset(reset),
     .en(en),
     .fu_valid(fu_valid),
-    .decoder_rs_out(decoder_rs_out),
-    .fl_rs_out(fl_rs_out),
-    .rob_rs_out(rob_rs_out),
+    .decoder_RS_out(decoder_RS_out),
+    .FL_RS_out(FL_RS_out),
+    .ROB_RS_out(ROB_RS_out),
     .map_table_rs_out(map_table_rs_out),
     .CDB_RS_out(CDB_RS_out),
     .ROB_rollback_idx(ROB_rollback_idx),
@@ -182,7 +182,7 @@ module pipeline (
     .FU_forward_idx(FU_forward_idx), // If a RS entry is ready
 `endif
 `endif
-    .rs_packet_out(rs_packet_out),
+    .RS_FU_out(RS_FU_out),
     .RS_valid(RS_valid)
   );
 

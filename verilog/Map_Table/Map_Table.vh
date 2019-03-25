@@ -89,7 +89,7 @@ typedef struct packed {
   logic [4:0]                   CDB_dest_idx;     // broadcast from CDB
   logic                         CDB_en;           // CDB enable
   logic [$clog2(`NUM_ROB)-1:0]  ROB_rollback_idx;
-  logic [$clog2(`NUM_ROB)-1:0]  ROB_tail_idx;
+  logic [$clog2(`NUM_ROB)-1:0]  ROB_idx;
 } MAP_TABLE_PACKET_IN;
 
 typedef struct packed {

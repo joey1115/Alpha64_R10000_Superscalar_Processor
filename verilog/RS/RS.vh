@@ -71,9 +71,8 @@ typedef struct packed {
 } FU_PACKET_t;
 
 typedef struct packed {
-  FU_PACKET_t [`NUM_FU-1:0] fu_packet; // List of output fu
-  logic                     RS_valid;
-} RS_PACKET_OUT;
+  FU_PACKET_t [`NUM_FU-1:0] FU_packet; // List of output fu
+} RS_FU_OUT_t;
 
 `define FU_PACKET_ENTRY_RESET '{ \
   `FALSE,                        \

@@ -55,16 +55,23 @@ typedef struct packed {
 //   logic [$clog2(`NUM_PR)-1:0] T_idx_head;            // T_idx at head to retire to archmap
 // } ROB_PACKET_ARCHMAP_OUT;
 
-typedef struct packed {
-  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;          // ROB tail index for rollback Freelist
-  logic [$clog2(`NUM_PR)-1:0]  Told_idx;         // PR index to free
-  logic [$clog2(`NUM_PR)-1:0]  T_idx;            // T_idx at head to retire to archmap
-  logic [4:0]                  dest_idx;            // T_idx at head to retire to archmap
-} ROB_PACKET_OUT;
+// typedef struct packed {
+//   logic [$clog2(`NUM_ROB)-1:0] ROB_idx;          // ROB tail index for rollback Freelist
+//   logic [$clog2(`NUM_PR)-1:0]  Told_idx;         // PR index to free
+// } ROB_PACKET_OUT;
 
 typedef struct packed {
   logic [$clog2(`NUM_ROB)-1:0] ROB_idx;          // ROB tail index for rollback Freelist
 } ROB_RS_OUT_t;
+
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] T_idx;            // T_idx at head to retire to archmap
+  logic [4:0]                 dest_idx;            // T_idx at head to retire to archmap
+} ROB_ARCH_MAP_OUT_t;
+
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] Told_idx;            // T_idx at head to retire to archmap
+} ROB_FL_OUT_t;
 
 `endif
 

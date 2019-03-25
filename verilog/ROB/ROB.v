@@ -2,30 +2,32 @@
 
 module ROB (
   //inputs
-  input en, clock, reset,
-  input logic dispatch_en,
-  input logic halt,
-  input logic [$clog2(`NUM_PR)-1:0] T_idx,
-  input logic [$clog2(`NUM_PR)-1:0] Told_idx,
-  input logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx,
+  input  logic                               en, clock, reset,
+  input  logic                               dispatch_en,
+  input  logic                               halt,
+  input  logic [$clog2(`NUM_PR)-1:0]         T_idx,
+  input  logic [$clog2(`NUM_PR)-1:0]         Told_idx,
+  input  logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx,
   // rollback function
-  input logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
-  input logic rollback_en,
+  input  logic [$clog2(`NUM_ROB)-1:0]        ROB_rollback_idx,
+  input  logic                               rollback_en,
   // complete function
-  input logic complete_en,
-  input logic [$clog2(`NUM_ROB)-1:0] complete_ROB_idx,
+  input  logic                               complete_en,
+  input  logic [$clog2(`NUM_ROB)-1:0]        complete_ROB_idx,
   //Outputs
 `ifndef SYNTH_TEST
-  output ROB_t rob,
+  output ROB_t                               rob,
 `endif
-  output logic ROB_valid,
-  output logic retire_en,
-  output logic halt_out,
+  output logic                               ROB_valid,
+  output logic                               retire_en,
+  output logic                               halt_out,
   // output ROB_PACKET_RS_OUT rob_packet_rs_out,
   // output ROB_PACKET_MAPTABLE_OUT rob_packet_maptable_out,
   // output ROB_PACKET_FREELIST_OUT rob_packet_freelist_out,
-  output ROB_PACKET_OUT rob_packet_out,
-  output ROB_RS_OUT_t   rob_rs_out
+  // output ROB_PACKET_OUT rob_packet_out,
+  output ROB_RS_OUT_t                        ROB_RS_out,
+  output ROB_ARCH_MAP_OUT_t                  ROB_Arch_Map_out
+  output ROB_FL_OUT_t                        ROB_FL_out
 );
 
 `ifdef SYNTH_TEST
@@ -40,7 +42,9 @@ module ROB (
 
   logic [1:0] state, Nstate;
 
-  assign rob_rs_out = '{ROB_tail_idx};
+  assign ROB_RS_out       = '{ROB_tail_idx};
+  assign ROB_Arch_Map_out = '{T_idx, dest_idx};
+  assign ROB_FL_out       = '{Told_idx};
 
   //assign ROB_valid
   assign stall_dispatch = (state == 1);

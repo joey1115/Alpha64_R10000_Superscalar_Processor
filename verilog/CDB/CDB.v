@@ -7,7 +7,7 @@
 *     Input: ROB_rollback_idx (br module, LSQ)
 *     Input: diff_ROB (FU)    // diff_ROB = ROB_tail of the current cycle - ROB_rollback idx
 *   Complete
-*     Input: FU_done   (X/C)  // valid signal from FU
+*     Input: done   (X/C)  // valid signal from FU
 *     Input: T_idx     (X/C)  // tag from FU
 *     Input: ROB_idx   (X/C)
 *     Input: FU_result (X/C)  // result from FU
@@ -26,7 +26,7 @@ module CDB (
   input  logic                                                rollback_en,        // rollback_en from X/C
   input  logic                         [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,   // ROB# of mispredicted branch/incorrect load from br module/LSQ
   input  logic                         [$clog2(`NUM_ROB)-1:0] diff_ROB,           // diff_ROB = ROB_tail of the current cycle - ROB_rollback_idx
-  input  FU_CDB_ENTRY_t                         [`NUM_FU-1:0] fu_result,          // done,T_idx,ROB_idx,dest_idx,result from FU
+  input  FU_CDB_OUT_t                           [`NUM_FU-1:0] FU_CDB_out,          // done,T_idx,ROB_idx,dest_idx,result from FU
 `ifndef SYNTH_TEST
   output CDB_entry_t    [`NUM_FU-1:0]                         CDB,
 `endif
@@ -61,12 +61,12 @@ module CDB (
     // and give CDB_valid to FU, CDB_valid=1 means the entry is free
     for (int i=0; i<`NUM_FU; i++) begin
       CDB_packet_out.CDB_valid[i] = !next_CDB[i].taken;
-      if (!(next_CDB[i].taken) && fu_result[i].FU_done) begin
+      if (!(next_CDB[i].taken) && FU_CDB_out.fu_result[i].done) begin
         next_CDB[i].taken    = 1;
-        next_CDB[i].T_idx    = fu_result[i].T_idx;
-        next_CDB[i].ROB_idx  = fu_result[i].ROB_idx;
-        next_CDB[i].dest_idx = fu_result[i].dest_idx;
-        next_CDB[i].T_value  = fu_result[i].FU_result;
+        next_CDB[i].T_idx    = FU_CDB_out.fu_result[i].T_idx;
+        next_CDB[i].ROB_idx  = FU_CDB_out.fu_result[i].ROB_idx;
+        next_CDB[i].dest_idx = FU_CDB_out.fu_result[i].dest_idx;
+        next_CDB[i].T_value  = FU_CDB_out.fu_result[i].FU_result;
         CDB_packet_out.CDB_valid[i] = 0;
       end
     end
@@ -96,10 +96,10 @@ module CDB (
         ROB_idx     = next_CDB[i].ROB_idx;
         // try filling this entry if X_C reg wants to write a new input here
         // (compare T_idx to prevent re-writing the entry with the same inst.)
-        if (fu_result[i].FU_done && fu_result[i].T_idx != next_CDB[i].T_idx) begin
-          next_CDB[i].T_idx    = fu_result[i].T_idx;
-          next_CDB[i].dest_idx = fu_result[i].dest_idx;
-          next_CDB[i].T_value  = fu_result[i].FU_result;
+        if (FU_CDB_out.fu_result[i].done && FU_CDB_out.fu_result[i].T_idx != next_CDB[i].T_idx) begin
+          next_CDB[i].T_idx    = FU_CDB_out.fu_result[i].T_idx;
+          next_CDB[i].dest_idx = FU_CDB_out.fu_result[i].dest_idx;
+          next_CDB[i].T_value  = FU_CDB_out.fu_result[i].FU_result;
         end else begin
           next_CDB[i].taken = 0;
           CDB_valid[i] = 1;

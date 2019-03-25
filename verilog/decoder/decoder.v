@@ -31,7 +31,8 @@
   //
 module decoder(
   input  F_D_PACKET         decoder_packet_in,
-  output DECODER_RS_OUT_t   decoder_rs_out
+  output DECODER_RS_OUT_t   decoder_RS_out,
+  output DECODER_FL_OUT_t   decoder_FL_out
 );
 
   INST_t                inst;  // fetched instruction out
@@ -48,7 +49,8 @@ module decoder(
   FU_t                  FU;
   logic          [4:0]  func;
 
-  assign decoder_rs_out = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select};
+  assign decoder_RS_out = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select};
+  assign decoder_FL_out = '{dest_idx};
 
   always_comb begin
     inst          = decoder_packet_in.inst;
