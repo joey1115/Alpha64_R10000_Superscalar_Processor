@@ -18,7 +18,6 @@ module ROB (
   output logic                               retire_en,
   output logic                               halt_out,
   output logic [$clog2(`NUM_ROB)-1:0]        ROB_idx;
-  output ROB_RS_OUT_t                        ROB_RS_out,
   output ROB_ARCH_MAP_OUT_t                  ROB_Arch_Map_out
   output ROB_FL_OUT_t                        ROB_FL_out
 );
@@ -30,39 +29,21 @@ module ROB (
   ROB_t Nrob;
 
   logic writeTail, moveHead, mispredict, b_t, stall_dispatch;
-  logic [$clog2(`NUM_ROB)-1:0] real_tail_idx;
   logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg;
 
   logic [1:0] state, Nstate;
 
-  assign ROB_RS_out       = '{ROB_tail_idx};
-  assign ROB_Arch_Map_out = '{T_idx, dest_idx};
-  assign ROB_FL_out       = '{Told_idx};
-  assign ROB_idx =        = real_tail_idx;
+  assign ROB_Arch_Map_out = '{rob.entry[rob.head].T_idx, rob.entry[rob.head].dest_idx};
+  assign ROB_FL_out       = '{rob.entry[rob.head].Told_idx};
 
   //assign ROB_valid
   assign stall_dispatch = (state == 1);
   assign ROB_valid = (stall_dispatch)? 0 : !Nrob.entry[Nrob.tail].valid;
 
-  //T_old index to freelist
-  assign rob_packet_out.Told_idx = rob.entry[rob.head].T_old;
-
- //retire archmap signal
-  assign rob_packet_out.dest_idx = rob.entry[rob.head].dest_idx;
-  assign rob_packet_out.T_idx = rob.entry[rob.head].T;
-
   //assign halt out
   assign halt_out = retire_en & rob.entry[rob.head].halt;
 
-  always_comb begin
-    //outputs
-    real_tail_idx = Nrob.tail - 1;
-    
-    //tail index to RS and Freelist and maptable
-    rob_packet_rs_out.ROB_tail_idx = real_tail_idx;
-    rob_packet_freelist_out.ROB_tail_idx = real_tail_idx;
-    rob_packet_maptable_out.ROB_tail_idx = real_tail_idx;
-  end
+  assign ROB_idx = Nrob.tail - 1;
 
   always_comb begin
     retire_en = rob.entry[rob.head].complete;
@@ -89,8 +70,8 @@ module ROB (
     //Next state logic
     Nrob.tail = (writeTail) ? (rob.tail + 1) : Nrob.tail;
     Nrob.head = (moveHead) ? (rob.head + 1) : Nrob.head;
-    Nrob.entry[rob.tail].T = (writeTail) ? FL_ROB_out.T_idx : Nrob.entry[rob.tail].T;
-    Nrob.entry[rob.tail].T_old = (writeTail) ? Told_idx : Nrob.entry[rob.tail].T_old;
+    Nrob.entry[rob.tail].T_idx = (writeTail) ? FL_ROB_out.T_idx : Nrob.entry[rob.tail].T_idx;
+    Nrob.entry[rob.tail].Told_idx = (writeTail) ? Told_idx : Nrob.entry[rob.tail].Told_idx;
     Nrob.entry[rob.tail].dest_idx = (writeTail) ? decoder_ROB_out.dest_idx : Nrob.entry[rob.tail].dest_idx;
     Nrob.entry[rob.tail].halt = writeTail & decoder_ROB_out.halt;
 
@@ -155,8 +136,8 @@ module ROB (
          rob.entry[i].valid <= `SD 0;
          rob.entry[i].complete <= `SD 0;
          rob.entry[i].halt <= `SD 0;
-         rob.entry[i].T <= `SD 0;
-         rob.entry[i].T_old <= `SD 0;
+         rob.entry[i].T_idx <= `SD 0;
+         rob.entry[i].Told_idx <= `SD 0;
          rob.entry[i].dest_idx <= `SD 0;
       end
     end // if (reset) else

@@ -8,7 +8,6 @@ module RS (
   input  logic              [$clog2(`NUM_ROB)-1:0] ROB_idx, // FU done
   input  DECODER_RS_OUT_t                          decoder_RS_out,
   input  FL_RS_OUT_t                               FL_RS_out,
-  input  ROB_RS_OUT_t                              ROB_RS_out,
   input  MAP_TABLE_RS_OUT_t                        Map_Table_RS_out,
   input  CDB_RS_OUT_t                              CDB_RS_out,
 `ifndef SYNTH_TEST
