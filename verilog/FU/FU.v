@@ -428,16 +428,16 @@ module st (
   output logic                        FU_valid
 );
 
-assign FU_out = '{
-  `FALSE,
-  64'h0,
-  `ZERO_REG,
-  `ZERO_PR,
-  {`NUM_ROB{1'b0}},
-  {`NUM_FL{1'b0}}
-};
+  assign FU_out = '{
+    `FALSE,
+    64'h0,
+    `ZERO_REG,
+    `ZERO_PR,
+    {`NUM_ROB{1'b0}},
+    {`NUM_FL{1'b0}}
+  };
 
-assign FU_valid = `TRUE;
+  assign FU_valid = `TRUE;
 
 endmodule
 
