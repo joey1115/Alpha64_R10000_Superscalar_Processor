@@ -15,7 +15,7 @@
 *     Output: CDB_valid (FU)  // full entry means hazard(valid=0, entry is free)
 *     Output: complete_en (RS, ROB, Map table) 
 *     Output: write_en (PR)   // valid signal to PR
-*     Output: T_idx 	 (PR)   // tag to PR
+*     Output: T_idx    (PR)   // tag to PR
 *     Output: T_value  (PR)   // result to PR
 *     Output: dest_idx (Map table)
 *   Retire
@@ -31,6 +31,7 @@ module CDB (
   output CDB_entry_t         [`NUM_FU-1:0]          CDB,
 `endif
   output logic                                      write_en,
+  output logic                                      CDB_valid,
   output CDB_ROB_OUT_t                              CDB_ROB_out,
   output CDB_RS_OUT_t                               CDB_RS_out,
   output CDB_MAP_TABLE_OUT_t                        CDB_Map_Table_out,
@@ -42,8 +43,6 @@ module CDB (
 `endif
   CDB_entry_t [`NUM_FU-1:0]                       next_CDB;
   logic       [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
-  logic       [`NUM_FU-1:0]                       CDB_valid;     // valid=0, entry is free, to FU
-  logic                                           complete_en;   // RS, ROB, MapTable
   logic                    [$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
   logic                    [4:0]                  dest_idx;      // to map_table
   logic                    [63:0]                 T_value;       // result to PR
