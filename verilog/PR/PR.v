@@ -48,15 +48,15 @@ module PR (
   always_comb begin
     // Execution
     for (int i=0; i<`NUM_FU; i++) begin
-      if (write_en && (CDB_PR_out.T_idx == FU_PR_out.T1_idx[i]) && (CDB_PR_out.T_idx != `ZERO_PR)) begin
+      if (write_en && CDB_PR_out.T_idx == FU_PR_out.T1_idx[i]) begin
         PR_FU_out.T1_value[i] = CDB_PR_out.T_value;    // forwarding
       end else begin
-        PR_FU_out.T1_value[i] = pr[T1_idx[i]];
+        PR_FU_out.T1_value[i] = pr[FU_PR_out.T1_idx[i]];
       end
-      if (write_en && (CDB_PR_out.T_idx == FU_PR_out.T2_idx[i]) && (CDB_PR_out.T_idx != `ZERO_PR)) begin
+      if (write_en && CDB_PR_out.T_idx == FU_PR_out.T2_idx[i]) begin
         PR_FU_out.T2_value[i] = CDB_PR_out.T_value;    // forwarding
       end else begin
-        PR_FU_out.T2_value[i] = pr[T2_idx[i]];
+        PR_FU_out.T2_value[i] = pr[FU_PR_out.T2_idx[i]];
       end
     end // for
   end // always_comb
