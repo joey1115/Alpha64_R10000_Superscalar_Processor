@@ -2,10 +2,10 @@
 
 module RS (
   input  logic                                     clock, reset, en, complete_en, dispatch_en, rollback_en,
-  input  logic              [`NUM_FU-1:0]          FU_valid,         // FU done
-  input  logic              [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx, // FU done
+  input  logic              [`NUM_FU-1:0]          FU_valid,
+  input  logic              [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic              [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  input  logic              [$clog2(`NUM_ROB)-1:0] ROB_idx, // FU done
+  input  logic              [$clog2(`NUM_ROB)-1:0] ROB_idx,
   input  DECODER_RS_OUT_t                          decoder_RS_out,
   input  FL_RS_OUT_t                               FL_RS_out,
   input  MAP_TABLE_RS_OUT_t                        Map_Table_RS_out,
@@ -23,24 +23,24 @@ module RS (
   output RS_FU_OUT_t                               RS_FU_out
 );
 
-  FU_PACKET_t [`NUM_FU-1:0]                       FU_packet; // List of output fu
+  FU_PACKET_t [`NUM_FU-1:0]                       FU_packet;      // List of output fu
   RS_ENTRY_t  [`NUM_FU-1:0]                       RS, next_RS;
-  FU_t        [`NUM_FU-1:0]                       FU_list; // List of FU
-  logic       [`NUM_FU-1:0]                       T1_CDB;             // If T1 is complete
-  logic       [`NUM_FU-1:0]                       T2_CDB;             // If T2 is complete
-  logic       [`NUM_FU-1:0]                       T1_ready;           // If T1 is ready
-  logic       [`NUM_FU-1:0]                       T2_ready;           // If T2 is ready
-  logic       [`NUM_FU-1:0]                       RS_entry_ready;     // If a RS entry is ready
-  logic       [`NUM_FU-1:0]                       RS_entry_empty;     // If a RS entry is ready
-  logic       [`NUM_FU-1:0]                       RS_rollback;        // If a RS entry is ready
+  FU_t        [`NUM_FU-1:0]                       FU_list;        // List of FU
+  logic       [`NUM_FU-1:0]                       T1_CDB;         // If T1 is complete
+  logic       [`NUM_FU-1:0]                       T2_CDB;         // If T2 is complete
+  logic       [`NUM_FU-1:0]                       T1_ready;       // If T1 is ready
+  logic       [`NUM_FU-1:0]                       T2_ready;       // If T2 is ready
+  logic       [`NUM_FU-1:0]                       RS_entry_ready; // If a RS entry is ready
+  logic       [`NUM_FU-1:0]                       RS_entry_empty; // If a RS entry is ready
+  logic       [`NUM_FU-1:0]                       RS_rollback;    // If a RS entry is ready
   logic       [`NUM_FU-1:0]                       FU_entry_match;
   logic       [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
 `ifdef SYNTH_TEST
-  logic                                           RS_match_hit;       // If a RS entry is ready
+  logic                                           RS_match_hit;   // If a RS entry is ready
   logic       [$clog2(`NUM_FU)-1:0]               RS_match_idx;
 `ifdef RS_FORWARDING
-  logic                                           FU_forward_hit;     // If a RS entry is ready
-  logic       [$clog2(`NUM_FU)-1:0]               FU_forward_idx;     // If a RS entry is ready
+  logic                                           FU_forward_hit; // If a RS entry is ready
+  logic       [$clog2(`NUM_FU)-1:0]               FU_forward_idx; // If a RS entry is ready
 `endif
 `endif
 
