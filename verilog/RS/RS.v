@@ -14,10 +14,6 @@ module RS (
   output RS_ENTRY_t         [`NUM_FU-1:0]          RS_out,
   output logic              [`NUM_FU-1:0]          RS_match_hit,   // If a RS entry is ready
   output logic              [$clog2(`NUM_FU)-1:0]  RS_match_idx,
-`ifdef RS_FORWARDING
-  output logic                                     FU_forward_hit, // If a RS entry is ready
-  output logic              [$clog2(`NUM_FU)-1:0]  FU_forward_idx, // If a RS entry is ready
-`endif
 `endif
   output logic                                     RS_valid,
   output RS_FU_OUT_t                               RS_FU_out
@@ -38,10 +34,6 @@ module RS (
 `ifdef SYNTH_TEST
   logic                                           RS_match_hit;   // If a RS entry is ready
   logic       [$clog2(`NUM_FU)-1:0]               RS_match_idx;
-`ifdef RS_FORWARDING
-  logic                                           FU_forward_hit; // If a RS entry is ready
-  logic       [$clog2(`NUM_FU)-1:0]               FU_forward_idx; // If a RS entry is ready
-`endif
 `endif
 
   assign RS_FU_out = '{FU_packet};
@@ -49,25 +41,7 @@ module RS (
 `ifndef SYNTH_TEST
   assign RS_out = RS;
 `endif
-`ifndef RS_FORWARDING
   assign RS_valid   = RS_match_hit;
-`else
-  assign RS_valid   = RS_match_hit || FU_forward_hit;
-
-  always_comb begin
-    FU_forward_hit = `FALSE;
-    FU_forward_idx = {$clog2(`NUM_FU){1'b0}};
-    if ( Map_Table_RS_out.T1.ready && Map_Table_RS_out.T2.ready ) begin
-      for (int i = 0; i < `NUM_FU; i++) begin
-        if ( ( !RS_entry_ready[i] || RS[i].busy == `FALSE ) && FU_valid[i] && FU_entry_match[i] ) begin
-          FU_forward_hit = `TRUE;
-          FU_forward_idx = i;
-          break;
-        end
-      end
-    end
-  end
-`endif
 
   always_comb begin
     RS_match_hit =  `FALSE;
@@ -112,24 +86,6 @@ module RS (
       FU_packet[i].T1_idx        = RS[i].T1.idx;                         // Output T1_idx
       FU_packet[i].T2_idx        = RS[i].T2.idx;                         // Output T2_idx
     end
-`ifdef RS_FORWARDING
-    if ( FU_forward_hit && dispatch_en ) begin
-      FU_packet[FU_forward_idx].ready         = `TRUE;                        // Ready to issue
-      FU_packet[FU_forward_idx].ROB_idx       = ROB_idx;                      // op code
-      FU_packet[FU_forward_idx].inst          = decoder_RS_out.inst;          // inst
-      FU_packet[FU_forward_idx].func          = decoder_RS_out.func;          // op code
-      FU_packet[FU_forward_idx].NPC           = decoder_RS_out.NPC;           // op code
-      FU_packet[FU_forward_idx].dest_idx      = decoder_RS_out.dest_idx;      // op code
-      FU_packet[FU_forward_idx].opa_select    = decoder_RS_out.opa_select;    // Output T2_idx
-      FU_packet[FU_forward_idx].opb_select    = decoder_RS_out.opb_select;    // Output T2_idx
-      FU_packet[FU_forward_idx].uncond_branch = decoder_RS_out.uncond_branch; // Output T2_idx
-      FU_packet[FU_forward_idx].cond_branch   = decoder_RS_out.cond_branch;   // Output T2_idx
-      FU_packet[FU_forward_idx].FL_idx        = FL_RS_out.FL_idx;             // op code
-      FU_packet[FU_forward_idx].T_idx         = FL_RS_out.T_idx;              // Output T_idx
-      FU_packet[FU_forward_idx].T1_idx        = Map_Table_RS_out.T1.idx;      // Output T1_idx
-      FU_packet[FU_forward_idx].T2_idx        = Map_Table_RS_out.T2.idx;      // Output T2_idx
-    end
-`endif
   end
 
   always_comb begin
@@ -141,11 +97,7 @@ module RS (
         next_RS[i] = `RS_ENTRY_RESET; // Clear RS entry
       end // if ( RS[i].busy == `FALSE && dispatch_en ) begin
     end // for (int i = 0; i < `NUM_FU; i++) begin
-`ifdef RS_FORWARDING
-    if ( RS_match_hit && !FU_forward_hit && dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
-`else
     if ( RS_match_hit && dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
-`endif
       next_RS[RS_match_idx].busy          = `TRUE;                        // RS entry busy
       next_RS[RS_match_idx].ROB_idx       = ROB_idx;                      // op code
       next_RS[RS_match_idx].inst          = decoder_RS_out.inst;          // inst
@@ -166,7 +118,7 @@ module RS (
   always_ff @(posedge clock) begin
     FU_list <= `SD `FU_LIST;
     if(reset) begin
-      RS      <= `SD `RS_RESET;
+      RS <= `SD `RS_RESET;
     end else if(en) begin
       RS <= `SD next_RS;
     end // else if(en) begin

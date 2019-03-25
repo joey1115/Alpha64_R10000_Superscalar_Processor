@@ -201,10 +201,6 @@ module pipeline (
     .RS_out(RS_out),
     .RS_match_hit(RS_match_hit),   // If a RS entry is ready
     .RS_match_idx(RS_match_idx),
-`ifdef RS_FORWARDING
-    .FU_forward_hit(FU_forward_hit), // If a RS entry is ready
-    .FU_forward_idx(FU_forward_idx), // If a RS entry is ready
-`endif
 `endif
     .RS_valid(RS_valid),
     .RS_FU_out(RS_FU_out)
