@@ -186,6 +186,8 @@ module pipeline (
     .reset(reset),
     .en(en),
     .complete_en(complete_en),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
     .FU_valid(FU_valid),
     .ROB_rollback_idx(ROB_rollback_idx),
     .diff_ROB(diff_ROB),
