@@ -68,6 +68,8 @@ typedef struct packed {
   logic          [$clog2(`NUM_PR)-1:0]  T2_idx; // T2 idx
   ALU_OPA_SELECT                        T1_select;
   ALU_OPB_SELECT                        T2_select;
+  logic                                 uncond_branch;
+  logic                                 cond_branch;
 } FU_PACKET_t;
 
 typedef struct packed {
