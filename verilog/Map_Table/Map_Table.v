@@ -24,9 +24,9 @@
 
 module Map_Table (
   input  logic                en, clock, reset, dispatch_en, rollback_en,
-  input  logic [4:0]          dest_idx;          // reg from dispatch
-  input  logic [4:0]          rega_idx;
-  input  logic [4:0]          regb_idx;
+  input  logic [4:0]          dest_idx;             // reg from decoder
+  input  logic [4:0]          rega_idx;             // rega from decoder
+  input  logic [4:0]          regb_idx;             // regb from decoder
   input  MAP_TABLE_PACKET_IN  map_table_packet_in,
 `ifndef SYNTH_TEST
   output T_t [31:0]           map_table_out,
