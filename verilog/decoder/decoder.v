@@ -51,6 +51,7 @@ module decoder(
   FU_t                  FU;
   logic          [4:0]  func;
 
+  assign decoder_ROB_out       = '{halt, dest_idx};
   assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select};
   assign decoder_FL_out        = '{dest_idx};
   assign decoder_Map_Table_out = '{dest_idx, inst.r.rega_idx, inst.r.regb_idx};
