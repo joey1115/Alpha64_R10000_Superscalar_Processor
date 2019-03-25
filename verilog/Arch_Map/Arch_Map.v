@@ -4,9 +4,9 @@
 
 module Arch_Map (
   input  logic                       en, clock, reset,
-  input  logic                       retire_en,
-  input  logic [4:0]                 dest_idx;     // T from ROB
-  input  logic [$clog2(`NUM_PR)-1:0] T_idx;     // T from ROB
+  input  logic                       retire_en,    // retire signal from ROB
+  input  logic [4:0]                 dest_idx;     // dest_idx from ROB
+  input  logic [$clog2(`NUM_PR)-1:0] T_idx;        // T from ROB
 `ifndef SYNTH_TEST
   output ARCH_MAP_t         [31:0] next_arch_map
 `endif

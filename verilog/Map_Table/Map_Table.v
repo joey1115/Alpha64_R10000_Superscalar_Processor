@@ -52,7 +52,7 @@ module Map_Table (
   always_comb begin
     next_map_table = map_table;
     // Rollback
-    if (map_table_packet_in.rollback_en) begin
+    if (rollback_en) begin
       next_map_table = backup_map_table[map_table_packet_in.ROB_rollback_idx];
     end
     // if (map_table_packet_in.rollback_en) begin
@@ -77,7 +77,7 @@ module Map_Table (
       next_map_table[map_table_packet_in.CDB_dest_idx].ready = `TRUE;
     end
     // PR update T_idx
-    if ( map_table_packet_in.dispatch_en ) begin // no dispatch hazard
+    if ( dispatch_en ) begin // no dispatch hazard
       next_map_table[dest_idx] = '{map_table_packet_in.T_idx, `FALSE}; // renew maptable from freelist but not ready yet
       next_map_table[31].ready                     = `TRUE;                                // Force ZERO_REG to be rady
     end
@@ -85,7 +85,7 @@ module Map_Table (
 
   always_comb begin
     next_backup_map_table = backup_map_table;
-    if ( map_table_packet_in.dispatch_en ) begin                                // no dispatch hazard
+    if ( dispatch_en ) begin                                // no dispatch hazard
       next_backup_map_table[map_table_packet_in.ROB_tail_idx] = next_map_table; // backup the map
       for (int i=0; i<32;i++) begin
         next_backup_map_table[map_table_packet_in.ROB_tail_idx][i].ready = `TRUE;   // ready all the bit
