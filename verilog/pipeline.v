@@ -190,6 +190,7 @@ module pipeline (
     .ROB_idx(ROB_idx),
     .decoder_RS_out(decoder_RS_out),
     .FL_RS_out(FL_RS_out),
+    .ROB_RS_out(ROB_RS_out),
     .Map_Table_RS_out(Map_Table_RS_out),
     .CDB_RS_out(CDB_RS_out),
 `ifndef SYNTH_TEST
