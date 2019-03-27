@@ -85,7 +85,6 @@ module pipeline (
   logic       [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
   T_t         [31:0]                                                      map_table_out;
   logic       [`NUM_PR-1:0][63:0]                                         pr_data;
-  ROB_t                                                                   rob;
   RS_ENTRY_t  [`NUM_FU-1:0]                                               RS_out;
   logic       [`NUM_FU-1:0]                                               RS_match_hit;
   logic       [$clog2(`NUM_FU)-1:0]                                       RS_match_idx;
