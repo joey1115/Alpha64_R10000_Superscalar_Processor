@@ -13,7 +13,7 @@
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
 
-extern void print_header(string str);
+extern void print_open();
 extern void print_cycles();
 // extern void print_stage(string div, int inst, int npc, int valid_inst);
 extern void print_ROB_ht(int head, int tail);
@@ -232,7 +232,7 @@ module testbench;
     wb_fileno = $fopen("writeback.out");
 
     //Open header AFTER throwing the reset otherwise the reset state is displayed
-    // print_header("                                                                            D-MEM Bus &\n");
+    print_open();
     // print_header("Cycle:      IF      |     ID      |     EX      |     MEM     |     WB      Reg Result");
   end
 

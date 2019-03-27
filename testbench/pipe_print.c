@@ -14,12 +14,12 @@ static int cycle_count = 0;
 static FILE* ppfile = NULL;
 
 
-void print_header(char* str)
+void print_open()
 {
   if (ppfile == NULL)
     ppfile = fopen("pipeline.out", "w");
 
-  fprintf(ppfile, "%s", str);
+  fprintf(ppfile, "START!!\n");
 }
 
 void print_cycles()
