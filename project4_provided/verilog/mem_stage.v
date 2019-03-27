@@ -49,14 +49,14 @@ module mem_stage(
 	assign mem_stall_out =	(ex_mem_rd_mem & ((mem_waiting_tag!=Dmem2proc_tag) | (Dmem2proc_tag==0))) |
 							(ex_mem_wr_mem & (Dmem2proc_response==0));
 
-	wire write_enable =	ex_mem_rd_mem & 
+	wire write_en =	ex_mem_rd_mem & 
 						((mem_waiting_tag==0) | (mem_waiting_tag==Dmem2proc_tag));
 
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock)
 		if(reset)
 			mem_waiting_tag <= `SD 0;
-		else if(write_enable)
+		else if(write_en)
 			mem_waiting_tag <= `SD Dmem2proc_response;
 
 endmodule // module mem_stage

@@ -17,7 +17,7 @@ module test_Arch_Map;
   // DUT input stimulus
   logic en, clock, reset;
   ARCH_MAP_PACKET_IN arch_map_packet_in;
-  ARCH_MAP_t [31:0] next_arch_map;
+  logic [31:0] next_arch_map;
 
   // DUT output
   // ARCH_MAP_PACKET_OUT arch_map_packet_out;
@@ -32,7 +32,7 @@ module test_Arch_Map;
   );
 
   logic [31:0] cycle_count;
-  ARCH_MAP_t [31:0] test_result;
+  logic [31:0] test_result;
   ARCH_MAP_PACKET_IN [9:0] test;
   logic [$clog2(`NUM_ARCH_TABLE):0] check_signal;
 
@@ -51,9 +51,9 @@ module test_Arch_Map;
   end
 
   task check;
-    input ARCH_MAP_t [31:0] prior_output;     // output of prior test case
+    input logic [31:0] prior_output;     // output of prior test case
     input ARCH_MAP_PACKET_IN current_input;   // current test case
-    input ARCH_MAP_t [31:0] current_output;   // output of current test case
+    input logic [31:0] current_output;   // output of current test case
     if (current_input.r == 0) begin           // retire signal is 0, cannot change arch_map
       if (prior_output == current_output) begin
         $display("@@@Passed!!!!No retire signal!!!!");

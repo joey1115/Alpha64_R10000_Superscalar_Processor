@@ -33,21 +33,39 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .retire_en(retire_en),
-    .arch_map_packet_in(arch_map_packet_in),
-`ifndef SYNTH_TEST
+`ifdef SYNTH_TEST
+    .ROB_Arch_Map_out(ROB_Arch_Map_out)
+`else
+    .ROB_Arch_Map_out(ROB_Arch_Map_out),
     .next_arch_map(next_arch_map)
 `endif
   );
 
   CDB cdb_0 (
     .en(en),
-    .cdb_packet_in(cdb_packet_in),
-    .cdb_packet_out(cdb_packet_out)
+    .clock(clock),
+    .reset(reset),
+    .rollback_en(rollback_en),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
+    .FU_CDB_out(FU_CDB_out),
+`ifndef SYNTH_TEST
+    .CDB(CDB),
+`endif
+    .write_en(write_en),
+    .complete_en(complete_en),
+    .CDB_valid(CDB_valid),
+    .CDB_ROB_out(CDB_ROB_out),
+    .CDB_RS_out(CDB_RS_out),
+    .CDB_Map_Table_out(CDB_Map_Table_out),
+    .CDB_PR_out(CDB_PR_out)
   );
 
   decoder decoder_0 (
     .decoder_packet_in(decoder_packet_in),
-    .decoder_packet_out(decoder_packet_out)
+    .decoder_RS_out(decoder_RS_out),
+    .decoder_FL_out(decoder_FL_out),
+    .decoder_Map_Table_out(decoder_Map_Table_out)
   );
 
   FL fl_0 (
@@ -56,9 +74,9 @@ module pipeline (
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .retire_en(retire_en),
-    .dest_idx(decoder_packet_out.dest_idx),
-    .Told_idx(Told_idx),
     .FL_rollback_idx(FL_rollback_idx),
+    .decoder_FL_out(decoder_FL_out),
+    .ROB_FL_out(ROB_FL_out),
 `ifndef SYNTH_TEST
     .FL_table(FL_table),
     .next_FL_table(next_FL_table),
@@ -68,15 +86,18 @@ module pipeline (
     .next_tail(next_tail),
 `endif
     .FL_valid(FL_valid),
-    .T_idx(T_idx),
-    .FL_idx(FL_idx)
+    .FL_ROB_out(FL_ROB_out),
+    .FL_RS_out(FL_RS_out),
+    .FL_Map_Table_out(FL_Map_Table_out)
   );
 
   FU fu_0 (
     .clock(clock),
     .reset(reset),
-    .fu_m_packet_in(fu_m_packet_in),
+    .ROB_idx(ROB_idx),
     .CDB_valid(CDB_valid),
+    .RS_FU_out(RS_FU_out),
+    .PR_FU_out(PR_FU_out),
 `ifndef SYNTH_TEST
     .last_done(last_done),
     .product_out(product_out),
@@ -95,33 +116,45 @@ module pipeline (
     .internal_ROB_idx(internal_ROB_idx),
     .internal_FL_idx(internal_FL_idx),
 `endif
-    .fu_m_packet_out(fu_m_packet_out),
-    .fu_valid(fu_valid),
+    .FU_valid(FU_valid),
     .rollback_en(rollback_en),
     .ROB_rollback_idx(ROB_rollback_idx),
-    .diff_ROB(diff_ROB)
+    .FL_rollback_idx(FL_rollback_idx),
+    .diff_ROB(diff_ROB),
+    .FU_CDB_out(FU_CDB_out),
+    .FU_PR_out(FU_PR_out)
   );
 
   Map_Table map_table_0 (
     .en(en),
     .clock(clock),
     .reset(reset),
-    .map_table_packet_in(map_table_packet_in),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .complete_en(complete_en),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .ROB_idx(ROB_idx),
+    .decoder_Map_Table_out(decoder_Map_Table_out),
+    .FL_Map_Table_out(FL_Map_Table_out),
+    .CDB_Map_Table_out(CDB_Map_Table_out),
 `ifndef SYNTH_TEST
     .map_table_out(map_table_out),
 `endif
-    .map_table_packet_out(map_table_packet_out)
+    .Map_Table_ROB_out(Map_Table_ROB_out),
+    .Map_Table_RS_out(Map_Table_RS_out)
   );
 
   PR pr_0 (
     .en(en),
     .clock(clock),
     .reset(reset),
-    .pr_packet_in(pr_packet_in),
+    .write_en(write_en),
+    .CDB_PR_out(CDB_PR_out),
+    .FU_PR_out(FU_PR_out),
 `ifndef SYNTH_TEST
     .pr_data(pr_data),
 `endif
-    .pr_packet_out(pr_packet_out)
+    .PR_FU_out(PR_FU_out)
   );
 
   ROB rob_0 (
@@ -129,42 +162,48 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .dispatch_en(dispatch_en),
-    .halt(decoder_packet_out.halt),
-    .dest_idx(decoder_packet_out.dest_idx),
-    .T_idx(T_idx),
-    .Told_idx(Told_idx),
-    .ROB_rollback_idx(ROB_rollback_idx),
+    .complete_en(complete_en),
     .rollback_en(rollback_en),
-    .rob_packet_complete_in(rob_packet_complete_in),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .decoder_ROB_out(decoder_ROB_out),
+    .FL_ROB_out(FL_ROB_out),
+    .Map_Table_ROB_out(Map_Table_ROB_out),
+    .CDB_ROB_out(CDB_ROB_out),
 `ifndef SYNTH_TEST
     .rob(rob),
 `endif
     .ROB_valid(ROB_valid),
     .retire_en(retire_en),
     .halt_out(halt_out),
-    .rob_packet_rs_out(rob_packet_rs_out),
-    .rob_packet_maptable_out(rob_packet_maptable_out),
-    .rob_packet_freelist_out(rob_packet_freelist_out),
-    .rob_packet_archmap_out(rob_packet_archmap_out)
+    .ROB_idx(ROB_idx),
+    .ROB_RS_out(ROB_RS_out),
+    .ROB_Arch_Map_out(ROB_Arch_Map_out),
+    .ROB_FL_out(ROB_FL_out)
   );
 
   RS rs_0 (
     .clock(clock),
     .reset(reset),
     .en(en),
-    .decoder_packet_out(decoder_packet_out),
-    .rs_packet_in(rs_packet_in),
+    .complete_en(complete_en),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .FU_valid(FU_valid),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
+    .ROB_idx(ROB_idx),
+    .decoder_RS_out(decoder_RS_out),
+    .FL_RS_out(FL_RS_out),
+    .ROB_RS_out(ROB_RS_out),
+    .Map_Table_RS_out(Map_Table_RS_out),
+    .CDB_RS_out(CDB_RS_out),
 `ifndef SYNTH_TEST
     .RS_out(RS_out),
     .RS_match_hit(RS_match_hit),   // If a RS entry is ready
     .RS_match_idx(RS_match_idx),
-`ifdef RS_FORWARDING
-    .FU_forward_hit(FU_forward_hit), // If a RS entry is ready
-    .FU_forward_idx(FU_forward_idx), // If a RS entry is ready
 `endif
-`endif
-    .rs_packet_out(rs_packet_out),
-    .RS_valid(RS_valid)
+    .RS_valid(RS_valid),
+    .RS_FU_out(RS_FU_out)
   );
 
   //////////////////////////////////////////////////
@@ -180,63 +219,5 @@ module pipeline (
     end else if (f_d_enable) begin
       decoder_packet_in <= `SD f_d_packet_out;
     end // if (f_d_enable)
-  end // always
-  //////////////////////////////////////////////////
-  //                                              //
-  //            D/S Pipeline Register             //
-  //                                              //
-  //////////////////////////////////////////////////
-  assign s_x_enable = `TRUE; // always enabled
-  // synopsys sync_set_reset "reset"
-  always_ff @(posedge clock) begin
-    if (reset) begin
-      s_x_packet <= `SD `S_X_PACKET_RESET; 
-    end else if (s_x_enable) begin
-      s_x_packet <= `SD s_packet_out;
-    end // else: !if(reset)
-  end // always
-  //////////////////////////////////////////////////
-  //                                              //
-  //              S/X Pipeline Register           //
-  //                                              //
-  //////////////////////////////////////////////////
-  assign s_x_enable = `TRUE; // always enabled
-  // synopsys sync_set_reset "reset"
-  always_ff @(posedge clock) begin
-    if (reset) begin
-      s_x_packet <= `SD `S_X_PACKET_RESET; 
-    end else if (s_x_enable) begin
-      s_x_packet <= `SD s_packet_out;
-    end // else: !if(reset)
-  end // always
-  //////////////////////////////////////////////////
-  //                                              //
-  //           X/C Pipeline Register              //
-  //                                              //
-  //////////////////////////////////////////////////
-  assign x_c_enable = `TRUE;
-  // synopsys sync_set_reset "reset"
-  always_ff @(posedge clock) begin
-    if (reset) begin
-      x_c_packet <= `SD `X_C_PACKET_RESET;
-    end else if (x_c_enable) begin
-      // these are forwarded directly from ID/EX latches
-      x_c_packet <= `SD x_packet_out;
-    end // else: !if(reset)
-  end // always
-  //////////////////////////////////////////////////
-  //                                              //
-  //           C/R Pipeline Register              //
-  //                                              //
-  //////////////////////////////////////////////////
-  assign c_r_enable = `TRUE; // always enabled
-  // synopsys sync_set_reset "reset"
-  always_ff @(posedge clock) begin
-    if (reset) begin
-      c_r_packet <= `SD `C_R_PACKET_RESET;
-    end else if (c_r_enable) begin
-      // these are forwarded directly from EX/MEM latches
-      c_r_packet <= `SD c_packet_out;
-    end // else: !if(reset)
   end // always
 endmodule  // module verisimple

@@ -21,12 +21,15 @@
 `timescale 1ns/100ps
 
 module PR (
-  input  en, clock, reset,
-  input  PR_PACKET_IN  pr_packet_in,
+  input  logic                                            en, clock, reset,
+  input  logic                                            write_en;         // (complete) write enable  from CDB
+  input  CDB_PR_OUT_t                                     CDB_PR_out,
+  input  RS_PR_OUT_t                                      RS_PR_out,
+  input  FU_PR_OUT_t                                      FU_PR_out,
 `ifndef SYNTH_TEST
-  output logic [`NUM_PR-1:0] [63:0] pr_data,
+  output logic         [`NUM_PR-1:0][63:0]                pr_data,
 `endif
-  output PR_PACKET_OUT pr_packet_out
+  output PR_FU_OUT_t                                      PR_FU_out
 );
 
   logic [`NUM_PR-1:0] [63:0] pr, next_pr;
@@ -37,27 +40,26 @@ module PR (
 
   always_comb begin
     next_pr = pr;
-
     // Complete
-    if (en && pr_packet_in.write_en && pr_packet_in.T_idx != `ZERO_PR) begin
-      next_pr[pr_packet_in.T_idx] = pr_packet_in.T_value;
+    if (write_en && CDB_PR_out.T_idx != `ZERO_PR) begin
+      next_pr[T_idx] = CDB_PR_out.T_value;
     end
+  end
 
+  always_comb begin
     // Execution
     for (int i=0; i<`NUM_FU; i++) begin
-      if (en && pr_packet_in.write_en && (pr_packet_in.T_idx == pr_packet_in.T1_idx[i]) && (pr_packet_in.T_idx != `ZERO_PR)) begin
-        pr_packet_out.T1_value[i] = pr_packet_in.T_value;    // forwarding
+      if (write_en && CDB_PR_out.T_idx == RS_PR_out.FU_T_idx[i].T1_idx && CDB_PR_out.T_idx != `ZERO_PR) begin
+        PR_FU_out.T1_value[i] = CDB_PR_out.T_value;    // forwarding
       end else begin
-        pr_packet_out.T1_value[i] = next_pr[pr_packet_in.T1_idx[i]];
+        PR_FU_out.T1_value[i] = pr[RS_PR_out.FU_T_idx[i].T1_idx];
       end
-
-      if (en && pr_packet_in.write_en && (pr_packet_in.T_idx == pr_packet_in.T2_idx[i]) && (pr_packet_in.T_idx != `ZERO_PR)) begin
-        pr_packet_out.T2_value[i] = pr_packet_in.T_value;    // forwarding
+      if (write_en && CDB_PR_out.T_idx == RS_PR_out.FU_T_idx[i].T2_idx && CDB_PR_out.T_idx != `ZERO_PR) begin
+        PR_FU_out.T2_value[i] = CDB_PR_out.T_value;    // forwarding
       end else begin
-        pr_packet_out.T2_value[i] = next_pr[pr_packet_in.T2_idx[i]];
+        PR_FU_out.T2_value[i] = pr[RS_PR_out.FU_T_idx[i].T2_idx];
       end
     end // for
-
   end // always_comb
 
   always_ff @(posedge clock) begin

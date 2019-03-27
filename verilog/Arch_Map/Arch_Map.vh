@@ -10,15 +10,6 @@
 `include "../../sys_defs.vh"
 `endif
 
-// typedef struct packed {
-//   logic [$clog2(`NUM_PR)-1:0] Told_idx;  // Told from ROB
-//   logic [$clog2(`NUM_PR)-1:0] T_idx;     // T from ROB
-// } ARCH_MAP_PACKET_IN;
-
-typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] T_idx;           // PR index
-} ARCH_MAP_t;
-
 `define ARCH_MAP_RESET    '{            \
   {{($clog2(`NUM_PR)-5){1'b0}}, 5'h1f}, \
   {{($clog2(`NUM_PR)-5){1'b0}}, 5'h1e}, \

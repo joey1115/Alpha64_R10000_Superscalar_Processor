@@ -1,20 +1,21 @@
 module alu (
-  input  FU_PACKET_IN_t               fu_packet,
+  input  logic                        clock, reset,
+  input  FU_IN_t                      FU_in,
   input  logic                        CDB_valid,
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  output FU_RESULT_ENTRY_t            fu_packet_out,
-  output logic                        fu_valid
+  output FU_OUT_t                     FU_out,
+  output logic                        FU_valid
 );
 
   logic [63:0]                 regA, regB;
   logic                        rollback_valid;
   logic [$clog2(`NUM_ROB)-1:0] diff;
 
-  assign diff           = fu_packet.ROB_idx - ROB_rollback_idx;
+  assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
   assign rollback_valid = rollback_en && diff_ROB >= diff;
-  assign fu_valid       = CDB_valid || !fu_packet.ready || rollback_valid;
+  assign FU_valid       = CDB_valid || !FU_in.ready || rollback_valid;
 
   function signed_lt;
     input [63:0] a, b;
@@ -24,41 +25,41 @@ module alu (
       signed_lt = a[63];   // signs differ: a is smaller if neg, larger if pos
   endfunction
 
-  assign regA = fu_packet.T1_value;
+  assign regA = FU_in.T1_value;
 
   always_comb begin
     regB = 64'hbaadbeefdeadbeef;
-    case (fu_packet.T2_select)
-      ALU_OPB_IS_REGB:    regB = fu_packet.T2_value;
-      ALU_OPB_IS_ALU_IMM: regB = { 56'b0, fu_packet.inst.i.LIT };
+    case (FU_in.T2_select)
+      ALU_OPB_IS_REGB:    regB = FU_in.T2_value;
+      ALU_OPB_IS_ALU_IMM: regB = { 56'b0, FU_in.inst.i.LIT };
     endcase 
   end
 
   always_comb begin
-    case (fu_packet.func)
-      ALU_ADDQ:     fu_packet_out.result = regA + regB;
-      ALU_SUBQ:     fu_packet_out.result = regA - regB;
-      ALU_AND:      fu_packet_out.result = regA & regB;
-      ALU_BIC:      fu_packet_out.result = regA & ~regB;
-      ALU_BIS:      fu_packet_out.result = regA | regB;
-      ALU_ORNOT:    fu_packet_out.result = regA | ~regB;
-      ALU_XOR:      fu_packet_out.result = regA ^ regB;
-      ALU_EQV:      fu_packet_out.result = regA ^ ~regB;
-      ALU_SRL:      fu_packet_out.result = regA >> regB[5:0];
-      ALU_SLL:      fu_packet_out.result = regA << regB[5:0];
-      ALU_SRA:      fu_packet_out.result = (regA >> regB[5:0]) | ({64{regA[63]}} << (64 - regB[5:0])); // arithmetic from logical shift
-      ALU_CMPULT:   fu_packet_out.result = { 63'd0, (regA < regB) };
-      ALU_CMPEQ:    fu_packet_out.result = { 63'd0, (regA == regB) };
-      ALU_CMPULE:   fu_packet_out.result = { 63'd0, (regA <= regB) };
-      ALU_CMPLT:    fu_packet_out.result = { 63'd0, signed_lt(regA, regB) };
-      ALU_CMPLE:    fu_packet_out.result = { 63'd0, (signed_lt(regA, regB) || (regA == regB)) };
-      default:      fu_packet_out.result = 64'hdeadbeefbaadbeef;  // here only to force
+    case (FU_in.func)
+      ALU_ADDQ:   FU_out.result = regA + regB;
+      ALU_SUBQ:   FU_out.result = regA - regB;
+      ALU_AND:    FU_out.result = regA & regB;
+      ALU_BIC:    FU_out.result = regA & ~regB;
+      ALU_BIS:    FU_out.result = regA | regB;
+      ALU_ORNOT:  FU_out.result = regA | ~regB;
+      ALU_XOR:    FU_out.result = regA ^ regB;
+      ALU_EQV:    FU_out.result = regA ^ ~regB;
+      ALU_SRL:    FU_out.result = regA >> regB[5:0];
+      ALU_SLL:    FU_out.result = regA << regB[5:0];
+      ALU_SRA:    FU_out.result = (regA >> regB[5:0]) | ({64{regA[63]}} << (64 - regB[5:0])); // arithmetic from logical shift
+      ALU_CMPULT: FU_out.result = { 63'd0, (regA < regB) };
+      ALU_CMPEQ:  FU_out.result = { 63'd0, (regA == regB) };
+      ALU_CMPULE: FU_out.result = { 63'd0, (regA <= regB) };
+      ALU_CMPLT:  FU_out.result = { 63'd0, signed_lt(regA, regB) };
+      ALU_CMPLE:  FU_out.result = { 63'd0, (signed_lt(regA, regB) || (regA == regB)) };
+      default:    FU_out.result = 64'hdeadbeefbaadbeef;  // here only to force
     endcase
-    fu_packet_out.dest_idx = fu_packet.dest_idx;
-    fu_packet_out.T_idx    = fu_packet.T_idx;
-    fu_packet_out.FL_idx   = fu_packet.FL_idx;
-    fu_packet_out.ROB_idx  = fu_packet.ROB_idx;
-    fu_packet_out.done     = !rollback_valid && fu_packet.ready;
+    FU_out.dest_idx = FU_in.dest_idx;
+    FU_out.T_idx    = FU_in.T_idx;
+    // FU_out.FL_idx   = FU_in.FL_idx;
+    FU_out.ROB_idx  = FU_in.ROB_idx;
+    FU_out.done     = !rollback_valid && FU_in.ready;
   end
 endmodule // alu
 
@@ -218,7 +219,7 @@ endmodule
 // This module instantiates 8 pipeline stages as an array of submodules.
 module mult (
   input  logic                                                          clock, reset,
-  input  FU_PACKET_IN_t                                                 fu_packet,
+  input  FU_IN_t                                                        FU_in,
   input  logic                                                          CDB_valid,
   input  logic                                                          rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0]                       ROB_rollback_idx,
@@ -240,8 +241,8 @@ module mult (
   output logic             [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx,
   output logic             [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx,
 `endif
-  output FU_RESULT_ENTRY_t                                              fu_packet_out,
-  output logic                                                          fu_valid
+  output FU_OUT_t                                              FU_out,
+  output logic                                                          FU_valid
 );
 
 `ifdef SYNTH_TEST
@@ -262,15 +263,15 @@ module mult (
   logic [63:0]                                       mcand_out, mplier_out, regA, regB;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_products, internal_mcands, internal_mpliers, next_products;
 
-  assign regA = fu_packet.T1_value;
+  assign regA = FU_in.T1_value;
 
   always_comb begin
      // Default value, Set only because the case isnt full.  If you see this
      // value on the output of the mux you have an invalid opb_select
     regB = 64'hbaadbeefdeadbeef;
-    case (fu_packet.T2_select)
-      ALU_OPB_IS_REGB:    regB = fu_packet.T2_value;
-      ALU_OPB_IS_ALU_IMM: regB = { 56'b0, fu_packet.inst.i.LIT };
+    case (FU_in.T2_select)
+      ALU_OPB_IS_REGB:    regB = FU_in.T2_value;
+      ALU_OPB_IS_ALU_IMM: regB = { 56'b0, FU_in.inst.i.LIT };
     endcase 
   end
 
@@ -285,11 +286,11 @@ module mult (
     .rollback_en({`NUM_MULT_STAGE{rollback_en}}),
     .ROB_rollback_idx({`NUM_MULT_STAGE{ROB_rollback_idx}}),
     .diff_ROB({`NUM_MULT_STAGE{diff_ROB}}),
-    .ready({fu_packet_out.done, internal_dones, fu_packet.ready}),
-    .dest_idx({fu_packet_out.dest_idx, internal_dest_idx, fu_packet.dest_idx}),
-    .T_idx({fu_packet_out.T_idx, internal_T_idx, fu_packet.T_idx}),
-    .ROB_idx({fu_packet_out.ROB_idx, internal_ROB_idx, fu_packet.ROB_idx}),
-    .FL_idx({fu_packet_out.FL_idx, internal_FL_idx,  fu_packet.FL_idx}),
+    .ready({FU_out.done, internal_dones, FU_in.ready}),
+    .dest_idx({FU_out.dest_idx, internal_dest_idx, FU_in.dest_idx}),
+    .T_idx({FU_out.T_idx, internal_T_idx, FU_in.T_idx}),
+    .ROB_idx({FU_out.ROB_idx, internal_ROB_idx, FU_in.ROB_idx}),
+    .FL_idx({FU_out.FL_idx, internal_FL_idx, FU_in.FL_idx}),
 `ifndef SYNTH_TEST
     .T1_value({internal_T1_values, regA}),
     .T2_value({internal_T2_values, regB}),
@@ -300,41 +301,41 @@ module mult (
     .product_out({product_out, internal_products}),
     .mplier_out({mplier_out, internal_mpliers}),
     .mcand_out({mcand_out, internal_mcands}),
-    .valid_out({internal_valids, fu_valid}),
-    .next_product({fu_packet_out.result, next_products}),
-    .done({last_done, fu_packet_out.done, internal_dones}),
-    .dest_idx_out({last_dest_idx, fu_packet_out.dest_idx, internal_dest_idx}),
-    .T_idx_out({last_T_idx, fu_packet_out.T_idx, internal_T_idx}),
-    .ROB_idx_out({last_ROB_idx, fu_packet_out.ROB_idx, internal_ROB_idx}),
-    .FL_idx_out({last_FL_idx, fu_packet_out.FL_idx, internal_FL_idx})
+    .valid_out({internal_valids, FU_valid}),
+    .next_product({FU_out.result, next_products}),
+    .done({last_done, FU_out.done, internal_dones}),
+    .dest_idx_out({last_dest_idx, FU_out.dest_idx, internal_dest_idx}),
+    .T_idx_out({last_T_idx, FU_out.T_idx, internal_T_idx}),
+    .ROB_idx_out({last_ROB_idx, FU_out.ROB_idx, internal_ROB_idx}),
+    .FL_idx_out({last_FL_idx, FU_out.FL_idx, internal_FL_idx})
   );
 
 endmodule
 
 module br(
   input  logic             clock, reset,
-  input  FU_PACKET_IN_t    fu_packet,
+  input  FU_IN_t    FU_in,
   input  logic             CDB_valid,
-  output FU_RESULT_ENTRY_t fu_packet_out,
-  output                   fu_valid,
+  output FU_OUT_t FU_out,
+  output                   FU_valid,
   output logic             take_branch
 );
 
   logic result;
   logic [63:0] regA, regB;
-  assign fu_valid = CDB_valid || !fu_packet.ready;
-  assign take_branch = fu_packet.uncond_branch || (fu_packet.cond_branch && result);
+  assign FU_valid = CDB_valid || !FU_in.ready;
+  assign take_branch = FU_in.uncond_branch || (FU_in.cond_branch && result);
 
   always_comb begin
-    if(fu_packet.ready == `TRUE) begin
-      case (fu_packet.inst.r.br_func)                                               // 'full-case'  All cases covered, no need for a default
+    if(FU_in.ready == `TRUE) begin
+      case (FU_in.inst.r.br_func)                                               // 'full-case'  All cases covered, no need for a default
         2'b00: result = (regA[0] == 0);                               // LBC: (lsb(opa) == 0) ?
         2'b01: result = (regA == 0);                                  // EQ: (opa == 0) ?
         2'b10: result = (regA[63] == 1);                              // LT: (signed(opa) < 0) : check sign bit
         2'b11: result = (regA[63] == 1) || (regA == 0); // LE: (signed(opa) <= 0)
       endcase
       // negate cond if func[2] is set
-      if (fu_packet.inst.r.br_func[2]) begin
+      if (FU_in.inst.r.br_func[2]) begin
         result = ~result;
       end
     end
@@ -342,37 +343,37 @@ module br(
 
   always_comb begin
     regA = 64'hbaadbeefdeadbeef;
-    case (fu_packet.T1_select)
-      ALU_OPA_IS_NPC:      regA = fu_packet.NPC;
+    case (FU_in.T1_select)
+      ALU_OPA_IS_NPC:      regA = FU_in.NPC;
       ALU_OPA_IS_NOT3:     regA = ~64'h3;
     endcase
   end
 
   always_comb begin
     regB = 64'hbaadbeefdeadbeef;
-    case (fu_packet.T2_select)
-      ALU_OPB_IS_REGB:    regB = fu_packet.T2_value;
-      ALU_OPB_IS_BR_DISP: regB = { {41{fu_packet.inst[20]}}, fu_packet.inst[20:0], 2'b00 };
+    case (FU_in.T2_select)
+      ALU_OPB_IS_REGB:    regB = FU_in.T2_value;
+      ALU_OPB_IS_BR_DISP: regB = { {41{FU_in.inst[20]}}, FU_in.inst[20:0], 2'b00 };
     endcase 
   end
 
   always_comb begin
-    case (fu_packet.func)
-      ALU_ADDQ:     fu_packet_out.result = regA + regB;
-      ALU_AND:      fu_packet_out.result = regA & regB;
-      default:      fu_packet_out.result = 64'hdeadbeefbaadbeef;  // here only to force
+    case (FU_in.func)
+      ALU_ADDQ:     FU_out.result = regA + regB;
+      ALU_AND:      FU_out.result = regA & regB;
+      default:      FU_out.result = 64'hdeadbeefbaadbeef;  // here only to force
     endcase
-    fu_packet_out.dest_idx = fu_packet.dest_idx;
-    fu_packet_out.T_idx    = fu_packet.T_idx;
-    fu_packet_out.ROB_idx  = fu_packet.ROB_idx;
-    fu_packet_out.FL_idx   = fu_packet.FL_idx;
-    fu_packet_out.done     = fu_packet.ready;
+    FU_out.dest_idx = FU_in.dest_idx;
+    FU_out.T_idx    = FU_in.T_idx;
+    FU_out.ROB_idx  = FU_in.ROB_idx;
+    FU_out.FL_idx   = FU_in.FL_idx;
+    FU_out.done     = FU_in.ready;
   end
 endmodule // brcond
 
 module ld (
   input  logic                                    clock, reset,
-  input  FU_PACKET_IN_t                           fu_packet,
+  input  FU_IN_t                           FU_in,
   input  logic                                    CDB_valid,
   input  logic                                    rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
@@ -382,17 +383,17 @@ module ld (
   // output logic             [1:0]                  proc2Dmem_command,
   // output logic             [63:0]                 proc2Dmem_addr,      // Address sent to data-memory
   // output logic             [63:0]                 proc2Dmem_data      // Data sent to data-memory
-  output FU_RESULT_ENTRY_t                        fu_packet_out,
-  output logic                                    fu_valid
+  output FU_OUT_t                        FU_out,
+  output logic                                    FU_valid
 );
 
   logic          [63:0]                 regA, regB;
   logic                                 rollback_valid;
   logic          [$clog2(`NUM_ROB)-1:0] diff;
 
-  assign diff           = fu_packet.ROB_idx - ROB_rollback_idx;
+  assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
   assign rollback_valid = rollback_en && diff_ROB >= diff;
-  assign fu_valid       = CDB_valid || !fu_packet.ready || rollback_valid;
+  assign FU_valid       = CDB_valid || !FU_in.ready || rollback_valid;
 
   function signed_lt;
     input [63:0] a, b;
@@ -402,49 +403,51 @@ module ld (
       signed_lt = a[63];   // signs differ: a is smaller if neg, larger if pos
   endfunction
 
-  assign regA = { {48{fu_packet.inst[15]}}, fu_packet.inst.m.mem_disp };
-  assign regB = fu_packet.T2_value;
+  assign regA = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
+  assign regB = FU_in.T2_value;
 
   always_comb begin
-    fu_packet_out.result   = regA + regB;
-    fu_packet_out.dest_idx = fu_packet.dest_idx;
-    fu_packet_out.T_idx    = fu_packet.T_idx;
-    fu_packet_out.FL_idx   = fu_packet.FL_idx;
-    fu_packet_out.ROB_idx  = fu_packet.ROB_idx;
-    fu_packet_out.done     = !rollback_valid && fu_packet.ready;
+    FU_out.result   = regA + regB;
+    FU_out.dest_idx = FU_in.dest_idx;
+    FU_out.T_idx    = FU_in.T_idx;
+    FU_out.FL_idx   = FU_in.FL_idx;
+    FU_out.ROB_idx  = FU_in.ROB_idx;
+    FU_out.done     = !rollback_valid && FU_in.ready;
   end
 
 endmodule
 
 module st (
-  input  FU_PACKET_IN_t               fu_packet,
+  input  logic                        clock, reset,
+  input  FU_IN_t               FU_in,
   input  logic                        CDB_valid,
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  output FU_RESULT_ENTRY_t            fu_packet_out,
-  output logic                        fu_valid
+  output FU_OUT_t            FU_out,
+  output logic                        FU_valid
 );
 
-assign fu_packet_out = '{
-  `FALSE,
-  64'h0,
-  `ZERO_REG,
-  `ZERO_PR,
-  {`NUM_ROB{1'b0}},
-  {`NUM_FL{1'b0}}
-};
+  assign FU_out = '{
+    `FALSE,
+    64'h0,
+    `ZERO_REG,
+    `ZERO_PR,
+    {`NUM_ROB{1'b0}},
+    {`NUM_FL{1'b0}}
+  };
 
-assign fu_valid = `TRUE;
+  assign FU_valid = `TRUE;
 
 endmodule
 
 module FU (
   input  logic                                                                       clock,               // system clock
   input  logic                                                                       reset,               // system reset
-  input  FU_M_PACKET_IN                                                              fu_m_packet_in,
-  input  logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_tail_idx,
+  input  logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_idx,
   input  logic           [`NUM_FU-1:0]                                               CDB_valid,
+  input  RS_FU_OUT_t                                                                 RS_FU_out,
+  input  PR_FU_OUT_t                                                                 PR_FU_out,
 `ifndef SYNTH_TEST
   output logic           [`NUM_MULT-1:0]                                             last_done,
   output logic           [`NUM_MULT-1:0][63:0]                                       product_out,
@@ -463,61 +466,78 @@ module FU (
   output logic           [`NUM_MULT-1:0][($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx,
   output logic           [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx,
 `endif
-  output FU_M_PACKET_OUT                                                             fu_m_packet_out,
-  output logic           [`NUM_FU-1:0]                                               fu_valid,
+  output logic           [`NUM_FU-1:0]                                               FU_valid,
   output logic                                                                       rollback_en,
+  output logic           [$clog2(`NUM_FL)-1:0]                                       FL_rollback_idx,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_rollback_idx,
-  output logic           [$clog2(`NUM_ROB)-1:0]                                      diff_ROB
+  output logic           [$clog2(`NUM_ROB)-1:0]                                      diff_ROB,
+  output FU_CDB_OUT_t                                                                FU_CDB_out,
+  output FU_PR_OUT_t                                                                 FU_PR_out
 );
 
-  FU_PACKET_IN_t [`NUM_FU-1:0] fu_packet_in;
-  logic          [`NUM_BR-1:0] take_branch;
+  FU_OUT_t [`NUM_FU-1:0]          FU_out;
+  FU_IN_t    [`NUM_FU-1:0]          FU_in;
+  logic             [`NUM_BR-1:0]          take_branch;
+  logic             [$clog2(`NUM_ROB)-1:0] diff_ROB;
+  FU_IDX_ENTRY_t    [`NUM_FU-1:0]          FU_T_idx;
+
+  assign FU_CDB_out = '{FU_out};
+  assign FU_PR_out  = '{FU_T_idx};
 
   assign rollback_en      = take_branch[0];
-  assign ROB_rollback_idx = fu_m_packet_out.fu_result[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
-  assign diff_ROB         = ROB_tail_idx - ROB_rollback_idx;
+  assign ROB_rollback_idx = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
+  assign FL_rollback_idx  = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
+  assign diff_ROB         = ROB_idx - ROB_rollback_idx;
 
-  // always_comb begin
-  //   for (int i = 0; i < `NUM_FU; i++) begin
-  //     fu_packet_in[i].ready     = fu_m_packet_in.fu_packet[i].ready;
-  //     fu_packet_in[i].inst      = fu_m_packet_in.fu_packet[i].inst;
-  //     fu_packet_in[i].func      = fu_m_packet_in.fu_packet[i].func;
-  //     fu_packet_in[i].T_idx     = fu_m_packet_in.fu_packet[i].T_idx;
-  //     // fu_packet_in[i].T1_value = pr_packet_out[i].T1_value;
-  //     // fu_packet_in[i].T2_value = pr_packet_out[i].T2_value;
-  //     fu_packet_in[i].T1_select = fu_m_packet_in.fu_packet[i].T1_select;
-  //     fu_packet_in[i].T2_select = fu_m_packet_in.fu_packet[i].T2_select;
-  //   end
-  // end
+  always_comb begin
+    for (int i = 0; i < `NUM_FU; i++) begin
+      FU_T_idx[i].T1_idx = RS_FU_out.FU_packet[i].T1_idx;
+      FU_T_idx[i].T2_idx = RS_FU_out.FU_packet[i].T2_idx;
+    end
+  end
 
-  // always_comb begin
-  //   for (int i = 0; i < `NUM_FU; i++) begin
-  //     // pr_packet_in[i].S_X_T1 = fu_m_packet_in.fu_packet[i].T1_idx;
-  //     // pr_packet_in[i].S_X_T2 = fu_m_packet_in.fu_packet[i].T2_idx;
-  //   end
-  // end
+  always_comb begin
+    for (int i = 0; i < `NUM_FU; i++) begin
+      FU_in[i].ready         = RS_FU_out.FU_packet[i].ready;    // If an entry is ready
+      FU_in[i].inst          = RS_FU_out.FU_packet[i].inst;
+      FU_in[i].func          = RS_FU_out.FU_packet[i].func;
+      FU_in[i].NPC           = RS_FU_out.FU_packet[i].NPC;
+      FU_in[i].dest_idx      = RS_FU_out.FU_packet[i].dest_idx;
+      FU_in[i].ROB_idx       = RS_FU_out.FU_packet[i].ROB_idx;
+      FU_in[i].FL_idx        = RS_FU_out.FU_packet[i].FL_idx;
+      FU_in[i].T_idx         = RS_FU_out.FU_packet[i].T_idx;    // Dest idx
+      FU_in[i].T1_select     = RS_FU_out.FU_packet[i].T1_select;
+      FU_in[i].T2_select     = RS_FU_out.FU_packet[i].T2_select;
+      FU_in[i].uncond_branch = RS_FU_out.FU_packet[i].uncond_branch;
+      FU_in[i].cond_branch   = RS_FU_out.FU_packet[i].cond_branch;
+      FU_in[i].T1_value      = PR_FU_out.T1_value[i]; // T1 idx
+      FU_in[i].T2_value      = PR_FU_out.T2_value[i]; // T2 idx
+    end
+  end
 
   alu alu_0 [`NUM_ALU-1:0] (
     // Inputs
-    .fu_packet(fu_packet_in[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
+    .clock({`NUM_ALU{clock}}),
+    .reset({`NUM_ALU{reset}}),
+    .rollback_en({`NUM_ALU{rollback_en}}),
+    .ROB_rollback_idx({`NUM_ALU{ROB_rollback_idx}}),
+    .diff_ROB({`NUM_ALU{diff_ROB}}),
+    .FU_in(FU_in[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     .CDB_valid(CDB_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
-    .rollback_en({`NUM_MULT{rollback_en}}),
-    .ROB_rollback_idx({`NUM_MULT{ROB_rollback_idx}}),
-    .diff_ROB({`NUM_MULT{diff_ROB}}),
     // Output
-    .fu_packet_out(fu_m_packet_out.fu_result[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
-    .fu_valid(fu_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)])
+    .FU_out(FU_out[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
+    .FU_valid(FU_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)])
   );
 
   mult mult_0 [`NUM_MULT-1:0] (
     // Inputs
     .clock({`NUM_MULT{clock}}),
     .reset({`NUM_MULT{reset}}),
-    .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
-    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     .rollback_en({`NUM_MULT{rollback_en}}),
     .ROB_rollback_idx({`NUM_MULT{ROB_rollback_idx}}),
     .diff_ROB({`NUM_MULT{diff_ROB}}),
+    .FU_in(FU_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     // Outputs
 `ifndef SYNTH_TEST
     .last_done(last_done),
@@ -537,36 +557,48 @@ module FU (
     .internal_ROB_idx(internal_ROB_idx),
     .internal_FL_idx(internal_FL_idx),
 `endif
-    .fu_packet_out(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
-    .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
+    .FU_out(FU_out[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
   );
 
   br br_0 [`NUM_BR-1:0] (
     // Inputs
     .clock({`NUM_BR{clock}}),
     .reset({`NUM_BR{reset}}),
-    .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
+    .FU_in(FU_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     // Output
-    .fu_packet_out(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
-    .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
+    .FU_out(FU_out[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
+    .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     .take_branch(take_branch[`NUM_BR-1:0])
   );
 
-  // st st_0 [`NUM_ST-1:0] (
-  //   // Inputs
-  //   .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
-  //   // Output
-  //   .result(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
-  //   .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)])
-  // );
+  st st_0 [`NUM_ST-1:0] (
+    // Inputs
+    .clock({`NUM_ST{clock}}),
+    .reset({`NUM_ST{reset}}),
+    .rollback_en({`NUM_ST{rollback_en}}),
+    .ROB_rollback_idx({`NUM_ST{ROB_rollback_idx}}),
+    .diff_ROB({`NUM_ST{diff_ROB}}),
+    .FU_in(FU_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
+    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
+    // Output
+    .FU_out(FU_out[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
+    .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)])
+  );
 
-  // ld ld_0 [`NUM_LD-1:0] (
-  //   // Inputs
-  //   .fu_packet(fu_packet_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
-  //   // Output
-  //   .result(fu_m_packet_out.fu_result[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
-  //   .fu_valid(fu_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)])
-  // );
+  ld ld_0 [`NUM_LD-1:0] (
+    // Inputs
+    .clock({`NUM_LD{clock}}),
+    .reset({`NUM_LD{reset}}),
+    .rollback_en({`NUM_LD{rollback_en}}),
+    .ROB_rollback_idx({`NUM_LD{ROB_rollback_idx}}),
+    .diff_ROB({`NUM_LD{diff_ROB}}),
+    .FU_in(FU_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
+    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
+    // Output
+    .FU_out(FU_out[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
+    .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)])
+  );
 
 endmodule // FU

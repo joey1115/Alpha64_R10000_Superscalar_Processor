@@ -11,4 +11,17 @@
 `include "../RS/RS.vh"
 `endif
 
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] T_idx;
+} FL_ROB_OUT_t;
+
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] T_idx;
+  logic [$clog2(`NUM_FL)-1:0] FL_idx;
+} FL_RS_OUT_t;
+
+typedef struct packed {
+  logic [$clog2(`NUM_PR)-1:0] T_idx;            // tags from freelist
+} FL_MAP_TABLE_OUT_t;
+
 `endif
