@@ -42,8 +42,4 @@ typedef struct packed {
   FU_OUT_t [`NUM_FU-1:0] FU_out;
 } FU_CDB_OUT_t;
 
-typedef struct packed {
-  FU_IDX_ENTRY_t [`NUM_FU-1:0] FU_T_idx;
-} FU_PR_OUT_t;
-
 `endif
