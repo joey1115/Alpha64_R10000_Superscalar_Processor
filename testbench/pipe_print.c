@@ -58,9 +58,7 @@ void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, in
 
   int opcode, check;
 
-  if(!valid_inst)
-    str = "-";
-  else if(inst==NOOP_INST)
+  if(inst==NOOP_INST)
     str = "nop";
   else {
     opcode = (inst >> 26) & 0x0000003f;
@@ -209,7 +207,7 @@ void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, in
       case 0x3f: str = "bgt"; break;
       default: str = "invalid"; break;
     }
-
+  }
 
   switch(T1_select)
   {
@@ -226,10 +224,30 @@ void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, in
     case 0x02: T2_str = "ALU_OPB_IS_BR_DISP "; break;
     default:   T2_str = "invalid            "; break;
   }
-
-  if (ppfile != NULL)
-    fprintf(ppfile, "Function: %-8s | busy: %1d |  inst: %-8s | func: %-8s | NPC: %x%x | dest_idx: %3d | ROB_idx: %2d | FL_idx: %2d | T_idx: %3d | T1: %3d | T1_ready: %1d | T2: %3d | T2_ready: %1d | ALU_OPA_SELECT: %-10s | ALU_OPB_SELECT: %-10s\n",\
-     funcType, busy, str, ALU_func, NPC_hi, NPC_lo, dest_idx, ROB_idx, FL_idx, T_idx, T1, T1_ready, T2, T2_ready, T1_str, T2_str);
+  switch(func){
+    case 0x00:  ALU_func = "ALU_ADDQ  "; break;
+    case 0x01:  ALU_func = "ALU_SUBQ  "; break;
+    case 0x02:  ALU_func = "ALU_AND   "; break;
+    case 0x03:  ALU_func = "ALU_BIC   "; break;
+    case 0x04:  ALU_func = "ALU_BIS   "; break;
+    case 0x05:  ALU_func = "ALU_ORNOT "; break;
+    case 0x06:  ALU_func = "ALU_XOR   "; break;
+    case 0x07:  ALU_func = "ALU_EQV   "; break;
+    case 0x08:  ALU_func = "ALU_SRL   "; break;
+    case 0x09:  ALU_func = "ALU_SLL   "; break;
+    case 0x0a:  ALU_func = "ALU_SRA   "; break;
+    case 0x0b:  ALU_func = "ALU_MULQ  "; break;
+    case 0x0c:  ALU_func = "ALU_CMPEQ "; break;
+    case 0x0d:  ALU_func = "ALU_CMPLT "; break;
+    case 0x0e:  ALU_func = "ALU_CMPLE "; break;
+    case 0x0f:  ALU_func = "ALU_CMPULT"; break;
+    case 0x10:  ALU_func = "ALU_CMPULE"; break;
+    default: ALU_func = " none    ";
+      break;
+  }
+      if (ppfile != NULL)
+        fprintf(ppfile, "Function: %-8s | busy: %1d |  inst: %-8s | func: %-8s | NPC: %x%x | dest_idx: %3d | ROB_idx: %2d | FL_idx: %2d | T_idx: %3d | T1: %3d | T1_ready: %1d | T2: %3d | T2_ready: %1d | ALU_OPA_SELECT: %-10s | ALU_OPB_SELECT: %-10s\n",
+                funcType, busy, str, ALU_func, NPC_hi, NPC_lo, dest_idx, ROB_idx, FL_idx, T_idx, T1, T1_ready, T2, T2_ready, T1_str, T2_str);
 }
 
 void print_maptable_head(){
@@ -259,7 +277,7 @@ void print_CDB_head(){
 
 void print_CDB_entries(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO){
   if (ppfile != NULL){
-    fprintf(ppfile, "taken: %1d | T_idx: %3d | ROB_idx: %3d | T_value: %x%x |\n" , taken, T_idx, ROB_idx, dest_idx, T_value_HI, T_value_LO);
+    fprintf(ppfile, "taken: %1d | T_idx: %3d | ROB_idx: %3d | dest_idx: %3d | T_value: %x%x |\n" , taken, T_idx, ROB_idx, dest_idx, T_value_HI, T_value_LO);
   }
 }
 
