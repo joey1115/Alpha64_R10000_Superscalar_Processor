@@ -58,30 +58,12 @@ void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, in
 
   int opcode, check;
 
-  switch (func)
-  {
-    case 0:  ALU_func = "ALU_ADDQ  "; break;
-    case 1:  ALU_func = "ALU_SUBQ  "; break;
-    case 2:  ALU_func = "ALU_AND   "; break;
-    case 3:  ALU_func = "ALU_BIC   "; break;
-    case 4:  ALU_func = "ALU_BIS   "; break;
-    case 5:  ALU_func = "ALU_ORNOT "; break;
-    case 6:  ALU_func = "ALU_XOR   "; break;
-    case 7:  ALU_func = "ALU_EQV   "; break;
-    case 8:  ALU_func = "ALU_SRL   "; break;
-    case 9:  ALU_func = "ALU_SLL   "; break;
-    case 10: ALU_func = "ALU_SRA   "; break;
-    case 11: ALU_func = "ALU_MULQ  "; break;
-    case 12: ALU_func = "ALU_CMPEQ "; break;
-    case 13: ALU_func = "ALU_CMPLT "; break;
-    case 14: ALU_func = "ALU_CMPLE "; break;
-    case 15: ALU_func = "ALU_CMPULT"; break;
-    case 16: ALU_func = "ALU_CMPULE"; break;
-  
-    default: ALU_func = "ALU_ERROR "; break;
-  }
-
-  opcode = (inst >> 26) & 0x0000003f;
+  if(!valid_inst)
+    str = "-";
+  else if(inst==NOOP_INST)
+    str = "nop";
+  else {
+    opcode = (inst >> 26) & 0x0000003f;
     check = (inst>>5) & 0x0000007f;
     switch(opcode)
     {
