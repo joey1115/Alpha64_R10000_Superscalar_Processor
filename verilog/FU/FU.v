@@ -29,7 +29,7 @@ module alu (
 
   always_comb begin
     regB = 64'hbaadbeefdeadbeef;
-    case (FU_in.T2_select)
+    case (FU_in.opb_select)
       ALU_OPB_IS_REGB:    regB = FU_in.T2_value;
       ALU_OPB_IS_ALU_IMM: regB = { 56'b0, FU_in.inst.i.LIT };
     endcase 
@@ -269,7 +269,7 @@ module mult (
      // Default value, Set only because the case isnt full.  If you see this
      // value on the output of the mux you have an invalid opb_select
     regB = 64'hbaadbeefdeadbeef;
-    case (FU_in.T2_select)
+    case (FU_in.opb_select)
       ALU_OPB_IS_REGB:    regB = FU_in.T2_value;
       ALU_OPB_IS_ALU_IMM: regB = { 56'b0, FU_in.inst.i.LIT };
     endcase 
@@ -343,7 +343,7 @@ module br(
 
   always_comb begin
     regA = 64'hbaadbeefdeadbeef;
-    case (FU_in.T1_select)
+    case (FU_in.opa_select)
       ALU_OPA_IS_NPC:      regA = FU_in.NPC;
       ALU_OPA_IS_NOT3:     regA = ~64'h3;
     endcase
@@ -351,7 +351,7 @@ module br(
 
   always_comb begin
     regB = 64'hbaadbeefdeadbeef;
-    case (FU_in.T2_select)
+    case (FU_in.opb_select)
       ALU_OPB_IS_REGB:    regB = FU_in.T2_value;
       ALU_OPB_IS_BR_DISP: regB = { {41{FU_in.inst[20]}}, FU_in.inst[20:0], 2'b00 };
     endcase 
@@ -471,30 +471,20 @@ module FU (
   output logic           [$clog2(`NUM_FL)-1:0]                                       FL_rollback_idx,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_rollback_idx,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      diff_ROB,
-  output FU_CDB_OUT_t                                                                FU_CDB_out,
-  output FU_PR_OUT_t                                                                 FU_PR_out
+  output FU_CDB_OUT_t                                                                FU_CDB_out
 );
 
   FU_OUT_t [`NUM_FU-1:0]          FU_out;
   FU_IN_t    [`NUM_FU-1:0]          FU_in;
   logic             [`NUM_BR-1:0]          take_branch;
-  logic             [$clog2(`NUM_ROB)-1:0] diff_ROB;
   FU_IDX_ENTRY_t    [`NUM_FU-1:0]          FU_T_idx;
 
   assign FU_CDB_out = '{FU_out};
-  assign FU_PR_out  = '{FU_T_idx};
 
   assign rollback_en      = take_branch[0];
   assign ROB_rollback_idx = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
   assign FL_rollback_idx  = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
   assign diff_ROB         = ROB_idx - ROB_rollback_idx;
-
-  always_comb begin
-    for (int i = 0; i < `NUM_FU; i++) begin
-      FU_T_idx[i].T1_idx = RS_FU_out.FU_packet[i].T1_idx;
-      FU_T_idx[i].T2_idx = RS_FU_out.FU_packet[i].T2_idx;
-    end
-  end
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
@@ -506,8 +496,8 @@ module FU (
       FU_in[i].ROB_idx       = RS_FU_out.FU_packet[i].ROB_idx;
       FU_in[i].FL_idx        = RS_FU_out.FU_packet[i].FL_idx;
       FU_in[i].T_idx         = RS_FU_out.FU_packet[i].T_idx;    // Dest idx
-      FU_in[i].T1_select     = RS_FU_out.FU_packet[i].T1_select;
-      FU_in[i].T2_select     = RS_FU_out.FU_packet[i].T2_select;
+      FU_in[i].opa_select     = RS_FU_out.FU_packet[i].opa_select;
+      FU_in[i].opb_select     = RS_FU_out.FU_packet[i].opb_select;
       FU_in[i].uncond_branch = RS_FU_out.FU_packet[i].uncond_branch;
       FU_in[i].cond_branch   = RS_FU_out.FU_packet[i].cond_branch;
       FU_in[i].T1_value      = PR_FU_out.T1_value[i]; // T1 idx

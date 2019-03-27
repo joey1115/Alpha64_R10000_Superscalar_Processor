@@ -27,7 +27,9 @@ module pipeline (
   output logic        pipeline_commit_wr_en,
   output logic [63:0] pipeline_commit_NPC
 );
-
+  logic en;
+  assign en = `TRUE;
+  
   Arch_Map arch_map_0 (
     .en(en),
     .clock(clock),
@@ -63,6 +65,7 @@ module pipeline (
 
   decoder decoder_0 (
     .decoder_packet_in(decoder_packet_in),
+    .decoder_ROB_out(decoder_ROB_out),
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
     .decoder_Map_Table_out(decoder_Map_Table_out)
@@ -121,8 +124,7 @@ module pipeline (
     .ROB_rollback_idx(ROB_rollback_idx),
     .FL_rollback_idx(FL_rollback_idx),
     .diff_ROB(diff_ROB),
-    .FU_CDB_out(FU_CDB_out),
-    .FU_PR_out(FU_PR_out)
+    .FU_CDB_out(FU_CDB_out)
   );
 
   Map_Table map_table_0 (
@@ -150,6 +152,7 @@ module pipeline (
     .reset(reset),
     .write_en(write_en),
     .CDB_PR_out(CDB_PR_out),
+    .RS_PR_out(RS_PR_out),
     .FU_PR_out(FU_PR_out),
 `ifndef SYNTH_TEST
     .pr_data(pr_data),
@@ -176,7 +179,6 @@ module pipeline (
     .retire_en(retire_en),
     .halt_out(halt_out),
     .ROB_idx(ROB_idx),
-    .ROB_RS_out(ROB_RS_out),
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
     .ROB_FL_out(ROB_FL_out)
   );
@@ -194,7 +196,6 @@ module pipeline (
     .ROB_idx(ROB_idx),
     .decoder_RS_out(decoder_RS_out),
     .FL_RS_out(FL_RS_out),
-    .ROB_RS_out(ROB_RS_out),
     .Map_Table_RS_out(Map_Table_RS_out),
     .CDB_RS_out(CDB_RS_out),
 `ifndef SYNTH_TEST
@@ -203,7 +204,8 @@ module pipeline (
     .RS_match_idx(RS_match_idx),
 `endif
     .RS_valid(RS_valid),
-    .RS_FU_out(RS_FU_out)
+    .RS_FU_out(RS_FU_out),
+    .RS_PR_out(RS_PR_out)
   );
 
   //////////////////////////////////////////////////
@@ -211,13 +213,13 @@ module pipeline (
   //            F/D Pipeline Register             //
   //                                              //
   //////////////////////////////////////////////////
-  assign f_d_enable = `TRUE; // always enabled
-  // synopsys sync_set_reset "reset"
-  always_ff @(posedge clock) begin
-    if(reset) begin
-      decoder_packet_in <= `SD DECODER_PACKET_IN_RESET;
-    end else if (f_d_enable) begin
-      decoder_packet_in <= `SD f_d_packet_out;
-    end // if (f_d_enable)
-  end // always
+  // assign f_d_enable = `TRUE; // always enabled
+  // // synopsys sync_set_reset "reset"
+  // always_ff @(posedge clock) begin
+  //   if(reset) begin
+  //     decoder_packet_in <= `SD `DECODER_PACKET_IN_RESET;
+  //   end else if (f_d_enable) begin
+  //     decoder_packet_in <= `SD f_d_packet_out;
+  //   end // if (f_d_enable)
+  // end // always
 endmodule  // module verisimple

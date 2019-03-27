@@ -67,6 +67,8 @@ typedef struct packed {
   logic          [4:0]  dest_idx;
   ALU_OPA_SELECT        opa_select;  // fetched instruction out
   ALU_OPB_SELECT        opb_select;
+  logic                 cond_branch;
+  logic                 uncond_branch;
 } DECODER_RS_OUT_t;
 
 typedef struct packed {
