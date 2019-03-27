@@ -49,7 +49,7 @@ module decoder(
   logic                 valid; // for counting valid instructions executed
   logic          [4:0]  dest_idx;
   FU_t                  FU;
-  logic          [4:0]  func;
+  ALU_FUNC              func;
 
   assign decoder_ROB_out       = '{halt, dest_idx};
   assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch};
