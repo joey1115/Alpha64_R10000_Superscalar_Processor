@@ -33,7 +33,7 @@ void print_ROB_ht(int head, int tail)
 {
   if (ppfile != NULL){
     fprintf(ppfile, "---------------------------------------ROB----------------------------------- ");
-    fprintf(ppfile, "head:%d   tail:%d", head, tail);
+    fprintf(ppfile, "head:%d   tail:%d\n", head, tail);
   }
 
     
@@ -41,12 +41,12 @@ void print_ROB_ht(int head, int tail)
 
 void print_ROB_entry(int valid, int T, int T_old, int dest_idx, int complete, int halt){
   if (ppfile != NULL)
-    fprintf(ppfile, "valid: %1d | T: %3d | T_old: %3d | dest_idx: %3d | complete: %1d | halt: %1d|", valid, T, T_old, dest_idx, complete, halt);
+    fprintf(ppfile, "valid: %1d | T: %3d | T_old: %3d | dest_idx: %3d | complete: %1d | halt: %1d|\n", valid, T, T_old, dest_idx, complete, halt);
 }
 
 void print_RS_head(){
   if (ppfile != NULL)
-    fprintf(ppfile, "----------------------------------------------------------------------------------------------------------------RS--------------------------------------------------------------------------------------------------------------");
+    fprintf(ppfile, "----------------------------------------------------------------------------------------------------------------RS--------------------------------------------------------------------------------------------------------------\n");
 }
 
 void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select){
@@ -246,14 +246,14 @@ void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, in
   }
 
   if (ppfile != NULL)
-    fprintf(ppfile, "Function: %-8s | busy: %1d |  inst: %-8s | func: %-8s | NPC: %x%x | dest_idx: %3d | ROB_idx: %2d | FL_idx: %2d | T_idx: %3d | T1: %3d | T1_ready: %1d | T2: %3d | T2_ready: %1d | ALU_OPA_SELECT: %-10s | ALU_OPB_SELECT: %-10s",\
+    fprintf(ppfile, "Function: %-8s | busy: %1d |  inst: %-8s | func: %-8s | NPC: %x%x | dest_idx: %3d | ROB_idx: %2d | FL_idx: %2d | T_idx: %3d | T1: %3d | T1_ready: %1d | T2: %3d | T2_ready: %1d | ALU_OPA_SELECT: %-10s | ALU_OPB_SELECT: %-10s\n",\
      funcType, busy, str, ALU_func, NPC_hi, NPC_lo, dest_idx, ROB_idx, FL_idx, T_idx, T1, T1_ready, T2, T2_ready, T1_str, T2_str);
 }
 
 void print_maptable_head(){
   if (ppfile != NULL){
-    fprintf(ppfile, " MAP_TABLE ");
-    fprintf(ppfile, " reg |  T  ");
+    fprintf(ppfile, " MAP_TABLE \n");
+    fprintf(ppfile, " reg |  T  \n");
   }
 }
 void print_maptable_entries(int reg_idx, int T, int ready){
@@ -271,26 +271,26 @@ void print_maptable_entries(int reg_idx, int T, int ready){
 
 void print_CDB_head(){
   if (ppfile != NULL){
-    fprintf(ppfile, "------------------------------CDB----------------------------");
+    fprintf(ppfile, "------------------------------CDB----------------------------\n");
   }
 }
 
 void print_CDB_entries(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO){
   if (ppfile != NULL){
-    fprintf(ppfile, "taken: %1d | T_idx: %3d | ROB_idx: %3d | T_value: %x%x |" , taken, T_idx, ROB_idx, dest_idx, T_value_HI, T_value_LO);
+    fprintf(ppfile, "taken: %1d | T_idx: %3d | ROB_idx: %3d | T_value: %x%x |\n" , taken, T_idx, ROB_idx, dest_idx, T_value_HI, T_value_LO);
   }
 }
 
 void print_archmap_head(){
   if(ppfile != NULL){
-    fprintf(ppfile, "  archmap ");
-    fprintf(ppfile, " reg | PR ");
+    fprintf(ppfile, "  archmap \n");
+    fprintf(ppfile, " reg | PR \n");
   }
 }
 
 void print_archmap_entries(int reg_idx, int pr){
   if(ppfile != NULL){
-    fprintf(ppfile, " %3d | %3d ", reg_idx, pr);
+    fprintf(ppfile, " %3d | %3d \n", reg_idx, pr);
   }
 }
 
