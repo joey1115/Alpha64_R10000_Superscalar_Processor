@@ -32,7 +32,7 @@ void print_cycles()
 void print_ROB_ht(int head, int tail)
 {
   if (ppfile != NULL){
-    fprintf(ppfile, "---------------------------------------ROB----------------------------------- ")
+    fprintf(ppfile, "---------------------------------------ROB----------------------------------- ");
     fprintf(ppfile, "head:%d   tail:%d", head, tail);
   }
 
@@ -54,6 +54,7 @@ void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC, int d
   char *T1_str;
   char *T2_str;
   char *ALU_func;
+  char *str;
 
   int opcode, check;
 
