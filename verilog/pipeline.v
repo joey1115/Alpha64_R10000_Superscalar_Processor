@@ -25,6 +25,11 @@ module pipeline (
   output CDB_entry_t         [`NUM_FU-1:0]          pipeline_CDB,
   output logic       complete_en,
   output CDB_PR_OUT_t                               CDB_PR_out,
+  output logic dispatch_en,
+  output logic ROB_valid,
+  output logic RS_valid,
+  output logic FL_valid,
+  output logic rollback_en,
   // output logic [4:0]  pipeline_commit_wr_idx,
   // output logic [63:0] pipeline_commit_wr_data,
   // output logic        pipeline_commit_wr_en,
@@ -36,7 +41,10 @@ module pipeline (
   output logic [3:0]  pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
-  logic                                          en, dispatch_en, F_decoder_en, illegal;
+  logic                                          en, F_decoder_en, illegal;
+`ifdef SYNTH_TEST
+  logic                                          dispatch_en,
+`endif
   logic                                          write_en;
 `ifdef SYNTH_TEST
   logic                                          complete_en;
@@ -52,12 +60,16 @@ module pipeline (
   DECODER_RS_OUT_t                               decoder_RS_out;
   DECODER_FL_OUT_t                               decoder_FL_out;
   DECODER_MAP_TABLE_OUT_t                        decoder_Map_Table_out;
+`ifdef SYNTH_TEST
   logic                                          FL_valid;
+`endif
   FL_ROB_OUT_t                                   FL_ROB_out;
   FL_RS_OUT_t                                    FL_RS_out;
   FL_MAP_TABLE_OUT_t                             FL_Map_Table_out;
   logic                   [`NUM_FU-1:0]          FU_valid;
+`ifdef SYNTH_TEST
   logic                                          rollback_en;
+`endif
   logic                   [$clog2(`NUM_FL)-1:0]  FL_rollback_idx;
   logic                   [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
   logic                   [$clog2(`NUM_ROB)-1:0] diff_ROB;
@@ -67,13 +79,17 @@ module pipeline (
   MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;
   MAP_TABLE_RS_OUT_t                             Map_Table_RS_out;
   PR_FU_OUT_t                                    PR_FU_out;
+`ifdef SYNTH_TEST
   logic                                          ROB_valid;
+`endif
   logic                                          retire_en;
   logic                                          halt_out;
   logic                   [$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
   ROB_FL_OUT_t                                   ROB_FL_out;
+`ifdef SYNTH_TEST
   logic                                          RS_valid;
+`endif
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
   F_DECODER_OUT_t                                F_decoder_out;

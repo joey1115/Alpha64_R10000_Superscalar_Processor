@@ -26,6 +26,7 @@ extern void print_CDB_head();
 extern void print_CDB_entries(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO);
 extern void print_archmap_head();
 extern void print_archmap_entries(int reg_idx, int pr);
+extern void print_dispatch_en(int dispatch_en, int ROB_valid, int RS_valid, int FL_valid, int rollback_en);
 
 
 extern void print_reg(int wb_reg_wr_data_out_hi, int wb_reg_wr_data_out_lo,
@@ -66,6 +67,7 @@ module testbench;
   CDB_entry_t [`NUM_FU-1:0] pipeline_CDB;
   logic complete_en;
   CDB_PR_OUT_t CDB_PR_out;
+  logic dispatch_en, ROB_valid, RS_valid, FL_valid, rollback_en;
 
 
 
@@ -124,7 +126,12 @@ module testbench;
     .pipeline_MAPTABLE(pipeline_MAPTABLE),
     .pipeline_CDB(pipeline_CDB),
     .complete_en(complete_en),
-    .CDB_PR_out(CDB_PR_out)
+    .CDB_PR_out(CDB_PR_out),
+    .dispatch_en(dispatch_en),
+    .ROB_valid(ROB_valid),
+    .RS_valid(RS_valid),
+    .FL_valid(FL_valid),
+    .rollback_en(rollback_en),
     //.pipline_PR(pipeline_PR),
 
     // .if_NPC_out(if_NPC_out),
@@ -258,6 +265,8 @@ module testbench;
       `SD;
       `SD;
       print_cycles();
+      //print dispatch_en
+      print_dispatch_en({{(32-1},dispatch_en}, {{(32-1},ROB_valid}, {{(32-1},RS_valid}, {{(32-1},FL_valid}, {{(32-1},rollback_en})
       // print ROB
       print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
       for(int i = 0; i < `NUM_ROB; i++) begin
