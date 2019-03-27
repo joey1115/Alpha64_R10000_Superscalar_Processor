@@ -109,7 +109,7 @@ module testbench;
     .pipeline_ROB(pipeline_ROB),
     .pipeline_RS(pipeline_RS),
     .pipeline_ARCHMAP(pipeline_ARCHMAP),
-    .pipeline_ARCHMAP(pipeline_MAPTABLE),
+    .pipeline_MAPTABLE(pipeline_MAPTABLE),
     .pipeline_CDB(pipeline_CDB),
     .complete_en(complete_en),
     .CDB_PR_out(CDB_PR_out),
