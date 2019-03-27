@@ -124,7 +124,7 @@ module testbench;
     .pipeline_MAPTABLE(pipeline_MAPTABLE),
     .pipeline_CDB(pipeline_CDB),
     .complete_en(complete_en),
-    .CDB_PR_out(CDB_PR_out),
+    .CDB_PR_out(CDB_PR_out)
     //.pipline_PR(pipeline_PR),
 
     // .if_NPC_out(if_NPC_out),
@@ -177,7 +177,7 @@ module testbench;
       clock_count*`VIRTUAL_CLOCK_PERIOD);
     end
     
-  // endtask  // task show_clk_count 
+  endtask  // task show_clk_count 
 
   // // Show contents of a range of Unified Memory, in both hex and decimal
   // task show_mem_with_decimal;
@@ -203,12 +203,12 @@ module testbench;
   //   end
   // endtask  // task show_mem_with_decimal
 
-  // initial begin
-  //   `ifdef DUMP
-  //     $vcdplusdeltacycleon;
-  //     $vcdpluson();
-  //     $vcdplusmemon(memory.unified_memory);
-  //   `endif
+  initial begin
+    `ifdef DUMP
+      $vcdplusdeltacycleon;
+      $vcdpluson();
+      $vcdplusmemon(memory.unified_memory);
+    `endif
       
     clock = 1'b0;
     reset = 1'b0;
@@ -260,9 +260,9 @@ module testbench;
       print_cycles();
       // print ROB
       print_ROB_ht(pipeline_ROB.head, pipeline_ROB.tail);
-      for(int i = 0; i < `NUM_ROB; i++) {
+      for(int i = 0; i < `NUM_ROB; i++) begin
       print_ROB_entry(pipeline_ROB.entry[i].valid, pipeline_ROB.entry[i].T, pipeline_ROB.entry[i].T_old,pipeline_ROB.entry[i].dest_idx,pipeline_ROB.entry[i].complete,pipeline_ROB.entry[i].halt);
-      }
+      end
       //print RS
       print_RS_head();
       for(int i = 0; i < `NUM_LD; i++) begin
@@ -354,9 +354,9 @@ module testbench;
 
       //print CDB
       print_CDB_head();
-      for(int i = 0; i < NUM_FU; i++){
+      for(int i = 0; i < `NUM_FU; i++) begin
         print_CDB_entries(pipeline_CDB.taken, pipeline_CDB.T_idx, pipeline_CDB.ROB_idx, pipeline_CDB.dest_idx, pipeline_CDB.T_value[63:32], pipeline_CDB.T_value[31:0]);
-      }
+      end
 
       //print archmap
       print_archmap_head();
@@ -365,7 +365,7 @@ module testbench;
       end
 
       //print PR
-      print_PR_head();
+      // print_PR_head();
       
 
 
