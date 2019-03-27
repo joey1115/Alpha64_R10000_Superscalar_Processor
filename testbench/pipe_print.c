@@ -269,8 +269,28 @@ void print_maptable_entries(int reg, int T, int ready){
 }
 
 void print_CDB_head(){
-  if (ppfile != NULL)
-    fprintf(ppfile, "CDB");
+  if (ppfile != NULL){
+    fprintf(ppfile, "------------------------------CDB----------------------------");
+  }
+}
+
+void print_CDB_entries(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO){
+  if (ppfile != NULL){
+    fprintf(ppfile, "taken: %1d | T_idx: %3d | ROB_idx: %3d | T_value: %x%x |" , taken, T_idx, ROB_idx, dest_idx, T_value_HI, T_value_LO);
+  }
+}
+
+void print_archmap_head(){
+  if(ppfile != NULL){
+    fprintf(ppfile, "  archmap ");
+    fprintf(ppfile, " reg | PR ");
+  }
+}
+
+void print_archmap_entries(int reg, int pr){
+  if(ppfile != NULL){
+    fprintf(ppfile, " %3d | %3d ", reg, pr);
+  }
 }
 
 
