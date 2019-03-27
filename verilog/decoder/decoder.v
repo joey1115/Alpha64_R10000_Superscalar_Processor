@@ -30,7 +30,7 @@
   // This is a *combinational* module (basically a PLA).
   //
 module decoder(
-  input  F_D_PACKET              decoder_packet_in,
+  input  F_DECODER_OUT_t         F_decoder_out,
   output DECODER_ROB_OUT_t       decoder_ROB_out,
   output DECODER_RS_OUT_t        decoder_RS_out,
   output DECODER_FL_OUT_t        decoder_FL_out,
@@ -58,8 +58,8 @@ module decoder(
   assign decoder_Map_Table_out = '{dest_idx, inst.r.rega_idx, inst.r.regb_idx};
 
   always_comb begin
-    inst          = decoder_packet_in.inst;
-    NPC           = decoder_packet_in.NPC;
+    inst          = F_decoder_out.inst;
+    NPC           = F_decoder_out.NPC;
     opa_select    = ALU_OPA_IS_REGA;
     opb_select    = ALU_OPB_IS_REGB;
     func          = ALU_ADDQ;
@@ -69,17 +69,17 @@ module decoder(
     stc_mem       = `FALSE;
     cond_branch   = `FALSE;
     uncond_branch = `FALSE;
-    if(decoder_packet_in.valid) begin
+    if(F_decoder_out.valid) begin
       valid = `TRUE;
-      case(decoder_packet_in.inst.m.opcode)
+      case(F_decoder_out.inst.m.opcode)
         `PAL_INST: begin
-          case (decoder_packet_in.inst.p.func)
+          case (F_decoder_out.inst.p.func)
             `PAL_HALT: begin
               halt = `TRUE;
             end
             `PAL_WHAMI: begin
               cpuid        = `TRUE;
-              dest_idx = decoder_packet_in.inst.r.rega_idx;
+              dest_idx = F_decoder_out.inst.r.rega_idx;
             end
             default: begin
               illegal_isnt = `TRUE;
@@ -92,7 +92,7 @@ module decoder(
           opa_select   = ALU_OPA_IS_MEM_DISP;
           opb_select   = ALU_OPB_IS_REGB;
           func         = ALU_ADDQ;
-          dest_idx = decoder_packet_in.inst.r.rega_idx;
+          dest_idx = F_decoder_out.inst.r.rega_idx;
           FU           = FU_LD;
         end
 
@@ -102,10 +102,10 @@ module decoder(
 
         `INTA_GRP: begin
           opa_select   = ALU_OPA_IS_REGA;
-          opb_select   = decoder_packet_in.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
-          dest_idx = decoder_packet_in.inst.r.regc_idx;
+          opb_select   = F_decoder_out.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          dest_idx = F_decoder_out.inst.r.regc_idx;
           FU           = FU_ALU;
-          case (decoder_packet_in.inst.i.func)
+          case (F_decoder_out.inst.i.func)
             `CMPULT_INST: func     = ALU_CMPULT;
             `ADDQ_INST:   func     = ALU_ADDQ;
             `SUBQ_INST:   func     = ALU_SUBQ;
@@ -117,15 +117,15 @@ module decoder(
               illegal_isnt = `TRUE;
               valid   = `FALSE;
             end
-          endcase // case(decoder_packet_in.inst[11:5])
+          endcase // case(F_decoder_out.inst[11:5])
         end
 
         `INTL_GRP: begin
           opa_select   = ALU_OPA_IS_REGA;
-          opb_select   = decoder_packet_in.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
-          dest_idx = decoder_packet_in.inst.r.regc_idx;
+          opb_select   = F_decoder_out.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          dest_idx = F_decoder_out.inst.r.regc_idx;
           FU           = FU_ALU;
-          case (decoder_packet_in.inst.i.func)
+          case (F_decoder_out.inst.i.func)
             `AND_INST:   func     = ALU_AND;
             `BIC_INST:   func     = ALU_BIC;
             `BIS_INST:   func     = ALU_BIS;
@@ -136,15 +136,15 @@ module decoder(
               illegal_isnt = `TRUE;
               valid   = `FALSE;
             end
-          endcase // case(decoder_packet_in.inst[11:5])
+          endcase // case(F_decoder_out.inst[11:5])
         end
 
         `INTS_GRP: begin
           opa_select   = ALU_OPA_IS_REGA;
-          opb_select   = decoder_packet_in.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
-          dest_idx = decoder_packet_in.inst.r.regc_idx;
+          opb_select   = F_decoder_out.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          dest_idx = F_decoder_out.inst.r.regc_idx;
           FU           = FU_ALU;
-          case (decoder_packet_in.inst.i.func)
+          case (F_decoder_out.inst.i.func)
             `SRL_INST: func     = ALU_SRL;
             `SLL_INST: func     = ALU_SLL;
             `SRA_INST: func     = ALU_SRA;
@@ -152,21 +152,21 @@ module decoder(
               illegal_isnt = `TRUE;
               valid   = `FALSE;
             end
-          endcase // case(decoder_packet_in.inst[11:5])
+          endcase // case(F_decoder_out.inst[11:5])
         end
 
         `INTM_GRP: begin
           opa_select = ALU_OPA_IS_REGA;
-          opb_select = decoder_packet_in.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
-          dest_idx = decoder_packet_in.inst.r.regc_idx;
+          opb_select = F_decoder_out.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          dest_idx = F_decoder_out.inst.r.regc_idx;
           FU           = FU_ALU;
-          case (decoder_packet_in.inst.i.func)
+          case (F_decoder_out.inst.i.func)
             `MULQ_INST: func     = ALU_MULQ;
             default: begin
               illegal_isnt = `TRUE;
               valid   = `FALSE;
             end
-          endcase // case(decoder_packet_in.inst[11:5])
+          endcase // case(F_decoder_out.inst[11:5])
         end
 
         // `ITFP_GRP, `FLTV_GRP, `FLTI_GRP, `FLTL_GRP, `MISC_GRP, `FTPI_GRP: begin
@@ -177,7 +177,7 @@ module decoder(
           opa_select   = ALU_OPA_IS_MEM_DISP;
           opb_select   = ALU_OPB_IS_REGB;
           func         = ALU_ADDQ;
-          dest_idx = decoder_packet_in.inst.r.rega_idx;
+          dest_idx = F_decoder_out.inst.r.rega_idx;
           rd_mem       = `TRUE;
           FU           = FU_LD;
         end // case: `LDQ_INST
@@ -190,7 +190,7 @@ module decoder(
           opa_select   = ALU_OPA_IS_MEM_DISP;
           opb_select   = ALU_OPB_IS_REGB;
           func         = ALU_ADDQ;
-          dest_idx = decoder_packet_in.inst.r.rega_idx;
+          dest_idx = F_decoder_out.inst.r.rega_idx;
           rd_mem       = `TRUE;
           ldl_mem      = `TRUE;
           FU           = FU_LD;
@@ -209,14 +209,14 @@ module decoder(
           opa_select   = ALU_OPA_IS_MEM_DISP;
           opb_select   = ALU_OPB_IS_REGB;
           func         = ALU_ADDQ;
-          dest_idx = decoder_packet_in.inst.r.rega_idx;
+          dest_idx = F_decoder_out.inst.r.rega_idx;
           wr_mem       = `TRUE;
           stc_mem      = `TRUE;
           FU           = FU_ST;
         end
 
         `BR_INST, `BSR_INST: begin
-          dest_idx  = decoder_packet_in.inst.r.rega_idx;
+          dest_idx  = F_decoder_out.inst.r.rega_idx;
           uncond_branch = `TRUE;
           opa_select    = ALU_OPA_IS_NPC;
           opb_select    = ALU_OPB_IS_BR_DISP;
@@ -241,7 +241,7 @@ module decoder(
           opa_select    = ALU_OPA_IS_NOT3;
           opb_select    = ALU_OPB_IS_REGB;
           func          = ALU_AND; // clear low 2 bits (word-align)
-          dest_idx  = decoder_packet_in.inst.r.rega_idx;
+          dest_idx  = F_decoder_out.inst.r.rega_idx;
           uncond_branch = `TRUE;
           FU            = FU_BR;
         end
@@ -252,7 +252,7 @@ module decoder(
         end
 
       endcase
-    end // if(~decoder_packet_in.valid)
+    end // if(~F_decoder_out.valid)
   end // always
    
 endmodule // decoder

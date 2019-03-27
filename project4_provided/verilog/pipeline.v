@@ -217,7 +217,7 @@ module pipeline (
   //                  IF-Stage                    //
   //                                              //
   //////////////////////////////////////////////////
-  if_stage if_stage_0 (// Inputs
+  F_stage F_stage_0 (// Inputs
 						.clock (clock),
 						.reset (reset),
 						.mem_wb_valid_inst(mem_wb_valid_inst),

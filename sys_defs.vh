@@ -178,39 +178,6 @@ typedef union packed {
   } p; //pal inst
 } INST_t; //instruction typedef, this should cover all types of instructions
 
-// typedef enum logic [1:0] {
-//   HT_NONE = 2'b00,
-//   HT_HEAD = 2'b01,
-//   HT_TAIL = 2'b10,
-//   HT_HT   = 2'b11
-// } HT_t;
-
-//////////////////////////////////////////////
-//
-// IF Packets:
-// Data that is exchanged between the IF and the ID stages  
-//
-//////////////////////////////////////////////
-
-typedef struct packed {
-  logic        valid; // If low, the data in this struct is garbage
-  INST_t       inst;  // fetched instruction out
-  logic [63:0] NPC; // PC + 4 
-} F_D_PACKET;
-
-`define F_D_PACKET_RESET '{ \
-  `FALSE,                   \
-  `NOOP_INST,               \
-  0                         \
-}
-
-//////////////////////////////////////////////
-//
-// ID Packets:
-// Data that is exchanged from ID to EX stage
-//
-//////////////////////////////////////////////
-
 typedef enum logic [2:0] {
   FU_ALU  = 3'b000,
   FU_ST   = 3'b001,
@@ -218,29 +185,6 @@ typedef enum logic [2:0] {
   FU_MULT = 3'b011,
   FU_BR   = 3'b100
 } FU_t;
-
-typedef struct packed {
-  logic [63:0]   NPC;   // PC + 4
-  logic [63:0]   rega_value;    // reg A value                                  
-  logic [63:0]   regb_value;    // reg B value                                  
-  ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
-  ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
-  INST_t         inst;                 // instruction
-  logic [4:0]    dest_idx;  // destination (writeback) register index      
-  ALU_FUNC       alu_func;      // ALU function select (ALU_xxx *)
-  logic          rd_mem;        // does inst read memory?
-  logic          wr_mem;        // does inst write memory?
-  logic          ldl_mem;       // load-lock inst?
-  logic          stc_mem;       // store-conditional inst?
-  logic          cond_branch;   // is inst a conditional branch?
-  logic          uncond_branch; // is inst an unconditional branch?
-  logic          halt;          // is this a halt?
-  logic          cpuid;         // get CPUID inst?
-  logic          illegal;       // is this instruction illegal?
-  logic          valid;         // is inst a valid instruction to be counted for CPI calculations?
-  FU_t           FU;
-  //RS_ENTRY [NUM_RS-1:0] RS;
-} S_X_PACKET;
 
 `define S_X_PACKET_RESET '{ \
   {64{1'b0}},               \
@@ -263,59 +207,6 @@ typedef struct packed {
   1'b0,                     \
   FU_ALU                    \
 }
-
-typedef struct packed {
-  INST_t       inst;
-  logic [63:0] alu_result; // alu_result
-  logic [63:0] NPC; //pc + 4
-  logic             take_branch; // is this a taken branch?
-  //pass throughs from decode stage
-  logic [63:0] rega_value;
-  logic        rd_mem, wr_mem;
-  logic [4:0]  dest_idx;
-  logic        halt, illegal, valid;
-} X_C_PACKET;
-
-`define X_C_PACKET_RESET '{ \
-  `NOOP_INST,               \
-  0,                        \
-  0,                        \
-  0,                        \
-  0,                        \
-  0,                        \
-  0,                        \
-  `ZERO_REG,                \
-  0,                        \
-  0,                        \
-  0                         \
-}
-
-typedef struct packed {
-  INST_t       inst;
-  logic [63:0] NPC; //pc + 4
-  logic             halt, illegal, valid, stall;
-  logic             take_branch; // is this a taken branch?
-  logic [4:0]       dest_idx;
-  logic [63:0]      result;
-} C_R_PACKET;
-
-`define C_R_PACKET_RESET '{ \
-  `NOOP_INST,               \
-  0,                        \
-  0,                        \
-  0,                        \
-  0,                        \
-  0,                        \
-  0,                        \
-  `ZERO_REG,                \
-  0                         \
-}
-
-typedef struct packed {
-  logic [63:0] wr_data;
-  logic        wr_en;
-  logic [4:0]  wr_idx;
-} R_REG_PACKET;
 
 //////////////////////////////////////////////
 //

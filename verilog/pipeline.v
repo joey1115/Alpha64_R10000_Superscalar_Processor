@@ -27,7 +27,7 @@ module pipeline (
   // output logic        pipeline_commit_wr_en,
   // output logic [63:0] pipeline_commit_NPC
 );
-  logic                                          en, dispatch_en;
+  logic                                          en, dispatch_en, F_decoder_en;
   logic                                          write_en;
   logic                                          complete_en;
   logic                   [`NUM_FU-1:0]          CDB_valid;
@@ -89,32 +89,30 @@ module pipeline (
   logic       [`NUM_FU-1:0]                                               RS_match_hit;
   logic       [$clog2(`NUM_FU)-1:0]                                       RS_match_idx;
 `endif
-  assign en = `TRUE;
-  
 
-// Pipeline register enables
-logic   f_d_enable;
-
+  assign en           = `TRUE;
+  assign dispatch_en  = ROB_valid && RS_valid && FL_valid && !rollback_en;
+  assign F_decoder_en = `TRUE;
   //assign when an instruction retires/completed
-    assign pipeline_completed_insts = {3'b0, retire_en};
-    assign pipeline_error_status =	illegal	? `HALTED_ON_ILLEGAL
-                    : halt_out	? `HALTED_ON_HALT
-                    : `NO_ERROR;
+  assign pipeline_completed_insts = {3'b0, retire_en};
+  assign pipeline_error_status    = illegal  ? `HALTED_ON_ILLEGAL :
+                                    halt_out ? `HALTED_ON_HALT :
+                                               `NO_ERROR;
 
    // Actual cache (data and tag RAMs)
-    cache cachememory (
-      // inputs
-      .clock(clock),
-      .reset(reset),
-      .wr1_en(Icache_wr_en),
-      .wr1_idx(Icache_wr_idx),
-      .wr1_tag(Icache_wr_tag),
-      .wr1_data(mem2proc_data),
-      .rd1_idx(Icache_rd_idx),
-      .rd1_tag(Icache_rd_tag),
-      // outputs
-      .rd1_data(cachemem_data),
-      .rd1_valid(cachemem_valid)
+  cache cachememory (
+    // inputs
+    .clock(clock),
+    .reset(reset),
+    .wr1_en(Icache_wr_en),
+    .wr1_idx(Icache_wr_idx),
+    .wr1_tag(Icache_wr_tag),
+    .wr1_data(mem2proc_data),
+    .rd1_idx(Icache_rd_idx),
+    .rd1_tag(Icache_rd_tag),
+    // outputs
+    .rd1_data(cachemem_data),
+    .rd1_valid(cachemem_valid)
   );
 
   // Cache controller
@@ -139,12 +137,7 @@ logic   f_d_enable;
     .data_write_enable(Icache_wr_en)
   );
 
-  //////////////////////////////////////////////////
-  //                                              //
-  //                  IF-Stage                    //
-  //                                              //
-  //////////////////////////////////////////////////
-  if_stage if_stage_0 (// Inputs
+  F_stage F_stage_0 (// Inputs
     .clock (clock),
     .reset (reset),
     .mem_wb_valid_inst(mem_wb_valid_inst),
@@ -165,42 +158,15 @@ logic   f_d_enable;
   //            IF/ID Pipeline Register           //
   //                                              //
   //////////////////////////////////////////////////
-  assign f_d_enable = 1'b1; // always enabled
-  // synopsys sync_set_reset "reset"
-  always_ff @(posedge clock)
-  begin
-    if(reset)
-    begin
-      decoder_packet_in.inst <= `SD `NOOP_INST;
-      decoder_packet_in.NPC <= `SD 0;
-      decoder_packet_in.valid <= `SD `FALSE;
-    end // if (reset)
-    else if (f_d_enable)
-    begin
-      decoder_packet_in.inst <= `SD if_IR_out;
-      decoder_packet_in.NPC <= `SD if_NPC_out;
-      decoder_packet_in.valid <= `SD if_valid_inst_out;
-		end // if (f_d_enable)
-	end // always
-
-  // //////////////////////////////////////////////////
-  // //                                              //
-  // //            F/D Pipeline Register             //
-  // //                                              //
-  // //////////////////////////////////////////////////
-  // assign f_d_enable = `TRUE; // always enabled
-  // // synopsys sync_set_reset "reset"
-  // always_ff @(posedge clock) begin
-  //   if(reset) begin
-  //     decoder_packet_in <= `SD DECODER_PACKET_IN_RESET;
-  //   end else if (f_d_enable) begin
-  //     decoder_packet_in <= `SD f_d_packet_out;
-  //   end // if (f_d_enable)
-  // end // always
-
-  always_comb begin
-    dispatch_en = ROB_valid && RS_valid && FL_valid && !rollback_en;
-  end
+  always_ff @(posedge clock) begin
+    if (reset) begin
+      F_decoder_out.inst  <= `SD `F_DECODER_OUT_RESET;
+    end else if (F_decoder_en) begin
+      F_decoder_out.inst  <= `SD if_IR_out;
+      F_decoder_out.NPC   <= `SD if_NPC_out;
+      F_decoder_out.valid <= `SD if_valid_inst_out;
+    end // if (F_decoder_en)
+  end // always
 
   Arch_Map arch_map_0 (
     .en(en),
@@ -236,7 +202,7 @@ logic   f_d_enable;
   );
 
   decoder decoder_0 (
-    .decoder_packet_in(decoder_packet_in),
+    .F_decoder_out(F_decoder_out),
     .decoder_ROB_out(decoder_ROB_out),
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),

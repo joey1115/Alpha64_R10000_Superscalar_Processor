@@ -223,7 +223,7 @@ module testbench();
     $display("fif_valid 1:%h",      pipeline_0.if_valid_inst_out);
 
     // IF/ID signals (4) - prefix 'g'
-    $display("genable 1:%h",        pipeline_0.f_d_enable);
+    $display("genable 1:%h",        pipeline_0.F_decoder_en);
     $display("gNPC 16:%h",          pipeline_0.if_id_NPC);
     $display("gIR 8:%h",            pipeline_0.if_id_IR);
     $display("gvalid 1:%h",         pipeline_0.if_id_valid_inst);
