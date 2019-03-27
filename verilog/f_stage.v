@@ -18,7 +18,7 @@ module F_stage(
                                   // makes pipeline behave as single-cycle
           input         take_branch_out,         // taken-branch signal
           input  [63:0] take_branch_target,           // target pc: use if take_branch_out is TRUE
-          input  [63:0] Imem2proc_data,		        // Data coming back from instruction-memory
+          input  [63:0] Imem2proc_data,        // Data coming back from instruction-memory
           input         Imem_valid,
 
           output logic [63:0] proc2Imem_addr, // Address sent to Instruction memory
