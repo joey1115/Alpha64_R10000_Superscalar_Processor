@@ -27,7 +27,7 @@ module pipeline (
   // output logic        pipeline_commit_wr_en,
   // output logic [63:0] pipeline_commit_NPC
 );
-  logic                                          en;
+  logic                                          en, dispatch_en;
   logic                                          write_en;
   logic                                          complete_en;
   logic                   [`NUM_FU-1:0]          CDB_valid;
@@ -102,48 +102,42 @@ logic   f_d_enable;
                     : `NO_ERROR;
 
    // Actual cache (data and tag RAMs)
-    cache cachememory (// inputs
-                      .clock(clock),
-                      .reset(reset),
-                      .wr1_en(Icache_wr_en),
-                      .wr1_idx(Icache_wr_idx),
-                      .wr1_tag(Icache_wr_tag),
-                      .wr1_data(mem2proc_data),
-
-                      .rd1_idx(Icache_rd_idx),
-                      .rd1_tag(Icache_rd_tag),
-
-                      // outputs
-                      .rd1_data(cachemem_data),
-                      .rd1_valid(cachemem_valid)
+    cache cachememory (
+      // inputs
+      .clock(clock),
+      .reset(reset),
+      .wr1_en(Icache_wr_en),
+      .wr1_idx(Icache_wr_idx),
+      .wr1_tag(Icache_wr_tag),
+      .wr1_data(mem2proc_data),
+      .rd1_idx(Icache_rd_idx),
+      .rd1_tag(Icache_rd_tag),
+      // outputs
+      .rd1_data(cachemem_data),
+      .rd1_valid(cachemem_valid)
   );
 
   // Cache controller
   icache icache_0(// inputs 
-                      .clock(clock),
-                      .reset(reset),
-
-                      .Imem2proc_response(Imem2proc_response),
-                      .Imem2proc_data(mem2proc_data),
-                      .Imem2proc_tag(mem2proc_tag),
-
-                      .proc2Icache_addr(proc2Icache_addr),
-                      .cachemem_data(cachemem_data),
-                      .cachemem_valid(cachemem_valid),
-
-                      // outputs
-                      .proc2Imem_command(proc2Imem_command),
-                      .proc2Imem_addr(proc2Imem_addr),
-
-                      .Icache_data_out(Icache_data_out),
-                      .Icache_valid_out(Icache_valid_out),
-                      .current_index(Icache_rd_idx),
-                      .current_tag(Icache_rd_tag),
-                      .last_index(Icache_wr_idx),
-                      .last_tag(Icache_wr_tag),
-                      .data_write_enable(Icache_wr_en)
+    .clock(clock),
+    .reset(reset),
+    .Imem2proc_response(Imem2proc_response),
+    .Imem2proc_data(mem2proc_data),
+    .Imem2proc_tag(mem2proc_tag),
+    .proc2Icache_addr(proc2Icache_addr),
+    .cachemem_data(cachemem_data),
+    .cachemem_valid(cachemem_valid),
+    // outputs
+    .proc2Imem_command(proc2Imem_command),
+    .proc2Imem_addr(proc2Imem_addr),
+    .Icache_data_out(Icache_data_out),
+    .Icache_valid_out(Icache_valid_out),
+    .current_index(Icache_rd_idx),
+    .current_tag(Icache_rd_tag),
+    .last_index(Icache_wr_idx),
+    .last_tag(Icache_wr_tag),
+    .data_write_enable(Icache_wr_en)
   );
-
 
   //////////////////////////////////////////////////
   //                                              //
@@ -171,18 +165,18 @@ logic   f_d_enable;
   //            IF/ID Pipeline Register           //
   //                                              //
   //////////////////////////////////////////////////
-	assign f_d_enable = 1'b1; // always enabled
-	// synopsys sync_set_reset "reset"
-	always_ff @(posedge clock)
-	begin
-		if(reset)
-		begin
+  assign f_d_enable = 1'b1; // always enabled
+  // synopsys sync_set_reset "reset"
+  always_ff @(posedge clock)
+  begin
+    if(reset)
+    begin
       decoder_packet_in.inst <= `SD `NOOP_INST;
       decoder_packet_in.NPC <= `SD 0;
       decoder_packet_in.valid <= `SD `FALSE;
-		end // if (reset)
-		else if (f_d_enable)
-		begin
+    end // if (reset)
+    else if (f_d_enable)
+    begin
       decoder_packet_in.inst <= `SD if_IR_out;
       decoder_packet_in.NPC <= `SD if_NPC_out;
       decoder_packet_in.valid <= `SD if_valid_inst_out;
@@ -203,6 +197,10 @@ logic   f_d_enable;
   //     decoder_packet_in <= `SD f_d_packet_out;
   //   end // if (f_d_enable)
   // end // always
+
+  always_comb begin
+    dispatch_en = ROB_valid && RS_valid && FL_valid && !rollback_en;
+  end
 
   Arch_Map arch_map_0 (
     .en(en),
