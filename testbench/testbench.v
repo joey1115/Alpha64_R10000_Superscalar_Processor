@@ -21,11 +21,11 @@ extern void print_ROB_entry(int valid, int T, int T_old, int dest_idx, int compl
 extern void print_RS_head();
 extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select);
 extern void print_maptable_head();
-extern void print_maptable_entries(int reg, int T, int ready);
+extern void print_maptable_entries(int reg_idx, int T, int ready);
 extern void print_CDB_head();
 extern void print_CDB_entries(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO);
 extern void print_archmap_head();
-extern void print_archmap_entries(int reg, int pr);
+extern void print_archmap_entries(int reg_idx, int pr);
 
 
 extern void print_reg(int wb_reg_wr_data_out_hi, int wb_reg_wr_data_out_lo,

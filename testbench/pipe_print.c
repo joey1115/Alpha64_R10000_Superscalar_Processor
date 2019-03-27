@@ -256,7 +256,7 @@ void print_maptable_head(){
     fprintf(ppfile, " reg |  T  ");
   }
 }
-void print_maptable_entries(int reg, int T, int ready){
+void print_maptable_entries(int reg_idx, int T, int ready){
   char *ready_bit;
   if(ready){
     ready_bit = "+";
@@ -288,7 +288,7 @@ void print_archmap_head(){
   }
 }
 
-void print_archmap_entries(int reg, int pr){
+void print_archmap_entries(int reg_idx, int pr){
   if(ppfile != NULL){
     fprintf(ppfile, " %3d | %3d ", reg, pr);
   }
