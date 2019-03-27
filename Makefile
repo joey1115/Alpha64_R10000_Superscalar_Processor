@@ -27,7 +27,7 @@
 ## CONFIGURATION
 ################################################################################
 
-VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD) +define+PIPELINE +lint=PCWM
+VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD) +define+PIPELINE +lint=PCWM +lint=TFIPC-L
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 SYNTH_DIR = ./synth
@@ -62,7 +62,7 @@ PRFILES       = $(wildcard verilog/PR/PR.v)
 ROBFILES      = $(wildcard verilog/ROB/ROB.v)
 RSFILES       = $(wildcard verilog/RS/RS.v)
 
-SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CDBFILES) $(DECODERFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES)
+SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES)
 
 # SYNTHESIS CONFIG
 

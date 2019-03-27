@@ -61,6 +61,7 @@ module pipeline (
   logic                                          RS_valid;
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
+  F_DECODER_OUT_t                                F_decoder_out;
 `ifndef SYNTH_TEST
   logic       [31:0][$clog2(`NUM_PR)-1:0]                                 next_arch_map;
   CDB_entry_t [`NUM_FU-1:0]                                               CDB;
@@ -160,7 +161,7 @@ module pipeline (
   //////////////////////////////////////////////////
   always_ff @(posedge clock) begin
     if (reset) begin
-      F_decoder_out.inst  <= `SD `F_DECODER_OUT_RESET;
+      F_decoder_out <= `SD `F_DECODER_OUT_RESET;
     end else if (F_decoder_en) begin
       F_decoder_out.inst  <= `SD if_IR_out;
       F_decoder_out.NPC   <= `SD if_NPC_out;
