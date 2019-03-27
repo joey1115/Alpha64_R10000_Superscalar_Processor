@@ -266,7 +266,7 @@ void print_maptable_entries(int reg_idx, int T, int ready){
   }
 
   if (ppfile != NULL)
-    fprintf(ppfile, " %3d | %3d%-8s ", reg, T, ready_bit);
+    fprintf(ppfile, " %3d | %3d%-8s ", reg_idx, T, ready_bit);
 }
 
 void print_CDB_head(){
@@ -290,7 +290,7 @@ void print_archmap_head(){
 
 void print_archmap_entries(int reg_idx, int pr){
   if(ppfile != NULL){
-    fprintf(ppfile, " %3d | %3d ", reg, pr);
+    fprintf(ppfile, " %3d | %3d ", reg_idx, pr);
   }
 }
 

@@ -380,7 +380,7 @@ module testbench;
 
 
        print_reg(CDB_PR_out.T_value[63:32], CDB_PR_out.T_value[31:0],
-            {27'b0,CDB_PR_out.T_idx}, {31'b0,complete_en});
+            {{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx}, {31'b0,complete_en});
        print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
             proc2mem_addr[63:32], proc2mem_addr[31:0],
             proc2mem_data[63:32], proc2mem_data[31:0]);
