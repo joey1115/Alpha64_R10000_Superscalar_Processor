@@ -56,12 +56,14 @@ module decoder(
     opa_select    = ALU_OPA_IS_REGA;
     opb_select    = ALU_OPB_IS_REGB;
     func          = ALU_ADDQ;
+    dest_idx      = `ZERO_REG;
     rd_mem        = `FALSE;
     wr_mem        = `FALSE;
     ldl_mem       = `FALSE;
     stc_mem       = `FALSE;
     cond_branch   = `FALSE;
     uncond_branch = `FALSE;
+    FU            = FU_ALU;
     if(F_decoder_out.valid) begin
       valid = `TRUE;
       case(F_decoder_out.inst.m.opcode)
