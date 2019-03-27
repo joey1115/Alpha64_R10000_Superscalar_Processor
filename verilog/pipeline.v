@@ -61,6 +61,9 @@ module pipeline (
   logic                                          RS_valid;
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
+
+
+
 `ifndef SYNTH_TEST
   logic       [31:0][$clog2(`NUM_PR)-1:0]                                 next_arch_map;
   CDB_entry_t [`NUM_FU-1:0]                                               CDB;
@@ -92,16 +95,44 @@ module pipeline (
   assign en = `TRUE;
   
 
-// Pipeline register enables
-logic   f_d_enable;
+    //Pipeline register enables
+    logic   f_d_enable;
 
-  //assign when an instruction retires/completed
+    // memory registers
+    logic [1:0] proc2Dmem_command;
+    logic [63:0] proc2Dmem_addr;
+
+    // Icache wires
+    logic [63:0] cachemem_data;
+    logic        cachemem_valid;
+    logic  [4:0] Icache_rd_idx;
+    logic  [7:0] Icache_rd_tag;
+    logic  [4:0] Icache_wr_idx;
+    logic  [7:0] Icache_wr_tag;
+    logic        Icache_wr_en;
+    logic [63:0] Icache_data_out, proc2Icache_addr;
+    logic        Icache_valid_out;
+
+    //assign when an instruction retires/completed
     assign pipeline_completed_insts = {3'b0, retire_en};
     assign pipeline_error_status =	illegal	? `HALTED_ON_ILLEGAL
                     : halt_out	? `HALTED_ON_HALT
                     : `NO_ERROR;
 
-   // Actual cache (data and tag RAMs)
+    assign proc2Dmem_command = `BUS_NONE;
+    assign proc2Dmem_addr = 0;
+    
+    assign proc2mem_command =
+      (proc2Dmem_command==`BUS_NONE) ? proc2Imem_command:proc2Dmem_command;
+    assign proc2mem_addr =
+      (proc2Dmem_command==`BUS_NONE) ? proc2Imem_addr:proc2Dmem_addr;
+    //TODO: Uncomment and pass for mem stage in the pipeline
+    // assign Dmem2proc_response = 
+    //   (proc2Dmem_command==`BUS_NONE) ? 0 : mem2proc_response;
+    assign Imem2proc_response =
+      (proc2Dmem_command==`BUS_NONE) ? mem2proc_response : 0;
+
+    // Actual cache (data and tag RAMs)
     cache cachememory (// inputs
                       .clock(clock),
                       .reset(reset),
@@ -116,33 +147,33 @@ logic   f_d_enable;
                       // outputs
                       .rd1_data(cachemem_data),
                       .rd1_valid(cachemem_valid)
-  );
+    );
 
-  // Cache controller
-  icache icache_0(// inputs 
-                      .clock(clock),
-                      .reset(reset),
+    // Cache controller
+    icache icache_0(// inputs 
+                        .clock(clock),
+                        .reset(reset),
 
-                      .Imem2proc_response(Imem2proc_response),
-                      .Imem2proc_data(mem2proc_data),
-                      .Imem2proc_tag(mem2proc_tag),
+                        .Imem2proc_response(Imem2proc_response),
+                        .Imem2proc_data(mem2proc_data),
+                        .Imem2proc_tag(mem2proc_tag),
 
-                      .proc2Icache_addr(proc2Icache_addr),
-                      .cachemem_data(cachemem_data),
-                      .cachemem_valid(cachemem_valid),
+                        .proc2Icache_addr(proc2Icache_addr),
+                        .cachemem_data(cachemem_data),
+                        .cachemem_valid(cachemem_valid),
 
-                      // outputs
-                      .proc2Imem_command(proc2Imem_command),
-                      .proc2Imem_addr(proc2Imem_addr),
+                        // outputs
+                        .proc2Imem_command(proc2Imem_command),
+                        .proc2Imem_addr(proc2Imem_addr),
 
-                      .Icache_data_out(Icache_data_out),
-                      .Icache_valid_out(Icache_valid_out),
-                      .current_index(Icache_rd_idx),
-                      .current_tag(Icache_rd_tag),
-                      .last_index(Icache_wr_idx),
-                      .last_tag(Icache_wr_tag),
-                      .data_write_enable(Icache_wr_en)
-  );
+                        .Icache_data_out(Icache_data_out),
+                        .Icache_valid_out(Icache_valid_out),
+                        .current_index(Icache_rd_idx),
+                        .current_tag(Icache_rd_tag),
+                        .last_index(Icache_wr_idx),
+                        .last_tag(Icache_wr_tag),
+                        .data_write_enable(Icache_wr_en)
+    );
 
 
   //////////////////////////////////////////////////
@@ -153,9 +184,9 @@ logic   f_d_enable;
   if_stage if_stage_0 (// Inputs
     .clock (clock),
     .reset (reset),
-    .mem_wb_valid_inst(mem_wb_valid_inst),
-    .ex_mem_take_branch(ex_mem_take_branch),
-    .ex_mem_target_pc(ex_mem_alu_result),
+    .get_next_inst(dispatch_en), //only go to next insn when high
+    .take_branch(take_branch),
+    .take_branch_target(take_branch_target),
     .Imem2proc_data(Icache_data_out),
     .Imem_valid(Icache_valid_out),
 
@@ -171,7 +202,7 @@ logic   f_d_enable;
   //            IF/ID Pipeline Register           //
   //                                              //
   //////////////////////////////////////////////////
-	assign f_d_enable = 1'b1; // always enabled
+	assign f_d_enable = dispatch_en; // always enabled
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock)
 	begin
