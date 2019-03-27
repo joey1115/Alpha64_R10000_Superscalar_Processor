@@ -390,7 +390,7 @@ module testbench;
           HALTED_ON_HALT:          
             $display(  "@@@ System halted on HALT instruction");
           HALTED_ON_ILLEGAL:
-            $display(  "@@@ System halted on illegal instruction");
+            $display(  "@@@ System halted on illegal instruction(illegal insn decoded)");
           default: 
             $display(  "@@@ System halted on unknown error code %x",
                   pipeline_error_status);
