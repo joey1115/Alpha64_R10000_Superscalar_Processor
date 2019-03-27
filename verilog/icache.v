@@ -40,8 +40,8 @@ module icache(
 	assign Icache_valid_out = cachemem_valid; 
 
 	assign proc2Imem_addr = {proc2Icache_addr[63:3],3'b0};
-	assign proc2Imem_command = (miss_outstanding && !changed_addr) ?	`BUS_LOAD :
-																		`BUS_NONE;
+	assign proc2Imem_command = (miss_outstanding && !changed_addr) ?	BUS_LOAD :
+																		BUS_NONE;
 
 	assign data_write_enable =	(current_mem_tag==Imem2proc_tag) &&
 								(current_mem_tag!=0);

@@ -159,13 +159,13 @@ module pipeline (
 	assign pipeline_commit_NPC = mem_wb_NPC;
 
 	assign proc2mem_command =
-			(proc2Dmem_command==`BUS_NONE) ? proc2Imem_command:proc2Dmem_command;
+			(proc2Dmem_command==BUS_NONE) ? proc2Imem_command:proc2Dmem_command;
 	assign proc2mem_addr =
-			(proc2Dmem_command==`BUS_NONE) ? proc2Imem_addr:proc2Dmem_addr;
+			(proc2Dmem_command==BUS_NONE) ? proc2Imem_addr:proc2Dmem_addr;
 	assign Dmem2proc_response = 
-			(proc2Dmem_command==`BUS_NONE) ? 0 : mem2proc_response;
+			(proc2Dmem_command==BUS_NONE) ? 0 : mem2proc_response;
 	assign Imem2proc_response =
-			(proc2Dmem_command==`BUS_NONE) ? mem2proc_response : 0;
+			(proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
 
 
   // Actual cache (data and tag RAMs)

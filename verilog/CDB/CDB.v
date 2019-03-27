@@ -21,6 +21,8 @@
 *   Retire
 ***************************************/
 
+`timescale 1ns/100ps
+
 module CDB (
   input  logic                                      en, clock, reset,
   input  logic                                      rollback_en,        // rollback_en from X/C

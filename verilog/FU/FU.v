@@ -1,3 +1,5 @@
+`timescale 1ns/100ps
+
 module alu (
   input  logic                        clock, reset,
   input  FU_IN_t                      FU_in,

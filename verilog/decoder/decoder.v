@@ -3,7 +3,7 @@
 //   Modulename :  decoder.v                                                  //
 //                                                                            //   
 //  Description :  decodes instructions and determine if valid or             //
-//                   illegal_isnt.                                                 //
+//                   illegal.                                                 //
 //                   input [31:0] inst,                                       //
 //                   input valid_inst_in,                                     //
 //                                                                            //
@@ -15,27 +15,20 @@
 //                                stc_mem, cond_branch, uncond_branch,        //
 //                   output logic halt,                                       //
 //                   output logic cpuid,                                      //
-//                   output logic illegal_isnt,                                    //
+//                   output logic illegal,                                    //
 //                   output logic valid_inst                                  //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-
 `timescale 1ns/100ps
 
-
-  // Decode an instruction: given instruction bits IR produce the
-  // appropriate datapath control signals.
-  //
-  // This is a *combinational* module (basically a PLA).
-  //
 module decoder(
   input  F_DECODER_OUT_t         F_decoder_out,
   output DECODER_ROB_OUT_t       decoder_ROB_out,
   output DECODER_RS_OUT_t        decoder_RS_out,
   output DECODER_FL_OUT_t        decoder_FL_out,
   output DECODER_MAP_TABLE_OUT_t decoder_Map_Table_out,
-  output logic                   illegal_isnt;
+  output logic                   illegal
 );
 
   INST_t                inst;  // fetched instruction out
@@ -46,7 +39,7 @@ module decoder(
   logic                 rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
   logic                 halt;      // non-zero on a halt
   logic                 cpuid;     // get CPUID instruction
-  //logic                 illegal_isnt;   // non-zero on an illegal_isnt instruction
+  //logic                 illegal;   // non-zero on an illegal instruction
   logic                 valid; // for counting valid instructions executed
   logic          [4:0]  dest_idx;
   FU_t                  FU;
@@ -82,7 +75,7 @@ module decoder(
               dest_idx = F_decoder_out.inst.r.rega_idx;
             end
             default: begin
-              illegal_isnt = `TRUE;
+              illegal = `TRUE;
               valid   = `FALSE;
             end
           endcase
@@ -97,7 +90,7 @@ module decoder(
         end
 
         // `LDAH_INST, `LDBU_INST, `LDQ_U_INST, `LDWU_INST, `STW_INST, `STB_INST, `STQ_U_INST, `LDF_INST, `LDG_INST, `LDS_INST, `LDT_INST, `STF_INST, `STG_INST, `STS_INST, `STT_INST, `LDL_INST: begin
-        //   illegal_isnt = `TRUE;
+        //   illegal = `TRUE;
         // end
 
         `INTA_GRP: begin
@@ -114,7 +107,7 @@ module decoder(
             `CMPLT_INST:  func     = ALU_CMPLT;
             `CMPLE_INST:  func     = ALU_CMPLE;
             default: begin
-              illegal_isnt = `TRUE;
+              illegal = `TRUE;
               valid   = `FALSE;
             end
           endcase // case(F_decoder_out.inst[11:5])
@@ -133,7 +126,7 @@ module decoder(
             `XOR_INST:   func     = ALU_XOR;
             `EQV_INST:   func     = ALU_EQV;
             default: begin
-              illegal_isnt = `TRUE;
+              illegal = `TRUE;
               valid   = `FALSE;
             end
           endcase // case(F_decoder_out.inst[11:5])
@@ -149,7 +142,7 @@ module decoder(
             `SLL_INST: func     = ALU_SLL;
             `SRA_INST: func     = ALU_SRA;
             default: begin
-              illegal_isnt = `TRUE;
+              illegal = `TRUE;
               valid   = `FALSE;
             end
           endcase // case(F_decoder_out.inst[11:5])
@@ -163,14 +156,14 @@ module decoder(
           case (F_decoder_out.inst.i.func)
             `MULQ_INST: func     = ALU_MULQ;
             default: begin
-              illegal_isnt = `TRUE;
+              illegal = `TRUE;
               valid   = `FALSE;
             end
           endcase // case(F_decoder_out.inst[11:5])
         end
 
         // `ITFP_GRP, `FLTV_GRP, `FLTI_GRP, `FLTL_GRP, `MISC_GRP, `FTPI_GRP: begin
-        //   illegal_isnt = `TRUE;       // unimplemented
+        //   illegal = `TRUE;       // unimplemented
         // end
 
         `LDQ_INST: begin
@@ -183,7 +176,7 @@ module decoder(
         end // case: `LDQ_INST
 
         // `LDL_L_INST, `STL_INST, `STL_C_INST: begin
-        //   illegal_isnt = `TRUE;
+        //   illegal = `TRUE;
         // end
 
         `LDQ_L_INST: begin
@@ -225,7 +218,7 @@ module decoder(
         end
 
         // `FBEQ_INST, `FBLT_INST, `FBLE_INST, `FBNE_INST, `FBGE_INST, `FBGT_INST: begin
-        //   illegal_isnt = `TRUE;
+        //   illegal = `TRUE;
         // end
 
         `BLBC_INST, `BEQ_INST, `BLT_INST, `BLE_INST, `BLBS_INST, `BNE_INST, `BGE_INST, `BGT_INST: begin
@@ -247,7 +240,7 @@ module decoder(
         end
 
         default: begin
-          illegal_isnt = `TRUE;
+          illegal = `TRUE;
           valid   = `FALSE;
         end
 

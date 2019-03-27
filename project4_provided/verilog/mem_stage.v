@@ -33,10 +33,10 @@ module mem_stage(
 	logic [3:0] mem_waiting_tag;
 
 	// Determine the command that must be sent to mem
-	assign proc2Dmem_command =	(mem_waiting_tag!=0) ?	`BUS_NONE
-								: ex_mem_wr_mem ?		`BUS_STORE 
-								: ex_mem_rd_mem ?		`BUS_LOAD
-								: `BUS_NONE;
+	assign proc2Dmem_command =	(mem_waiting_tag!=0) ? BUS_NONE
+								: ex_mem_wr_mem ?		BUS_STORE 
+								: ex_mem_rd_mem ?		BUS_LOAD
+								: BUS_NONE;
 
 	// The memory address is calculated by the ALU
 	assign proc2Dmem_data = ex_mem_rega;

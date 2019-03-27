@@ -4,9 +4,11 @@
 `ifdef PIPELINE
 `include "sys_config.vh"
 `include "sys_defs.vh"
+`include "verilog/decoder/decoder.vh"
 `else
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
+`include "../decoder/decoder.vh"
 `endif
 
 typedef struct packed {

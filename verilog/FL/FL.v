@@ -1,3 +1,5 @@
+`timescale 1ns/100ps
+
 module FL (
   input  logic                                              clock,               // system clock
   input  logic                                              reset,               // system reset

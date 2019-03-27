@@ -15,7 +15,7 @@ module mem (
 			input         clk,              // Memory clock
 			input  [63:0] proc2mem_addr,    // address for current command
 			input  [63:0] proc2mem_data,    // address for current command
-			input   [1:0] proc2mem_command, // `BUS_NONE `BUS_LOAD or `BUS_STORE
+			input   [1:0] proc2mem_command, // BUS_NONE BUS_LOAD or BUS_STORE
 
 			output logic  [3:0] mem2proc_response, // 0 = can't accept, other=tag of transaction
 			output logic [63:0] mem2proc_data,     // data resulting from a load
@@ -44,8 +44,8 @@ module mem (
 		next_mem2proc_response = 4'b0;
 		next_mem2proc_data     = 64'bx;
 		bus_filled             = 1'b0;
-		acquire_tag            =	((proc2mem_command==`BUS_LOAD) ||
-									(proc2mem_command==`BUS_STORE)) && valid_address;
+		acquire_tag            =	((proc2mem_command==BUS_LOAD) ||
+									(proc2mem_command==BUS_STORE)) && valid_address;
 
 		for(int i=1;i<=`NUM_MEM_TAGS;i=i+1)
 		begin
@@ -62,7 +62,7 @@ module mem (
 										// though this could be done via a non-number
 										// definition for this macro
 
-				if(proc2mem_command==`BUS_LOAD)
+				if(proc2mem_command==BUS_LOAD)
 				begin
 					waiting_for_bus[i] = 1'b1;
 					loaded_data[i]     = unified_memory[proc2mem_addr[63:3]];

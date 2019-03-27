@@ -21,13 +21,13 @@ module pipeline (
   output logic [63:0] proc2mem_addr,      // Address sent to memory
   output logic [63:0] proc2mem_data,      // Data sent to memory
   output logic [3:0]  pipeline_completed_insts,
-  output ERROR_CODE   pipeline_error_status,
+  output ERROR_CODE   pipeline_error_status
   // output logic [4:0]  pipeline_commit_wr_idx,
   // output logic [63:0] pipeline_commit_wr_data,
   // output logic        pipeline_commit_wr_en,
   // output logic [63:0] pipeline_commit_NPC
 );
-  logic                                          en, dispatch_en, F_decoder_en;
+  logic                                          en, dispatch_en, F_decoder_en, illegal;
   logic                                          write_en;
   logic                                          complete_en;
   logic                   [`NUM_FU-1:0]          CDB_valid;
@@ -95,9 +95,9 @@ module pipeline (
   assign F_decoder_en = `TRUE;
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = {3'b0, retire_en};
-  assign pipeline_error_status    = illegal  ? `HALTED_ON_ILLEGAL :
-                                    halt_out ? `HALTED_ON_HALT :
-                                               `NO_ERROR;
+  assign pipeline_error_status    = illegal  ? HALTED_ON_ILLEGAL :
+                                    halt_out ? HALTED_ON_HALT :
+                                               NO_ERROR;
 
    // Actual cache (data and tag RAMs)
   cache cachememory (
@@ -207,7 +207,7 @@ module pipeline (
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
     .decoder_Map_Table_out(decoder_Map_Table_out),
-    .illegal_isnt(illegal_isnt)
+    .illegal(illegal)
   );
 
   FL fl_0 (
