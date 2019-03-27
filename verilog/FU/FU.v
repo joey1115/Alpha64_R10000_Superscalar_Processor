@@ -473,6 +473,7 @@ module FU (
   output logic           [$clog2(`NUM_FL)-1:0]                                       FL_rollback_idx,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_rollback_idx,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      diff_ROB,
+  output logic                                                                       take_branch_out,
   output FU_CDB_OUT_t                                                                FU_CDB_out
 );
 
@@ -487,6 +488,7 @@ module FU (
   assign ROB_rollback_idx = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
   assign FL_rollback_idx  = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
   assign diff_ROB         = ROB_idx - ROB_rollback_idx;
+  assign take_branch_out  = take_branch[0];
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin

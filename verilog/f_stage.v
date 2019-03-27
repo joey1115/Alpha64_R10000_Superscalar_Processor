@@ -16,8 +16,8 @@ module F_stage(
 				  input         reset,                      // system reset
 				  input         get_next_inst,          // only go to next instruction when true
 													        // makes pipeline behave as single-cycle
-				  input         take_branch,         // taken-branch signal
-				  input  [63:0] take_branch_target,           // target pc: use if take_branch is TRUE
+				  input         take_branch_out,         // taken-branch signal
+				  input  [63:0] take_branch_target,           // target pc: use if take_branch_out is TRUE
 				  input  [63:0] Imem2proc_data,		        // Data coming back from instruction-memory
 				  input         Imem_valid,
 
@@ -46,10 +46,10 @@ module F_stage(
 	// next PC is target_pc if there is a taken branch or
 	// the next sequential PC (PC+4) if no branch
 	// (halting is handled with the enable PC_enable;
-	assign next_PC = take_branch ? take_branch_target : PC_plus_4;
+	assign next_PC = take_branch_out ? take_branch_target : PC_plus_4;
 
 	// The take-branch signal must override stalling (otherwise it may be lost)
-	assign PC_enable = if_valid_inst_out | take_branch;
+	assign PC_enable = if_valid_inst_out | take_branch_out;
 
 	// Pass PC+4 down pipeline w/instruction
 	assign if_NPC_out = PC_plus_4;
