@@ -22,10 +22,10 @@ module pipeline (
   output logic [63:0] proc2mem_data,      // Data sent to memory
   output logic [3:0]  pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status,
-  output logic [4:0]  pipeline_commit_wr_idx,
-  output logic [63:0] pipeline_commit_wr_data,
-  output logic        pipeline_commit_wr_en,
-  output logic [63:0] pipeline_commit_NPC
+  // output logic [4:0]  pipeline_commit_wr_idx,
+  // output logic [63:0] pipeline_commit_wr_data,
+  // output logic        pipeline_commit_wr_en,
+  // output logic [63:0] pipeline_commit_NPC
 );
   logic                                          en;
   logic                                          write_en;
@@ -91,6 +91,119 @@ module pipeline (
 `endif
   assign en = `TRUE;
   
+
+// Pipeline register enables
+logic   f_d_enable;
+
+  //assign when an instruction retires/completed
+    assign pipeline_completed_insts = {3'b0, retire_en};
+    assign pipeline_error_status =	illegal	? `HALTED_ON_ILLEGAL
+                    : halt_out	? `HALTED_ON_HALT
+                    : `NO_ERROR;
+
+   // Actual cache (data and tag RAMs)
+    cache cachememory (// inputs
+                      .clock(clock),
+                      .reset(reset),
+                      .wr1_en(Icache_wr_en),
+                      .wr1_idx(Icache_wr_idx),
+                      .wr1_tag(Icache_wr_tag),
+                      .wr1_data(mem2proc_data),
+
+                      .rd1_idx(Icache_rd_idx),
+                      .rd1_tag(Icache_rd_tag),
+
+                      // outputs
+                      .rd1_data(cachemem_data),
+                      .rd1_valid(cachemem_valid)
+  );
+
+  // Cache controller
+  icache icache_0(// inputs 
+                      .clock(clock),
+                      .reset(reset),
+
+                      .Imem2proc_response(Imem2proc_response),
+                      .Imem2proc_data(mem2proc_data),
+                      .Imem2proc_tag(mem2proc_tag),
+
+                      .proc2Icache_addr(proc2Icache_addr),
+                      .cachemem_data(cachemem_data),
+                      .cachemem_valid(cachemem_valid),
+
+                      // outputs
+                      .proc2Imem_command(proc2Imem_command),
+                      .proc2Imem_addr(proc2Imem_addr),
+
+                      .Icache_data_out(Icache_data_out),
+                      .Icache_valid_out(Icache_valid_out),
+                      .current_index(Icache_rd_idx),
+                      .current_tag(Icache_rd_tag),
+                      .last_index(Icache_wr_idx),
+                      .last_tag(Icache_wr_tag),
+                      .data_write_enable(Icache_wr_en)
+  );
+
+
+  //////////////////////////////////////////////////
+  //                                              //
+  //                  IF-Stage                    //
+  //                                              //
+  //////////////////////////////////////////////////
+  if_stage if_stage_0 (// Inputs
+    .clock (clock),
+    .reset (reset),
+    .mem_wb_valid_inst(mem_wb_valid_inst),
+    .ex_mem_take_branch(ex_mem_take_branch),
+    .ex_mem_target_pc(ex_mem_alu_result),
+    .Imem2proc_data(Icache_data_out),
+    .Imem_valid(Icache_valid_out),
+
+    // Outputs
+    .if_NPC_out(if_NPC_out), 
+    .if_IR_out(if_IR_out),
+    .proc2Imem_addr(proc2Icache_addr),
+    .if_valid_inst_out(if_valid_inst_out)
+  );
+
+  //////////////////////////////////////////////////
+  //                                              //
+  //            IF/ID Pipeline Register           //
+  //                                              //
+  //////////////////////////////////////////////////
+	assign f_d_enable = 1'b1; // always enabled
+	// synopsys sync_set_reset "reset"
+	always_ff @(posedge clock)
+	begin
+		if(reset)
+		begin
+      decoder_packet_in.inst <= `SD `NOOP_INST;
+      decoder_packet_in.NPC <= `SD 0;
+      decoder_packet_in.valid <= `SD `FALSE;
+		end // if (reset)
+		else if (f_d_enable)
+		begin
+      decoder_packet_in.inst <= `SD if_IR_out;
+      decoder_packet_in.NPC <= `SD if_NPC_out;
+      decoder_packet_in.valid <= `SD if_valid_inst_out;
+		end // if (f_d_enable)
+	end // always
+
+  // //////////////////////////////////////////////////
+  // //                                              //
+  // //            F/D Pipeline Register             //
+  // //                                              //
+  // //////////////////////////////////////////////////
+  // assign f_d_enable = `TRUE; // always enabled
+  // // synopsys sync_set_reset "reset"
+  // always_ff @(posedge clock) begin
+  //   if(reset) begin
+  //     decoder_packet_in <= `SD DECODER_PACKET_IN_RESET;
+  //   end else if (f_d_enable) begin
+  //     decoder_packet_in <= `SD f_d_packet_out;
+  //   end // if (f_d_enable)
+  // end // always
+
   Arch_Map arch_map_0 (
     .en(en),
     .clock(clock),
@@ -129,7 +242,8 @@ module pipeline (
     .decoder_ROB_out(decoder_ROB_out),
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
-    .decoder_Map_Table_out(decoder_Map_Table_out)
+    .decoder_Map_Table_out(decoder_Map_Table_out),
+    .illegal_isnt(illegal_isnt)
   );
 
   FL fl_0 (
@@ -268,18 +382,5 @@ module pipeline (
     .RS_PR_out(RS_PR_out)
   );
 
-  //////////////////////////////////////////////////
-  //                                              //
-  //            F/D Pipeline Register             //
-  //                                              //
-  //////////////////////////////////////////////////
-  // assign f_d_enable = `TRUE; // always enabled
-  // // synopsys sync_set_reset "reset"
-  // always_ff @(posedge clock) begin
-  //   if(reset) begin
-  //     decoder_packet_in <= `SD `DECODER_PACKET_IN_RESET;
-  //   end else if (f_d_enable) begin
-  //     decoder_packet_in <= `SD f_d_packet_out;
-  //   end // if (f_d_enable)
-  // end // always
+  
 endmodule  // module verisimple
