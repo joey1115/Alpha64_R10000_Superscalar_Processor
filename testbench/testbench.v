@@ -19,7 +19,7 @@ extern void print_cycles();
 extern void print_ROB_ht(int head, int tail);
 extern void print_ROB_entry(int valid, int T, int T_old, int dest_idx, int complete, int halt);
 extern void print_RS_head();
-extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select);
+extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int opa_select, int opb_select);
 extern void print_maptable_head();
 extern void print_maptable_entries(int reg_idx, int T, int ready);
 extern void print_CDB_head();
@@ -261,7 +261,7 @@ module testbench;
       // print ROB
       print_ROB_ht(pipeline_ROB.head, pipeline_ROB.tail);
       for(int i = 0; i < `NUM_ROB; i++) begin
-      print_ROB_entry(pipeline_ROB.entry[i].valid, pipeline_ROB.entry[i].T, pipeline_ROB.entry[i].T_old,pipeline_ROB.entry[i].dest_idx,pipeline_ROB.entry[i].complete,pipeline_ROB.entry[i].halt);
+      print_ROB_entry(pipeline_ROB.entry[i].valid, pipeline_ROB.entry[i].T_idx, pipeline_ROB.entry[i].Told_idx,pipeline_ROB.entry[i].dest_idx,pipeline_ROB.entry[i].complete,pipeline_ROB.entry[i].halt);
       end
       //print RS
       print_RS_head();
@@ -271,6 +271,7 @@ module testbench;
                       pipeline_RS[i].inst, 
                       pipeline_RS[i].func, 
                       pipeline_RS[i].NPC, 
+                      pipeline_RS[i].dest_idx,
                       pipeline_RS[i].ROB_idx,
                       pipeline_RS[i].FL_idx,
                       pipeline_RS[i].T_idx,
@@ -278,8 +279,8 @@ module testbench;
                       pipeline_RS[i].T1.ready,
                       pipeline_RS[i].T2.idx,
                       pipeline_RS[i].T2.ready,
-                      pipeline_RS[i].T1_select,
-                      pipeline_RS[i].T2_select);
+                      pipeline_RS[i].opa_select,
+                      pipeline_RS[i].opb_select);
       end
       for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
         print_RS_entry("ST  ",
@@ -287,6 +288,7 @@ module testbench;
                       pipeline_RS[i].inst, 
                       pipeline_RS[i].func, 
                       pipeline_RS[i].NPC, 
+                      pipeline_RS[i].dest_idx,
                       pipeline_RS[i].ROB_idx,
                       pipeline_RS[i].FL_idx,
                       pipeline_RS[i].T_idx,
@@ -294,8 +296,8 @@ module testbench;
                       pipeline_RS[i].T1.ready,
                       pipeline_RS[i].T2.idx,
                       pipeline_RS[i].T2.ready,
-                      pipeline_RS[i].T1_select,
-                      pipeline_RS[i].T2_select);
+                      pipeline_RS[i].opa_select,
+                      pipeline_RS[i].opb_select);
       end
       for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
         print_RS_entry("BR  ",
@@ -303,6 +305,7 @@ module testbench;
                       pipeline_RS[i].inst, 
                       pipeline_RS[i].func, 
                       pipeline_RS[i].NPC, 
+                      pipeline_RS[i].dest_idx,
                       pipeline_RS[i].ROB_idx,
                       pipeline_RS[i].FL_idx,
                       pipeline_RS[i].T_idx,
@@ -310,8 +313,8 @@ module testbench;
                       pipeline_RS[i].T1.ready,
                       pipeline_RS[i].T2.idx,
                       pipeline_RS[i].T2.ready,
-                      pipeline_RS[i].T1_select,
-                      pipeline_RS[i].T2_select);
+                      pipeline_RS[i].opa_select,
+                      pipeline_RS[i].opb_select);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
         print_RS_entry("MULT",
@@ -319,6 +322,7 @@ module testbench;
                       pipeline_RS[i].inst, 
                       pipeline_RS[i].func, 
                       pipeline_RS[i].NPC, 
+                      pipeline_RS[i].dest_idx,
                       pipeline_RS[i].ROB_idx,
                       pipeline_RS[i].FL_idx,
                       pipeline_RS[i].T_idx,
@@ -326,8 +330,8 @@ module testbench;
                       pipeline_RS[i].T1.ready,
                       pipeline_RS[i].T2.idx,
                       pipeline_RS[i].T2.ready,
-                      pipeline_RS[i].T1_select,
-                      pipeline_RS[i].T2_select);
+                      pipeline_RS[i].opa_select,
+                      pipeline_RS[i].opb_select);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
         print_RS_entry("ALU ",
@@ -335,6 +339,7 @@ module testbench;
                       pipeline_RS[i].inst, 
                       pipeline_RS[i].func, 
                       pipeline_RS[i].NPC, 
+                      pipeline_RS[i].dest_idx,
                       pipeline_RS[i].ROB_idx,
                       pipeline_RS[i].FL_idx,
                       pipeline_RS[i].T_idx,
@@ -342,20 +347,20 @@ module testbench;
                       pipeline_RS[i].T1.ready,
                       pipeline_RS[i].T2.idx,
                       pipeline_RS[i].T2.ready,
-                      pipeline_RS[i].T1_select,
-                      pipeline_RS[i].T2_select);
+                      pipeline_RS[i].opa_select,
+                      pipeline_RS[i].opb_select);
       end
       
       //print Map table
       print_maptable_head();
       for(int i = 0; i < 32; i++) begin
-        print_maptable_head(i,pipeline_maptable[i].idx,pipeline_maptable[i].ready);
+        print_maptable_entries(i,pipeline_MAPTABLE[i].idx,pipeline_MAPTABLE[i].ready);
       end
 
       //print CDB
       print_CDB_head();
       for(int i = 0; i < `NUM_FU; i++) begin
-        print_CDB_entries(pipeline_CDB.taken, pipeline_CDB.T_idx, pipeline_CDB.ROB_idx, pipeline_CDB.dest_idx, pipeline_CDB.T_value[63:32], pipeline_CDB.T_value[31:0]);
+        print_CDB_entries(pipeline_CDB[i].taken, pipeline_CDB[i].T_idx, pipeline_CDB[i].ROB_idx, pipeline_CDB[i].dest_idx, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
       end
 
       //print archmap

@@ -93,6 +93,9 @@ module pipeline (
   logic        Icache_wr_en;
   logic [63:0] Icache_data_out, proc2Icache_addr;
   logic        Icache_valid_out;
+  logic [3:0]  Imem2proc_response;
+  logic [63:0] if_NPC_out;
+  logic [31:0] if_IR_out;
 `ifndef SYNTH_TEST
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
   logic       [$clog2(`NUM_FL)-1:0]                                       head, next_head;
@@ -136,8 +139,7 @@ module pipeline (
   //TODO: Uncomment and pass for mem stage in the pipeline
   // assign Dmem2proc_response = 
   //   (proc2Dmem_command==`BUS_NONE) ? 0 : mem2proc_response;
-  assign Imem2proc_response =
-    (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
+  assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
 
    // Actual cache (data and tag RAMs)
   cache cachememory (
@@ -203,9 +205,9 @@ module pipeline (
     if (reset) begin
       F_decoder_out <= `SD `F_DECODER_OUT_RESET;
     end else if (F_decoder_en) begin
-      F_decoder_out.inst  <= `SD if_IR_out;
-      F_decoder_out.NPC   <= `SD if_NPC_out;
-      F_decoder_out.valid <= `SD if_valid_inst_out;
+      F_decoder_out.inst.I <= `SD if_IR_out;
+      F_decoder_out.NPC    <= `SD if_NPC_out;
+      F_decoder_out.valid  <= `SD if_valid_inst_out;
     end // if (F_decoder_en)
   end // always
 
