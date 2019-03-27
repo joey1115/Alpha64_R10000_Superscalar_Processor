@@ -26,7 +26,7 @@ void print_cycles()
 {
   /* we'll enforce the printing of a header */
   if (ppfile != NULL)
-    fprintf(ppfile, "\n%5d:", cycle_count++);
+    fprintf(ppfile, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ncycle: %5d\n", cycle_count++);
 }
 
 void print_ROB_ht(int head, int tail)
@@ -247,6 +247,30 @@ void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC, int d
   if (ppfile != NULL)
     fprintf(ppfile, "Function: %-8s | busy: %1d |  inst: %-8s | func: %-8s | NPC: %08x | dest_idx: %3d | ROB_idx: %2d | FL_idx: %2d | T_idx: %3d | T1: %3d | T1_ready: %1d | T2: %3d | T2_ready: %1d | ALU_OPA_SELECT: %-10s | ALU_OPB_SELECT: %-10s",\
      funcType, busy, str, ALU_func, NPC, dest_idx, ROB_idx, FL_idx, T_idx, T1, T1_ready, T2, T2_ready, T1_str, T2_str);
+}
+
+void print_maptable_head(){
+  if (ppfile != NULL){
+    fprintf(ppfile, " MAP_TABLE ");
+    fprintf(ppfile, " reg |  T  ");
+  }
+}
+void print_maptable_entries(int reg, int T, int ready){
+  char *ready_bit;
+  if(ready){
+    ready_bit = "+";
+  }
+  else{
+    ready_bit = " ";
+  }
+
+  if (ppfile != NULL)
+    fprintf(ppfile, " %3d | %3d%-8s ", reg, T, ready_bit);
+}
+
+void print_CDB_head(){
+  if (ppfile != NULL)
+    fprintf(ppfile, "CDB");
 }
 
 
