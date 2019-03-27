@@ -17,24 +17,37 @@ module pipeline (
   input [3:0]   mem2proc_response,        // Tag from memory about current request
   input [63:0]  mem2proc_data,            // Data coming back from memory
   input [3:0]   mem2proc_tag,              // Tag from memory about current reply
+`ifndef SYNTH_TEST
+  output ROB_t        pipeline_ROB,
+  output RS_ENTRY_t  [`NUM_FU-1:0] pipeline_RS,
+  output logic              [31:0][$clog2(`NUM_PR)-1:0] pipeline_ARCHMAP,
+  output T_t                     [31:0] pipeline_MAPTABLE,
+  output CDB_entry_t         [`NUM_FU-1:0]          pipeline_CDB,
+  output logic       complete_en,
+  output CDB_PR_OUT_t                               CDB_PR_out,
+  // output logic [4:0]  pipeline_commit_wr_idx,
+  // output logic [63:0] pipeline_commit_wr_data,
+  // output logic        pipeline_commit_wr_en,
+  // output logic [63:0] pipeline_commit_NPC
+`endif
   output logic [1:0]  proc2mem_command,    // command sent to memory
   output logic [63:0] proc2mem_addr,      // Address sent to memory
   output logic [63:0] proc2mem_data,      // Data sent to memory
   output logic [3:0]  pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
-  // output logic [4:0]  pipeline_commit_wr_idx,
-  // output logic [63:0] pipeline_commit_wr_data,
-  // output logic        pipeline_commit_wr_en,
-  // output logic [63:0] pipeline_commit_NPC
 );
   logic                                          en, dispatch_en, F_decoder_en, illegal;
   logic                                          write_en;
+`ifdef SYNTH_TEST
   logic                                          complete_en;
+`endif
   logic                   [`NUM_FU-1:0]          CDB_valid;
   CDB_ROB_OUT_t                                  CDB_ROB_out;
   CDB_RS_OUT_t                                   CDB_RS_out;
   CDB_MAP_TABLE_OUT_t                            CDB_Map_Table_out;
+`ifdef SYNTH_TEST
   CDB_PR_OUT_t                                   CDB_PR_out;
+`endif
   DECODER_ROB_OUT_t                              decoder_ROB_out;
   DECODER_RS_OUT_t                               decoder_RS_out;
   DECODER_FL_OUT_t                               decoder_FL_out;
@@ -48,6 +61,8 @@ module pipeline (
   logic                   [$clog2(`NUM_FL)-1:0]  FL_rollback_idx;
   logic                   [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
   logic                   [$clog2(`NUM_ROB)-1:0] diff_ROB;
+  logic                                          take_branch_out;
+  logic                   [63:0]                 take_branch_target;
   FU_CDB_OUT_t                                   FU_CDB_out;
   MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;
   MAP_TABLE_RS_OUT_t                             Map_Table_RS_out;
@@ -62,9 +77,23 @@ module pipeline (
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
   F_DECODER_OUT_t                                F_decoder_out;
+  // memory registers
+  logic [1:0] proc2Dmem_command;
+  logic [1:0] proc2Imem_command;
+  logic [63:0] proc2Dmem_addr;
+  logic [63:0] proc2Imem_addr;
+
+  // Icache wires
+  logic [63:0] cachemem_data;
+  logic        cachemem_valid;
+  logic  [4:0] Icache_rd_idx;
+  logic  [7:0] Icache_rd_tag;
+  logic  [4:0] Icache_wr_idx;
+  logic  [7:0] Icache_wr_tag;
+  logic        Icache_wr_en;
+  logic [63:0] Icache_data_out, proc2Icache_addr;
+  logic        Icache_valid_out;
 `ifndef SYNTH_TEST
-  logic       [31:0][$clog2(`NUM_PR)-1:0]                                 next_arch_map;
-  CDB_entry_t [`NUM_FU-1:0]                                               CDB;
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
   logic       [$clog2(`NUM_FL)-1:0]                                       head, next_head;
   logic       [$clog2(`NUM_FL)-1:0]                                       tail, next_tail;
@@ -84,9 +113,7 @@ module pipeline (
   logic       [`NUM_MULT-1:0][($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
   logic       [`NUM_MULT-1:0][($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
   logic       [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
-  T_t         [31:0]                                                      map_table_out;
   logic       [`NUM_PR-1:0][63:0]                                         pr_data;
-  RS_ENTRY_t  [`NUM_FU-1:0]                                               RS_out;
   logic       [`NUM_FU-1:0]                                               RS_match_hit;
   logic       [$clog2(`NUM_FU)-1:0]                                       RS_match_idx;
 `endif
@@ -151,21 +178,6 @@ module pipeline (
     .data_write_enable(Icache_wr_en)
   );
 
-    // memory registers
-    logic [1:0] proc2Dmem_command;
-    logic [63:0] proc2Dmem_addr;
-
-    // Icache wires
-    logic [63:0] cachemem_data;
-    logic        cachemem_valid;
-    logic  [4:0] Icache_rd_idx;
-    logic  [7:0] Icache_rd_tag;
-    logic  [4:0] Icache_wr_idx;
-    logic  [7:0] Icache_wr_tag;
-    logic        Icache_wr_en;
-    logic [63:0] Icache_data_out, proc2Icache_addr;
-    logic        Icache_valid_out;
-
   F_stage F_stage_0 (
     // Inputs
     .clock (clock),
@@ -206,7 +218,7 @@ module pipeline (
     .ROB_Arch_Map_out(ROB_Arch_Map_out)
 `else
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
-    .next_arch_map(next_arch_map)
+    .next_arch_map(pipeline_ARCHMAP)
 `endif
   );
 
@@ -219,7 +231,7 @@ module pipeline (
     .diff_ROB(diff_ROB),
     .FU_CDB_out(FU_CDB_out),
 `ifndef SYNTH_TEST
-    .CDB(CDB),
+    .CDB(pipeline_CDB),
 `endif
     .write_en(write_en),
     .complete_en(complete_en),
@@ -292,6 +304,8 @@ module pipeline (
     .ROB_rollback_idx(ROB_rollback_idx),
     .FL_rollback_idx(FL_rollback_idx),
     .diff_ROB(diff_ROB),
+    .take_branch_out(take_branch_out),
+    .take_branch_target(take_branch_target),
     .FU_CDB_out(FU_CDB_out)
   );
 
@@ -308,7 +322,7 @@ module pipeline (
     .FL_Map_Table_out(FL_Map_Table_out),
     .CDB_Map_Table_out(CDB_Map_Table_out),
 `ifndef SYNTH_TEST
-    .map_table_out(map_table_out),
+    .map_table_out(pipeline_MAPTABLE),
 `endif
     .Map_Table_ROB_out(Map_Table_ROB_out),
     .Map_Table_RS_out(Map_Table_RS_out)
@@ -340,7 +354,7 @@ module pipeline (
     .Map_Table_ROB_out(Map_Table_ROB_out),
     .CDB_ROB_out(CDB_ROB_out),
 `ifndef SYNTH_TEST
-    .rob(rob),
+    .rob(pipeline_ROB),
 `endif
     .ROB_valid(ROB_valid),
     .retire_en(retire_en),
@@ -366,7 +380,7 @@ module pipeline (
     .Map_Table_RS_out(Map_Table_RS_out),
     .CDB_RS_out(CDB_RS_out),
 `ifndef SYNTH_TEST
-    .RS_out(RS_out),
+    .RS_out(pipeline_RS),
     .RS_match_hit(RS_match_hit),   // If a RS entry is ready
     .RS_match_idx(RS_match_idx),
 `endif

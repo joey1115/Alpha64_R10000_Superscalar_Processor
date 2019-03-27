@@ -474,6 +474,7 @@ module FU (
   output logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_rollback_idx,
   output logic           [$clog2(`NUM_ROB)-1:0]                                      diff_ROB,
   output logic                                                                       take_branch_out,
+  output logic           [63:0]                                                      take_branch_target,
   output FU_CDB_OUT_t                                                                FU_CDB_out
 );
 
@@ -484,11 +485,12 @@ module FU (
 
   assign FU_CDB_out = '{FU_out};
 
-  assign rollback_en      = take_branch[0];
-  assign ROB_rollback_idx = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
-  assign FL_rollback_idx  = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
-  assign diff_ROB         = ROB_idx - ROB_rollback_idx;
-  assign take_branch_out  = take_branch[0];
+  assign rollback_en        = take_branch[0];
+  assign ROB_rollback_idx   = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
+  assign FL_rollback_idx    = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
+  assign diff_ROB           = ROB_idx - ROB_rollback_idx;
+  assign take_branch_out    = take_branch[0];
+  assign take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
