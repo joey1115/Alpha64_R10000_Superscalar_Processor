@@ -60,7 +60,7 @@ module RS (
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
-      FU_entry_match[i] = FU_list[i] == decoder_packet_out.FU;
+      FU_entry_match[i] = FU_list[i] == decoder_RS_out.FU;
       diff[i]           = RS[i].ROB_idx - ROB_rollback_idx;                // diff
       RS_rollback[i]    = ( diff_ROB >= diff[i] ) && rollback_en;          // Rollback
       T1_CDB[i]         = RS[i].T1.idx == CDB_RS_out.T_idx && complete_en; // T1 is complete
@@ -86,8 +86,8 @@ module RS (
       FU_packet[i].cond_branch   = RS[i].cond_branch;                    // Output T2_idx
       FU_packet[i].FL_idx        = RS[i].FL_idx;                         // op code
       FU_packet[i].T_idx         = RS[i].T_idx;                          // Output T_idx
-      FU_idx[i].T1_idx           = RS[i].T1.idx;                         // Output T1_idx
-      FU_idx[i].T2_idx           = RS[i].T2.idx;                         // Output T2_idx
+      FU_T_idx[i].T1_idx         = RS[i].T1.idx;                         // Output T1_idx
+      FU_T_idx[i].T2_idx         = RS[i].T2.idx;                         // Output T2_idx
     end
   end
 
@@ -113,8 +113,8 @@ module RS (
       next_RS[RS_match_idx].cond_branch   = decoder_RS_out.cond_branch;   // Output T2_idx
       next_RS[RS_match_idx].FL_idx        = FL_RS_out.FL_idx;             // Write T1 select
       next_RS[RS_match_idx].T_idx         = FL_RS_out.T_idx;              // Write T
-      next_RS[RS_match_idx].T1            = decoder_RS_out.T1;            // Write T1
-      next_RS[RS_match_idx].T2            = decoder_RS_out.T2;            // Write T2
+      next_RS[RS_match_idx].T1            = Map_Table_RS_out.T1;          // Write T1
+      next_RS[RS_match_idx].T2            = Map_Table_RS_out.T2;          // Write T2
     end
   end // always_comb begin
 

@@ -25,8 +25,8 @@ typedef struct packed {
   logic    [$clog2(`NUM_PR)-1:0]  T_idx;     // Dest idx
   T_t                             T1;        // T1
   T_t                             T2;        // T2
-  ALU_OPA_SELECT                  T1_select;
-  ALU_OPB_SELECT                  T2_select;
+  ALU_OPA_SELECT                  opa_select;
+  ALU_OPB_SELECT                  opb_select;
   logic                           uncond_branch;
   logic                           cond_branch;
 } RS_ENTRY_t;
@@ -66,8 +66,8 @@ typedef struct packed {
   logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
   logic          [$clog2(`NUM_PR)-1:0]  T_idx;  // Dest idx
-  ALU_OPA_SELECT                        T1_select;
-  ALU_OPB_SELECT                        T2_select;
+  ALU_OPA_SELECT                        opa_select;
+  ALU_OPB_SELECT                        opb_select;
   logic                                 uncond_branch;
   logic                                 cond_branch;
 } FU_PACKET_t;

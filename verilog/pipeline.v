@@ -27,6 +27,70 @@ module pipeline (
   // output logic        pipeline_commit_wr_en,
   // output logic [63:0] pipeline_commit_NPC
 );
+  logic                                          en;
+  logic                                          write_en;
+  logic                                          complete_en;
+  logic                   [`NUM_FU-1:0]          CDB_valid;
+  CDB_ROB_OUT_t                                  CDB_ROB_out;
+  CDB_RS_OUT_t                                   CDB_RS_out;
+  CDB_MAP_TABLE_OUT_t                            CDB_Map_Table_out;
+  CDB_PR_OUT_t                                   CDB_PR_out;
+  DECODER_ROB_OUT_t                              decoder_ROB_out;
+  DECODER_RS_OUT_t                               decoder_RS_out;
+  DECODER_FL_OUT_t                               decoder_FL_out;
+  DECODER_MAP_TABLE_OUT_t                        decoder_Map_Table_out;
+  logic                                          FL_valid;
+  FL_ROB_OUT_t                                   FL_ROB_out;
+  FL_RS_OUT_t                                    FL_RS_out;
+  FL_MAP_TABLE_OUT_t                             FL_Map_Table_out;
+  logic                   [`NUM_FU-1:0]          FU_valid;
+  logic                                          rollback_en;
+  logic                   [$clog2(`NUM_FL)-1:0]  FL_rollback_idx;
+  logic                   [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
+  logic                   [$clog2(`NUM_ROB)-1:0] diff_ROB;
+  FU_CDB_OUT_t                                   FU_CDB_out;
+  MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;
+  MAP_TABLE_RS_OUT_t                             Map_Table_RS_out;
+  PR_FU_OUT_t                                    PR_FU_out;
+  logic                                          ROB_valid;
+  logic                                          retire_en;
+  logic                                          halt_out;
+  logic                   [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
+  ROB_FL_OUT_t                                   ROB_FL_out;
+  logic                                          RS_valid;
+  RS_FU_OUT_t                                    RS_FU_out;
+  RS_PR_OUT_t                                    RS_PR_out;
+`ifndef SYNTH_TEST
+  logic       [31:0][$clog2(`NUM_PR)-1:0]                                 next_arch_map;
+  CDB_entry_t [`NUM_FU-1:0]                                               CDB;
+  logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
+  logic       [$clog2(`NUM_FL)-1:0]                                       head, next_head;
+  logic       [$clog2(`NUM_FL)-1:0]                                       tail, next_tail;
+  logic       [`NUM_MULT-1:0]                                             last_done;
+  logic       [`NUM_MULT-1:0][63:0]                                       product_out;
+  logic       [`NUM_MULT-1:0][4:0]                                        last_dest_idx;
+  logic       [`NUM_MULT-1:0][$clog2(`NUM_PR)-1:0]                        last_T_idx;
+  logic       [`NUM_MULT-1:0][$clog2(`NUM_ROB)-1:0]                       last_ROB_idx;
+  logic       [`NUM_MULT-1:0][$clog2(`NUM_FL)-1:0]                        last_FL_idx;
+  logic       [`NUM_MULT-1:0][63:0]                                       T1_value;
+  logic       [`NUM_MULT-1:0][63:0]                                       T2_value;
+  logic       [`NUM_MULT-1:0][((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values;
+  logic       [`NUM_MULT-1:0][((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T2_values;
+  logic       [`NUM_MULT-1:0][`NUM_MULT_STAGE-2:0]                        internal_valids;
+  logic       [`NUM_MULT-1:0][`NUM_MULT_STAGE-3:0]                        internal_dones;
+  logic       [`NUM_MULT-1:0][5*(`NUM_MULT_STAGE-2)-1:0]                  internal_dest_idx;
+  logic       [`NUM_MULT-1:0][($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
+  logic       [`NUM_MULT-1:0][($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
+  logic       [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
+  T_t         [31:0]                                                      map_table_out;
+  logic       [`NUM_PR-1:0][63:0]                                         pr_data;
+  RS_ENTRY_t  [`NUM_FU-1:0]                                               RS_out;
+  logic       [`NUM_FU-1:0]                                               RS_match_hit;
+  logic       [$clog2(`NUM_FU)-1:0]                                       RS_match_idx;
+`endif
+  assign en = `TRUE;
+  
 
 // Pipeline register enables
 logic   f_d_enable;
@@ -235,8 +299,7 @@ logic   f_d_enable;
     .ROB_rollback_idx(ROB_rollback_idx),
     .FL_rollback_idx(FL_rollback_idx),
     .diff_ROB(diff_ROB),
-    .FU_CDB_out(FU_CDB_out),
-    .FU_PR_out(FU_PR_out)
+    .FU_CDB_out(FU_CDB_out)
   );
 
   Map_Table map_table_0 (
@@ -264,7 +327,7 @@ logic   f_d_enable;
     .reset(reset),
     .write_en(write_en),
     .CDB_PR_out(CDB_PR_out),
-    .FU_PR_out(FU_PR_out),
+    .RS_PR_out(RS_PR_out),
 `ifndef SYNTH_TEST
     .pr_data(pr_data),
 `endif
@@ -290,7 +353,6 @@ logic   f_d_enable;
     .retire_en(retire_en),
     .halt_out(halt_out),
     .ROB_idx(ROB_idx),
-    .ROB_RS_out(ROB_RS_out),
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
     .ROB_FL_out(ROB_FL_out)
   );
@@ -308,7 +370,6 @@ logic   f_d_enable;
     .ROB_idx(ROB_idx),
     .decoder_RS_out(decoder_RS_out),
     .FL_RS_out(FL_RS_out),
-    .ROB_RS_out(ROB_RS_out),
     .Map_Table_RS_out(Map_Table_RS_out),
     .CDB_RS_out(CDB_RS_out),
 `ifndef SYNTH_TEST
@@ -317,7 +378,8 @@ logic   f_d_enable;
     .RS_match_idx(RS_match_idx),
 `endif
     .RS_valid(RS_valid),
-    .RS_FU_out(RS_FU_out)
+    .RS_FU_out(RS_FU_out),
+    .RS_PR_out(RS_PR_out)
   );
 
   

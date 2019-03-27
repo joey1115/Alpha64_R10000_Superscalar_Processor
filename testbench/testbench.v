@@ -165,38 +165,38 @@ module testbench;
       clock_count*`VIRTUAL_CLOCK_PERIOD);
     end
     
-  endtask  // task show_clk_count 
+  // endtask  // task show_clk_count 
 
-  // Show contents of a range of Unified Memory, in both hex and decimal
-  task show_mem_with_decimal;
-    input [31:0] start_addr;
-    input [31:0] end_addr;
-    int showing_data;
-    begin
-      $display("@@@");
-      showing_data=0;
-      for(int k=start_addr;k<=end_addr; k=k+1)
-        if (memory.unified_memory[k] != 0)
-        begin
-          $display("@@@ mem[%5d] = %x : %0d", k*8,  memory.unified_memory[k], 
-                                memory.unified_memory[k]);
-          showing_data=1;
-        end
-        else if(showing_data!=0)
-        begin
-          $display("@@@");
-          showing_data=0;
-        end
-      $display("@@@");
-    end
-  endtask  // task show_mem_with_decimal
+  // // Show contents of a range of Unified Memory, in both hex and decimal
+  // task show_mem_with_decimal;
+  //   input [31:0] start_addr;
+  //   input [31:0] end_addr;
+  //   int showing_data;
+  //   begin
+  //     $display("@@@");
+  //     showing_data=0;
+  //     for(int k=start_addr;k<=end_addr; k=k+1)
+  //       if (memory.unified_memory[k] != 0)
+  //       begin
+  //         $display("@@@ mem[%5d] = %x : %0d", k*8,  memory.unified_memory[k], 
+  //                               memory.unified_memory[k]);
+  //         showing_data=1;
+  //       end
+  //       else if(showing_data!=0)
+  //       begin
+  //         $display("@@@");
+  //         showing_data=0;
+  //       end
+  //     $display("@@@");
+  //   end
+  // endtask  // task show_mem_with_decimal
 
-  initial begin
-    `ifdef DUMP
-      $vcdplusdeltacycleon;
-      $vcdpluson();
-      $vcdplusmemon(memory.unified_memory);
-    `endif
+  // initial begin
+  //   `ifdef DUMP
+  //     $vcdplusdeltacycleon;
+  //     $vcdpluson();
+  //     $vcdplusmemon(memory.unified_memory);
+  //   `endif
       
     clock = 1'b0;
     reset = 1'b0;

@@ -24,8 +24,8 @@
 
 module Map_Table (
   input  logic                                          en, clock, reset, dispatch_en, rollback_en, complete_en,
-  input  logic                   [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
-  input  logic                   [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  input  logic                   [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input  logic                   [$clog2(`NUM_ROB)-1:0] ROB_idx,
   input  DECODER_MAP_TABLE_OUT_t                        decoder_Map_Table_out,
   input  FL_MAP_TABLE_OUT_t                             FL_Map_Table_out,
   input  CDB_MAP_TABLE_OUT_t                            CDB_Map_Table_out,

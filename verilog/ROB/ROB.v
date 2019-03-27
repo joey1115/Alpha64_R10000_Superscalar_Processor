@@ -2,24 +2,25 @@
 
 module ROB (
   //inputs
-  input  logic                               en, clock, reset,
-  input  logic                               dispatch_en,
-  input  logic                               rollback_en,
-  input  logic                               complete_en,
-  input  DECODER_ROB_OUT_t                   decoder_ROB_out,
-  input  FL_ROB_OUT_t                        FL_ROB_out,
-  input  Map_Table_ROB_OUT_t                 Map_Table_ROB_out,
-  input  CDB_ROB_OUT_t                       CDB_ROB_out,
+  input  logic                                      en, clock, reset,
+  input  logic                                      dispatch_en,
+  input  logic                                      rollback_en,
+  input  logic                                      complete_en,
+  input  logic               [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input  DECODER_ROB_OUT_t                          decoder_ROB_out,
+  input  FL_ROB_OUT_t                               FL_ROB_out,
+  input  MAP_TABLE_ROB_OUT_t                        Map_Table_ROB_out,
+  input  CDB_ROB_OUT_t                              CDB_ROB_out,
   //Outputs
 `ifndef SYNTH_TEST
-  output ROB_t                               rob,
+  output ROB_t                                      rob,
 `endif
-  output logic                               ROB_valid,
-  output logic                               retire_en,
-  output logic                               halt_out,
-  output logic [$clog2(`NUM_ROB)-1:0]        ROB_idx;
-  output ROB_ARCH_MAP_OUT_t                  ROB_Arch_Map_out
-  output ROB_FL_OUT_t                        ROB_FL_out
+  output logic                                      ROB_valid,
+  output logic                                      retire_en,
+  output logic                                      halt_out,
+  output logic               [$clog2(`NUM_ROB)-1:0] ROB_idx,
+  output ROB_ARCH_MAP_OUT_t                         ROB_Arch_Map_out,
+  output ROB_FL_OUT_t                               ROB_FL_out
 );
 
 `ifdef SYNTH_TEST
@@ -30,7 +31,6 @@ module ROB (
 
   logic writeTail, moveHead, mispredict, b_t, stall_dispatch;
   logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg;
-
   logic [1:0] state, Nstate;
 
   assign ROB_Arch_Map_out = '{rob.entry[rob.head].T_idx, rob.entry[rob.head].dest_idx};
@@ -71,7 +71,7 @@ module ROB (
     Nrob.tail = (writeTail) ? (rob.tail + 1) : Nrob.tail;
     Nrob.head = (moveHead) ? (rob.head + 1) : Nrob.head;
     Nrob.entry[rob.tail].T_idx = (writeTail) ? FL_ROB_out.T_idx : Nrob.entry[rob.tail].T_idx;
-    Nrob.entry[rob.tail].Told_idx = (writeTail) ? Told_idx : Nrob.entry[rob.tail].Told_idx;
+    Nrob.entry[rob.tail].Told_idx = (writeTail) ? Map_Table_ROB_out.Told_idx : Nrob.entry[rob.tail].Told_idx;
     Nrob.entry[rob.tail].dest_idx = (writeTail) ? decoder_ROB_out.dest_idx : Nrob.entry[rob.tail].dest_idx;
     Nrob.entry[rob.tail].halt = writeTail & decoder_ROB_out.halt;
 

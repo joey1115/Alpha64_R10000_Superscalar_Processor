@@ -25,7 +25,7 @@ module test_RS;
   task printRS;
     begin
       $display("-----------------------------RS OUTPUT-----------------------------");
-      $display("     RS#     | RS_type  | busy |   inst   | func |        NPC       | ROB_idx | Fl_idx | T_idx | T1.idx | T1.ready | T2.idx | T2.ready | T1_select | T2_select | Entry ready");
+      $display("     RS#     | RS_type  | busy |   inst   | func |        NPC       | ROB_idx | Fl_idx | T_idx | T1.idx | T1.ready | T2.idx | T2.ready | opa_select | opb_select | Entry ready");
       for(int i = 0; i < `NUM_LD; i++) begin
         $display(" %d |    LD    |  %b   | %h |  %h  | %h |    %d   |   %d   |   %d  |   %d   |     %b    |    %d    |     %b    |    %h     |     %h    | %d",
                 i,
@@ -40,8 +40,8 @@ module test_RS;
                 RS[i].T1.ready,
                 RS[i].T2.idx,
                 RS[i].T2.ready,
-                RS[i].T1_select,
-                RS[i].T2_select,
+                RS[i].opa_select,
+                RS[i].opb_select,
                 RS_entry_match[i]);
       end
       for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
@@ -58,8 +58,8 @@ module test_RS;
                 RS[i].T1.ready,
                 RS[i].T2.idx,
                 RS[i].T2.ready,
-                RS[i].T1_select,
-                RS[i].T2_select,
+                RS[i].opa_select,
+                RS[i].opb_select,
                 RS_entry_match[i]);
       end
       for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
@@ -76,8 +76,8 @@ module test_RS;
                 RS[i].T1.ready,
                 RS[i].T2.idx,
                 RS[i].T2.ready,
-                RS[i].T1_select,
-                RS[i].T2_select,
+                RS[i].opa_select,
+                RS[i].opb_select,
                 RS_entry_match[i]);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
@@ -94,8 +94,8 @@ module test_RS;
                 RS[i].T1.ready,
                 RS[i].T2.idx,
                 RS[i].T2.ready,
-                RS[i].T1_select,
-                RS[i].T2_select,
+                RS[i].opa_select,
+                RS[i].opb_select,
                 RS_entry_match[i]);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
@@ -112,8 +112,8 @@ module test_RS;
                 RS[i].T1.ready,
                 RS[i].T2.idx,
                 RS[i].T2.ready,
-                RS[i].T1_select,
-                RS[i].T2_select,
+                RS[i].opa_select,
+                RS[i].opb_select,
                 RS_entry_match[i]);
       end
       $display("-----------------------------RS END--------------------------------");
@@ -123,7 +123,7 @@ module test_RS;
   task printOut;
     begin
       $display("-----------------------------FU OUTPUT-----------------------------");
-      $display("     FU#    |   IT   | ready |   inst   | func |        NPC        | ROB_idx | FL_idx | T_idx | T1_idx | T2_idx | T1_select | T2_select");
+      $display("     FU#    |   IT   | ready |   inst   | func |        NPC        | ROB_idx | FL_idx | T_idx | T1_idx | T2_idx | opa_select | opb_select");
       for(int i = 0; i < `NUM_LD; i++) begin
         $display("%d |   LD   |   %b   | %h |  %h  | %h |    %d   |   %d   |   %d   |   %d   |   %d   |     %h     |     %h     |",
                 i,
@@ -136,8 +136,8 @@ module test_RS;
                 RS_FU_out.FU_packet[i].T_idx,
                 RS_FU_out.FU_packet[i].T1_idx,
                 RS_FU_out.FU_packet[i].T2_idx,
-                RS_FU_out.FU_packet[i].T1_select,
-                RS_FU_out.FU_packet[i].T2_select);
+                RS_FU_out.FU_packet[i].opa_select,
+                RS_FU_out.FU_packet[i].opb_select);
       end
       for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
         $display("%d |   ST   |   %b   | %h |  %h  | %h |    %d   |    %d   |    %d   |    %d   |    %d   |     %h     |     %h     |",
@@ -151,8 +151,8 @@ module test_RS;
                 RS_FU_out.FU_packet[i].T_idx,
                 RS_FU_out.FU_packet[i].T1_idx,
                 RS_FU_out.FU_packet[i].T2_idx,
-                RS_FU_out.FU_packet[i].T1_select,
-                RS_FU_out.FU_packet[i].T2_select);
+                RS_FU_out.FU_packet[i].opa_select,
+                RS_FU_out.FU_packet[i].opb_select);
       end
       for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
         $display("%d |   BR   |   %b   | %h |  %h  | %h |    %d   |    %d   |    %d   |    %d   |    %d   |     %h     |     %h     |",
@@ -166,8 +166,8 @@ module test_RS;
                 RS_FU_out.FU_packet[i].T_idx,
                 RS_FU_out.FU_packet[i].T1_idx,
                 RS_FU_out.FU_packet[i].T2_idx,
-                RS_FU_out.FU_packet[i].T1_select,
-                RS_FU_out.FU_packet[i].T2_select);
+                RS_FU_out.FU_packet[i].opa_select,
+                RS_FU_out.FU_packet[i].opb_select);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
         $display("%d |  MULT  |   %b   | %h |  %h  | %h |    %d   |    %d   |    %d   |    %d   |    %d   |     %h     |     %h     |",
@@ -181,8 +181,8 @@ module test_RS;
                 RS_FU_out.FU_packet[i].T_idx,
                 RS_FU_out.FU_packet[i].T1_idx,
                 RS_FU_out.FU_packet[i].T2_idx,
-                RS_FU_out.FU_packet[i].T1_select,
-                RS_FU_out.FU_packet[i].T2_select);
+                RS_FU_out.FU_packet[i].opa_select,
+                RS_FU_out.FU_packet[i].opb_select);
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
         $display("%d |  ALU   |   %b   | %h |  %h  | %h |    %d   |    %d   |    %d   |    %d   |    %d   |     %h     |     %h     |",
@@ -196,8 +196,8 @@ module test_RS;
                 RS_FU_out.FU_packet[i].T_idx,
                 RS_FU_out.FU_packet[i].T1_idx,
                 RS_FU_out.FU_packet[i].T2_idx,
-                RS_FU_out.FU_packet[i].T1_select,
-                RS_FU_out.FU_packet[i].T2_select);
+                RS_FU_out.FU_packet[i].opa_select,
+                RS_FU_out.FU_packet[i].opb_select);
       end
       $display("-----------------------------FU END--------------------------------");
     end
@@ -206,7 +206,7 @@ module test_RS;
   task printInput;
     begin
       $display("---------------------------INPUT START----------------------------");
-      $display(" RESET | en | T_idx |   inst   |        NPC       | ROB_idx | Fl_idx | T1 | T1.ready | T2 | complete_en | dispatch_en | FU | func | T1_select | T2_select | CDB_T_idx | FU_valid | ROB_rollback_idx | ROB_idx | rollback_en");
+      $display(" RESET | en | T_idx |   inst   |        NPC       | ROB_idx | Fl_idx | T1 | T1.ready | T2 | complete_en | dispatch_en | FU | func | opa_select | opb_select | CDB_T_idx | FU_valid | ROB_rollback_idx | ROB_idx | rollback_en");
       $display("   %b   |  %b |  %d   | %h | %h |    %d   |   %d   | %d |     %b    | %d |     %b    |      %b      |      %b      | %d  |  %h  |     %h     |     %h     |   %d  |     %b    |        %d       |    %d     | %b",
                 reset,
                 en,
@@ -223,8 +223,8 @@ module test_RS;
                 rs_packet_in.dispatch_en,
                 rs_packet_in.FU,
                 rs_packet_in.func,
-                rs_packet_in.T1_select,
-                rs_packet_in.T2_select,
+                rs_packet_in.opa_select,
+                rs_packet_in.opb_select,
                 rs_packet_in.CDB_T_idx,
                 rs_packet_in.FU_valid,
                 rs_packet_in.ROB_rollback_idx,
@@ -282,8 +282,8 @@ module test_RS;
       rs_packet_in.dispatch_en = dispatch_en_in;
       rs_packet_in.FU = FU_in;
       rs_packet_in.func = func_in;
-      rs_packet_in.T1_select = T1_select_in;
-      rs_packet_in.T2_select = T2_select_in;
+      rs_packet_in.opa_select = T1_select_in;
+      rs_packet_in.opb_select = T2_select_in;
       rs_packet_in.CDB_T_idx = CDB_T_in;
       rs_packet_in.FU_valid = fu_valid_in;
       rs_packet_in.ROB_rollback_idx = ROB_rollback_idx_in;

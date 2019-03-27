@@ -94,8 +94,8 @@ module test_FU;
       fu_packet_in.T_idx,
       fu_packet_in.T1_value,
       fu_packet_in.T2_value,
-      fu_packet_in.T1_select,
-      fu_packet_in.T2_select,
+      fu_packet_in.opa_select,
+      fu_packet_in.opb_select,
       fu_packet_in.uncond_branch,
       fu_packet_in.cond_branch,
       CDB_valid,
@@ -116,8 +116,8 @@ module test_FU;
     logic          [$clog2(`NUM_PR)-1:0]  T_idx,    // Dest idx
     logic          [63:0]                 T1_value, // T1 idx
     logic          [63:0]                 T2_value, // T2 idx
-    ALU_OPA_SELECT                        T1_select,
-    ALU_OPB_SELECT                        T2_select,
+    ALU_OPA_SELECT                        opa_select,
+    ALU_OPB_SELECT                        opb_select,
     logic                                 uncond_branch,
     logic                                 cond_branch,
     logic                                 CDB_valid_in,
@@ -136,8 +136,8 @@ module test_FU;
       fu_packet_in.T_idx = T_idx;
       fu_packet_in.T1_value = T1_value;
       fu_packet_in.T2_value = T2_value;
-      fu_packet_in.T1_select = T1_select;
-      fu_packet_in.T2_select = T2_select;
+      fu_packet_in.opa_select = opa_select;
+      fu_packet_in.opb_select = opb_select;
       fu_packet_in.uncond_branch = uncond_branch;
       fu_packet_in.cond_branch = cond_branch;
       fu_packet_in.FL_idx = FL_idx;
@@ -152,40 +152,40 @@ module test_FU;
 
   initial begin
     clock=0;
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(1, `FALSE, `NOOP_INST, ALU_ADDQ,   0,   0,  0, `ZERO_PR,  0,  0, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
     @(negedge clock);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0,  `TRUE, `NOOP_INST, ALU_ADDQ,   0,   1,  0, `ZERO_PR,  1,  2, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0,  `TRUE, `NOOP_INST, ALU_ADDQ,   0,   3,  0, `ZERO_PR, 64,  2, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0,  `TRUE, `NOOP_INST, ALU_ADDQ,   0,   2,  0, `ZERO_PR,  3,  7, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0,  `TRUE, `NOOP_INST, ALU_ADDQ,   0,   4,  0, `ZERO_PR,  5, 66, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0,  `TRUE, `NOOP_INST, ALU_ADDQ,   0,   5,  0, `ZERO_PR, 12, 14, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0,  `TRUE, `NOOP_INST, ALU_ADDQ,   0,   6,  0, `ZERO_PR, 57, 89, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0,  `TRUE, `NOOP_INST, ALU_ADDQ,   0,   7,  0, `ZERO_PR,  2, 33, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0,  `TRUE, `NOOP_INST, ALU_ADDQ,   0,   8,  0, `ZERO_PR, 24, 75, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0, `FALSE, `NOOP_INST, ALU_ADDQ,   0,   0,  0, `ZERO_PR,  0,  0, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0, `FALSE, `NOOP_INST, ALU_ADDQ,   0,   0,  0, `ZERO_PR,  0,  0, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,   `TRUE,        5,    2);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0, `FALSE, `NOOP_INST, ALU_ADDQ,   0,   0,  0, `ZERO_PR,  0,  0, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0, `FALSE, `NOOP_INST, ALU_ADDQ,   0,   0,  0, `ZERO_PR,  0,  0, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0, `FALSE, `NOOP_INST, ALU_ADDQ,   0,   0,  0, `ZERO_PR,  0,  0, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0, `FALSE, `NOOP_INST, ALU_ADDQ,   0,   0,  0, `ZERO_PR,  0,  0, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0, `FALSE, `NOOP_INST, ALU_ADDQ,   0,   0,  0, `ZERO_PR,  0,  0, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
-    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       T1_select,       T2_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
+    //   reset,  ready,       inst,     func, NPC, ROB, FL,    T_idx, T1, T2,       opa_select,       opb_select, uncond,   cond, CDB, ROLL_en, ROLL_idx, tail
     setinput(0, `FALSE, `NOOP_INST, ALU_ADDQ,   0,   0,  0, `ZERO_PR,  0,  0, ALU_OPA_IS_REGA, ALU_OPB_IS_REGB, `FALSE, `FALSE,   0,  `FALSE,        0,    0);
     $finish;
   end
