@@ -259,119 +259,119 @@ module testbench;
       `SD;
       print_cycles();
       // print ROB
-      print_ROB_ht({(32-$clog2(`NUM_ROB)){1'b0},pipeline_ROB.head}, {(32-$clog2(`NUM_ROB)){1'b0},pipeline_ROB.tail});
+      print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
       for(int i = 0; i < `NUM_ROB; i++) begin
-      print_ROB_entry({(32-1){1'b0},pipeline_ROB.entry[i].valid}, {(32-$clog2(`NUM_PR)){1'b0},pipeline_ROB.entry[i].T_idx}, {(32-$clog2(`NUM_PR)){1'b0},pipeline_ROB.entry[i].Told_idx},{(32-5){1'b0},pipeline_ROB.entry[i].dest_idx},{(32-1){1'b0},pipeline_ROB.entry[i].complete},{(32-1){1'b0},pipeline_ROB.entry[i].halt});
+      print_ROB_entry({{(32-1){1'b0}},pipeline_ROB.entry[i].valid}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].T_idx}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].Told_idx},{{(32-5){1'b0}},pipeline_ROB.entry[i].dest_idx},{{(32-1){1'b0}},pipeline_ROB.entry[i].complete},{{(32-1){1'b0}},pipeline_ROB.entry[i].halt});
       end
       //print RS
       print_RS_head();
       for(int i = 0; i < `NUM_LD; i++) begin
         print_RS_entry("LD  ",
-                      {(32-1){1'b0},pipeline_RS[i].busy},
+                      {{(32-1){1'b0}},pipeline_RS[i].busy},
                       pipeline_RS[i].inst,
-                      {(32-5){1'b0},pipeline_RS[i].func},
+                      {{(32-5){1'b0}},pipeline_RS[i].func},
                       pipeline_RS[i].NPC[63:32],
                       pipeline_RS[i].NPC[31:0],
-                      {(32-5){1'b0},pipeline_RS[i].dest_idx},
-                      {(32-$clog2(`NUM_ROB)){1'b0},pipeline_RS[i].ROB_idx},
-                      {(32-$clog2(`NUM_FL)){1'b0},pipeline_RS[i].FL_idx},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T_idx},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T1.idx},
-                      {(32-1){1'b0},pipeline_RS[i].T1.ready},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T2.idx},
-                      {(32-1){1'b0},pipeline_RS[i].T2.ready},
-                      {(32-2){1'b0},pipeline_RS[i].opa_select},
-                      {(32-2){1'b0},pipeline_RS[i].opb_select});
+                      {{(32-5){1'b0}},pipeline_RS[i].dest_idx},
+                      {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_RS[i].ROB_idx},
+                      {{(32-$clog2(`NUM_FL)){1'b0}},pipeline_RS[i].FL_idx},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T_idx},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T1.idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].T1.ready},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
+                      {{(32-2){1'b0}},pipeline_RS[i].opa_select},
+                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
       for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
         print_RS_entry("ST  ",
-                      {(32-1){1'b0},pipeline_RS[i].busy},
+                      {{(32-1){1'b0}},pipeline_RS[i].busy},
                       pipeline_RS[i].inst,
-                      {(32-5){1'b0},pipeline_RS[i].func},
+                      {{(32-5){1'b0}},pipeline_RS[i].func},
                       pipeline_RS[i].NPC[63:32],
                       pipeline_RS[i].NPC[31:0],
-                      {(32-5){1'b0},pipeline_RS[i].dest_idx},
-                      {(32-$clog2(`NUM_ROB)){1'b0},pipeline_RS[i].ROB_idx},
-                      {(32-$clog2(`NUM_FL)){1'b0},pipeline_RS[i].FL_idx},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T_idx},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T1.idx},
-                      {(32-1){1'b0},pipeline_RS[i].T1.ready},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T2.idx},
-                      {(32-1){1'b0},pipeline_RS[i].T2.ready},
-                      {(32-2){1'b0},pipeline_RS[i].opa_select},
-                      {(32-2){1'b0},pipeline_RS[i].opb_select});
+                      {{(32-5){1'b0}},pipeline_RS[i].dest_idx},
+                      {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_RS[i].ROB_idx},
+                      {{(32-$clog2(`NUM_FL)){1'b0}},pipeline_RS[i].FL_idx},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T_idx},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T1.idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].T1.ready},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
+                      {{(32-2){1'b0}},pipeline_RS[i].opa_select},
+                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
       for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
         print_RS_entry("BR  ",
-                      {(32-1){1'b0},pipeline_RS[i].busy},
+                      {{(32-1){1'b0}},pipeline_RS[i].busy},
                       pipeline_RS[i].inst,
-                      {(32-5){1'b0},pipeline_RS[i].func},
+                      {{(32-5){1'b0}},pipeline_RS[i].func},
                       pipeline_RS[i].NPC[63:32],
                       pipeline_RS[i].NPC[31:0],
-                      {(32-5){1'b0},pipeline_RS[i].dest_idx},
-                      {(32-$clog2(`NUM_ROB)){1'b0},pipeline_RS[i].ROB_idx},
-                      {(32-$clog2(`NUM_FL)){1'b0},pipeline_RS[i].FL_idx},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T_idx},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T1.idx},
-                      {(32-1){1'b0},pipeline_RS[i].T1.ready},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T2.idx},
-                      {(32-1){1'b0},pipeline_RS[i].T2.ready},
-                      {(32-2){1'b0},pipeline_RS[i].opa_select},
-                      {(32-2){1'b0},pipeline_RS[i].opb_select});
+                      {{(32-5){1'b0}},pipeline_RS[i].dest_idx},
+                      {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_RS[i].ROB_idx},
+                      {{(32-$clog2(`NUM_FL)){1'b0}},pipeline_RS[i].FL_idx},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T_idx},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T1.idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].T1.ready},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
+                      {{(32-2){1'b0}},pipeline_RS[i].opa_select},
+                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
         print_RS_entry("MULT",
-                      {(32-1){1'b0},pipeline_RS[i].busy},
+                      {{(32-1){1'b0}},pipeline_RS[i].busy},
                       pipeline_RS[i].inst,
-                      {(32-5){1'b0},pipeline_RS[i].func},
+                      {{(32-5){1'b0}},pipeline_RS[i].func},
                       pipeline_RS[i].NPC[63:32],
                       pipeline_RS[i].NPC[31:0],
-                      {(32-5){1'b0},pipeline_RS[i].dest_idx},
-                      {(32-$clog2(`NUM_ROB)){1'b0},pipeline_RS[i].ROB_idx},
-                      {(32-$clog2(`NUM_FL)){1'b0},pipeline_RS[i].FL_idx},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T_idx},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T1.idx},
-                      {(32-1){1'b0},pipeline_RS[i].T1.ready},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T2.idx},
-                      {(32-1){1'b0},pipeline_RS[i].T2.ready},
-                      {(32-2){1'b0},pipeline_RS[i].opa_select},
-                      {(32-2){1'b0},pipeline_RS[i].opb_select});
+                      {{(32-5){1'b0}},pipeline_RS[i].dest_idx},
+                      {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_RS[i].ROB_idx},
+                      {{(32-$clog2(`NUM_FL)){1'b0}},pipeline_RS[i].FL_idx},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T_idx},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T1.idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].T1.ready},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
+                      {{(32-2){1'b0}},pipeline_RS[i].opa_select},
+                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
         print_RS_entry("ALU ",
-                      {(32-1){1'b0},pipeline_RS[i].busy},
+                      {{(32-1){1'b0}},pipeline_RS[i].busy},
                       pipeline_RS[i].inst,
-                      {(32-5){1'b0},pipeline_RS[i].func},
+                      {{(32-5){1'b0}},pipeline_RS[i].func},
                       pipeline_RS[i].NPC[63:32],
                       pipeline_RS[i].NPC[31:0],
-                      {(32-5){1'b0},pipeline_RS[i].dest_idx},
-                      {(32-$clog2(`NUM_ROB)){1'b0},pipeline_RS[i].ROB_idx},
-                      {(32-$clog2(`NUM_FL)){1'b0},pipeline_RS[i].FL_idx},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T_idx},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T1.idx},
-                      {(32-1){1'b0},pipeline_RS[i].T1.ready},
-                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T2.idx},
-                      {(32-1){1'b0},pipeline_RS[i].T2.ready},
-                      {(32-2){1'b0},pipeline_RS[i].opa_select},
-                      {(32-2){1'b0},pipeline_RS[i].opb_select});
+                      {{(32-5){1'b0}},pipeline_RS[i].dest_idx},
+                      {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_RS[i].ROB_idx},
+                      {{(32-$clog2(`NUM_FL)){1'b0}},pipeline_RS[i].FL_idx},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T_idx},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T1.idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].T1.ready},
+                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
+                      {{(32-2){1'b0}},pipeline_RS[i].opa_select},
+                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
 
       //print Map table
       print_maptable_head();
       for(int i = 0; i < 32; i++) begin
-        print_maptable_entries(i,{(32-$clog2(`NUM_PR)){1'b0},pipeline_MAPTABLE[i].idx},{(32-1){1'b0},pipeline_MAPTABLE[i].ready});
+        print_maptable_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_MAPTABLE[i].idx},{{(32-1){1'b0}},pipeline_MAPTABLE[i].ready});
       end
 
       //print CDB
       print_CDB_head();
       for(int i = 0; i < `NUM_FU; i++) begin
-        print_CDB_entries({(32-1){1'b0},pipeline_CDB[i].taken}, {(32-$clog2(`NUM_PR)){1'b0},pipeline_CDB[i].T_idx}, {(32-$clog2(`NUM_ROB)){1'b0},pipeline_CDB[i].ROB_idx}, {(32-5){1'b0},pipeline_CDB[i].dest_idx}, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
+        print_CDB_entries({{(32-1){1'b0}},pipeline_CDB[i].taken}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_CDB[i].T_idx}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_CDB[i].ROB_idx}, {{(32-5){1'b0}},pipeline_CDB[i].dest_idx}, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
       end
 
       //print archmap
       print_archmap_head();
       for(int i = 0; i < 32; i++) begin
-        print_archmap_entries(i,{(32-$clog2(`NUM_PR)){1'b0},pipeline_ARCHMAP[i]});
+        print_archmap_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ARCHMAP[i]});
       end
 
       //print PR
