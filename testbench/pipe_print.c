@@ -49,7 +49,7 @@ void print_RS_head(){
     fprintf(ppfile, "----------------------------------------------------------------------------------------------------------------RS--------------------------------------------------------------------------------------------------------------");
 }
 
-void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select){
+void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select){
 
   char *T1_str;
   char *T2_str;
@@ -246,8 +246,8 @@ void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC, int d
   }
 
   if (ppfile != NULL)
-    fprintf(ppfile, "Function: %-8s | busy: %1d |  inst: %-8s | func: %-8s | NPC: %08x | dest_idx: %3d | ROB_idx: %2d | FL_idx: %2d | T_idx: %3d | T1: %3d | T1_ready: %1d | T2: %3d | T2_ready: %1d | ALU_OPA_SELECT: %-10s | ALU_OPB_SELECT: %-10s",\
-     funcType, busy, str, ALU_func, NPC, dest_idx, ROB_idx, FL_idx, T_idx, T1, T1_ready, T2, T2_ready, T1_str, T2_str);
+    fprintf(ppfile, "Function: %-8s | busy: %1d |  inst: %-8s | func: %-8s | NPC: %x%x | dest_idx: %3d | ROB_idx: %2d | FL_idx: %2d | T_idx: %3d | T1: %3d | T1_ready: %1d | T2: %3d | T2_ready: %1d | ALU_OPA_SELECT: %-10s | ALU_OPB_SELECT: %-10s",\
+     funcType, busy, str, ALU_func, NPC_hi, NPC_lo, dest_idx, ROB_idx, FL_idx, T_idx, T1, T1_ready, T2, T2_ready, T1_str, T2_str);
 }
 
 void print_maptable_head(){

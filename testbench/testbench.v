@@ -19,7 +19,7 @@ extern void print_cycles();
 extern void print_ROB_ht(int head, int tail);
 extern void print_ROB_entry(int valid, int T, int T_old, int dest_idx, int complete, int halt);
 extern void print_RS_head();
-extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int opa_select, int opb_select);
+extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int opa_select, int opb_select);
 extern void print_maptable_head();
 extern void print_maptable_entries(int reg_idx, int T, int ready);
 extern void print_CDB_head();
@@ -117,7 +117,7 @@ module testbench;
     //.pipeline_commit_wr_idx(pipeline_commit_wr_idx),
     //.pipeline_commit_wr_en(pipeline_commit_wr_en),
     //.pipeline_commit_NPC(pipeline_commit_NPC),
-    
+
     .pipeline_ROB(pipeline_ROB),
     .pipeline_RS(pipeline_RS),
     .pipeline_ARCHMAP(pipeline_ARCHMAP),
@@ -176,8 +176,8 @@ module testbench;
       $display("@@  %4.2f ns total time to execute\n@@\n",
       clock_count*`VIRTUAL_CLOCK_PERIOD);
     end
-    
-  endtask  // task show_clk_count 
+
+  endtask  // task show_clk_count
 
   // Show contents of a range of Unified Memory, in both hex and decimal
   task show_mem_with_decimal;
@@ -190,7 +190,7 @@ module testbench;
       for(int k=start_addr;k<=end_addr; k=k+1)
         if (memory.unified_memory[k] != 0)
         begin
-          $display("@@@ mem[%5d] = %x : %0d", k*8,  memory.unified_memory[k], 
+          $display("@@@ mem[%5d] = %x : %0d", k*8,  memory.unified_memory[k],
                                 memory.unified_memory[k]);
           showing_data=1;
         end
@@ -209,7 +209,7 @@ module testbench;
       $vcdpluson();
       $vcdplusmemon(memory.unified_memory);
     `endif
-      
+
     clock = 1'b0;
     reset = 1'b0;
 
@@ -247,7 +247,7 @@ module testbench;
       clock_count <= `SD (clock_count + 1);
       instr_count <= `SD (instr_count + pipeline_completed_insts);
     end
-  end  
+  end
 
 
   always @(negedge clock) begin
@@ -259,119 +259,124 @@ module testbench;
       `SD;
       print_cycles();
       // print ROB
-      print_ROB_ht(pipeline_ROB.head, pipeline_ROB.tail);
+      print_ROB_ht({(32-$clog2(`NUM_ROB)){1'b0},pipeline_ROB.head}, {(32-$clog2(`NUM_ROB)){1'b0},pipeline_ROB.tail});
       for(int i = 0; i < `NUM_ROB; i++) begin
-      print_ROB_entry(pipeline_ROB.entry[i].valid, pipeline_ROB.entry[i].T_idx, pipeline_ROB.entry[i].Told_idx,pipeline_ROB.entry[i].dest_idx,pipeline_ROB.entry[i].complete,pipeline_ROB.entry[i].halt);
+      print_ROB_entry({(32-1){1'b0},pipeline_ROB.entry[i].valid}, {(32-$clog2(`NUM_PR)){1'b0},pipeline_ROB.entry[i].T_idx}, {(32-$clog2(`NUM_PR)){1'b0},pipeline_ROB.entry[i].Told_idx},{(32-5){1'b0},pipeline_ROB.entry[i].dest_idx},{(32-1){1'b0},pipeline_ROB.entry[i].complete},{(32-1){1'b0},pipeline_ROB.entry[i].halt});
       end
       //print RS
       print_RS_head();
       for(int i = 0; i < `NUM_LD; i++) begin
         print_RS_entry("LD  ",
-                      pipeline_RS[i].busy, 
-                      pipeline_RS[i].inst, 
-                      pipeline_RS[i].func, 
-                      pipeline_RS[i].NPC, 
-                      pipeline_RS[i].dest_idx,
-                      pipeline_RS[i].ROB_idx,
-                      pipeline_RS[i].FL_idx,
-                      pipeline_RS[i].T_idx,
-                      pipeline_RS[i].T1.idx,
-                      pipeline_RS[i].T1.ready,
-                      pipeline_RS[i].T2.idx,
-                      pipeline_RS[i].T2.ready,
-                      pipeline_RS[i].opa_select,
-                      pipeline_RS[i].opb_select);
+                      {(32-1){1'b0},pipeline_RS[i].busy},
+                      pipeline_RS[i].inst,
+                      {(32-5){1'b0},pipeline_RS[i].func},
+                      pipeline_RS[i].NPC[63:32],
+                      pipeline_RS[i].NPC[31:0],
+                      {(32-5){1'b0},pipeline_RS[i].dest_idx},
+                      {(32-$clog2(`NUM_ROB)){1'b0},pipeline_RS[i].ROB_idx},
+                      {(32-$clog2(`NUM_FL)){1'b0},pipeline_RS[i].FL_idx},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T_idx},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T1.idx},
+                      {(32-1){1'b0},pipeline_RS[i].T1.ready},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T2.idx},
+                      {(32-1){1'b0},pipeline_RS[i].T2.ready},
+                      {(32-2){1'b0},pipeline_RS[i].opa_select},
+                      {(32-2){1'b0},pipeline_RS[i].opb_select});
       end
       for(int i = `NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
         print_RS_entry("ST  ",
-                      pipeline_RS[i].busy, 
-                      pipeline_RS[i].inst, 
-                      pipeline_RS[i].func, 
-                      pipeline_RS[i].NPC, 
-                      pipeline_RS[i].dest_idx,
-                      pipeline_RS[i].ROB_idx,
-                      pipeline_RS[i].FL_idx,
-                      pipeline_RS[i].T_idx,
-                      pipeline_RS[i].T1.idx,
-                      pipeline_RS[i].T1.ready,
-                      pipeline_RS[i].T2.idx,
-                      pipeline_RS[i].T2.ready,
-                      pipeline_RS[i].opa_select,
-                      pipeline_RS[i].opb_select);
+                      {(32-1){1'b0},pipeline_RS[i].busy},
+                      pipeline_RS[i].inst,
+                      {(32-5){1'b0},pipeline_RS[i].func},
+                      pipeline_RS[i].NPC[63:32],
+                      pipeline_RS[i].NPC[31:0],
+                      {(32-5){1'b0},pipeline_RS[i].dest_idx},
+                      {(32-$clog2(`NUM_ROB)){1'b0},pipeline_RS[i].ROB_idx},
+                      {(32-$clog2(`NUM_FL)){1'b0},pipeline_RS[i].FL_idx},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T_idx},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T1.idx},
+                      {(32-1){1'b0},pipeline_RS[i].T1.ready},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T2.idx},
+                      {(32-1){1'b0},pipeline_RS[i].T2.ready},
+                      {(32-2){1'b0},pipeline_RS[i].opa_select},
+                      {(32-2){1'b0},pipeline_RS[i].opb_select});
       end
       for(int i = (`NUM_LD + `NUM_ST); i < (`NUM_LD + `NUM_ST + `NUM_BR); i++) begin
         print_RS_entry("BR  ",
-                      pipeline_RS[i].busy, 
-                      pipeline_RS[i].inst, 
-                      pipeline_RS[i].func, 
-                      pipeline_RS[i].NPC, 
-                      pipeline_RS[i].dest_idx,
-                      pipeline_RS[i].ROB_idx,
-                      pipeline_RS[i].FL_idx,
-                      pipeline_RS[i].T_idx,
-                      pipeline_RS[i].T1.idx,
-                      pipeline_RS[i].T1.ready,
-                      pipeline_RS[i].T2.idx,
-                      pipeline_RS[i].T2.ready,
-                      pipeline_RS[i].opa_select,
-                      pipeline_RS[i].opb_select);
+                      {(32-1){1'b0},pipeline_RS[i].busy},
+                      pipeline_RS[i].inst,
+                      {(32-5){1'b0},pipeline_RS[i].func},
+                      pipeline_RS[i].NPC[63:32],
+                      pipeline_RS[i].NPC[31:0],
+                      {(32-5){1'b0},pipeline_RS[i].dest_idx},
+                      {(32-$clog2(`NUM_ROB)){1'b0},pipeline_RS[i].ROB_idx},
+                      {(32-$clog2(`NUM_FL)){1'b0},pipeline_RS[i].FL_idx},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T_idx},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T1.idx},
+                      {(32-1){1'b0},pipeline_RS[i].T1.ready},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T2.idx},
+                      {(32-1){1'b0},pipeline_RS[i].T2.ready},
+                      {(32-2){1'b0},pipeline_RS[i].opa_select},
+                      {(32-2){1'b0},pipeline_RS[i].opb_select});
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
         print_RS_entry("MULT",
-                      pipeline_RS[i].busy, 
-                      pipeline_RS[i].inst, 
-                      pipeline_RS[i].func, 
-                      pipeline_RS[i].NPC, 
-                      pipeline_RS[i].dest_idx,
-                      pipeline_RS[i].ROB_idx,
-                      pipeline_RS[i].FL_idx,
-                      pipeline_RS[i].T_idx,
-                      pipeline_RS[i].T1.idx,
-                      pipeline_RS[i].T1.ready,
-                      pipeline_RS[i].T2.idx,
-                      pipeline_RS[i].T2.ready,
-                      pipeline_RS[i].opa_select,
-                      pipeline_RS[i].opb_select);
+                      {(32-1){1'b0},pipeline_RS[i].busy},
+                      pipeline_RS[i].inst,
+                      {(32-5){1'b0},pipeline_RS[i].func},
+                      pipeline_RS[i].NPC[63:32],
+                      pipeline_RS[i].NPC[31:0],
+                      {(32-5){1'b0},pipeline_RS[i].dest_idx},
+                      {(32-$clog2(`NUM_ROB)){1'b0},pipeline_RS[i].ROB_idx},
+                      {(32-$clog2(`NUM_FL)){1'b0},pipeline_RS[i].FL_idx},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T_idx},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T1.idx},
+                      {(32-1){1'b0},pipeline_RS[i].T1.ready},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T2.idx},
+                      {(32-1){1'b0},pipeline_RS[i].T2.ready},
+                      {(32-2){1'b0},pipeline_RS[i].opa_select},
+                      {(32-2){1'b0},pipeline_RS[i].opb_select});
       end
       for(int i = (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
         print_RS_entry("ALU ",
-                      pipeline_RS[i].busy, 
-                      pipeline_RS[i].inst, 
-                      pipeline_RS[i].func, 
-                      pipeline_RS[i].NPC, 
-                      pipeline_RS[i].dest_idx,
-                      pipeline_RS[i].ROB_idx,
-                      pipeline_RS[i].FL_idx,
-                      pipeline_RS[i].T_idx,
-                      pipeline_RS[i].T1.idx,
-                      pipeline_RS[i].T1.ready,
-                      pipeline_RS[i].T2.idx,
-                      pipeline_RS[i].T2.ready,
-                      pipeline_RS[i].opa_select,
-                      pipeline_RS[i].opb_select);
+                      {(32-1){1'b0},pipeline_RS[i].busy},
+                      pipeline_RS[i].inst,
+                      {(32-5){1'b0},pipeline_RS[i].func},
+                      pipeline_RS[i].NPC[63:32],
+                      pipeline_RS[i].NPC[31:0],
+                      {(32-5){1'b0},pipeline_RS[i].dest_idx},
+                      {(32-$clog2(`NUM_ROB)){1'b0},pipeline_RS[i].ROB_idx},
+                      {(32-$clog2(`NUM_FL)){1'b0},pipeline_RS[i].FL_idx},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T_idx},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T1.idx},
+                      {(32-1){1'b0},pipeline_RS[i].T1.ready},
+                      {(32-$clog2(`NUM_PR)){1'b0},pipeline_RS[i].T2.idx},
+                      {(32-1){1'b0},pipeline_RS[i].T2.ready},
+                      {(32-2){1'b0},pipeline_RS[i].opa_select},
+                      {(32-2){1'b0},pipeline_RS[i].opb_select});
       end
-      
+
       //print Map table
       print_maptable_head();
       for(int i = 0; i < 32; i++) begin
-        print_maptable_entries(i,pipeline_MAPTABLE[i].idx,pipeline_MAPTABLE[i].ready);
+        print_maptable_entries(i,{(32-$clog2(`NUM_PR)){1'b0},pipeline_MAPTABLE[i].idx},{(32-1){1'b0},pipeline_MAPTABLE[i].ready});
       end
 
       //print CDB
       print_CDB_head();
       for(int i = 0; i < `NUM_FU; i++) begin
-        print_CDB_entries(pipeline_CDB[i].taken, pipeline_CDB[i].T_idx, pipeline_CDB[i].ROB_idx, pipeline_CDB[i].dest_idx, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
+        print_CDB_entries({(32-1){1'b0},pipeline_CDB[i].taken}, {(32-$clog2(`NUM_PR)){1'b0},pipeline_CDB[i].T_idx}, {(32-$clog2(`NUM_ROB)){1'b0},pipeline_CDB[i].ROB_idx}, {(32-5){1'b0},pipeline_CDB[i].dest_idx}, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
       end
 
       //print archmap
       print_archmap_head();
       for(int i = 0; i < 32; i++) begin
-        print_archmap_entries(i,pipeline_ARCHMAP[i]);
+        print_archmap_entries(i,{(32-$clog2(`NUM_PR)){1'b0},pipeline_ARCHMAP[i]});
       end
 
       //print PR
       // print_PR_head();
-      
+
 
 
        print_reg(CDB_PR_out.T_value[63:32], CDB_PR_out.T_value[31:0],
@@ -396,19 +401,19 @@ module testbench;
       if(pipeline_error_status!=NO_ERROR)
       begin
         $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
-              show_mem_with_decimal(0,`MEM_64BIT_LINES - 1); 
+              show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
         // 8Bytes per line, 16kB total
 
         $display("@@  %t : System halted\n@@", $realtime);
 
         case(pipeline_error_status)
-          HALTED_ON_MEMORY_ERROR:  
+          HALTED_ON_MEMORY_ERROR:
             $display(  "@@@ System halted on memory error");
-          HALTED_ON_HALT:          
+          HALTED_ON_HALT:
             $display(  "@@@ System halted on HALT instruction");
           HALTED_ON_ILLEGAL:
             $display(  "@@@ System halted on illegal instruction(illegal insn decoded)");
-          default: 
+          default:
             $display(  "@@@ System halted on unknown error code %x",
                   pipeline_error_status);
         endcase
@@ -420,6 +425,6 @@ module testbench;
       end
 
     end  // if(reset)
-  end 
+  end
 endmodule  // module testbench
 
