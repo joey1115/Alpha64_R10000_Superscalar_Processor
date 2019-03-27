@@ -43,19 +43,21 @@ typedef struct packed {
 
 `define ZERO_PR {{($clog2(`NUM_PR)-5){1'b0}}, `ZERO_REG}
 `define T_RESET {`ZERO_PR, `FALSE} // T reset
-`define RS_ENTRY_RESET  { \
-  `FALSE,                 \
-  `NOOP_INST,             \
-  ALU_ADDQ,               \
-  {64{1'b0}},             \
-  `ZERO_REG,              \
-  {`NUM_ROB{1'b0}},       \
-  {`NUM_FL{1'b0}},        \
-  `ZERO_PR,               \
-  `T_RESET,               \
-  `T_RESET,               \
-  ALU_OPA_IS_REGA,        \
-  ALU_OPB_IS_REGB         \
+`define RS_ENTRY_RESET  {   \
+  `FALSE,                   \
+  `NOOP_INST,               \
+  ALU_ADDQ,                 \
+  {64{1'b0}},               \
+  `ZERO_REG,                \
+  {$clog2(`NUM_ROB){1'b0}}, \
+  {$clog2(`NUM_FL){1'b0}},  \
+  `ZERO_PR,                 \
+  `T_RESET,                 \
+  `T_RESET,                 \
+  ALU_OPA_IS_REGA,          \
+  ALU_OPB_IS_REGB,          \
+  `FALSE,                   \
+  `FALSE                    \
 } // RS entry reset
 `define RS_RESET '{`NUM_FU{`RS_ENTRY_RESET}} // RS reset
 

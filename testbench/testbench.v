@@ -268,7 +268,7 @@ module testbench;
       for(int i = 0; i < `NUM_LD; i++) begin
         print_RS_entry("LD  ",
                       {{(32-1){1'b0}},pipeline_RS[i].busy},
-                      pipeline_RS[i].inst,
+                      pipeline_RS[i].inst.I,
                       {{(32-5){1'b0}},pipeline_RS[i].func},
                       pipeline_RS[i].NPC[63:32],
                       pipeline_RS[i].NPC[31:0],

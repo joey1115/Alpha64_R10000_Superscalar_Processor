@@ -266,7 +266,7 @@ void print_maptable_entries(int reg_idx, int T, int ready){
   }
 
   if (ppfile != NULL)
-    fprintf(ppfile, " %3d | %3d%-8s ", reg_idx, T, ready_bit);
+    fprintf(ppfile, " %3d | %3d%-8s \n", reg_idx, T, ready_bit);
 }
 
 void print_CDB_head(){
