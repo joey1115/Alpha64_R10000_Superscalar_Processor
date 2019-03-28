@@ -33,6 +33,7 @@ module ROB (
   logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg;
   logic [1:0] state, Nstate;
   logic [$clog2(`NUM_ROB)-1:0] tail_plus_one;
+  logic [$clog2(`NUM_ROB)-1:0] tail_minus_one;
 
   assign ROB_Arch_Map_out = '{rob.entry[rob.head].T_idx, rob.entry[rob.head].dest_idx};
   assign ROB_FL_out       = '{rob.entry[rob.head].Told_idx};
@@ -41,8 +42,10 @@ module ROB (
   assign stall_dispatch = (state == 1);
   //!Nrob.entry[Nrob.tail].valid
   assign tail_plus_one = rob.tail+1;
-  assign ROB_valid = (stall_dispatch)? 0 : (tail_plus_one!=rob.head);
+  assign tail_minus_one = rob.tail - 1;
+  assign ROB_valid = ((stall_dispatch)? 0 : (tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
 
+  // assign ROB_valid = (stall_dispatch)? 0 : (tail_plus_one!=rob.head);
   //assign halt out
   assign halt_out = retire_en & rob.entry[rob.head].halt;
 

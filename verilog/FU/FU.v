@@ -59,7 +59,7 @@ module alu (
     endcase
     FU_out.dest_idx = FU_in.dest_idx;
     FU_out.T_idx    = FU_in.T_idx;
-    // FU_out.FL_idx   = FU_in.FL_idx;
+    FU_out.FL_idx   = FU_in.FL_idx;
     FU_out.ROB_idx  = FU_in.ROB_idx;
     FU_out.done     = !rollback_valid && FU_in.ready;
   end
@@ -202,6 +202,7 @@ module mult_stage (
       mplier_out       <= `SD next_mplier_out;
       mcand_out        <= `SD next_mcand_out;
       product_out      <= `SD next_product_out;
+      dest_idx_out     <= `SD next_dest_idx_out;
       T_idx_out        <= `SD next_T_idx_out;
       ROB_idx_out      <= `SD next_ROB_idx_out;
       FL_idx_out       <= `SD next_FL_idx_out;
@@ -256,7 +257,7 @@ module mult (
   logic [$clog2(`NUM_FL)-1:0]                        last_FL_idx;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values;
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
-  logic [`NUM_MULT_STAGE-2:0]                        internal_dones;
+  logic [`NUM_MULT_STAGE-3:0]                        internal_dones;
   logic [5*(`NUM_MULT_STAGE-2)-1:0]                  internal_dest_idx;
   logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
   logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
@@ -329,6 +330,7 @@ module br(
   assign take_branch = FU_in.uncond_branch || (FU_in.cond_branch && result);
 
   always_comb begin
+    result = `FALSE;
     if(FU_in.ready == `TRUE) begin
       case (FU_in.inst.r.br_func)                                               // 'full-case'  All cases covered, no need for a default
         2'b00: result = (FU_in.T1_value[0] == 0);                               // LBC: (lsb(opa) == 0) ?

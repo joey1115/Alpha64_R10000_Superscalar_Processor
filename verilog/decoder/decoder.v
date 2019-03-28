@@ -28,7 +28,8 @@ module decoder(
   output DECODER_RS_OUT_t        decoder_RS_out,
   output DECODER_FL_OUT_t        decoder_FL_out,
   output DECODER_MAP_TABLE_OUT_t decoder_Map_Table_out,
-  output logic                   illegal
+  output logic                   illegal,
+  output logic                   halt
 );
 
   INST_t                inst;  // fetched instruction out
@@ -36,7 +37,6 @@ module decoder(
   ALU_OPA_SELECT        opa_select;  // fetched instruction out
   ALU_OPB_SELECT        opb_select;
   logic                 rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
-  logic                 halt;      // non-zero on a halt
   logic                 cpuid;     // get CPUID instruction
   //logic                 illegal;   // non-zero on an illegal instruction
   logic                 valid; // for counting valid instructions executed
@@ -169,7 +169,7 @@ module decoder(
           opa_select = ALU_OPA_IS_REGA;
           opb_select = F_decoder_out.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
           dest_idx   = F_decoder_out.inst.r.regc_idx;
-          FU         = FU_ALU;
+          FU         = FU_MULT;
           rega_idx   = F_decoder_out.inst.r.rega_idx;
           regb_idx   = F_decoder_out.inst.i.IMM ? `ZERO_REG : F_decoder_out.inst.r.regb_idx;
           case (F_decoder_out.inst.i.func)

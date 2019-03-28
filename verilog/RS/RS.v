@@ -74,7 +74,7 @@ module RS (
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
-      FU_packet[i].ready         = RS_entry_ready[i] && !RS_rollback[i]; // Ready to issue
+      FU_packet[i].ready         = RS_entry_ready[i]; // Ready to issue
       FU_packet[i].ROB_idx       = RS[i].ROB_idx;                        // op code
       FU_packet[i].inst          = RS[i].inst;                           // inst
       FU_packet[i].func          = RS[i].func;                           // op code

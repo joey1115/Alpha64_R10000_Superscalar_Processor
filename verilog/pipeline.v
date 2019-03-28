@@ -45,7 +45,7 @@ module pipeline (
   output logic [3:0]  pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
-  logic                                          en, F_decoder_en, illegal, if_valid_inst_out;
+  logic                                          en, F_decoder_en, illegal, if_valid_inst_out, halt;
 `ifdef SYNTH_TEST
   logic                                          dispatch_en,
 `endif
@@ -145,8 +145,7 @@ module pipeline (
   assign F_decoder_en = `TRUE;
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = {3'b0, retire_en};
-  assign pipeline_error_status    = illegal  ? HALTED_ON_ILLEGAL :
-                                    halt_out ? HALTED_ON_HALT :
+  assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
                                                NO_ERROR;
   assign proc2Dmem_command = BUS_NONE;
   assign proc2Dmem_addr = 0;
@@ -203,7 +202,7 @@ module pipeline (
     // Inputs
     .clock (clock),
     .reset (reset),
-    .get_next_inst(dispatch_en), //only go to next insn when high
+    .get_next_inst(halt), //only go to next insn when high
     .take_branch_out(take_branch_out),
     .take_branch_target(take_branch_target),
     .Imem2proc_data(Icache_data_out),
@@ -269,7 +268,8 @@ module pipeline (
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
     .decoder_Map_Table_out(decoder_Map_Table_out),
-    .illegal(illegal)
+    .illegal(illegal),
+    .halt(halt)
   );
 
   FL fl_0 (
