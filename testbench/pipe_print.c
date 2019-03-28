@@ -303,7 +303,7 @@ void print_dispatch_en(int dispatch_en, int ROB_valid, int RS_valid, int FL_vali
 
 void print_freelist_head(int FL_head, int FL_tail){
   if(ppfile != NULL){
-    fprintf(ppfile, "------Freelist------\nhead: %3d tail: %3d", FL_head, FL_tail);
+    fprintf(ppfile, "------Freelist------\nhead: %3d tail: %3d\n", FL_head, FL_tail);
   }
 }
 
