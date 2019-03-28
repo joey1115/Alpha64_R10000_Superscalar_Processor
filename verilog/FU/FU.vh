@@ -10,6 +10,7 @@
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
 `include "../RS/RS.vh"
+`include "../PR/PR.vh"
 `endif
 
 typedef struct packed {

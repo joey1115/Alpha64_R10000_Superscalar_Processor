@@ -47,7 +47,14 @@ module pipeline (
 );
   logic                                          en, F_decoder_en, illegal, if_valid_inst_out, halt;
 `ifndef DEBUG
-  logic                                          dispatch_en,
+  logic                                          dispatch_en;
+  logic       [`NUM_PR-1:0][63:0]                pipeline_PR;
+  logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL;
+  CDB_entry_t [`NUM_FU-1:0]                      pipeline_CDB;
+  ROB_t                                          pipeline_ROB;
+  RS_ENTRY_t  [`NUM_FU-1:0]                      pipeline_RS;
+  logic       [31:0][$clog2(`NUM_PR)-1:0]        pipeline_ARCHMAP;
+  T_t         [31:0]                             pipeline_MAPTABLE;
 `endif
   logic                                          write_en;
 `ifndef DEBUG
@@ -120,22 +127,21 @@ module pipeline (
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_head;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_tail;
-  logic       [`NUM_MULT-1:0]                                             last_done;
-  logic       [`NUM_MULT-1:0][63:0]                                       product_out;
-  logic       [`NUM_MULT-1:0][4:0]                                        last_dest_idx;
-  logic       [`NUM_MULT-1:0][$clog2(`NUM_PR)-1:0]                        last_T_idx;
-  logic       [`NUM_MULT-1:0][$clog2(`NUM_ROB)-1:0]                       last_ROB_idx;
-  logic       [`NUM_MULT-1:0][$clog2(`NUM_FL)-1:0]                        last_FL_idx;
-  logic       [`NUM_MULT-1:0][63:0]                                       T1_value;
-  logic       [`NUM_MULT-1:0][63:0]                                       T2_value;
-  logic       [`NUM_MULT-1:0][((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values;
-  logic       [`NUM_MULT-1:0][((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T2_values;
-  logic       [`NUM_MULT-1:0][`NUM_MULT_STAGE-2:0]                        internal_valids;
-  logic       [`NUM_MULT-1:0][`NUM_MULT_STAGE-3:0]                        internal_dones;
-  logic       [`NUM_MULT-1:0][5*(`NUM_MULT_STAGE-2)-1:0]                  internal_dest_idx;
-  logic       [`NUM_MULT-1:0][($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
-  logic       [`NUM_MULT-1:0][($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
-  logic       [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
+  logic                                                                   last_done;
+  logic       [63:0]                                                      product_out;
+  logic       [4:0]                                                       last_dest_idx;
+  logic       [$clog2(`NUM_PR)-1:0]                                       last_T_idx;
+  logic       [$clog2(`NUM_ROB)-1:0]                                      last_ROB_idx;
+  logic       [$clog2(`NUM_FL)-1:0]                                       last_FL_idx;
+  logic       [63:0]                                                      T1_value;
+  logic       [63:0]                                                      T2_value;
+  logic       [((`NUM_MULT_STAGE-1)*64)-1:0]                              internal_T1_values, internal_T2_values;
+  logic       [`NUM_MULT_STAGE-2:0]                                       internal_valids;
+  logic       [`NUM_MULT_STAGE-2:0]                                       internal_dones;
+  logic       [5*(`NUM_MULT_STAGE-1)-1:0]                                 internal_dest_idx;
+  logic       [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:0]                 internal_T_idx;
+  logic       [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0]                internal_ROB_idx;
+  logic       [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]                 internal_FL_idx;
   logic       [`NUM_FU-1:0]                                               RS_match_hit;
   logic       [$clog2(`NUM_FU)-1:0]                                       RS_match_idx;
 `endif

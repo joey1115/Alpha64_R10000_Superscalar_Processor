@@ -14,7 +14,7 @@
 
 module test_FU;
   logic clock, reset, CDB_valid;
-  FU_IN_t    fu_packet_in;
+  FU_IN_t    FU_in;
   FU_OUT_t FU_out;
   logic FU_valid, rollback_en;
   logic [(64*`NUM_MULT_STAGE)-1:0] cres;
@@ -28,41 +28,42 @@ module test_FU;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0] internal_T1_values, internal_T2_values;
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
   logic [`NUM_MULT_STAGE-2:0]                        internal_dones;
-  logic [5*(`NUM_MULT_STAGE-2)-1:0]                  internal_dest_idx;
-  logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
-  logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
-  logic [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
+  logic [5*(`NUM_MULT_STAGE-1)-1:0]                  internal_dest_idx;
+  logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:0]  internal_T_idx;
+  logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0] internal_ROB_idx;
+  logic [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]  internal_FL_idx;
 
-  mult m0(
-            .clock(clock),
-            .reset(reset),
-            .FU_in(fu_packet_in),
-            .CDB_valid(CDB_valid),
-            .rollback_en(rollback_en),
-            .ROB_rollback_idx(ROB_rollback_idx),
-            .diff_ROB(diff_ROB),
+  mult mult_0 (
+    // Inputs
+    .clock(clock),
+    .reset(reset),
+    .rollback_en(rollback_en),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
+    .FU_in(FU_in),
+    .CDB_valid(CDB_valid),
+    // Outputs
 `ifdef DEBUG
-            .last_done(last_done),
-            .product_out(product_out),
-            .last_dest_idx(last_dest_idx),
-            .last_T_idx(last_T_idx),
-            .last_ROB_idx(last_ROB_idx),
-            .last_FL_idx(last_FL_idx),
-            .T1_value(T1_value),
-            .T2_value(T2_value),
-            .internal_T1_values(internal_T1_values),
-            .internal_T2_values(internal_T2_values),
-            .internal_valids(internal_valids),
-            .internal_dones(internal_dones),
-            .internal_dest_idx(internal_dest_idx),
-            .internal_T_idx(internal_T_idx),
-            .internal_ROB_idx(internal_ROB_idx),
-            .internal_FL_idx(internal_FL_idx),
+    .last_done(last_done),
+    .product_out(product_out),
+    .last_dest_idx(last_dest_idx),
+    .last_T_idx(last_T_idx),
+    .last_ROB_idx(last_ROB_idx),
+    .last_FL_idx(last_FL_idx),
+    .T1_value(T1_value),
+    .T2_value(T2_value),
+    .internal_T1_values(internal_T1_values),
+    .internal_T2_values(internal_T2_values),
+    .internal_valids(internal_valids),
+    .internal_dones(internal_dones),
+    .internal_dest_idx(internal_dest_idx),
+    .internal_T_idx(internal_T_idx),
+    .internal_ROB_idx(internal_ROB_idx),
+    .internal_FL_idx(internal_FL_idx),
 `endif
-            .FU_out(FU_out),
-            .FU_valid(FU_valid)
-            );
-
+    .FU_out(FU_out),
+    .FU_valid(FU_valid)
+  );
   always begin
     #5;
     clock=~clock;
@@ -72,11 +73,12 @@ module test_FU;
     $display("---------------------------------------MULT----------------------------------------------------\n");
     $display("|-------|---1---|---2---|---3---|---4---|---5---|---6---|---7---|---8---|\n");
     $display("|-valid-|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|\n", FU_valid, internal_valids[0], internal_valids[1], internal_valids[2], internal_valids[3], internal_valids[4], internal_valids[5], internal_valids[6]);
-    $display("|-ready-|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|\n", fu_packet_in.ready, internal_dones[0], internal_dones[1], internal_dones[2], internal_dones[3], internal_dones[4], internal_dones[5], FU_out.done);
+    $display("|-ready-|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|\n", FU_in.ready, internal_dones[0], internal_dones[1], internal_dones[2], internal_dones[3], internal_dones[4], internal_dones[5], FU_out.done);
     $display("|-done--|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|---%b---|\n", internal_dones[0], internal_dones[1], internal_dones[2], internal_dones[3], internal_dones[4], internal_dones[5], FU_out.done, last_done);
-    $display("|--ROB--|---%h---|---%h---|---%h---|---%h---|---%h---|---%h---|---%h---|---%h---|\n", fu_packet_in.ROB_idx, internal_ROB_idx[2:0], internal_ROB_idx[5:3], internal_ROB_idx[8:6], internal_ROB_idx[11:9], internal_ROB_idx[14:12], internal_ROB_idx[17:15], FU_out.ROB_idx);
+    $display("|--ROB--|---%h---|---%h---|---%h---|---%h---|---%h---|---%h---|---%h---|---%h---|\n", FU_in.ROB_idx, internal_ROB_idx[2:0], internal_ROB_idx[5:3], internal_ROB_idx[8:6], internal_ROB_idx[11:9], internal_ROB_idx[14:12], internal_ROB_idx[17:15], FU_out.ROB_idx);
     $display("|--T1---|%7d|%7d|%7d|%7d|%7d|%7d|%7d|%7d|\n", T1_value, internal_T1_values[63:0], internal_T1_values[127:64], internal_T1_values[191:128], internal_T1_values[255:192], internal_T1_values[319:256], internal_T1_values[383:320], internal_T1_values[447:384]);
     $display("|--T2---|%7d|%7d|%7d|%7d|%7d|%7d|%7d|%7d|\n", T2_value, internal_T2_values[63:0], internal_T2_values[127:64], internal_T2_values[191:128], internal_T2_values[255:192], internal_T2_values[319:256], internal_T2_values[383:320], internal_T2_values[447:384]);
+    $display("|--T2---|%7d|%7d|%7d|%7d|%7d|%7d|%7d|%7d|\n", internal_T2_values[63:0], internal_T2_values[127:64], internal_T2_values[191:128], internal_T2_values[255:192], internal_T2_values[319:256], internal_T2_values[383:320], internal_T2_values[447:384]);
     $display("---------------------------------------END-----------------------------------------------------\n");
   endtask
 
@@ -85,19 +87,19 @@ module test_FU;
     $display("|-reset-|-ready-|---inst---|-func-|-------NPC--------|-ROB-|-FL-|-T--|-T1_value-|-T2_value-|-T1-|-T2-|-uncond-|-cond-|-CDB-|-ROLL_en-|-ROLL_idx-|-tail_idx-|");
     $display("|---%b---|---%b---|-%8h-|--%2h--|-%16h-|--%1h--|-%2h-|-%2h-|-%8d-|-%8d-|-%h--|-%h--|---%b----|---%b--|-%2h--|----%b----|----%h-----|----%h-----|",
       reset,
-      fu_packet_in.ready,
-      fu_packet_in.inst,
-      fu_packet_in.func,
-      fu_packet_in.NPC,
-      fu_packet_in.ROB_idx,
-      fu_packet_in.FL_idx,
-      fu_packet_in.T_idx,
-      fu_packet_in.T1_value,
-      fu_packet_in.T2_value,
-      fu_packet_in.opa_select,
-      fu_packet_in.opb_select,
-      fu_packet_in.uncond_branch,
-      fu_packet_in.cond_branch,
+      FU_in.ready,
+      FU_in.inst,
+      FU_in.func,
+      FU_in.NPC,
+      FU_in.ROB_idx,
+      FU_in.FL_idx,
+      FU_in.T_idx,
+      FU_in.T1_value,
+      FU_in.T2_value,
+      FU_in.opa_select,
+      FU_in.opb_select,
+      FU_in.uncond_branch,
+      FU_in.cond_branch,
       CDB_valid,
       rollback_en,
       ROB_rollback_idx,
@@ -128,19 +130,19 @@ module test_FU;
     begin
       displays_results();
       reset = reset_in;
-      fu_packet_in.ready = ready;
-      fu_packet_in.inst = inst;
-      fu_packet_in.func = func;
-      fu_packet_in.NPC = NPC;
-      fu_packet_in.ROB_idx = ROB_idx;
-      fu_packet_in.T_idx = T_idx;
-      fu_packet_in.T1_value = T1_value;
-      fu_packet_in.T2_value = T2_value;
-      fu_packet_in.opa_select = opa_select;
-      fu_packet_in.opb_select = opb_select;
-      fu_packet_in.uncond_branch = uncond_branch;
-      fu_packet_in.cond_branch = cond_branch;
-      fu_packet_in.FL_idx = FL_idx;
+      FU_in.ready = ready;
+      FU_in.inst = inst;
+      FU_in.func = func;
+      FU_in.NPC = NPC;
+      FU_in.ROB_idx = ROB_idx;
+      FU_in.T_idx = T_idx;
+      FU_in.T1_value = T1_value;
+      FU_in.T2_value = T2_value;
+      FU_in.opa_select = opa_select;
+      FU_in.opb_select = opb_select;
+      FU_in.uncond_branch = uncond_branch;
+      FU_in.cond_branch = cond_branch;
+      FU_in.FL_idx = FL_idx;
       CDB_valid = CDB_valid_in;
       rollback_en = rollback_en_in;
       ROB_rollback_idx = ROB_rollback_idx_in;

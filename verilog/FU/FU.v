@@ -268,6 +268,10 @@ module mult (
   logic [(`NUM_MULT_STAGE*64)-1:0]                   next_products;
   logic [63:0]                                       result;
   logic                                              done;
+  logic [4:0]                                        dest_idx;
+  logic [$clog2(`NUM_PR)-1:0]                        T_idx;
+  logic [$clog2(`NUM_ROB)-1:0]                       ROB_idx;
+  logic [$clog2(`NUM_FL)-1:0]                        FL_idx;
 
   assign done = internal_dones[`NUM_MULT_STAGE-2];
   assign dest_idx = internal_dest_idx[5*(`NUM_MULT_STAGE-1)-1:5*(`NUM_MULT_STAGE-2)];
@@ -279,8 +283,6 @@ module mult (
   assign regA   = FU_in.T1_value;
 
   always_comb begin
-     // Default value, Set only because the case isnt full.  If you see this
-     // value on the output of the mux you have an invalid opb_select
     regB = 64'hbaadbeefdeadbeef;
     case (FU_in.opb_select)
       ALU_OPB_IS_REGB:    regB = FU_in.T2_value;
@@ -304,11 +306,6 @@ module mult (
     .T_idx({internal_T_idx, FU_in.T_idx}),
     .ROB_idx({internal_ROB_idx, FU_in.ROB_idx}),
     .FL_idx({internal_FL_idx, FU_in.FL_idx}),
-    // .ready({FU_out.done, internal_dones, FU_in.ready}),
-    // .dest_idx({FU_out.dest_idx, internal_dest_idx, FU_in.dest_idx}),
-    // .T_idx({FU_out.T_idx, internal_T_idx, FU_in.T_idx}),
-    // .ROB_idx({FU_out.ROB_idx, internal_ROB_idx, FU_in.ROB_idx}),
-    // .FL_idx({FU_out.FL_idx, internal_FL_idx, FU_in.FL_idx}),
 `ifdef DEBUG
     .T1_value({internal_T1_values, regA}),
     .T2_value({internal_T2_values, regB}),
@@ -326,11 +323,6 @@ module mult (
     .T_idx_out({last_T_idx, internal_T_idx}),
     .ROB_idx_out({last_ROB_idx, internal_ROB_idx}),
     .FL_idx_out({last_FL_idx, internal_FL_idx})
-    // .done({last_done, FU_out.done, internal_dones}),
-    // .dest_idx_out({last_dest_idx, FU_out.dest_idx, internal_dest_idx}),
-    // .T_idx_out({last_T_idx, FU_out.T_idx, internal_T_idx}),
-    // .ROB_idx_out({last_ROB_idx, FU_out.ROB_idx, internal_ROB_idx}),
-    // .FL_idx_out({last_FL_idx, FU_out.FL_idx, internal_FL_idx})
   );
 
 endmodule
@@ -466,38 +458,37 @@ module st (
 endmodule
 
 module FU (
-  input  logic                                                                       clock,               // system clock
-  input  logic                                                                       reset,               // system reset
-  input  logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_idx,
-  input  logic           [`NUM_FU-1:0]                                               CDB_valid,
-  input  RS_FU_OUT_t                                                                 RS_FU_out,
-  input  PR_FU_OUT_t                                                                 PR_FU_out,
+  input  logic                                                     clock,               // system clock
+  input  logic                                                     reset,               // system reset
+  input  logic        [$clog2(`NUM_ROB)-1:0]                       ROB_idx,
+  input  logic        [`NUM_FU-1:0]                                CDB_valid,
+  input  RS_FU_OUT_t                                               RS_FU_out,
+  input  PR_FU_OUT_t                                               PR_FU_out,
 `ifdef DEBUG
-  output logic           [`NUM_MULT-1:0]                                             last_done,
-  output logic           [`NUM_MULT-1:0][63:0]                                       product_out,
-  output logic           [`NUM_MULT-1:0][4:0]                                        last_dest_idx,
-  output logic           [`NUM_MULT-1:0][$clog2(`NUM_PR)-1:0]                        last_T_idx,
-  output logic           [`NUM_MULT-1:0][$clog2(`NUM_ROB)-1:0]                       last_ROB_idx,
-  output logic           [`NUM_MULT-1:0][$clog2(`NUM_FL)-1:0]                        last_FL_idx,
-  output logic           [`NUM_MULT-1:0][63:0]                                       T1_value,
-  output logic           [`NUM_MULT-1:0][63:0]                                       T2_value,
-  output logic           [`NUM_MULT-1:0][((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values,
-  output logic           [`NUM_MULT-1:0][((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T2_values,
-  output logic           [`NUM_MULT-1:0][`NUM_MULT_STAGE-2:0]                        internal_valids,
-  output logic           [`NUM_MULT-1:0][`NUM_MULT_STAGE-3:0]                        internal_dones,
-  output logic           [`NUM_MULT-1:0][5*(`NUM_MULT_STAGE-2)-1:0]                  internal_dest_idx,
-  output logic           [`NUM_MULT-1:0][($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx,
-  output logic           [`NUM_MULT-1:0][($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx,
-  output logic           [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx,
+  output logic                                                     last_done,
+  output logic        [63:0]                                       product_out,
+  output logic        [4:0]                                        last_dest_idx,
+  output logic        [$clog2(`NUM_PR)-1:0]                        last_T_idx,
+  output logic        [$clog2(`NUM_ROB)-1:0]                       last_ROB_idx,
+  output logic        [$clog2(`NUM_FL)-1:0]                        last_FL_idx,
+  output logic        [63:0]                                       T1_value,
+  output logic        [63:0]                                       T2_value,
+  output logic        [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values,
+  output logic        [`NUM_MULT_STAGE-2:0]                        internal_valids,
+  output logic        [`NUM_MULT_STAGE-2:0]                        internal_dones,
+  output logic        [5*(`NUM_MULT_STAGE-1)-1:0]                  internal_dest_idx,
+  output logic        [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:0]  internal_T_idx,
+  output logic        [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0] internal_ROB_idx,
+  output logic        [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]  internal_FL_idx,
 `endif
-  output logic           [`NUM_FU-1:0]                                               FU_valid,
-  output logic                                                                       rollback_en,
-  output logic           [$clog2(`NUM_FL)-1:0]                                       FL_rollback_idx,
-  output logic           [$clog2(`NUM_ROB)-1:0]                                      ROB_rollback_idx,
-  output logic           [$clog2(`NUM_ROB)-1:0]                                      diff_ROB,
-  output logic                                                                       take_branch_out,
-  output logic           [63:0]                                                      take_branch_target,
-  output FU_CDB_OUT_t                                                                FU_CDB_out
+  output logic        [`NUM_FU-1:0]                                FU_valid,
+  output logic                                                     rollback_en,
+  output logic        [$clog2(`NUM_FL)-1:0]                        FL_rollback_idx,
+  output logic        [$clog2(`NUM_ROB)-1:0]                       ROB_rollback_idx,
+  output logic        [$clog2(`NUM_ROB)-1:0]                       diff_ROB,
+  output logic                                                     take_branch_out,
+  output logic        [63:0]                                       take_branch_target,
+  output FU_CDB_OUT_t                                              FU_CDB_out
 );
 
   FU_OUT_t       [`NUM_FU-1:0] FU_out;
