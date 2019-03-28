@@ -70,7 +70,7 @@ module testbench;
   CDB_PR_OUT_t CDB_PR_out;
   logic dispatch_en, ROB_valid, RS_valid, FL_valid, rollback_en;
   logic [`NUM_PR-1:0][63:0] pipeline_PR;
-  logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table;
+  logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL;
   logic [$clog2(`NUM_FL)-1:0]              FL_head, FL_tail;
 
 
