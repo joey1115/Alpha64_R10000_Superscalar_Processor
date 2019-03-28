@@ -217,9 +217,9 @@ module testbench();
     // IF signals (6) - prefix 'f'
     $display("fNPC 16:%h",          pipeline_0.if_NPC_out);
     $display("fIR 8:%h",            pipeline_0.if_IR_out);
-    $display("fImem_addr 16:%h",    pipeline_0.F_stage_0.proc2Imem_addr);
-    $display("fPC_en 1:%h",         pipeline_0.F_stage_0.PC_enable);
-    $display("fPC_reg 16:%h",       pipeline_0.F_stage_0.PC_reg);
+    $display("fImem_addr 16:%h",    pipeline_0.if_stage_0.proc2Imem_addr);
+    $display("fPC_en 1:%h",         pipeline_0.if_stage_0.PC_enable);
+    $display("fPC_reg 16:%h",       pipeline_0.if_stage_0.PC_reg);
     $display("fif_valid 1:%h",      pipeline_0.if_valid_inst_out);
 
     // IF/ID signals (4) - prefix 'g'

@@ -332,7 +332,7 @@ module br(
   always_comb begin
     result = `FALSE;
     if(FU_in.ready == `TRUE) begin
-      case (FU_in.inst.r.br_func)                                               // 'full-case'  All cases covered, no need for a default
+      case (FU_in.inst.r.br_func[1:0])                                               // 'full-case'  All cases covered, no need for a default
         2'b00: result = (FU_in.T1_value[0] == 0);                               // LBC: (lsb(opa) == 0) ?
         2'b01: result = (FU_in.T1_value == 0);                                  // EQ: (opa == 0) ?
         2'b10: result = (FU_in.T1_value[63] == 1);                              // LT: (signed(opa) < 0) : check sign bit
