@@ -27,7 +27,7 @@ module Arch_Map (
 
   always_ff @(posedge clock) begin
     if(reset) begin
-      arch_map = `ARCH_MAP_RESET;
+      arch_map <= `SD `ARCH_MAP_RESET;
     end else if(en) begin
       arch_map <= `SD next_arch_map;
     end // if (en)

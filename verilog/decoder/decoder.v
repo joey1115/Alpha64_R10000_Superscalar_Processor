@@ -169,7 +169,7 @@ module decoder(
           opa_select = ALU_OPA_IS_REGA;
           opb_select = F_decoder_out.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
           dest_idx   = F_decoder_out.inst.r.regc_idx;
-          FU         = FU_ALU;
+          FU         = FU_MULT;
           rega_idx   = F_decoder_out.inst.r.rega_idx;
           regb_idx   = F_decoder_out.inst.i.IMM ? `ZERO_REG : F_decoder_out.inst.r.regb_idx;
           case (F_decoder_out.inst.i.func)

@@ -69,6 +69,8 @@ SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFI
 export HEADERS
 export PIPEFILES
 export CACHEFILES
+export SIMFILES
+export ARCHMAPFILES
 
 export CACHE_NAME = cache
 export PIPELINE_NAME = pipeline
@@ -80,7 +82,7 @@ CACHE     = $(SYNTH_DIR)/$(CACHE_NAME).vg
 # Passed through to .tcl scripts:
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD = 30	# TODO: You will want to make this more aggresive
+export CLOCK_PERIOD = 20	# TODO: You will want to make this more aggresive
 
 ################################################################################
 ## RULES

@@ -90,14 +90,14 @@ module mult_stage (
   output logic [$clog2(`NUM_FL)-1:0]  FL_idx_out
 );
 
-  logic [64/`NUM_MULT_STAGE-1:0] next_mplier_out;
-  logic [64/`NUM_MULT_STAGE-1:0] next_mcand_out;
+  logic [63:0]                   next_mplier_out;
+  logic [63:0]                   next_mcand_out;
   logic [63:0]                   next_product_out;
   logic [4:0]                    next_dest_idx_out;
   logic [$clog2(`NUM_PR)-1:0]    next_T_idx_out;
   logic [$clog2(`NUM_PR)-1:0]    next_ROB_idx_out;
   logic [$clog2(`NUM_FL)-1:0]    next_FL_idx_out;
-  logic [64/`NUM_MULT_STAGE-1:0] partial_product, next_mplier, next_mcand;
+  logic [63:0]                   partial_product, next_mplier, next_mcand;
   logic                          rollback_valid_out, rollback_valid;
   logic                          next_done;
   logic [$clog2(`NUM_ROB)-1:0]   diff;
@@ -252,10 +252,10 @@ module mult (
 `ifndef DEBUG
   logic                                              last_done;
   logic [63:0]                                       product_out;
-  logic [4:0]                                        last_dest_idx, dest_idx;
-  logic [$clog2(`NUM_PR)-1:0]                        last_T_idx, T_idx;
-  logic [$clog2(`NUM_ROB)-1:0]                       last_ROB_idx, ROB_idx;
-  logic [$clog2(`NUM_FL)-1:0]                        last_FL_idx, FL_idx;
+  logic [4:0]                                        last_dest_idx;
+  logic [$clog2(`NUM_PR)-1:0]                        last_T_idx;
+  logic [$clog2(`NUM_ROB)-1:0]                       last_ROB_idx;
+  logic [$clog2(`NUM_FL)-1:0]                        last_FL_idx;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values;
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
   logic [`NUM_MULT_STAGE-2:0]                        internal_dones;
@@ -274,12 +274,13 @@ module mult (
   logic [$clog2(`NUM_ROB)-1:0]                       ROB_idx;
   logic [$clog2(`NUM_FL)-1:0]                        FL_idx;
 
-  assign done = internal_dones[`NUM_MULT_STAGE-2];
   assign dest_idx = internal_dest_idx[5*(`NUM_MULT_STAGE-1)-1:5*(`NUM_MULT_STAGE-2)];
   assign T_idx = internal_T_idx[($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_PR)*(`NUM_MULT_STAGE-2)];
   assign ROB_idx = internal_ROB_idx[($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2)];
   assign FL_idx = internal_FL_idx[($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_FL)*(`NUM_MULT_STAGE-2)];
+  // assign result = internal_products[((`NUM_MULT_STAGE-1)*64)-1:(`NUM_MULT_STAGE-2)*64];
   assign result = next_products[`NUM_MULT_STAGE*64-1:(`NUM_MULT_STAGE-1)*64];
+  assign done = internal_dones[`NUM_MULT_STAGE-2];
   assign FU_out = '{done, result, dest_idx, T_idx, ROB_idx, FL_idx};
   assign regA   = FU_in.T1_value;
 
