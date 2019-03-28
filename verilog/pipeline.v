@@ -123,6 +123,7 @@ module pipeline (
   logic [3:0]  Imem2proc_response;
   logic [63:0] if_NPC_out;
   logic [31:0] if_IR_out;
+  logic fetch_en;
 `ifdef DEBUG
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_head;
@@ -147,8 +148,9 @@ module pipeline (
 `endif
 
   assign en           = `TRUE;
-  assign dispatch_en  = ROB_valid && RS_valid && FL_valid && !rollback_en && F_decoder_out.valid;
-  assign F_decoder_en = `TRUE;
+  assign fetch_en = ROB_valid && RS_valid && FL_valid && !rollback_en;
+  assign dispatch_en  = fetch_en && F_decoder_out.valid;
+  assign F_decoder_en = fetch_en;
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = {3'b0, retire_en};
   assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
@@ -208,7 +210,7 @@ module pipeline (
     // Inputs
     .clock (clock),
     .reset (reset),
-    .get_next_inst(halt), //only go to next insn when high
+    .get_next_inst(fetch_en), //only go to next insn when high
     .take_branch_out(take_branch_out),
     .take_branch_target(take_branch_target),
     .Imem2proc_data(Icache_data_out),

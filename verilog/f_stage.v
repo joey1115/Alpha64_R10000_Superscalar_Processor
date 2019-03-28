@@ -49,7 +49,7 @@ module F_stage(
   assign next_PC = take_branch_out ? take_branch_target : PC_plus_4;
 
   // The take-branch signal must override stalling (otherwise it may be lost)
-  assign PC_enable = if_valid_inst_out | take_branch_out;
+  assign PC_enable = (if_valid_inst_out && get_next_inst) || take_branch_out;
 
   // Pass PC+4 down pipeline w/instruction
   assign if_NPC_out = PC_plus_4;

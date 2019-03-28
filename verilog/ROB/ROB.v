@@ -43,9 +43,12 @@ module ROB (
   //!Nrob.entry[Nrob.tail].valid
   assign tail_plus_one = rob.tail+1;
   assign tail_minus_one = rob.tail - 1;
-  // assign ROB_valid = ((stall_dispatch)? 0 : (tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
+  
+  assign ROB_valid = (stall_dispatch | rollback_en)? 0 : !rob.entry[rob.tail].valid;
+  
+  //(tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
 
-  assign ROB_valid = tail_plus_one!=rob.head;
+  //assign ROB_valid = tail_plus_one!=rob.head;
   //assign halt out
   assign halt_out = retire_en & rob.entry[rob.head].halt;
 
