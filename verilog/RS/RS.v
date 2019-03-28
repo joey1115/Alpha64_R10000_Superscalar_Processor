@@ -63,8 +63,8 @@ module RS (
       FU_entry_match[i] = FU_list[i] == decoder_RS_out.FU;
       diff[i]           = RS[i].ROB_idx - ROB_rollback_idx;                // diff
       RS_rollback[i]    = ( diff_ROB >= diff[i] ) && rollback_en;          // Rollback
-      T1_CDB[i]         = RS[i].T1.idx == CDB_RS_out.T_idx && complete_en; // T1 is complete
-      T2_CDB[i]         = RS[i].T2.idx == CDB_RS_out.T_idx && complete_en; // T2 is complete
+      T1_CDB[i]         = RS[i].T1.idx == CDB_RS_out.T_idx && CDB_RS_out.T_idx != `ZERO_PR && complete_en; // T1 is complete
+      T2_CDB[i]         = RS[i].T2.idx == CDB_RS_out.T_idx && CDB_RS_out.T_idx != `ZERO_PR && complete_en; // T2 is complete
       T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                     // T1 is ready or updated by CDB
       T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                     // T2 is ready or updated by CDB
       RS_entry_ready[i] = T1_ready[i] && T2_ready[i];                      // T1 and T2 are ready to issue

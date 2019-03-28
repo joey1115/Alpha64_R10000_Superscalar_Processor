@@ -297,7 +297,7 @@ void print_archmap_entries(int reg_idx, int pr){
 void print_dispatch_en(int dispatch_en, int ROB_valid, int RS_valid, int FL_valid, int rollback_en){
   if(ppfile != NULL){
     fprintf(ppfile, "structural signals\n dispatch_en: %1d | ROB_valid: %1d | Rs_valid: %1d | FL_valid: %1d | rollback_en: %1d|\n\n\n", \
-     dispatch_en, ROB_valid, RS_valid, Fl_valid, rollback_en);
+     dispatch_en, ROB_valid, RS_valid, FL_valid, rollback_en);
   }
 }
 

@@ -61,6 +61,7 @@ module CDB (
   assign CDB_PR_out        = '{T_idx, T_value};
   assign complete_en       = complete_hit;
   assign write_en          = complete_hit;
+  assign CDB_valid         = CDB_empty;
 
   always_comb begin
     next_CDB = CDB;
@@ -92,11 +93,14 @@ module CDB (
     end
   end
 
-  always_comb begin
-    for (int i=0; i<`NUM_FU; i++)begin
-      CDB_valid[i] = !next_CDB[i].taken;
-    end
-  end
+  // always_comb begin
+  //   for (int i=0; i<`NUM_FU; i++)begin
+  //     CDB_valid[i] = !CDB[i].taken;
+  //   end
+  //   if (complete_hit) begin
+  //     CDB_valid[complete_idx] = `TRUE;
+  //   end
+  // end
 
   always_comb begin
     T_idx        = `ZERO_PR;
@@ -108,7 +112,7 @@ module CDB (
     // broadcast one completed instruction (if one is found)
     for (int i=0; i<`NUM_FU; i++) begin
       // if ((next_CDB[i].taken && `FU_LIST[i] != FU_LD) || (next_CDB[i].taken && `FU_LIST[i] == FU_LD && next_CDB[i].ROB_idx == ROB_head_idx))  begin
-      if (next_CDB[i].taken) begin
+      if (CDB[i].taken) begin
         T_idx        = CDB[i].T_idx;
         dest_idx     = CDB[i].dest_idx;
         T_value      = CDB[i].T_value;

@@ -316,9 +316,9 @@ endmodule
 
 module br(
   input  logic             clock, reset,
-  input  FU_IN_t    FU_in,
+  input  FU_IN_t           FU_in,
   input  logic             CDB_valid,
-  output FU_OUT_t FU_out,
+  output FU_OUT_t          FU_out,
   output                   FU_valid,
   output logic             take_branch
 );
@@ -331,10 +331,10 @@ module br(
   always_comb begin
     if(FU_in.ready == `TRUE) begin
       case (FU_in.inst.r.br_func)                                               // 'full-case'  All cases covered, no need for a default
-        2'b00: result = (regA[0] == 0);                               // LBC: (lsb(opa) == 0) ?
-        2'b01: result = (regA == 0);                                  // EQ: (opa == 0) ?
-        2'b10: result = (regA[63] == 1);                              // LT: (signed(opa) < 0) : check sign bit
-        2'b11: result = (regA[63] == 1) || (regA == 0); // LE: (signed(opa) <= 0)
+        2'b00: result = (FU_in.T1_value[0] == 0);                               // LBC: (lsb(opa) == 0) ?
+        2'b01: result = (FU_in.T1_value == 0);                                  // EQ: (opa == 0) ?
+        2'b10: result = (FU_in.T1_value[63] == 1);                              // LT: (signed(opa) < 0) : check sign bit
+        2'b11: result = (FU_in.T1_value[63] == 1) || (FU_in.T1_value == 0); // LE: (signed(opa) <= 0)
       endcase
       // negate cond if func[2] is set
       if (FU_in.inst.r.br_func[2]) begin
@@ -375,7 +375,7 @@ endmodule // brcond
 
 module ld (
   input  logic                                    clock, reset,
-  input  FU_IN_t                           FU_in,
+  input  FU_IN_t                                  FU_in,
   input  logic                                    CDB_valid,
   input  logic                                    rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
@@ -385,7 +385,7 @@ module ld (
   // output logic             [1:0]                  proc2Dmem_command,
   // output logic             [63:0]                 proc2Dmem_addr,      // Address sent to data-memory
   // output logic             [63:0]                 proc2Dmem_data      // Data sent to data-memory
-  output FU_OUT_t                        FU_out,
+  output FU_OUT_t                                 FU_out,
   output logic                                    FU_valid
 );
 
@@ -426,7 +426,7 @@ module st (
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  output FU_OUT_t            FU_out,
+  output FU_OUT_t                     FU_out,
   output logic                        FU_valid
 );
 

@@ -131,7 +131,7 @@ module testbench;
     .ROB_valid(ROB_valid),
     .RS_valid(RS_valid),
     .FL_valid(FL_valid),
-    .rollback_en(rollback_en),
+    .rollback_en(rollback_en)
     //.pipline_PR(pipeline_PR),
 
     // .if_NPC_out(if_NPC_out),
@@ -266,7 +266,7 @@ module testbench;
       `SD;
       print_cycles();
       //print dispatch_en
-      print_dispatch_en({{(32-1},dispatch_en}, {{(32-1},ROB_valid}, {{(32-1},RS_valid}, {{(32-1},FL_valid}, {{(32-1},rollback_en})
+      print_dispatch_en({{(32-1){1'b0}},dispatch_en}, {{(32-1){1'b0}},ROB_valid}, {{(32-1){1'b0}},RS_valid}, {{(32-1){1'b0}},FL_valid}, {{(32-1){1'b0}},rollback_en});
       // print ROB
       print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
       for(int i = 0; i < `NUM_ROB; i++) begin

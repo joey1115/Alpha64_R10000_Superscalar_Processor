@@ -41,7 +41,7 @@ module pipeline (
   output logic [3:0]  pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
-  logic                                          en, F_decoder_en, illegal;
+  logic                                          en, F_decoder_en, illegal, if_valid_inst_out;
 `ifdef SYNTH_TEST
   logic                                          dispatch_en,
 `endif
@@ -138,8 +138,8 @@ module pipeline (
 `endif
 
   assign en           = `TRUE;
-  assign dispatch_en  = ROB_valid && RS_valid && FL_valid && !rollback_en;
-  assign F_decoder_en = dispatch_en;
+  assign dispatch_en  = ROB_valid && RS_valid && FL_valid && !rollback_en && F_decoder_out.valid;
+  assign F_decoder_en = `TRUE;
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = {3'b0, retire_en};
   assign pipeline_error_status    = illegal  ? HALTED_ON_ILLEGAL :
@@ -221,7 +221,7 @@ module pipeline (
     if (reset) begin
       F_decoder_out <= `SD `F_DECODER_OUT_RESET;
     end else if (F_decoder_en) begin
-      F_decoder_out.inst.I <= `SD if_IR_out;
+      F_decoder_out.inst   <= `SD if_IR_out;
       F_decoder_out.NPC    <= `SD if_NPC_out;
       F_decoder_out.valid  <= `SD if_valid_inst_out;
     end // if (F_decoder_en)

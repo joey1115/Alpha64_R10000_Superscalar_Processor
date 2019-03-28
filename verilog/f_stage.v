@@ -54,7 +54,7 @@ module F_stage(
   // Pass PC+4 down pipeline w/instruction
   assign if_NPC_out = PC_plus_4;
 
-  assign if_valid_inst_out = get_next_inst & Imem_valid;
+  assign if_valid_inst_out = Imem_valid;
 
   // assign next_ready_for_valid =	(ready_for_valid | get_next_inst) & 
   // !if_valid_inst_out;
