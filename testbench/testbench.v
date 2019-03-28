@@ -379,9 +379,9 @@ module testbench;
       end
 
       //print Freelist
-      print_freelist_head(FL_head, FL_tail);
+      print_freelist_head({{(32 - $clog2(`NUM_ROB)){1'b0}},FL_head}, {{(32 - $clog2(`NUM_ROB)){1'b0}},FL_tail});
       for(int i = 0; i < `NUM_ROB; i++) begin
-        print_freelist_entry(i,pipeline_FL[i]);
+        print_freelist_entry(i,{{(32 - $clog2(`NUM_PR)){1'b0}},pipeline_FL[i]});
       end
 
       //print CDB
