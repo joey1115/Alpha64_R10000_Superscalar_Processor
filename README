@@ -4,3 +4,8 @@ To simulate:
   make simv && ./simv
 To synthesis
   make syn
+
+To simulate pipeline at root
+  make simv && ./simv
+To synthesis
+  make syn

@@ -25,7 +25,6 @@ set_dont_touch ${cache_module}
 
 set headers [getenv HEADERS]
 set sources [getenv SIMFILES]
-set source1 [getenv ARCHMAPFILES]
 
 read_file -f sverilog [list ${headers} ${sources}]
 set design_name [getenv PIPELINE_NAME]
