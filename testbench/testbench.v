@@ -21,7 +21,7 @@ extern void print_ROB_entry(int valid, int T, int T_old, int dest_idx, int compl
 extern void print_RS_head();
 extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int opa_select, int opb_select);
 extern void print_maptable_head();
-extern void print_maptable_entries(int reg_idx, int T, int ready);
+extern void print_maptable_entries(int reg_idx, int T, int ready, int PR_data_hi, int PR_data_lo);
 extern void print_CDB_head();
 extern void print_CDB_entries(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO);
 extern void print_archmap_head();
@@ -68,6 +68,7 @@ module testbench;
   logic complete_en;
   CDB_PR_OUT_t CDB_PR_out;
   logic dispatch_en, ROB_valid, RS_valid, FL_valid, rollback_en;
+  logic [`NUM_PR-1:0][63:0] pipeline_PR;
 
 
 
@@ -131,8 +132,8 @@ module testbench;
     .ROB_valid(ROB_valid),
     .RS_valid(RS_valid),
     .FL_valid(FL_valid),
-    .rollback_en(rollback_en)
-    //.pipline_PR(pipeline_PR),
+    .rollback_en(rollback_en),
+    .pipline_PR(pipeline_PR)
 
     // .if_NPC_out(if_NPC_out),
     // .if_IR_out(if_IR_out),
@@ -368,7 +369,7 @@ module testbench;
       //print Map table
       print_maptable_head();
       for(int i = 0; i < 32; i++) begin
-        print_maptable_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_MAPTABLE[i].idx},{{(32-1){1'b0}},pipeline_MAPTABLE[i].ready});
+        print_maptable_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_MAPTABLE[i].idx},{{(32-1){1'b0}},pipeline_MAPTABLE[i].ready}, pipeline_PR[pipeline_MAPTABLE[i].idx][63:32], pipeline_PR[pipeline_MAPTABLE[i].idx][31:0]);
       end
 
       //print CDB

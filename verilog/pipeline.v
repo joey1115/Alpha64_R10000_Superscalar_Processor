@@ -30,6 +30,7 @@ module pipeline (
   output logic RS_valid,
   output logic FL_valid,
   output logic rollback_en,
+  output logic [`NUM_PR-1:0][63:0] pipline_PR;
   // output logic [4:0]  pipeline_commit_wr_idx,
   // output logic [63:0] pipeline_commit_wr_data,
   // output logic        pipeline_commit_wr_en,
@@ -132,7 +133,6 @@ module pipeline (
   logic       [`NUM_MULT-1:0][($clog2(`NUM_PR)*(`NUM_MULT_STAGE-2))-1:0]  internal_T_idx;
   logic       [`NUM_MULT-1:0][($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2))-1:0] internal_ROB_idx;
   logic       [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-2))-1:0]  internal_FL_idx;
-  logic       [`NUM_PR-1:0][63:0]                                         pr_data;
   logic       [`NUM_FU-1:0]                                               RS_match_hit;
   logic       [$clog2(`NUM_FU)-1:0]                                       RS_match_idx;
 `endif
@@ -354,7 +354,7 @@ module pipeline (
     .CDB_PR_out(CDB_PR_out),
     .RS_PR_out(RS_PR_out),
 `ifndef SYNTH_TEST
-    .pr_data(pr_data),
+    .pr_data(pipeline_PR),
 `endif
     .PR_FU_out(PR_FU_out)
   );

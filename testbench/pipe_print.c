@@ -253,10 +253,10 @@ void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, in
 void print_maptable_head(){
   if (ppfile != NULL){
     fprintf(ppfile, " MAP_TABLE \n");
-    fprintf(ppfile, " reg |  T  \n");
+    fprintf(ppfile, " reg |  T      | PR data\n");
   }
 }
-void print_maptable_entries(int reg_idx, int T, int ready){
+void print_maptable_entries(int reg_idx, int T, int ready, int PR_data_hi, int PR_data_lo){
   char *ready_bit;
   if(ready){
     ready_bit = "+";
@@ -266,7 +266,7 @@ void print_maptable_entries(int reg_idx, int T, int ready){
   }
 
   if (ppfile != NULL)
-    fprintf(ppfile, " %3d | %3d%-8s \n", reg_idx, T, ready_bit);
+    fprintf(ppfile, " %3d | %3d%-8s | %x%x\n", reg_idx, T, ready_bit, PR_data_hi, PR_data_lo);
 }
 
 void print_CDB_head(){
