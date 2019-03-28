@@ -5,7 +5,7 @@
 module Arch_Map (
   input  logic                                          en, clock, reset,
   input  logic                                          retire_en,    // retire signal from ROB
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   input  ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out
 `else
   input  ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out,
@@ -14,7 +14,7 @@ module Arch_Map (
 );
 
   logic [31:0][$clog2(`NUM_PR)-1:0] arch_map;
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   logic [31:0][$clog2(`NUM_PR)-1:0] next_arch_map;
 `endif
 

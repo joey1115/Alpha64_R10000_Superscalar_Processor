@@ -10,7 +10,7 @@ module RS (
   input  FL_RS_OUT_t                               FL_RS_out,
   input  MAP_TABLE_RS_OUT_t                        Map_Table_RS_out,
   input  CDB_RS_OUT_t                              CDB_RS_out,
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   output RS_ENTRY_t         [`NUM_FU-1:0]          RS_out,
   output logic              [`NUM_FU-1:0]          RS_match_hit,   // If a RS entry is ready
   output logic              [$clog2(`NUM_FU)-1:0]  RS_match_idx,
@@ -33,7 +33,7 @@ module RS (
   logic          [`NUM_FU-1:0]                       RS_rollback;    // If a RS entry is ready
   logic          [`NUM_FU-1:0]                       FU_entry_match;
   logic          [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   logic                                              RS_match_hit;   // If a RS entry is ready
   logic          [$clog2(`NUM_FU)-1:0]               RS_match_idx;
 `endif
@@ -42,7 +42,7 @@ module RS (
   assign RS_PR_out = '{FU_T_idx};
   assign RS_valid  = RS_match_hit;
 
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   assign RS_out = RS;
 `endif
 

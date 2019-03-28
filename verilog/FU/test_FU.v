@@ -41,7 +41,7 @@ module test_FU;
             .rollback_en(rollback_en),
             .ROB_rollback_idx(ROB_rollback_idx),
             .diff_ROB(diff_ROB),
-`ifndef SYNTH_TEST
+`ifdef DEBUG
             .last_done(last_done),
             .product_out(product_out),
             .last_dest_idx(last_dest_idx),

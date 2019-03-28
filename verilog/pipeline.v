@@ -17,7 +17,7 @@ module pipeline (
   input [3:0]   mem2proc_response,        // Tag from memory about current request
   input [63:0]  mem2proc_data,            // Data coming back from memory
   input [3:0]   mem2proc_tag,              // Tag from memory about current reply
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   output ROB_t        pipeline_ROB,
   output RS_ENTRY_t  [`NUM_FU-1:0] pipeline_RS,
   output logic              [31:0][$clog2(`NUM_PR)-1:0] pipeline_ARCHMAP,
@@ -46,32 +46,32 @@ module pipeline (
   output ERROR_CODE   pipeline_error_status
 );
   logic                                          en, F_decoder_en, illegal, if_valid_inst_out, halt;
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   logic                                          dispatch_en,
 `endif
   logic                                          write_en;
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   logic                                          complete_en;
 `endif
   logic                   [`NUM_FU-1:0]          CDB_valid;
   CDB_ROB_OUT_t                                  CDB_ROB_out;
   CDB_RS_OUT_t                                   CDB_RS_out;
   CDB_MAP_TABLE_OUT_t                            CDB_Map_Table_out;
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   CDB_PR_OUT_t                                   CDB_PR_out;
 `endif
   DECODER_ROB_OUT_t                              decoder_ROB_out;
   DECODER_RS_OUT_t                               decoder_RS_out;
   DECODER_FL_OUT_t                               decoder_FL_out;
   DECODER_MAP_TABLE_OUT_t                        decoder_Map_Table_out;
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   logic                                          FL_valid;
 `endif
   FL_ROB_OUT_t                                   FL_ROB_out;
   FL_RS_OUT_t                                    FL_RS_out;
   FL_MAP_TABLE_OUT_t                             FL_Map_Table_out;
   logic                   [`NUM_FU-1:0]          FU_valid;
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   logic                                          rollback_en;
 `endif
   logic                   [$clog2(`NUM_FL)-1:0]  FL_rollback_idx;
@@ -83,7 +83,7 @@ module pipeline (
   MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;
   MAP_TABLE_RS_OUT_t                             Map_Table_RS_out;
   PR_FU_OUT_t                                    PR_FU_out;
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   logic                                          ROB_valid;
 `endif
   logic                                          retire_en;
@@ -91,7 +91,7 @@ module pipeline (
   logic                   [$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
   ROB_FL_OUT_t                                   ROB_FL_out;
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   logic                                          RS_valid;
 `endif
   RS_FU_OUT_t                                    RS_FU_out;
@@ -116,7 +116,7 @@ module pipeline (
   logic [3:0]  Imem2proc_response;
   logic [63:0] if_NPC_out;
   logic [31:0] if_IR_out;
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_head;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_tail;
@@ -234,7 +234,7 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .retire_en(retire_en),
-`ifdef SYNTH_TEST
+`ifndef DEBUG
     .ROB_Arch_Map_out(ROB_Arch_Map_out)
 `else
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
@@ -250,7 +250,7 @@ module pipeline (
     .ROB_rollback_idx(ROB_rollback_idx),
     .diff_ROB(diff_ROB),
     .FU_CDB_out(FU_CDB_out),
-`ifndef SYNTH_TEST
+`ifdef DEBUG
     .CDB(pipeline_CDB),
 `endif
     .write_en(write_en),
@@ -281,7 +281,7 @@ module pipeline (
     .FL_rollback_idx(FL_rollback_idx),
     .decoder_FL_out(decoder_FL_out),
     .ROB_FL_out(ROB_FL_out),
-`ifndef SYNTH_TEST
+`ifdef DEBUG
     .FL_table(pipeline_FL),
     .next_FL_table(next_FL_table),
     .head(FL_head),
@@ -302,7 +302,7 @@ module pipeline (
     .CDB_valid(CDB_valid),
     .RS_FU_out(RS_FU_out),
     .PR_FU_out(PR_FU_out),
-`ifndef SYNTH_TEST
+`ifdef DEBUG
     .last_done(last_done),
     .product_out(product_out),
     .last_dest_idx(last_dest_idx),
@@ -342,7 +342,7 @@ module pipeline (
     .decoder_Map_Table_out(decoder_Map_Table_out),
     .FL_Map_Table_out(FL_Map_Table_out),
     .CDB_Map_Table_out(CDB_Map_Table_out),
-`ifndef SYNTH_TEST
+`ifdef DEBUG
     .map_table_out(pipeline_MAPTABLE),
 `endif
     .Map_Table_ROB_out(Map_Table_ROB_out),
@@ -356,7 +356,7 @@ module pipeline (
     .write_en(write_en),
     .CDB_PR_out(CDB_PR_out),
     .RS_PR_out(RS_PR_out),
-`ifndef SYNTH_TEST
+`ifdef DEBUG
     .pr_data(pipeline_PR),
 `endif
     .PR_FU_out(PR_FU_out)
@@ -374,7 +374,7 @@ module pipeline (
     .FL_ROB_out(FL_ROB_out),
     .Map_Table_ROB_out(Map_Table_ROB_out),
     .CDB_ROB_out(CDB_ROB_out),
-`ifndef SYNTH_TEST
+`ifdef DEBUG
     .rob(pipeline_ROB),
 `endif
     .ROB_valid(ROB_valid),
@@ -400,7 +400,7 @@ module pipeline (
     .FL_RS_out(FL_RS_out),
     .Map_Table_RS_out(Map_Table_RS_out),
     .CDB_RS_out(CDB_RS_out),
-`ifndef SYNTH_TEST
+`ifdef DEBUG
     .RS_out(pipeline_RS),
     .RS_match_hit(RS_match_hit),   // If a RS entry is ready
     .RS_match_idx(RS_match_idx),
