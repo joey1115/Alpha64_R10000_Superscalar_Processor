@@ -133,7 +133,7 @@ module testbench;
     .RS_valid(RS_valid),
     .FL_valid(FL_valid),
     .rollback_en(rollback_en),
-    .pipline_PR(pipeline_PR)
+    .pipeline_PR(pipeline_PR)
 
     // .if_NPC_out(if_NPC_out),
     // .if_IR_out(if_IR_out),

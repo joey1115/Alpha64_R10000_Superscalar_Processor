@@ -49,7 +49,7 @@ module ROB (
   assign ROB_idx = Nrob.tail - 1;
 
   always_comb begin
-    retire_en = rob.entry[rob.head].complete;
+    retire_en = rob.entry[rob.head].complete & rob.entry[rob.head].valid;
 
     // condition for Retire
     moveHead = (retire_en) 

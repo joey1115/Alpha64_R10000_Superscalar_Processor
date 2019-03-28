@@ -40,8 +40,7 @@ module FL (
   assign next_tail    = rollback_en ? FL_rollback_idx :
                         dispatch_en ? virtual_tail    : tail;
   assign FL_idx       = next_tail;
-  assign T_idx        = decoder_FL_out.dest_idx == `ZERO_REG ? `ZERO_PR :
-                        next_tail == head                    ? ROB_FL_out.Told_idx : FL_table[tail];
+  assign T_idx        = decoder_FL_out.dest_idx == `ZERO_REG ? `ZERO_PR : FL_table[tail];
   assign FL_valid     = decoder_FL_out.dest_idx == `ZERO_REG || virtual_tail != next_head;
 
   always_comb begin

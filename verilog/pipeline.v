@@ -30,7 +30,7 @@ module pipeline (
   output logic RS_valid,
   output logic FL_valid,
   output logic rollback_en,
-  output logic [`NUM_PR-1:0][63:0] pipline_PR;
+  output logic [`NUM_PR-1:0][63:0] pipeline_PR,
   // output logic [4:0]  pipeline_commit_wr_idx,
   // output logic [63:0] pipeline_commit_wr_data,
   // output logic        pipeline_commit_wr_en,

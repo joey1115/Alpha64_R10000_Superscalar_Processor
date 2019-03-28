@@ -51,7 +51,7 @@ module Map_Table (
   assign T1.idx   = map_table[decoder_Map_Table_out.rega_idx].idx;
   assign T2.idx   = map_table[decoder_Map_Table_out.regb_idx].idx;
   assign T1.ready = ( complete_en && T1.idx == CDB_Map_Table_out.T_idx ) || map_table[decoder_Map_Table_out.rega_idx].ready;
-  assign T2.ready = ( complete_en && T2.idx == CDB_Map_Table_out.T_idx ) || map_table[decoder_Map_Table_out.rega_idx].ready;
+  assign T2.ready = ( complete_en && T2.idx == CDB_Map_Table_out.T_idx ) || map_table[decoder_Map_Table_out.regb_idx].ready;
 
   always_comb begin
     next_map_table = map_table;
