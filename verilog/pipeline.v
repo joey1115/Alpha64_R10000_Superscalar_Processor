@@ -31,6 +31,9 @@ module pipeline (
   output logic FL_valid,
   output logic rollback_en,
   output logic [`NUM_PR-1:0][63:0] pipeline_PR,
+  output logic [$clog2(`NUM_FL)-1:0] FL_head,
+  output logic [$clog2(`NUM_FL)-1:0] FL_tail,
+  output logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL,
   // output logic [4:0]  pipeline_commit_wr_idx,
   // output logic [63:0] pipeline_commit_wr_data,
   // output logic        pipeline_commit_wr_en,
@@ -115,8 +118,8 @@ module pipeline (
   logic [31:0] if_IR_out;
 `ifndef SYNTH_TEST
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
-  logic       [$clog2(`NUM_FL)-1:0]                                       head, next_head;
-  logic       [$clog2(`NUM_FL)-1:0]                                       tail, next_tail;
+  logic       [$clog2(`NUM_FL)-1:0]                                       next_head;
+  logic       [$clog2(`NUM_FL)-1:0]                                       next_tail;
   logic       [`NUM_MULT-1:0]                                             last_done;
   logic       [`NUM_MULT-1:0][63:0]                                       product_out;
   logic       [`NUM_MULT-1:0][4:0]                                        last_dest_idx;
@@ -279,11 +282,11 @@ module pipeline (
     .decoder_FL_out(decoder_FL_out),
     .ROB_FL_out(ROB_FL_out),
 `ifndef SYNTH_TEST
-    .FL_table(FL_table),
+    .FL_table(pipeline_FL),
     .next_FL_table(next_FL_table),
-    .head(head),
+    .head(FL_head),
     .next_head(next_head),
-    .tail(tail),
+    .tail(FL_tail),
     .next_tail(next_tail),
 `endif
     .FL_valid(FL_valid),
