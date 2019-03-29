@@ -278,7 +278,6 @@ module mult (
   assign T_idx = internal_T_idx[($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_PR)*(`NUM_MULT_STAGE-2)];
   assign ROB_idx = internal_ROB_idx[($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2)];
   assign FL_idx = internal_FL_idx[($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_FL)*(`NUM_MULT_STAGE-2)];
-  // assign result = internal_products[((`NUM_MULT_STAGE-1)*64)-1:(`NUM_MULT_STAGE-2)*64];
   assign result = next_products[`NUM_MULT_STAGE*64-1:(`NUM_MULT_STAGE-1)*64];
   assign done = internal_dones[`NUM_MULT_STAGE-2];
   assign FU_out = '{done, result, dest_idx, T_idx, ROB_idx, FL_idx};
