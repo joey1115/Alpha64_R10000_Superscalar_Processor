@@ -26,7 +26,7 @@ module test_FL;
     .retire_en(retire_en),
     .Told_idx(Told_idx),
     .FL_rollback_idx(FL_rollback_idx),
-`ifdef DEBUG
+`ifndef SYNTH_TEST
     .FL_table(FL_table),
     .next_FL_table(next_FL_table),
     .head(head),

@@ -80,10 +80,8 @@ module testbench;
     .mem2proc_response (mem2proc_response),
     .mem2proc_data     (mem2proc_data),
     .mem2proc_tag      (mem2proc_tag),
-`ifdef DEBUG
+`ifndef SYNTH_TEST
     //needed to tell if inst is completed added to inst count
-    .pipeline_completed_insts(pipeline_completed_insts),
-    .pipeline_error_status(pipeline_error_status),
     .pipeline_ROB(pipeline_ROB),
     .pipeline_RS(pipeline_RS),
     .pipeline_ARCHMAP(pipeline_ARCHMAP),
@@ -102,6 +100,8 @@ module testbench;
     .FL_tail(FL_tail),
 `endif
     // Outputs
+    .pipeline_completed_insts(pipeline_completed_insts),
+    .pipeline_error_status(pipeline_error_status),
     .proc2mem_command  (proc2mem_command),
     .proc2mem_addr     (proc2mem_addr),
     .proc2mem_data     (proc2mem_data)
