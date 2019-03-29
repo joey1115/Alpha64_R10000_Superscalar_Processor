@@ -97,7 +97,7 @@ module mult_stage (
   logic [$clog2(`NUM_PR)-1:0]    next_ROB_idx_out;
   logic [$clog2(`NUM_FL)-1:0]    next_FL_idx_out;
   logic [63:0]                   partial_product, next_mplier, next_mcand;
-  logic                          rollback_valid;
+  logic                          rollback_valid_out, rollback_valid;
   logic                          next_done;
   logic [$clog2(`NUM_ROB)-1:0]   diff;
 `ifdef MULT_FORWARDING
@@ -108,6 +108,13 @@ module mult_stage (
   logic [63:0]                   next_T2_value_out;
 `endif
 
+`ifdef MULT_FORWARDING
+  assign diff_out           = ROB_idx_out - ROB_rollback_idx;
+  assign diff               = ROB_idx - ROB_rollback_idx;
+  assign rollback_valid_out = rollback_en && diff_ROB >= diff_out;
+  assign rollback_valid     = rollback_en && diff_ROB >= diff;
+  assign valid_out          = !ready || valid || rollback_valid_out;
+`else
   assign diff               = next_ROB_idx_out - ROB_rollback_idx;
   assign valid_out          = ( !ready || valid ) && !rollback_valid;
   assign rollback_valid     = rollback_en && diff_ROB >= diff;
@@ -123,13 +130,62 @@ module mult_stage (
   assign next_T1_value_out  = valid ? T1_value : T1_value_out;
   assign next_T2_value_out  = valid ? T2_value : T2_value_out;
 `endif
+`endif
   assign next_product       = product_in + partial_product;
   assign partial_product    = mplier_in[64/`NUM_MULT_STAGE-1:0] * mcand_in;
   assign next_mplier        = {{64/`NUM_MULT_STAGE{1'b0}}, mplier_in[63:64/`NUM_MULT_STAGE]};
   assign next_mcand         = {mcand_in[63-64/`NUM_MULT_STAGE:0], {(64/`NUM_MULT_STAGE){1'b0}}};
 
+`ifdef MULT_FORWARDING
+  always_comb begin
+    if ( !valid && !rollback_valid_out ) begin
+      next_mplier_out   = mplier_out;
+      next_mcand_out    = mcand_out;
+      next_product_out  = product_out;
+      next_dest_idx_out = dest_idx_out;
+      next_T_idx_out    = T_idx_out;
+      next_ROB_idx_out  = ROB_idx_out;
+      next_FL_idx_out   = FL_idx_out;
+      next_done         = done;
+`ifndef SYNTH_TEST
+      next_T1_value_out = T1_value_out;
+      next_T2_value_out = T2_value_out;
+`endif
+    end else if ( valid && !rollback_valid ) begin
+      next_mplier_out   = next_mplier;
+      next_mcand_out    = next_mcand;
+      next_product_out  = next_product;
+      next_dest_idx_out = dest_idx;
+      next_T_idx_out    = T_idx;
+      next_ROB_idx_out  = ROB_idx;
+      next_FL_idx_out   = FL_idx;
+      next_done         = ready;
+`ifndef SYNTH_TEST
+      next_T1_value_out = T1_value;
+      next_T2_value_out = T2_value;
+`endif
+    end else begin
+      next_mplier_out   = {64{1'b0}};
+      next_mcand_out    = {64{1'b0}};
+      next_product_out  = {64{1'b0}};
+      next_dest_idx_out = `ZERO_REG;
+      next_T_idx_out    = `ZERO_PR;
+      next_ROB_idx_out  = {`NUM_ROB{1'b0}};
+      next_done         = `FALSE;
+`ifndef SYNTH_TEST
+      next_T1_value_out = {64{1'b0}};
+      next_T2_value_out = {64{1'b0}};
+`endif
+    end
+  end
+`endif
+
   always_ff @(posedge clock) begin
+`ifdef MULT_FORWARDING
+    if ( reset ) begin
+`else
     if ( reset || rollback_valid ) begin
+`endif
       mplier_out   <= `SD 64'hbaadbeefdeadbeef;
       mcand_out    <= `SD 64'hbaadbeefdeadbeef;
       product_out  <= `SD 64'hbaadbeefdeadbeef;
