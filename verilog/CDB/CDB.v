@@ -119,6 +119,7 @@ module CDB (
         ROB_idx      = CDB[i].ROB_idx;
         complete_hit = `TRUE;
         complete_idx = i;
+        next_CDB[i].taken = `FALSE;
         break;
       end // if
     end // for
