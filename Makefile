@@ -82,7 +82,7 @@ CACHE     = $(SYNTH_DIR)/$(CACHE_NAME).vg
 # Passed through to .tcl scripts:
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD = 22	# TODO: You will want to make this more aggresive
+export CLOCK_PERIOD = 11	# TODO: You will want to make this more aggresive
 
 ################################################################################
 ## RULES
