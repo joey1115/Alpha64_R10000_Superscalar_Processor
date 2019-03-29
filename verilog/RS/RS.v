@@ -50,7 +50,7 @@ module RS (
     RS_match_hit =  `FALSE;
     RS_match_idx = {$clog2(`NUM_FU){1'b0}};
     for (int i = 0; i < `NUM_FU; i++) begin
-      if ( ( RS_entry_empty[i] || RS[i].busy == `FALSE ) && FU_entry_match[i] ) begin
+      if ( RS[i].busy == `FALSE && FU_entry_match[i] ) begin
         RS_match_hit = `TRUE; // RS entry match
         RS_match_idx = i;
         break;
