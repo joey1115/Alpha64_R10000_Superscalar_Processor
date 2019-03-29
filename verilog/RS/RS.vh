@@ -34,12 +34,11 @@ typedef struct packed {
 } RS_ENTRY_t;
 
 `define FU_LIST '{      \
-  {(`NUM_ALU){FU_ALU}},   \
-  {(`NUM_MULT){FU_MULT}}, \
-  {(`NUM_BR){FU_BR}},     \
-  {(`NUM_ST){FU_ST}},     \
-  {(`NUM_LD){FU_LD}},     \
-  {(`NUM_NONE){FU_NONE}},     \
+  {`NUM_ALU{FU_ALU}},   \
+  {`NUM_MULT{FU_MULT}}, \
+  {`NUM_BR{FU_BR}},     \
+  {`NUM_ST{FU_ST}},     \
+  {`NUM_LD{FU_LD}}      \
 }
 
 `define ZERO_PR {{($clog2(`NUM_PR)-5){1'b0}}, `ZERO_REG}
