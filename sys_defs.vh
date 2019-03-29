@@ -18,6 +18,8 @@
 `define DUT(mod) mod
 `endif
 
+`define DEBUG
+
 //////////////////////////////////////////////
 //
 // Memory/testbench attribute definitions
