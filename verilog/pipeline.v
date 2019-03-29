@@ -11,6 +11,8 @@
 
 `timescale 1ns/100ps
 
+`define DEBUG
+
 module pipeline (
   input         clock,                    // System clock
   input         reset,                    // System reset

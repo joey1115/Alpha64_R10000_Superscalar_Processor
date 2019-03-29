@@ -82,7 +82,7 @@ CACHE     = $(SYNTH_DIR)/$(CACHE_NAME).vg
 # Passed through to .tcl scripts:
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD = 20	# TODO: You will want to make this more aggresive
+export CLOCK_PERIOD = 22	# TODO: You will want to make this more aggresive
 
 ################################################################################
 ## RULES
@@ -122,7 +122,7 @@ syn:	syn_simv $(ASSEMBLED)
 	./syn_simv | tee syn_program.out
 
 syn_simv:	$(HEADERS) $(SYNFILES) $(TESTBENCH)
-	$(VCS) $^ $(LIB) +define+SYNTH_TEST -o syn_simv 
+	$(VCS) $^ $(LIB) +define+SYNTH_TEST -o syn_simv
 
 .PHONY: syn
 

@@ -136,7 +136,7 @@ if {  $dc_shell_status != [list] } {
   write -format svsim -output $svsim_file $design_name
   redirect $rep_file { report_design -nosplit }
   redirect -append $rep_file { report_area }
-  redirect -append $rep_file { report_timing -max_paths 2 -input_pins -nets -transition_time -nosplit }
+  redirect -append $rep_file { report_timing -loop -max_paths 2 -input_pins -nets -transition_time -nosplit }
   redirect -append $rep_file { report_constraint -max_delay -verbose -nosplit }
   redirect $res_file { report_resources -hier }
   remove_design -all
