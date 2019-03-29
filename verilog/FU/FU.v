@@ -55,7 +55,6 @@ module alu (
       ALU_CMPULE: FU_out.result = { 63'd0, (regA <= regB) };
       ALU_CMPLT:  FU_out.result = { 63'd0, signed_lt(regA, regB) };
       ALU_CMPLE:  FU_out.result = { 63'd0, (signed_lt(regA, regB) || (regA == regB)) };
-      ALU_MULQ:   FU_out.result = regA * regB;
       default:    FU_out.result = 64'hdeadbeefbaadbeef;  // here only to force
     endcase
     FU_out.dest_idx = FU_in.dest_idx;
