@@ -82,7 +82,8 @@ typedef enum logic [2:0] {
   FU_ST   = 3'b001,
   FU_LD   = 3'b010,
   FU_MULT = 3'b011,
-  FU_BR   = 3'b100
+  FU_BR   = 3'b100,
+  FU_NONE = 3'b101
 } FU_t;
 
 typedef struct packed {

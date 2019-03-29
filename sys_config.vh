@@ -10,7 +10,8 @@
 `define NUM_BR         1
 `define NUM_ST         1
 `define NUM_LD         1
-`define NUM_FU         (`NUM_ALU + `NUM_ST + `NUM_LD + `NUM_MULT + `NUM_BR)
+`define NUM_NONE       3
+`define NUM_FU         (`NUM_ALU + `NUM_ST + `NUM_LD + `NUM_MULT + `NUM_BR + `NUM_NONE)
 `define NUM_ARCH_TABLE 32
 `define NUM_MULT_STAGE 2
 
