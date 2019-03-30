@@ -27,7 +27,7 @@
 ## CONFIGURATION
 ################################################################################
 
-VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD) +define+PIPELINE +lint=PCWM +lint=TFIPC-L +lint=ERASM-L +define+DEBUG
+VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD) +define+PIPELINE +lint=PCWM +lint=TFIPC-L +lint=ERASM-L +error+20
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 SYNTH_DIR = ./synth
@@ -82,7 +82,7 @@ CACHE     = $(SYNTH_DIR)/$(CACHE_NAME).vg
 # Passed through to .tcl scripts:
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD = 22	# TODO: You will want to make this more aggresive
+export CLOCK_PERIOD = 10	# TODO: You will want to make this more aggresive
 
 ################################################################################
 ## RULES

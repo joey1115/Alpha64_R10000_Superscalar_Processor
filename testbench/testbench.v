@@ -73,34 +73,6 @@ module testbench;
   logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL;
   logic [$clog2(`NUM_FL)-1:0]              FL_head, FL_tail;
 
-
-
-
-
-  // logic [63:0] if_NPC_out;
-  // logic [31:0] if_IR_out;
-  // logic        if_valid_inst_out;
-  // logic [63:0] if_id_NPC;
-  // logic [31:0] if_id_IR;
-  // logic        if_id_valid_inst;
-  // logic [63:0] id_ex_NPC;
-  // logic [31:0] id_ex_IR;
-  // logic        id_ex_valid_inst;
-  // logic [63:0] ex_mem_NPC;
-  // logic [31:0] ex_mem_IR;
-  // logic        ex_mem_valid_inst;
-  // logic [63:0] mem_wb_NPC;
-  // logic [31:0] mem_wb_IR;
-  // logic        mem_wb_valid_inst;
-
-  // // Strings to hold instruction opcode
-  // logic  [8*7:0] if_instr_str;
-  // logic  [8*7:0] id_instr_str;
-  // logic  [8*7:0] ex_instr_str;
-  // logic  [8*7:0] mem_instr_str;
-  // logic  [8*7:0] wb_instr_str;
-
-
   // Instantiate the Pipeline
   `DUT(pipeline) pipeline_0 (// Inputs
     .clock             (clock),
@@ -108,22 +80,8 @@ module testbench;
     .mem2proc_response (mem2proc_response),
     .mem2proc_data     (mem2proc_data),
     .mem2proc_tag      (mem2proc_tag),
-
-            // Outputs
-    .proc2mem_command  (proc2mem_command),
-    .proc2mem_addr     (proc2mem_addr),
-    .proc2mem_data     (proc2mem_data),
-
+`ifndef SYNTH_TEST
     //needed to tell if inst is completed added to inst count
-    .pipeline_completed_insts(pipeline_completed_insts),
-
-
-    .pipeline_error_status(pipeline_error_status),
-    //.pipeline_commit_wr_data(pipeline_commit_wr_data),
-    //.pipeline_commit_wr_idx(pipeline_commit_wr_idx),
-    //.pipeline_commit_wr_en(pipeline_commit_wr_en),
-    //.pipeline_commit_NPC(pipeline_commit_NPC),
-
     .pipeline_ROB(pipeline_ROB),
     .pipeline_RS(pipeline_RS),
     .pipeline_ARCHMAP(pipeline_ARCHMAP),
@@ -139,23 +97,14 @@ module testbench;
     .pipeline_PR(pipeline_PR),
     .pipeline_FL(pipeline_FL),
     .FL_head(FL_head),
-    .FL_tail(FL_tail)
-
-    // .if_NPC_out(if_NPC_out),
-    // .if_IR_out(if_IR_out),
-    // .if_valid_inst_out(if_valid_inst_out),
-    // .if_id_NPC(if_id_NPC),
-    // .if_id_IR(if_id_IR),
-    // .if_id_valid_inst(if_id_valid_inst),
-    // .id_ex_NPC(id_ex_NPC),
-    // .id_ex_IR(id_ex_IR),
-    // .id_ex_valid_inst(id_ex_valid_inst),
-    // .ex_mem_NPC(ex_mem_NPC),
-    // .ex_mem_IR(ex_mem_IR),
-    // .ex_mem_valid_inst(ex_mem_valid_inst),
-    // .mem_wb_NPC(mem_wb_NPC),
-    // .mem_wb_IR(mem_wb_IR),
-    // .mem_wb_valid_inst(mem_wb_valid_inst)
+    .FL_tail(FL_tail),
+`endif
+    // Outputs
+    .pipeline_completed_insts(pipeline_completed_insts),
+    .pipeline_error_status(pipeline_error_status),
+    .proc2mem_command  (proc2mem_command),
+    .proc2mem_addr     (proc2mem_addr),
+    .proc2mem_data     (proc2mem_data)
   );
 
 

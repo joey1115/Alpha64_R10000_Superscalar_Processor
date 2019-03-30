@@ -43,7 +43,7 @@ module test_FU;
     .FU_in(FU_in),
     .CDB_valid(CDB_valid),
     // Outputs
-`ifdef DEBUG
+`ifndef SYNTH_TEST
     .last_done(last_done),
     .product_out(product_out),
     .last_dest_idx(last_dest_idx),

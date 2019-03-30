@@ -13,8 +13,8 @@
 `define NUM_NONE       3
 `define NUM_FU         (`NUM_ALU + `NUM_ST + `NUM_LD + `NUM_MULT + `NUM_BR + `NUM_NONE)
 `define NUM_ARCH_TABLE 32
-`define NUM_MULT_STAGE 2
+`define NUM_MULT_STAGE 4
 
-// `define MULT_FORWARDING
+`define MULT_FORWARDING
 
 `endif

@@ -10,29 +10,39 @@
 
 `timescale 1ns/100ps
 
-`include "../../sys_defs.vh"
 `include "CDB.vh"
 
 module test_CDB;
 
-  // ********* UUT Setup *********
-  // UUT input
-  logic en, clock, reset;
-  CDB_PACKET_IN uut_in;
-  // UUT output
-  CDB_PACKET_OUT uut_out;
-  CDB_entry_t [`NUM_FU-1:0] uut_data;
+  logic                                      en, clock, reset, rollback_en, write_en, complete_en;
+  logic               [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx, diff_ROB, ROB_idx;
+  FU_CDB_OUT_t                               FU_CDB_out;
+  CDB_entry_t         [`NUM_FU-1:0]          CDB;
+  logic               [`NUM_FU-1:0]          CDB_valid;
+  CDB_ROB_OUT_t                              CDB_ROB_out;
+  CDB_RS_OUT_t                               CDB_RS_out;
+  CDB_MAP_TABLE_OUT_t                        CDB_Map_Table_out;
+  CDB_PR_OUT_t                               CDB_PR_out;
 
-  // UUT instantiation
-  CDB UUT(
+  CDB cdb_0 (
     .en(en),
     .clock(clock),
     .reset(reset),
-    .CDB_packet_in(uut_in),
-    .CDB_packet_out(uut_out),
-    .CDB(uut_data)
+    .rollback_en(rollback_en),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
+    .FU_CDB_out(FU_CDB_out),
+`ifndef SYNTH_TEST
+    .CDB(CDB),
+`endif
+    .write_en(write_en),
+    .complete_en(complete_en),
+    .CDB_valid(CDB_valid),
+    .CDB_ROB_out(CDB_ROB_out),
+    .CDB_RS_out(CDB_RS_out),
+    .CDB_Map_Table_out(CDB_Map_Table_out),
+    .CDB_PR_out(CDB_PR_out)
   );
-
 
   // ********* System Clock and Cycle Count *********
   // Generate System Clock
@@ -50,23 +60,20 @@ module test_CDB;
       cycle_count <= `SD (cycle_count + 1);
   end
 
-
-  // ********* Test Case Setup *********
-  // Test Case
-  `define TEST_LEN 20
-  CDB_PACKET_IN  [`TEST_LEN-1:0] test_in_raw; // diff_ROB is changed to ROB_idx of the cycle
-  CDB_PACKET_IN  [`TEST_LEN-1:0] test_in;     // the real test_in
-  // solutions have one more state than test cases
-  CDB_PACKET_OUT   [`TEST_LEN:0] sol_out;
-
-
   // Apply test input
-  task apply_input;
-    begin
-      test_in[cycle_count] = test_in_raw[cycle_count];
-      test_in[cycle_count].diff_ROB = test_in[cycle_count].diff_ROB - test_in[cycle_count].ROB_rollback_idx;
-      uut_in = test_in[cycle_count];
-    end
+  task apply_input(
+  logic                                      rollback_en_in, write_en_in, complete_en_in,
+  logic               [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_in, ROB_idx_in,
+  FU_CDB_OUT_t                               FU_CDB_out_in,
+  );
+  begin
+    rollback_en = rollback_en_in;
+    write_en = write_en_in;
+    complete_en = complete_en_in;
+    ROB_rollback_idx = ROB_rollback_idx_in;
+    diff_ROB = ROB_idx_in - ROB_rollback_idx_in;
+    FU_CDB_out = FU_CDB_out_in;
+  end
   endtask
 
   // Display input, internal data, and output at the end of a cycle
@@ -74,16 +81,16 @@ module test_CDB;
     begin
       // rollback info
       $display("____Rollback_______________________________________________");
-      $display("| rollback_en | ROB_rollback_idx | ROB_idx | diff_ROB |");
-      $display("|          %1d  |         %1d        |       %1d      |     %1d    |",
-                uut_in.rollback_en, uut_in.ROB_rollback_idx, test_in_raw[cycle_count].diff_ROB, uut_in.diff_ROB);
+      $display("| rollback_en | ROB_rollback_idx | diff_ROB |");
+      $display("|          %1d  |         %1d        |     %1d    |",
+                rollback_en, ROB_rollback_idx, diff_ROB);
       // input
       $display("____Input______________________________________________________________");
       $display("| FU# | done | T_idx | ROB_idx | dest_idx |        FU_out        |");
       for (int i=`NUM_FU-1; i>-1; i=i-1) begin
         $display("|  %1d  |    %1d    |   %2d  |    %1d    |    %2d    |  0x%04h_%04h_%04h_%04h  |",
-              i, uut_in.done[i], uut_in.T_idx[i], uut_in.ROB_idx[i], uut_in.dest_idx,
-              uut_in.FU_out[i][63:48], uut_in.FU_out[i][47:32], uut_in.FU_out[i][31:16], uut_in.FU_out[i][15:0]);
+              i, FU_CDB_out.FU_out[i].done, FU_CDB_out.FU_out[i].T_idx, FU_CDB_out.FU_out[i].ROB_idx, FU_CDB_out.FU_out[i].dest_idx,
+              FU_CDB_out.FU_out[i].result[63:48], FU_CDB_out.FU_out[i].result[47:32], FU_CDB_out.FU_out[i].result[31:16], FU_CDB_out.FU_out[i].result[15:0]);
       end
       // internal data and CDB_valid_output
       $display("____Internal_Data_and_CDB_valid_Output_____________________________________________");
@@ -187,7 +194,7 @@ module test_CDB;
     en    = 1'b1;
     clock = 1'b0;
     reset = 1'b0;
-    uut_in = 0;
+    FU_CDB_out = 0;
 
     @(negedge clock);
     reset = 1'b1;

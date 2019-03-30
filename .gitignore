@@ -28,4 +28,5 @@ DVEfiles
 *.chk
 *.ddc
 program.mem
+*.sv
 !P4_example/*.out

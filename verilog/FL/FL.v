@@ -9,7 +9,7 @@ module FL (
   input  logic           [$clog2(`NUM_FL)-1:0]              FL_rollback_idx,
   input  DECODER_FL_OUT_t                                   decoder_FL_out,
   input  ROB_FL_OUT_t                                       ROB_FL_out,
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   output logic           [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table,
   output logic           [$clog2(`NUM_FL)-1:0]              head, next_head,
   output logic           [$clog2(`NUM_FL)-1:0]              tail, next_tail,
@@ -20,7 +20,7 @@ module FL (
   output FL_MAP_TABLE_OUT_t                                 FL_Map_Table_out
 );
 
-`ifndef DEBUG
+`ifdef SYNTH_TEST
   logic [$clog2(`NUM_FL)-1:0]              head, next_head;
   logic [$clog2(`NUM_FL)-1:0]              tail, next_tail;
   logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table;

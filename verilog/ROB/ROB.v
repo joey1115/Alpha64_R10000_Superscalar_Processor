@@ -12,7 +12,7 @@ module ROB (
   input  MAP_TABLE_ROB_OUT_t                        Map_Table_ROB_out,
   input  CDB_ROB_OUT_t                              CDB_ROB_out,
   //Outputs
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   output ROB_t                                      rob,
 `endif
   output logic                                      ROB_valid,
@@ -23,7 +23,7 @@ module ROB (
   output ROB_FL_OUT_t                               ROB_FL_out
 );
 
-`ifndef DEBUG
+`ifdef SYNTH_TEST
   ROB_t rob;
 `endif
 

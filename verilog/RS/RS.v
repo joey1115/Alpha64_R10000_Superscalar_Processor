@@ -10,7 +10,7 @@ module RS (
   input  FL_RS_OUT_t                               FL_RS_out,
   input  MAP_TABLE_RS_OUT_t                        Map_Table_RS_out,
   input  CDB_RS_OUT_t                              CDB_RS_out,
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   output RS_ENTRY_t         [`NUM_FU-1:0]          RS_out,
   output logic              [`NUM_FU-1:0]          RS_match_hit,   // If a RS entry is ready
   output logic              [$clog2(`NUM_FU)-1:0]  RS_match_idx,
@@ -33,7 +33,7 @@ module RS (
   logic          [`NUM_FU-1:0]                       RS_rollback;    // If a RS entry is ready
   logic          [`NUM_FU-1:0]                       FU_entry_match;
   logic          [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
-`ifndef DEBUG
+`ifdef SYNTH_TEST
   logic                                              RS_match_hit;   // If a RS entry is ready
   logic          [$clog2(`NUM_FU)-1:0]               RS_match_idx;
 `endif
@@ -42,7 +42,7 @@ module RS (
   assign RS_PR_out = '{FU_T_idx};
   assign RS_valid  = RS_match_hit;
 
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   assign RS_out = RS;
 `endif
 
@@ -50,7 +50,7 @@ module RS (
     RS_match_hit =  `FALSE;
     RS_match_idx = {$clog2(`NUM_FU){1'b0}};
     for (int i = 0; i < `NUM_FU; i++) begin
-      if ( ( RS_entry_empty[i] || RS[i].busy == `FALSE ) && FU_entry_match[i] ) begin
+      if ( RS[i].busy == `FALSE && FU_entry_match[i] ) begin
         RS_match_hit = `TRUE; // RS entry match
         RS_match_idx = i;
         break;
@@ -60,15 +60,25 @@ module RS (
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
-      FU_entry_match[i] = FU_list[i] == decoder_RS_out.FU;
-      diff[i]           = RS[i].ROB_idx - ROB_rollback_idx;                // diff
-      RS_rollback[i]    = ( diff_ROB >= diff[i] ) && rollback_en;          // Rollback
       T1_CDB[i]         = RS[i].T1.idx == CDB_RS_out.T_idx && CDB_RS_out.T_idx != `ZERO_PR && complete_en; // T1 is complete
       T2_CDB[i]         = RS[i].T2.idx == CDB_RS_out.T_idx && CDB_RS_out.T_idx != `ZERO_PR && complete_en; // T2 is complete
       T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                     // T1 is ready or updated by CDB
       T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                     // T2 is ready or updated by CDB
       RS_entry_ready[i] = T1_ready[i] && T2_ready[i];                      // T1 and T2 are ready to issue
       RS_entry_empty[i] = RS_entry_ready[i] && FU_valid[i];                // Entry is going to be empty
+    end // for (int i = 0; i < `NUM_FU; i++) begin
+  end // always_comb begin
+
+  always_comb begin
+    for (int i = 0; i < `NUM_FU; i++) begin
+      FU_entry_match[i] = FU_list[i] == decoder_RS_out.FU;
+    end // for (int i = 0; i < `NUM_FU; i++) begin
+  end
+
+  always_comb begin
+    for (int i = 0; i < `NUM_FU; i++) begin
+      diff[i]           = RS[i].ROB_idx - ROB_rollback_idx;                // diff
+      RS_rollback[i]    = ( diff_ROB >= diff[i] ) && rollback_en;          // Rollback
     end // for (int i = 0; i < `NUM_FU; i++) begin
   end // always_comb begin
 

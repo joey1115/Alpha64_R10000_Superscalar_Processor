@@ -24,7 +24,7 @@ module PR (
   input  logic                                            write_en,         // (complete) write enable  from CDB
   input  CDB_PR_OUT_t                                     CDB_PR_out,
   input  RS_PR_OUT_t                                      RS_PR_out,
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   output logic         [`NUM_PR-1:0][63:0]                pr_data,
 `endif
   output PR_FU_OUT_t                                      PR_FU_out
@@ -32,7 +32,7 @@ module PR (
 
   logic [`NUM_PR-1:0] [63:0] pr, next_pr;
 
-`ifdef DEBUG
+`ifndef SYNTH_TEST
   assign pr_data = pr;
 `endif
 
