@@ -29,7 +29,7 @@ module CDB (
   input  logic               [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,   // ROB# of mispredicted branch/incorrect load from br module/LSQ
   input  logic               [$clog2(`NUM_ROB)-1:0] diff_ROB,           // diff_ROB = ROB_tail of the current cycle - ROB_rollback_idx
   input  FU_CDB_OUT_t                               FU_CDB_out,          // done,T_idx,ROB_idx,dest_idx,result from FU
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   output CDB_entry_t         [`NUM_FU-1:0]          CDB,
 `endif
   output logic                                      write_en,
@@ -41,7 +41,7 @@ module CDB (
   output CDB_PR_OUT_t                               CDB_PR_out
 );
 
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   CDB_entry_t [`NUM_FU-1:0]                       CDB;
 `endif
   CDB_entry_t [`NUM_FU-1:0]                       next_CDB;

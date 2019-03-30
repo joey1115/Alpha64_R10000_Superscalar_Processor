@@ -29,7 +29,7 @@ module Map_Table (
   input  DECODER_MAP_TABLE_OUT_t                        decoder_Map_Table_out,
   input  FL_MAP_TABLE_OUT_t                             FL_Map_Table_out,
   input  CDB_MAP_TABLE_OUT_t                            CDB_Map_Table_out,
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   output T_t                     [31:0]                 map_table_out,
 `endif
   output MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out,
@@ -44,7 +44,7 @@ module Map_Table (
   assign Map_Table_ROB_out = '{Told_idx};
   assign Map_Table_RS_out  = '{T1, T2};
 
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   assign map_table_out = map_table;
 `endif
   assign Told_idx = map_table[decoder_Map_Table_out.dest_idx].idx;

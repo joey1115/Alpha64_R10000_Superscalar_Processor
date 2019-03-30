@@ -32,7 +32,7 @@ module test_CDB;
     .ROB_rollback_idx(ROB_rollback_idx),
     .diff_ROB(diff_ROB),
     .FU_CDB_out(FU_CDB_out),
-`ifndef SYNTH_TEST
+`ifdef DEBUG
     .CDB(CDB),
 `endif
     .write_en(write_en),

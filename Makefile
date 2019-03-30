@@ -32,7 +32,7 @@ LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 SYNTH_DIR = ./synth
 
-PROGRAM = test_progs/evens.s
+PROGRAM = test_progs/mult_no_lsq.s
 ASSEMBLED = program.mem
 ASSEMBLER = vs-asm
 
@@ -82,7 +82,7 @@ CACHE     = $(SYNTH_DIR)/$(CACHE_NAME).vg
 # Passed through to .tcl scripts:
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD = 10	# TODO: You will want to make this more aggresive
+export CLOCK_PERIOD = 9.1	# TODO: You will want to make this more aggresive
 
 ################################################################################
 ## RULES
@@ -100,14 +100,14 @@ sim:	simv $(ASSEMBLED)
 	./simv | tee sim_program.out
 
 simv:	$(HEADERS) $(SIMFILES) $(TESTBENCH)
-	$(VCS) $^ -o simv
+	$(VCS) $^ +define+DEBUG -o simv
 
 .PHONY: sim
 
 # Programs
 
 $(ASSEMBLED):	$(PROGRAM)
-	./$(ASSEMBLER) < $< > $@
+	./$(ASSEMBLER) < $(PROGRAM) > $(ASSEMBLED)
 
 # Synthesis
 
