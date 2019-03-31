@@ -5,7 +5,7 @@ module ROB (
   input  logic                                      en, clock, reset,
   input  logic                                      dispatch_en,
   input  logic                                      rollback_en,
-  input  logic                                      complete_en,
+  input  logic               [$clog2(`NUM_ROB)-1:0] complete_en,
   input  logic               [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  DECODER_ROB_OUT_t                          decoder_ROB_out,
   input  FL_ROB_OUT_t                               FL_ROB_out,
@@ -75,8 +75,10 @@ module ROB (
      Nrob = rob;
 
     //complete stage
-    if(complete_en) begin
-      Nrob.entry[CDB_ROB_out.ROB_idx].complete = 1;
+    for(int i = 0; i < `NUM_SUPER; i++) begin
+      if(complete_en[i]) begin
+        Nrob.entry[CDB_ROB_out.ROB_idx[i]].complete = 1;
+      end
     end
     
     //Next state logic

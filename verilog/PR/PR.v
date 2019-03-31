@@ -39,22 +39,33 @@ module PR (
   always_comb begin
     next_pr = pr;
     // Complete
-    if (write_en && CDB_PR_out.T_idx != `ZERO_PR) begin
-      next_pr[CDB_PR_out.T_idx] = CDB_PR_out.T_value;
+    for(int i = 0; i < `NUM_SUPER; i++) begin
+      if (write_en[i] && CDB_PR_out.T_idx[i] != `ZERO_PR) begin
+        next_pr[CDB_PR_out.T_idx[i]] = CDB_PR_out.T_value[i];
+      end
     end
   end
 
   always_comb begin
     // Execution
     for (int i=0; i<`NUM_FU; i++) begin
-      if (write_en && CDB_PR_out.T_idx == RS_PR_out.FU_T_idx[i].T1_idx && CDB_PR_out.T_idx != `ZERO_PR) begin
-        PR_FU_out.T1_value[i] = CDB_PR_out.T_value;    // forwarding
-      end else begin
+      if (write_en[0] && (CDB_PR_out.T_idx[0] == RS_PR_out.FU_T_idx[i].T1_idx) && CDB_PR_out.T_idx[0] != `ZERO_PR) begin
+        PR_FU_out.T1_value[i] = CDB_PR_out.T_value[0];    // forwarding 1
+      end 
+      else if (write_en[1] && (CDB_PR_out.T_idx[1] == RS_PR_out.FU_T_idx[i].T1_idx) && CDB_PR_out.T_idx[1] != `ZERO_PR) begin
+        PR_FU_out.T1_value[i] = CDB_PR_out.T_value[1];    // forwarding 2
+      end 
+      else begin
         PR_FU_out.T1_value[i] = pr[RS_PR_out.FU_T_idx[i].T1_idx];
       end
-      if (write_en && CDB_PR_out.T_idx == RS_PR_out.FU_T_idx[i].T2_idx && CDB_PR_out.T_idx != `ZERO_PR) begin
-        PR_FU_out.T2_value[i] = CDB_PR_out.T_value;    // forwarding
-      end else begin
+      
+      if (write_en[0] && (CDB_PR_out.T_idx[0] == RS_PR_out.FU_T_idx[i].T2_idx) && CDB_PR_out.T_idx[0] != `ZERO_PR) begin
+        PR_FU_out.T2_value[i] = CDB_PR_out.T_value[0];    // forwarding 1
+      end 
+      else if (write_en[1] && (CDB_PR_out.T_idx[1] == RS_PR_out.FU_T_idx[i].T2_idx) && CDB_PR_out.T_idx[1] != `ZERO_PR) begin
+        PR_FU_out.T2_value[i] = CDB_PR_out.T_value[1];    // forwarding 2
+      end 
+      else begin
         PR_FU_out.T2_value[i] = pr[RS_PR_out.FU_T_idx[i].T2_idx];
       end
     end // for
