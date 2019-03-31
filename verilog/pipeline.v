@@ -418,5 +418,4 @@ module pipeline (
     .RS_PR_out(RS_PR_out)
   );
 
-  
 endmodule  // module verisimple
