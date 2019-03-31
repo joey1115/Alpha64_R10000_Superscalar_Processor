@@ -23,7 +23,7 @@ module pipeline (
   output logic        [31:0][$clog2(`NUM_PR)-1:0]        pipeline_ARCHMAP,
   output T_t          [31:0]                             pipeline_MAPTABLE,
   output CDB_entry_t  [`NUM_FU-1:0]                      pipeline_CDB,
-  output logic                                           complete_en,
+  output logic        [`NUM_SUPER-1:0]                   complete_en,
   output CDB_PR_OUT_t                                    CDB_PR_out,
   output logic                                           dispatch_en,
   output logic                                           ROB_valid,
@@ -58,7 +58,7 @@ module pipeline (
 `endif
   logic                                          write_en;
 `ifndef DEBUG
-  logic                                          complete_en;
+  logic                   [`NUM_SUPER-1:0]       complete_en;
 `endif
   logic                   [`NUM_FU-1:0]          CDB_valid;
   CDB_ROB_OUT_t                                  CDB_ROB_out;
