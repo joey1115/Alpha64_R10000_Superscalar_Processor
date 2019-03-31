@@ -87,9 +87,9 @@ typedef enum logic [2:0] {
 } FU_t;
 
 typedef struct packed {
-  logic        valid; // If low, the data in this struct is garbage
-  INST_t       inst;  // fetched instruction out
-  logic [63:0] NPC; // PC + 4 
+  logic                            valid; // If low, the data in this struct is garbage
+  INST_t [`NUM_SUPER-1:0]          inst;  // fetched instruction out
+  logic  [`NUM_SUPER-1:0][63:0]    NPC; // PC + 4 
 } F_DECODER_OUT_t;
 
 `define F_DECODER_OUT_RESET '{ \
@@ -105,30 +105,30 @@ typedef struct packed {
 } DECODER_PACKET_IN;
 
 typedef struct packed {
-  logic        halt;
-  logic [4:0]  dest_idx;
+  logic [`NUM_SUPER-1:0]       halt;
+  logic [`NUM_SUPER-1:0][4:0]  dest_idx;
 } DECODER_ROB_OUT_t;
 
 typedef struct packed {
-  FU_t                  FU;
-  INST_t                inst;  // fetched instruction out
-  ALU_FUNC              func;
-  logic          [63:0] NPC;  // fetched instruction out
-  logic          [4:0]  dest_idx;
-  ALU_OPA_SELECT        opa_select;  // fetched instruction out
-  ALU_OPB_SELECT        opb_select;
-  logic                 cond_branch;
-  logic                 uncond_branch;
+  FU_t           [`NUM_SUPER-1:0]       FU;
+  INST_t         [`NUM_SUPER-1:0]       inst;  // fetched instruction out
+  ALU_FUNC       [`NUM_SUPER-1:0]       func;
+  logic          [`NUM_SUPER-1:0][63:0] NPC;  // fetched instruction out
+  logic          [`NUM_SUPER-1:0][4:0]  dest_idx;
+  ALU_OPA_SELECT [`NUM_SUPER-1:0]       opa_select;  // fetched instruction out
+  ALU_OPB_SELECT [`NUM_SUPER-1:0]       opb_select;
+  logic          [`NUM_SUPER-1:0]       cond_branch;
+  logic          [`NUM_SUPER-1:0]       uncond_branch;
 } DECODER_RS_OUT_t;
 
 typedef struct packed {
-  logic          [4:0]  dest_idx;
+  logic          [`NUM_SUPER-1:0][4:0]  dest_idx;
 } DECODER_FL_OUT_t;
 
 typedef struct packed {
-  logic [4:0] dest_idx;
-  logic [4:0] rega_idx;
-  logic [4:0] regb_idx;
+  logic [`NUM_SUPER-1:0][4:0] dest_idx;
+  logic [`NUM_SUPER-1:0][4:0] rega_idx;
+  logic [`NUM_SUPER-1:0][4:0] regb_idx;
 } DECODER_MAP_TABLE_OUT_t;
 
 `endif

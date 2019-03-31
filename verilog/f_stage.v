@@ -22,37 +22,39 @@ module F_stage(
           input         Imem_valid,
 
           output logic [63:0] proc2Imem_addr, // Address sent to Instruction memory
-          output logic [63:0] if_NPC_out, // PC of instruction after fetched (PC+4).
-          output logic [31:0] if_IR_out, // fetched instruction out
-          output logic        if_valid_inst_out	    // when low, instruction is garbage
+          output logic [`NUM_SUPER-1:0][63:0] if_NPC_out, // PC of instruction after fetched (PC+4).
+          output logic [`NUM_SUPER-1:0][31:0] if_IR_out, // fetched instruction out
+          output logic if_valid_inst_out	    // when low, instruction is garbage
                );
 
   logic    [63:0] PC_reg;               // PC we are currently fetching
   // logic           ready_for_valid;
 
-  logic   [63:0] PC_plus_4;
+  logic   PC_plus_8;
   logic   [63:0] next_PC;
   logic          PC_enable;
-  // logic          next_ready_for_valid;
+  // logic          next_ready_for_valid  ;
 
   assign proc2Imem_addr = {PC_reg[63:3], 3'b0};
 
   // this mux is because the Imem gives us 64 bits not 32 bits
-  assign if_IR_out = PC_reg[2] ? Imem2proc_data[63:32] : Imem2proc_data[31:0];
+  assign if_IR_out[0] = Imem2proc_data[31:0];
+  assign if_IR_out[1] = Imem2proc_data[63:32];
 
   // default next PC value
-  assign PC_plus_4 = PC_reg + 4;
+  assign PC_plus_8 = PC_reg + (`NUM_SUPER*4);
 
   // next PC is target_pc if there is a taken branch or
   // the next sequential PC (PC+4) if no branch
   // (halting is handled with the enable PC_enable;
-  assign next_PC = take_branch_out ? take_branch_target : PC_plus_4;
+  assign next_PC = take_branch_out ? take_branch_target : PC_plus_8;
 
   // The take-branch signal must override stalling (otherwise it may be lost)
   assign PC_enable = (if_valid_inst_out && get_next_inst) || take_branch_out;
 
   // Pass PC+4 down pipeline w/instruction
-  assign if_NPC_out = PC_plus_4;
+  assign if_NPC_out[0] = PC_reg + 4;
+  assign if_NPC_out[1] = PC_plus_8;
 
   assign if_valid_inst_out = Imem_valid;
 

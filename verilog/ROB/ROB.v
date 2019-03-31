@@ -67,8 +67,8 @@ module ROB (
     // condition for Dispatch
     writeTail = (dispatch_en) 
                 && en 
-                && (!rob.entry[rob.tail].valid || retire_en) 
-                && !rollback_en;
+                && (!rob.entry[rob.tail].valid || retire_en[0])
+                && (!rob.entry[tail_plus_one].valid || retire_en[1]);
   end
 
   always_comb begin

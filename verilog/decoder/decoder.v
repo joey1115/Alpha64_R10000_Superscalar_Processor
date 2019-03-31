@@ -28,28 +28,96 @@ module decoder(
   output DECODER_RS_OUT_t        decoder_RS_out,
   output DECODER_FL_OUT_t        decoder_FL_out,
   output DECODER_MAP_TABLE_OUT_t decoder_Map_Table_out,
-  output logic                   illegal,
-  output logic                   halt
+  output logic                   illegal
 );
 
-  INST_t                inst;  // fetched instruction out
-  logic          [63:0] NPC;  // fetched instruction out
-  ALU_OPA_SELECT        opa_select;  // fetched instruction out
-  ALU_OPB_SELECT        opb_select;
-  logic                 rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
-  logic                 cpuid;     // get CPUID instruction
-  //logic                 illegal;   // non-zero on an illegal instruction
-  logic                 valid; // for counting valid instructions executed
-  logic          [4:0]  dest_idx;
-  FU_t                  FU;
-  ALU_FUNC              func;
-  logic          [4:0]  rega_idx;
-  logic          [4:0]  regb_idx;
+  INST_t         [`NUM_SUPER-1:0]       inst;  // fetched instruction out
+  logic          [`NUM_SUPER-1:0][63:0] NPC;  // fetched instruction out
+  ALU_OPA_SELECT [`NUM_SUPER-1:0]       opa_select;  // fetched instruction out
+  ALU_OPB_SELECT [`NUM_SUPER-1:0]       opb_select;
+  logic          [`NUM_SUPER-1:0]       rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch, halt;
+  logic          [`NUM_SUPER-1:0]       cpuid;     // get CPUID instruction
+  logic          [`NUM_SUPER-1:0]       internal_illegal;   // non-zero on an illegal instruction
+  logic          [`NUM_SUPER-1:0]       valid; // for counting valid instructions executed
+  logic          [`NUM_SUPER-1:0][4:0]  dest_idx;
+  FU_t           [`NUM_SUPER-1:0]       FU;
+  ALU_FUNC       [`NUM_SUPER-1:0]       func;
+  logic          [`NUM_SUPER-1:0][4:0]  rega_idx;
+  logic          [`NUM_SUPER-1:0][4:0]  regb_idx;
 
   assign decoder_ROB_out       = '{halt, dest_idx};
   assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch};
   assign decoder_FL_out        = '{dest_idx};
   assign decoder_Map_Table_out = '{dest_idx, rega_idx, regb_idx};
+  assign illegal               = internal_illegal[0] | internal_illegal[1];
+
+  inst_decoder inst_decoder_0 (.valid_in(F_decoder_out.valid),
+                              .inst_in(F_decoder_out.inst[0]),
+                              .NPC_in(F_decoder_out.NPC[0]),
+                              .inst(inst[0]),
+                              .NPC(NPC[0]),
+                              .opa_select(opa_select[0]),
+                              .opb_select(opb_select[0]),
+                              .rd_mem(rd_mem[0]),
+                              .wr_mem(wr_mem[0]),
+                              .ldl_mem(ldl_mem[0]),
+                              .stc_mem(stc_mem[0]),
+                              .cond_branch(cond_branch[0]),
+                              .uncond_branch(uncond_branch[0]),
+                              .cpuid(cpuid[0]),
+                              .valid(valid[0]),
+                              .dest_idx(dest_idx[0]),
+                              .FU(FU[0]),
+                              .func(func[0]),
+                              .rega_idx(rega_idx[0]),
+                              .regb_idx(regb_idx[0]),
+                              .illegal(internal_illegal[0]),
+                              .halt(halt[0]));
+
+  inst_decoder inst_decoder_1 (.valid_in(F_decoder_out.valid),
+                              .inst_in(F_decoder_out.inst[1]),
+                              .NPC_in(F_decoder_out.NPC[1]),
+                              .inst(inst[1]),
+                              .NPC(NPC[1]),
+                              .opa_select(opa_select[1]),
+                              .opb_select(opb_select[1]),
+                              .rd_mem(rd_mem[1]),
+                              .wr_mem(wr_mem[1]),
+                              .ldl_mem(ldl_mem[1]),
+                              .stc_mem(stc_mem[1]),
+                              .cond_branch(cond_branch[1]),
+                              .uncond_branch(uncond_branch[1]),
+                              .cpuid(cpuid[1]),
+                              .valid(valid[1]),
+                              .dest_idx(dest_idx[1]),
+                              .FU(FU[1]),
+                              .func(func[1]),
+                              .rega_idx(rega_idx[1]),
+                              .regb_idx(regb_idx[1]),
+                              .illegal(internal_illegal[1]),
+                              .halt(halt[1]));
+   
+endmodule // decoder
+
+module inst_decoder(
+  input  logic                          valid_in;
+  input  INST_t                         inst_in;
+  input  logic  [`NUM_SUPER-1:0][63:0]  NPC_in;
+  output INST_t                         inst;  // fetched instruction out
+  output logic                  [63:0]  NPC;  // fetched instruction out
+  output ALU_OPA_SELECT                 opa_select;  // fetched instruction out
+  output ALU_OPB_SELECT                 opb_select;
+  output logic                          rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
+  output logic                          cpuid;     // get CPUID instruction
+  output logic                          valid; // for counting valid instructions executed
+  output logic                  [4:0]   dest_idx;
+  output FU_t                           FU;
+  output ALU_FUNC                       func;
+  output logic                  [4:0]   rega_idx;
+  output logic                  [4:0]   regb_idx;
+  output logic                          illegal;
+  output logic                          halt;
+);
 
   always_comb begin
     inst          = `NOOP_INST;
@@ -71,19 +139,19 @@ module decoder(
     illegal       = `FALSE;
     rega_idx      = `ZERO_REG;
     regb_idx      = `ZERO_REG;
-    if(F_decoder_out.valid) begin
-      inst          = F_decoder_out.inst;
-      NPC           = F_decoder_out.NPC;
+    if(valid_in) begin
+      inst          = inst_in;
+      NPC           = NPC_in;
       valid = `TRUE;
-      case(F_decoder_out.inst.m.opcode)
+      case(inst_in.m.opcode)
         `PAL_INST: begin
-          case (F_decoder_out.inst.p.func)
+          case (inst_in.p.func)
             `PAL_HALT: begin
               halt = `TRUE;
             end
             `PAL_WHAMI: begin
               cpuid        = `TRUE;
-              dest_idx = F_decoder_out.inst.r.rega_idx;
+              dest_idx = inst_in.r.rega_idx;
             end
             default: begin
               illegal = `TRUE;
@@ -96,7 +164,7 @@ module decoder(
           opa_select   = ALU_OPA_IS_MEM_DISP;
           opb_select   = ALU_OPB_IS_REGB;
           func         = ALU_ADDQ;
-          dest_idx     = F_decoder_out.inst.r.rega_idx;
+          dest_idx     = inst_in.r.rega_idx;
           FU           = FU_LD;
         end
 
@@ -106,12 +174,12 @@ module decoder(
 
         `INTA_GRP: begin
           opa_select   = ALU_OPA_IS_REGA;
-          opb_select   = F_decoder_out.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
-          dest_idx     = F_decoder_out.inst.r.regc_idx;
+          opb_select   = inst_in.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          dest_idx     = inst_in.r.regc_idx;
           FU           = FU_ALU;
-          rega_idx     = F_decoder_out.inst.r.rega_idx;
-          regb_idx     = F_decoder_out.inst.i.IMM ? `ZERO_REG : F_decoder_out.inst.r.regb_idx;
-          case (F_decoder_out.inst.i.func)
+          rega_idx     = inst_in.r.rega_idx;
+          regb_idx     = inst_in.i.IMM ? `ZERO_REG : inst_in.r.regb_idx;
+          case (inst_in.i.func)
             `CMPULT_INST: func     = ALU_CMPULT;
             `ADDQ_INST:   func     = ALU_ADDQ;
             `SUBQ_INST:   func     = ALU_SUBQ;
@@ -123,17 +191,17 @@ module decoder(
               illegal = `TRUE;
               valid   = `FALSE;
             end
-          endcase // case(F_decoder_out.inst[11:5])
+          endcase // case(inst_in[11:5])
         end
 
         `INTL_GRP: begin
           opa_select   = ALU_OPA_IS_REGA;
-          opb_select   = F_decoder_out.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
-          dest_idx     = F_decoder_out.inst.r.regc_idx;
+          opb_select   = inst_in.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          dest_idx     = inst_in.r.regc_idx;
           FU           = FU_ALU;
-          rega_idx     = F_decoder_out.inst.r.rega_idx;
-          regb_idx     = F_decoder_out.inst.i.IMM ? `ZERO_REG : F_decoder_out.inst.r.regb_idx;
-          case (F_decoder_out.inst.i.func)
+          rega_idx     = inst_in.r.rega_idx;
+          regb_idx     = inst_in.i.IMM ? `ZERO_REG : inst_in.r.regb_idx;
+          case (inst_in.i.func)
             `AND_INST:   func     = ALU_AND;
             `BIC_INST:   func     = ALU_BIC;
             `BIS_INST:   func     = ALU_BIS;
@@ -144,17 +212,17 @@ module decoder(
               illegal = `TRUE;
               valid   = `FALSE;
             end
-          endcase // case(F_decoder_out.inst[11:5])
+          endcase // case(inst_in[11:5])
         end
 
         `INTS_GRP: begin
           opa_select   = ALU_OPA_IS_REGA;
-          opb_select   = F_decoder_out.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
-          dest_idx     = F_decoder_out.inst.r.regc_idx;
+          opb_select   = inst_in.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          dest_idx     = inst_in.r.regc_idx;
           FU           = FU_ALU;
-          rega_idx     = F_decoder_out.inst.r.rega_idx;
-          regb_idx     = F_decoder_out.inst.i.IMM ? `ZERO_REG : F_decoder_out.inst.r.regb_idx;
-          case (F_decoder_out.inst.i.func)
+          rega_idx     = inst_in.r.rega_idx;
+          regb_idx     = inst_in.i.IMM ? `ZERO_REG : inst_in.r.regb_idx;
+          case (inst_in.i.func)
             `SRL_INST: func     = ALU_SRL;
             `SLL_INST: func     = ALU_SLL;
             `SRA_INST: func     = ALU_SRA;
@@ -162,23 +230,23 @@ module decoder(
               illegal = `TRUE;
               valid   = `FALSE;
             end
-          endcase // case(F_decoder_out.inst[11:5])
+          endcase // case(inst_in[11:5])
         end
 
         `INTM_GRP: begin
           opa_select = ALU_OPA_IS_REGA;
-          opb_select = F_decoder_out.inst.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
-          dest_idx   = F_decoder_out.inst.r.regc_idx;
+          opb_select = inst_in.i.IMM ? ALU_OPB_IS_ALU_IMM : ALU_OPB_IS_REGB;
+          dest_idx   = inst_in.r.regc_idx;
           FU         = FU_MULT;
-          rega_idx   = F_decoder_out.inst.r.rega_idx;
-          regb_idx   = F_decoder_out.inst.i.IMM ? `ZERO_REG : F_decoder_out.inst.r.regb_idx;
-          case (F_decoder_out.inst.i.func)
+          rega_idx   = inst_in.r.rega_idx;
+          regb_idx   = inst_in.i.IMM ? `ZERO_REG : inst_in.r.regb_idx;
+          case (inst_in.i.func)
             `MULQ_INST: func     = ALU_MULQ;
             default: begin
               illegal = `TRUE;
               valid   = `FALSE;
             end
-          endcase // case(F_decoder_out.inst[11:5])
+          endcase // case(inst_in[11:5])
         end
 
         // `ITFP_GRP, `FLTV_GRP, `FLTI_GRP, `FLTL_GRP, `MISC_GRP, `FTPI_GRP: begin
@@ -189,11 +257,11 @@ module decoder(
           opa_select   = ALU_OPA_IS_MEM_DISP;
           opb_select   = ALU_OPB_IS_REGB;
           func         = ALU_ADDQ;
-          dest_idx     = F_decoder_out.inst.r.rega_idx;
+          dest_idx     = inst_in.r.rega_idx;
           rd_mem       = `TRUE;
           FU           = FU_LD;
           rega_idx     = `ZERO_REG;
-          regb_idx     = F_decoder_out.inst.r.regb_idx;
+          regb_idx     = inst_in.r.regb_idx;
         end // case: `LDQ_INST
 
         // `LDL_L_INST, `STL_INST, `STL_C_INST: begin
@@ -204,12 +272,12 @@ module decoder(
           opa_select   = ALU_OPA_IS_MEM_DISP;
           opb_select   = ALU_OPB_IS_REGB;
           func         = ALU_ADDQ;
-          dest_idx     = F_decoder_out.inst.r.rega_idx;
+          dest_idx     = inst_in.r.rega_idx;
           rd_mem       = `TRUE;
           ldl_mem      = `TRUE;
           FU           = FU_LD;
           rega_idx     = `ZERO_REG;
-          regb_idx     = F_decoder_out.inst.r.regb_idx;
+          regb_idx     = inst_in.r.regb_idx;
         end
 
         `STQ_INST: begin
@@ -220,23 +288,23 @@ module decoder(
           dest_idx     = `ZERO_REG;
           FU           = FU_ST;
           rega_idx     = `ZERO_REG;
-          regb_idx     = F_decoder_out.inst.r.regb_idx;
+          regb_idx     = inst_in.r.regb_idx;
         end
 
         `STQ_C_INST: begin
           opa_select   = ALU_OPA_IS_MEM_DISP;
           opb_select   = ALU_OPB_IS_REGB;
           func         = ALU_ADDQ;
-          dest_idx = F_decoder_out.inst.r.rega_idx;
+          dest_idx = inst_in.r.rega_idx;
           wr_mem       = `TRUE;
           stc_mem      = `TRUE;
           FU           = FU_ST;
           rega_idx     = `ZERO_REG;
-          regb_idx     = F_decoder_out.inst.r.regb_idx;
+          regb_idx     = inst_in.r.regb_idx;
         end
 
         `BR_INST, `BSR_INST: begin
-          dest_idx      = F_decoder_out.inst.r.rega_idx;
+          dest_idx      = inst_in.r.rega_idx;
           uncond_branch = `TRUE;
           opa_select    = ALU_OPA_IS_NPC;
           opb_select    = ALU_OPB_IS_BR_DISP;
@@ -254,7 +322,7 @@ module decoder(
           func        = ALU_ADDQ;
           cond_branch = `TRUE; // all others are conditional
           FU          = FU_BR;
-          rega_idx    = F_decoder_out.inst.r.rega_idx;
+          rega_idx    = inst_in.r.rega_idx;
           regb_idx    = `ZERO_REG;
         end
 
@@ -263,11 +331,11 @@ module decoder(
           opa_select    = ALU_OPA_IS_NOT3;
           opb_select    = ALU_OPB_IS_REGB;
           func          = ALU_AND; // clear low 2 bits (word-align)
-          dest_idx      = F_decoder_out.inst.r.rega_idx;
+          dest_idx      = inst_in.r.rega_idx;
           uncond_branch = `TRUE;
           FU            = FU_BR;
           rega_idx      = `ZERO_REG;
-          regb_idx      = F_decoder_out.inst.r.regb_idx;
+          regb_idx      = inst_in.r.regb_idx;
         end
 
         default: begin
@@ -276,7 +344,7 @@ module decoder(
         end
 
       endcase
-    end // if(~F_decoder_out.valid)
+    end // if(~valid_in)
   end // always
    
-endmodule // decoder
+endmodule // inst_decoder

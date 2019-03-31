@@ -45,7 +45,7 @@ module pipeline (
   output logic [3:0]  pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
-  logic                                          en, F_decoder_en, illegal, if_valid_inst_out, halt;
+  logic                                          en, F_decoder_en, illegal, if_valid_inst_out;
 `ifndef DEBUG
   logic                                          dispatch_en;
   logic       [`NUM_PR-1:0][63:0]                pipeline_PR;
@@ -121,8 +121,8 @@ module pipeline (
   logic [63:0] Icache_data_out, proc2Icache_addr;
   logic        Icache_valid_out;
   logic [3:0]  Imem2proc_response;
-  logic [63:0] if_NPC_out;
-  logic [31:0] if_IR_out;
+  logic [`NUM_SUPER-1:0][63:0] if_NPC_out;
+  logic [`NUM_SUPER-1:0][31:0] if_IR_out;
   logic fetch_en;
 
   logic [3:0] num_inst;
@@ -156,6 +156,7 @@ module pipeline (
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = num_inst;
   assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
+                                    illegal  ? HALTED_ON_ILLEGAL:
                                                NO_ERROR;
   assign proc2Dmem_command = BUS_NONE;
   assign proc2Dmem_addr = 0;
@@ -284,8 +285,7 @@ module pipeline (
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
     .decoder_Map_Table_out(decoder_Map_Table_out),
-    .illegal(illegal),
-    .halt(halt)
+    .illegal(illegal)
   );
 
   FL fl_0 (
