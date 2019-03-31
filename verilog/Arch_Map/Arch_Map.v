@@ -4,7 +4,7 @@
 
 module Arch_Map (
   input  logic                                          en, clock, reset,
-  input  logic                                          retire_en,    // retire signal from ROB
+  input  logic              [`NUM_SUPER-1:0]            retire_en,    // retire signal from ROB
 `ifndef DEBUG
   input  ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out
 `else
@@ -20,9 +20,11 @@ module Arch_Map (
 
   always_comb begin
     next_arch_map = arch_map;
-    if (retire_en) begin
-      next_arch_map[ROB_Arch_Map_out.dest_idx] = ROB_Arch_Map_out.T_idx;
-    end // if(rob_archmap_packet.retire_en && en)
+    for(int i = 0; i < `NUM_SUPER; i++) begin
+      if (retire_en[i]) begin
+        next_arch_map[ROB_Arch_Map_out.dest_idx[i]] = ROB_Arch_Map_out.T_idx[i];
+      end
+    end
   end // always
 
   always_ff @(posedge clock) begin

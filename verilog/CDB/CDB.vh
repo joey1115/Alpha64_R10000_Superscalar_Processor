@@ -37,8 +37,8 @@ typedef struct packed {
 } CDB_MAP_TABLE_OUT_t;
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] T_idx;        // broadcast from CDB
-  logic [63:0]                T_value;     // broadcast from CDB
+  logic [`NUM_SUPER][$clog2(`NUM_PR)-1:0] T_idx;        // broadcast from CDB
+  logic [`NUM_SUPER][63:0]                T_value;     // broadcast from CDB
 } CDB_PR_OUT_t;
 
 `endif

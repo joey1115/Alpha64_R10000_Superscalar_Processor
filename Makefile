@@ -32,7 +32,7 @@ LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 SYNTH_DIR = ./synth
 
-PROGRAM = test_progs/evens.s
+PROGRAM = test_progs/retire2way.s
 ASSEMBLED = program.mem
 ASSEMBLER = vs-asm
 
@@ -100,14 +100,14 @@ sim:	simv $(ASSEMBLED)
 	./simv | tee sim_program.out
 
 simv:	$(HEADERS) $(SIMFILES) $(TESTBENCH)
-	$(VCS) $^ -o simv
+	$(VCS) $^ +define+DEBUG -o simv
 
 .PHONY: sim
 
 # Programs
 
 $(ASSEMBLED):	$(PROGRAM)
-	./$(ASSEMBLER) < $< > $@
+	./$(ASSEMBLER) < $(PROGRAM) > $(ASSEMBLED)
 
 # Synthesis
 
@@ -122,7 +122,7 @@ syn:	syn_simv $(ASSEMBLED)
 	./syn_simv | tee syn_program.out
 
 syn_simv:	$(HEADERS) $(SYNFILES) $(TESTBENCH)
-	$(VCS) $^ $(LIB) +define+SYNTH_TEST -o syn_simv 
+	$(VCS) $^ $(LIB) +define+SYNTH_TEST -o syn_simv
 
 .PHONY: syn
 

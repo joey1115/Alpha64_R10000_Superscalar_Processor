@@ -12,7 +12,7 @@ module pipeline (
   output logic        [31:0][$clog2(`NUM_PR)-1:0]        pipeline_ARCHMAP,
   output T_t          [31:0]                             pipeline_MAPTABLE,
   output CDB_entry_t  [`NUM_FU-1:0]                      pipeline_CDB,
-  output logic                                           complete_en,
+  output logic        [`NUM_SUPER-1:0]                   complete_en,
   output CDB_PR_OUT_t                                    CDB_PR_out,
   output logic                                           dispatch_en,
   output logic                                           ROB_valid,
@@ -34,7 +34,7 @@ module pipeline (
   output logic [3:0]  pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
-  logic                                          en, F_decoder_en, illegal, if_valid_inst_out, halt;
+  logic                                          en, F_decoder_en, illegal, if_valid_inst_out;
 `ifndef DEBUG
   logic                                          dispatch_en;
   logic       [`NUM_PR-1:0][63:0]                pipeline_PR;
@@ -47,7 +47,7 @@ module pipeline (
 `endif
   logic                                          write_en;
 `ifndef DEBUG
-  logic                                          complete_en;
+  logic                   [`NUM_SUPER-1:0]       complete_en;
 `endif
   logic                   [`NUM_FU-1:0]          CDB_valid;
   CDB_ROB_OUT_t                                  CDB_ROB_out;
@@ -82,7 +82,7 @@ module pipeline (
 `ifndef DEBUG
   logic                                          ROB_valid;
 `endif
-  logic                                          retire_en;
+  logic                   [`NUM_SUPER-1:0]       retire_en;
   logic                                          halt_out;
   logic                   [$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
@@ -109,9 +109,11 @@ module pipeline (
   logic [63:0] Icache_data_out, proc2Icache_addr;
   logic        Icache_valid_out;
   logic [3:0]  Imem2proc_response;
-  logic [63:0] if_NPC_out;
-  logic [31:0] if_IR_out;
+  logic [`NUM_SUPER-1:0][63:0] if_NPC_out;
+  logic [`NUM_SUPER-1:0][31:0] if_IR_out;
   logic fetch_en;
+
+  logic [3:0] num_inst;
 `ifdef DEBUG
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_head;
@@ -140,8 +142,9 @@ module pipeline (
   assign dispatch_en  = fetch_en && F_decoder_out.valid;
   assign F_decoder_en = fetch_en;
   //assign when an instruction retires/completed
-  assign pipeline_completed_insts = {3'b0, retire_en};
+  assign pipeline_completed_insts = num_inst;
   assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
+                                    illegal  ? HALTED_ON_ILLEGAL:
                                                NO_ERROR;
   assign proc2Dmem_command = BUS_NONE;
   assign proc2Dmem_addr = 0;
@@ -153,7 +156,15 @@ module pipeline (
   // assign Dmem2proc_response = 
   //   (proc2Dmem_command==`BUS_NONE) ? 0 : mem2proc_response;
   assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
-
+`define DEBUG
+  always_comb begin
+    case(retire_en)
+      2'b00: num_inst = 0;
+      2'b01, 2'b10: num_inst = 1;
+      2'b11: num_inst = 2;
+    endcase
+  end
+`endif
    // Actual cache (data and tag RAMs)
   cache cachememory (
     // inputs
@@ -263,8 +274,7 @@ module pipeline (
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
     .decoder_Map_Table_out(decoder_Map_Table_out),
-    .illegal(illegal),
-    .halt(halt)
+    .illegal(illegal)
   );
 
   FL fl_0 (

@@ -20,8 +20,10 @@ module PR (
   always_comb begin
     next_pr = pr;
     // Complete
-    if (write_en && CDB_PR_out.T_idx != `ZERO_PR) begin
-      next_pr[CDB_PR_out.T_idx] = CDB_PR_out.T_value;
+    for(int i = 0; i < `NUM_SUPER; i++) begin
+      if (write_en[i] && CDB_PR_out.T_idx[i] != `ZERO_PR) begin
+        next_pr[CDB_PR_out.T_idx[i]] = CDB_PR_out.T_value[i];
+      end
     end
   end
 
