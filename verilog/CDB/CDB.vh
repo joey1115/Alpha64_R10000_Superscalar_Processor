@@ -24,21 +24,21 @@ typedef struct packed {
 `define CDB_RESET '{`NUM_FU{`CDB_RENTRY_RESET}}
 
 typedef struct packed {
-  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;         // tag to PR
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;         // tag to PR
 } CDB_ROB_OUT_t;
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] T_idx;         // tag to PR
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;         // tag to PR
 } CDB_RS_OUT_t;
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] T_idx;        // broadcast from CDB
-  logic [4:0]                 dest_idx;     // broadcast from CDB
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;        // broadcast from CDB
+  logic [`NUM_SUPER-1:0][4:0]                 dest_idx;     // broadcast from CDB
 } CDB_MAP_TABLE_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER][$clog2(`NUM_PR)-1:0] T_idx;        // broadcast from CDB
-  logic [`NUM_SUPER][63:0]                T_value;     // broadcast from CDB
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;        // broadcast from CDB
+  logic [`NUM_SUPER-1:0][63:0]                T_value;     // broadcast from CDB
 } CDB_PR_OUT_t;
 
 `endif

@@ -44,19 +44,19 @@ module CDB (
 `ifndef DEBUG
   CDB_entry_t [`NUM_FU-1:0]                       CDB;
 `endif
-  CDB_entry_t [`NUM_FU-1:0]                       next_CDB;
-  logic       [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
-  logic       [`NUM_FU-1:0]                       rollback_valid;
-  logic       [`NUM_FU-1:0]                       CDB_empty;
-  logic                                           complete_hit;
-  logic                    [$clog2(`NUM_FU)-1:0]  complete_idx;
-  logic                    [$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
-  logic                    [4:0]                  dest_idx;      // to map_table
-  logic                    [63:0]                 T_value;       // result to PR
-  logic                    [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  CDB_entry_t [`NUM_FU-1:0]                          next_CDB;
+  logic       [`NUM_FU-1:0]   [$clog2(`NUM_ROB)-1:0] diff;
+  logic       [`NUM_FU-1:0]                          rollback_valid;
+  logic       [`NUM_FU-1:0]                          CDB_empty;
+  logic       [`NUM_SUPER-1:0]                       complete_hit;
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]  complete_idx;
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0]  T_idx;         // tag to PR
+  logic       [`NUM_SUPER-1:0][4:0]                  dest_idx;      // to map_table
+  logic       [`NUM_SUPER-1:0][63:0]                 T_value;       // result to PR
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
 
-  logic                    [$clog2(`NUM_FU)-1:0]  CDB_index;
-  logic                    [`NUM_FU-1:0]          CDB_taken,CDB_sel;
+  logic                       [$clog2(`NUM_FU)-1:0]  CDB_index;
+  logic                       [`NUM_FU-1:0]          CDB_taken;
 
 
   assign CDB_ROB_out       = '{ROB_idx};
@@ -100,10 +100,60 @@ module CDB (
     for (int i=0; i<`NUM_FU; i++)begin
       CDB_empty[i] = rollback_valid[i] || !CDB[i].taken;
     end
-    if (complete_hit) begin
-      CDB_empty[complete_idx] = `TRUE;
+    for (int i=0; i<`NUM_SUPER; i++) begin
+      if (complete_hit[i]) begin
+        CDB_empty[complete_idx[i]] = `TRUE;
+      end
     end
   end
+
+  always_comb begin
+    complete_hit = {`NUM_SUPER{`FALSE}};
+    complete_idx = 0;
+    // broadcast one completed instruction (if one is found) for first half of FU
+    for (int i=0; i<`NUM_FU; i=i+2) begin
+      if (CDB[i].taken) begin
+        complete_hit[0] = `TRUE;
+        complete_idx[0] = i;
+        break;
+      end // if
+    end // for
+    // broadcast one completed instruction (if one is found) for second half of FU
+    for (int j=1; j<`NUM_FU; j=j+2) begin
+      if (CDB[j].taken) begin
+        complete_hit[1] = `TRUE;
+        complete_idx[1] = j;
+        break;
+      end // if
+    end // for
+  end // always_comb
+
+  always_comb begin
+    for (int i=0; i<`NUM_SUPER; i++)begin
+      T_idx[i]        = `ZERO_PR;
+      dest_idx[i]     = `ZERO_REG;
+      T_value[i]      = 64'hbaadbeefdeadbeef;
+      ROB_idx[i]      = 0;
+      if (complete_hit[i]) begin
+        T_idx[i]        = CDB[complete_idx[i]].T_idx;
+        dest_idx[i]     = CDB[complete_idx[i]].dest_idx;
+        T_value[i]      = CDB[complete_idx[i]].T_value;
+        ROB_idx[i]      = CDB[complete_idx[i]].ROB_idx;
+      end // if
+    end
+  end // always_comb
+
+  always_ff @(posedge clock) begin
+    if (reset) begin
+      CDB <= `SD `CDB_RESET;
+    end else if (en) begin
+      CDB <= `SD next_CDB;
+    end
+  end // always_ff
+
+endmodule
+
+
 
   // always_comb begin
   //   for (int i=0; i<`NUM_FU; i++)begin
@@ -135,141 +185,17 @@ module CDB (
   //     end // if
   //   end // for
   // end // always_comb
-  always_comb begin
-    for(int i=0; i < `NUM_FU; i++)begin
-      CDB_taken[i] = CDB[i].taken;
-    end
-  end
-
-  always_comb begin
-    T_idx        = CDB[CDB_index].T_idx;
-    dest_idx     = CDB[CDB_index].dest_idx;
-    T_value      = CDB[CDB_index].T_value;
-    ROB_idx      = CDB[CDB_index].ROB_idx;
-    complete_hit = (CDB_sel != 0);
-    complete_idx = CDB_index;
-  end // always_comb
-
-  ps sel (.req(CDB_taken), .en(en), .gnt(CDB_sel));
-
-  pe encode (.gnt(CDB_sel), .enc(CDB_index));
-
+  // always_comb begin
+  //   for(int i=0; i < `NUM_FU; i++)begin
+  //     CDB_taken[i] = CDB[i].taken;
+  //   end
+  // end
 
   // always_comb begin
-  //   complete_hit = `FALSE;
-  //   complete_idx = 0;
-  //   // broadcast one completed instruction (if one is found)
-  //   for (int i=0; i<`NUM_FU; i++) begin
-  //     if (CDB[i].taken) begin
-  //       complete_hit = `TRUE;
-  //       complete_idx = i;
-  //       break;
-  //     end // if
-  //   end // for
+  //   T_idx        = CDB[CDB_index].T_idx;
+  //   dest_idx     = CDB[CDB_index].dest_idx;
+  //   T_value      = CDB[CDB_index].T_value;
+  //   ROB_idx      = CDB[CDB_index].ROB_idx;
+  //   complete_hit = (CDB_sel != 0);
+  //   complete_idx = CDB_index;
   // end // always_comb
-
-  // always_comb begin
-  //   T_idx        = `ZERO_PR;
-  //   dest_idx     = `ZERO_REG;
-  //   T_value      = 64'hbaadbeefdeadbeef;
-  //   ROB_idx      = 0;
-  //   if (complete_hit) begin
-  //     T_idx        = CDB[complete_idx].T_idx;
-  //     dest_idx     = CDB[complete_idx].dest_idx;
-  //     T_value      = CDB[complete_idx].T_value;
-  //     ROB_idx      = CDB[complete_idx].ROB_idx;
-  //   end // if
-  // end // always_comb
-
-  always_ff @(posedge clock) begin
-    if (reset) begin
-      CDB <= `SD `CDB_RESET;
-    end else if (en) begin
-      CDB <= `SD next_CDB;
-    end
-  end // always_ff
-endmodule
-
-
-module ps (req, en, gnt, req_up);
-  //synopsys template
-  parameter NUM_BITS = `NUM_FU;
-  
-    input  [NUM_BITS-1:0] req;
-    input                 en;
-  
-    output [NUM_BITS-1:0] gnt;
-    output                req_up;
-          
-    wire   [NUM_BITS-2:0] req_ups;
-    wire   [NUM_BITS-2:0] enables;
-          
-    assign req_up = req_ups[NUM_BITS-2];
-    assign enables[NUM_BITS-2] = en;
-          
-    genvar i,j;
-    generate
-      if ( NUM_BITS == 2 )
-      begin
-        ps2 single (.req(req),.en(en),.gnt(gnt),.req_up(req_up));
-      end
-      else
-      begin
-        for(i=0;i<NUM_BITS/2;i=i+1)
-        begin : foo
-          ps2 base ( .req(req[2*i+1:2*i]),
-                     .en(enables[i]),
-                     .gnt(gnt[2*i+1:2*i]),
-                     .req_up(req_ups[i])
-          );
-        end
-  
-        for(j=NUM_BITS/2;j<=NUM_BITS-2;j=j+1)
-        begin : bar
-          ps2 top ( .req(req_ups[2*j-NUM_BITS+1:2*j-NUM_BITS]),
-                    .en(enables[j]),
-                    .gnt(enables[2*j-NUM_BITS+1:2*j-NUM_BITS]),
-                    .req_up(req_ups[j])
-          );
-        end
-      end
-    endgenerate
-  endmodule
-  
-module ps2(req, en, gnt, req_up);
-
-  input     [1:0] req;
-  input           en;
-  
-  output    [1:0] gnt;
-  output          req_up;
-  
-  assign gnt[1] = en & req[1];
-  assign gnt[0] = en & req[0] & !req[1];
-  
-  assign req_up = req[1] | req[0];
-
-endmodule
-
-module pe(gnt,enc);
-  //synopsys template
-  parameter OUT_WIDTH=3;
-  parameter IN_WIDTH=1<<OUT_WIDTH;
-
-  input   [IN_WIDTH-1:0] gnt;
-
-  output [OUT_WIDTH-1:0] enc;
-      wor    [OUT_WIDTH-1:0] enc;
-      
-      genvar i,j;
-      generate
-        for(i=0;i<OUT_WIDTH;i=i+1)
-        begin : foo
-          for(j=1;j<IN_WIDTH;j=j+1)
-          begin : bar
-            if (j[i])
-              assign enc[i] = gnt[j];
-          end
-        end
-      endgenerate
-endmodule
