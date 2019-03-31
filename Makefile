@@ -32,7 +32,7 @@ LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 SYNTH_DIR = ./synth
 
-PROGRAM = test_progs/mult_no_lsq.s
+PROGRAM = test_progs/retire2way.s
 ASSEMBLED = program.mem
 ASSEMBLER = vs-asm
 

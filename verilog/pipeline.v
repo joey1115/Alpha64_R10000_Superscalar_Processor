@@ -93,7 +93,7 @@ module pipeline (
 `ifndef DEBUG
   logic                                          ROB_valid;
 `endif
-  logic                                          retire_en;
+  logic                   [`NUM_SUPER-1:0]       retire_en;
   logic                                          halt_out;
   logic                   [$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
@@ -124,6 +124,8 @@ module pipeline (
   logic [63:0] if_NPC_out;
   logic [31:0] if_IR_out;
   logic fetch_en;
+
+  logic [3:0] num_inst;
 `ifdef DEBUG
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_head;
@@ -152,7 +154,7 @@ module pipeline (
   assign dispatch_en  = fetch_en && F_decoder_out.valid;
   assign F_decoder_en = fetch_en;
   //assign when an instruction retires/completed
-  assign pipeline_completed_insts = {3'b0, retire_en};
+  assign pipeline_completed_insts = num_inst;
   assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
                                                NO_ERROR;
   assign proc2Dmem_command = BUS_NONE;
@@ -166,6 +168,12 @@ module pipeline (
   // assign Dmem2proc_response = 
   //   (proc2Dmem_command==`BUS_NONE) ? 0 : mem2proc_response;
   assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
+
+  always_comb begin
+    num_inst = 0;  //initialize count variable.
+    for(int i = 0; i < `NUM_SUPER; i++)   //for all the bits.
+      num_inst = num_inst + retire_en[i]; //Add the bit to the count.
+  end
 
    // Actual cache (data and tag RAMs)
   cache cachememory (

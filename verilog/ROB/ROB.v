@@ -16,7 +16,7 @@ module ROB (
   output ROB_t                                      rob,
 `endif
   output logic                                      ROB_valid,
-  output logic                                      retire_en,
+  output logic               [`NUM_SUPER-1:0]       retire_en,
   output logic                                      halt_out,
   output logic               [$clog2(`NUM_ROB)-1:0] ROB_idx,
   output ROB_ARCH_MAP_OUT_t                         ROB_Arch_Map_out,
@@ -34,15 +34,18 @@ module ROB (
   logic [1:0] state, Nstate;
   logic [$clog2(`NUM_ROB)-1:0] tail_plus_one;
   logic [$clog2(`NUM_ROB)-1:0] tail_minus_one;
+  logic [$clog2(`NUM_ROB)-1:0] head_plus_one;
 
-  assign ROB_Arch_Map_out = '{rob.entry[rob.head].T_idx, rob.entry[rob.head].dest_idx};
-  assign ROB_FL_out       = '{rob.entry[rob.head].Told_idx};
+  assign ROB_Arch_Map_out.T_idx = '{rob.entry[head_plus_one].T_idx, rob.entry[rob.head].T_idx};
+  assign ROB_Arch_Map_out.dest_idx = '{rob.entry[head_plus_one].dest_idx, rob.entry[rob.head].dest_idx};
+  assign ROB_FL_out.Told_idx = '{rob.entry[head_plus_one].Told_idx, rob.entry[rob.head].Told_idx};
 
   //assign ROB_valid
   assign stall_dispatch = (state == 1);
   //!Nrob.entry[Nrob.tail].valid
-  assign tail_plus_one = rob.tail+1;
+  assign tail_plus_one = rob.tail + 1;
   assign tail_minus_one = rob.tail - 1;
+  assign head_plus_one = rob.head + 1;
   
   assign ROB_valid = (stall_dispatch | rollback_en)? 0 : !rob.entry[rob.tail].valid;
   
@@ -55,12 +58,12 @@ module ROB (
   assign ROB_idx = Nrob.tail - 1;
 
   always_comb begin
-    retire_en = rob.entry[rob.head].complete & rob.entry[rob.head].valid;
+    retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid;
+    retire_en[1] = rob.entry[head_plus_one].complete & rob.entry[head_plus_one].valid & retire_en[0];
 
     // condition for Retire
-    moveHead = (retire_en) 
-                && en 
-                && rob.entry[rob.head].valid;
+    moveHead = (retire_en[0]) 
+                && en;
     // condition for Dispatch
     writeTail = (dispatch_en) 
                 && en 
@@ -77,8 +80,10 @@ module ROB (
     end
     
     //Next state logic
-    Nrob.tail = (writeTail) ? (rob.tail + 1) : Nrob.tail;
-    Nrob.head = (moveHead) ? (rob.head + 1) : Nrob.head;
+    Nrob.tail = (writeTail) ? tail_plus_one : Nrob.tail;
+    Nrob.head = (moveHead & retire_en[1]) ? (rob.head + `NUM_SUPER) :
+                (moveHead)                ? (head_plus_one)         :
+                                            Nrob.head;
     Nrob.entry[rob.tail].T_idx = (writeTail) ? FL_ROB_out.T_idx : Nrob.entry[rob.tail].T_idx;
     Nrob.entry[rob.tail].Told_idx = (writeTail) ? Map_Table_ROB_out.Told_idx : Nrob.entry[rob.tail].Told_idx;
     Nrob.entry[rob.tail].dest_idx = (writeTail) ? decoder_ROB_out.dest_idx : Nrob.entry[rob.tail].dest_idx;
@@ -89,6 +94,7 @@ module ROB (
     //update valid and complete bits of entry
     if(rob.head != rob.tail) begin
       Nrob.entry[rob.head].valid = (moveHead) ? 0 : Nrob.entry[rob.head].valid;
+      Nrob.entry[head_plus_one].valid = (moveHead & retire_en[1]) ? 0 : Nrob.entry[head_plus_one].valid;
       // Nrob.entry[rob.head].complete = (moveHead) ? 0 : Nrob.entry[rob.head].complete;
       Nrob.entry[rob.tail].valid = (writeTail) ? 1 : Nrob.entry[rob.tail].valid;
       Nrob.entry[rob.tail].complete = (writeTail) ? 0 : Nrob.entry[rob.tail].complete;
@@ -96,6 +102,7 @@ module ROB (
     else begin
       Nrob.entry[rob.tail].valid = (writeTail) ? 1 :
                                     (moveHead) ? 0 : Nrob.entry[rob.head].valid;
+      Nrob.entry[head_plus_one].valid = (moveHead & retire_en[1]) ? 0 : Nrob.entry[head_plus_one].valid;
       Nrob.entry[rob.tail].complete = (writeTail) ? 0 : Nrob.entry[rob.head].complete;
     end
 
