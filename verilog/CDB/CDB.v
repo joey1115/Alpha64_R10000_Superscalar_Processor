@@ -29,7 +29,7 @@ module CDB (
   input  logic               [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,   // ROB# of mispredicted branch/incorrect load from br module/LSQ
   input  logic               [$clog2(`NUM_ROB)-1:0] diff_ROB,           // diff_ROB = ROB_tail of the current cycle - ROB_rollback_idx
   input  FU_CDB_OUT_t                               FU_CDB_out,          // done,T_idx,ROB_idx,dest_idx,result from FU
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   output CDB_entry_t         [`NUM_FU-1:0]          CDB,
 `endif
   output logic                                      write_en,
@@ -41,7 +41,7 @@ module CDB (
   output CDB_PR_OUT_t                               CDB_PR_out
 );
 
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   CDB_entry_t [`NUM_FU-1:0]                       CDB;
 `endif
   CDB_entry_t [`NUM_FU-1:0]                       next_CDB;
@@ -83,9 +83,17 @@ module CDB (
   end
 
   always_comb begin
+    rollback_valid = {`NUM_FU{`FALSE}};
+    if (rollback_en) begin
+      for (int i=0; i<`NUM_FU; i++)begin
+        diff[i] = CDB[i].ROB_idx - ROB_rollback_idx;
+        rollback_valid[i] = diff_ROB >= diff[i];
+      end
+    end
+  end
+
+  always_comb begin
     for (int i=0; i<`NUM_FU; i++)begin
-      diff[i] = CDB[i].ROB_idx - ROB_rollback_idx;
-      rollback_valid[i] = diff_ROB >= diff[i] && rollback_en;
       CDB_empty[i] = rollback_valid[i] || !CDB[i].taken;
     end
     if (complete_hit) begin
@@ -93,35 +101,30 @@ module CDB (
     end
   end
 
-  // always_comb begin
-  //   for (int i=0; i<`NUM_FU; i++)begin
-  //     CDB_valid[i] = !CDB[i].taken;
-  //   end
-  //   if (complete_hit) begin
-  //     CDB_valid[complete_idx] = `TRUE;
-  //   end
-  // end
+  always_comb begin
+    complete_hit = `FALSE;
+    complete_idx = 0;
+    // broadcast one completed instruction (if one is found)
+    for (int i=0; i<`NUM_FU; i++) begin
+      if (CDB[i].taken) begin
+        complete_hit = `TRUE;
+        complete_idx = i;
+        break;
+      end // if
+    end // for
+  end // always_comb
 
   always_comb begin
     T_idx        = `ZERO_PR;
     dest_idx     = `ZERO_REG;
     T_value      = 64'hbaadbeefdeadbeef;
     ROB_idx      = 0;
-    complete_hit = `FALSE;
-    complete_idx = 0;
-    // broadcast one completed instruction (if one is found)
-    for (int i=0; i<`NUM_FU; i++) begin
-      // if ((next_CDB[i].taken && `FU_LIST[i] != FU_LD) || (next_CDB[i].taken && `FU_LIST[i] == FU_LD && next_CDB[i].ROB_idx == ROB_head_idx))  begin
-      if (CDB[i].taken) begin
-        T_idx        = CDB[i].T_idx;
-        dest_idx     = CDB[i].dest_idx;
-        T_value      = CDB[i].T_value;
-        ROB_idx      = CDB[i].ROB_idx;
-        complete_hit = `TRUE;
-        complete_idx = i;
-        break;
-      end // if
-    end // for
+    if (complete_hit) begin
+      T_idx        = CDB[complete_idx].T_idx;
+      dest_idx     = CDB[complete_idx].dest_idx;
+      T_value      = CDB[complete_idx].T_value;
+      ROB_idx      = CDB[complete_idx].ROB_idx;
+    end // if
   end // always_comb
 
   always_ff @(posedge clock) begin

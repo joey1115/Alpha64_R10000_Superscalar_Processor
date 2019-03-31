@@ -80,7 +80,7 @@ module testbench;
     .mem2proc_response (mem2proc_response),
     .mem2proc_data     (mem2proc_data),
     .mem2proc_tag      (mem2proc_tag),
-`ifndef SYNTH_TEST
+`ifdef DEBUG
     //needed to tell if inst is completed added to inst count
     .pipeline_ROB(pipeline_ROB),
     .pipeline_RS(pipeline_RS),
@@ -106,7 +106,6 @@ module testbench;
     .proc2mem_addr     (proc2mem_addr),
     .proc2mem_data     (proc2mem_data)
   );
-
 
   // Instantiate the Data Memory
   mem memory (

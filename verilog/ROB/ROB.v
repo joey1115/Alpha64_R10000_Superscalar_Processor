@@ -12,7 +12,7 @@ module ROB (
   input  MAP_TABLE_ROB_OUT_t                        Map_Table_ROB_out,
   input  CDB_ROB_OUT_t                              CDB_ROB_out,
   //Outputs
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   output ROB_t                                      rob,
 `endif
   output logic                                      ROB_valid,
@@ -23,7 +23,7 @@ module ROB (
   output ROB_FL_OUT_t                               ROB_FL_out
 );
 
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   ROB_t rob;
 `endif
 
@@ -51,7 +51,6 @@ module ROB (
   //assign ROB_valid = tail_plus_one!=rob.head;
   //assign halt out
   assign halt_out = retire_en & rob.entry[rob.head].halt;
-
   assign ROB_idx = Nrob.tail - 1;
 
   always_comb begin

@@ -10,7 +10,7 @@ module RS (
   input  FL_RS_OUT_t                               FL_RS_out,
   input  MAP_TABLE_RS_OUT_t                        Map_Table_RS_out,
   input  CDB_RS_OUT_t                              CDB_RS_out,
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   output RS_ENTRY_t         [`NUM_FU-1:0]          RS_out,
   output logic              [`NUM_FU-1:0]          RS_match_hit,   // If a RS entry is ready
   output logic              [$clog2(`NUM_FU)-1:0]  RS_match_idx,
@@ -28,12 +28,11 @@ module RS (
   logic          [`NUM_FU-1:0]                       T2_CDB;         // If T2 is complete
   logic          [`NUM_FU-1:0]                       T1_ready;       // If T1 is ready
   logic          [`NUM_FU-1:0]                       T2_ready;       // If T2 is ready
-  logic          [`NUM_FU-1:0]                       RS_entry_ready; // If a RS entry is ready
-  logic          [`NUM_FU-1:0]                       RS_entry_empty; // If a RS entry is ready
+  logic          [`NUM_FU-1:0]                       RS_entry_ready;       // If T2 is ready
   logic          [`NUM_FU-1:0]                       RS_rollback;    // If a RS entry is ready
   logic          [`NUM_FU-1:0]                       FU_entry_match;
   logic          [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0] diff;
-`ifdef SYNTH_TEST
+`ifndef DEBUG
   logic                                              RS_match_hit;   // If a RS entry is ready
   logic          [$clog2(`NUM_FU)-1:0]               RS_match_idx;
 `endif
@@ -41,8 +40,7 @@ module RS (
   assign RS_FU_out = '{FU_packet};
   assign RS_PR_out = '{FU_T_idx};
   assign RS_valid  = RS_match_hit;
-
-`ifndef SYNTH_TEST
+`ifdef DEBUG
   assign RS_out = RS;
 `endif
 
@@ -60,12 +58,21 @@ module RS (
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
-      T1_CDB[i]         = RS[i].T1.idx == CDB_RS_out.T_idx && CDB_RS_out.T_idx != `ZERO_PR && complete_en; // T1 is complete
-      T2_CDB[i]         = RS[i].T2.idx == CDB_RS_out.T_idx && CDB_RS_out.T_idx != `ZERO_PR && complete_en; // T2 is complete
-      T1_ready[i]       = RS[i].T1.ready || T1_CDB[i];                     // T1 is ready or updated by CDB
-      T2_ready[i]       = RS[i].T2.ready || T2_CDB[i];                     // T2 is ready or updated by CDB
-      RS_entry_ready[i] = T1_ready[i] && T2_ready[i];                      // T1 and T2 are ready to issue
-      RS_entry_empty[i] = RS_entry_ready[i] && FU_valid[i];                // Entry is going to be empty
+      T1_CDB[i]   = RS[i].T1.idx == CDB_RS_out.T_idx && CDB_RS_out.T_idx != `ZERO_PR && complete_en; // T1 is complete
+      T1_ready[i] = RS[i].T1.ready || T1_CDB[i];                     // T1 is ready or updated by CDB
+    end // for (int i = 0; i < `NUM_FU; i++) begin
+  end // always_comb begin
+
+  always_comb begin
+    for (int i = 0; i < `NUM_FU; i++) begin
+      T2_CDB[i]   = RS[i].T2.idx == CDB_RS_out.T_idx && CDB_RS_out.T_idx != `ZERO_PR && complete_en; // T2 is complete
+      T2_ready[i] = RS[i].T2.ready || T2_CDB[i];                     // T2 is ready or updated by CDB
+    end // for (int i = 0; i < `NUM_FU; i++) begin
+  end // always_comb begin
+
+  always_comb begin
+    for (int i = 0; i < `NUM_FU; i++) begin
+      RS_entry_ready[i] = RS[i].T1.ready && RS[i].T2.ready;
     end // for (int i = 0; i < `NUM_FU; i++) begin
   end // always_comb begin
 
@@ -84,20 +91,20 @@ module RS (
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
-      FU_packet[i].ready         = RS_entry_ready[i]; // Ready to issue
-      FU_packet[i].ROB_idx       = RS[i].ROB_idx;                        // op code
-      FU_packet[i].inst          = RS[i].inst;                           // inst
-      FU_packet[i].func          = RS[i].func;                           // op code
-      FU_packet[i].NPC           = RS[i].NPC;                            // op code
-      FU_packet[i].dest_idx      = RS[i].dest_idx;                       // op code
-      FU_packet[i].opa_select    = RS[i].opa_select;                     // Output T2_idx
-      FU_packet[i].opb_select    = RS[i].opb_select;                     // Output T2_idx
-      FU_packet[i].uncond_branch = RS[i].uncond_branch;                  // Output T2_idx
-      FU_packet[i].cond_branch   = RS[i].cond_branch;                    // Output T2_idx
-      FU_packet[i].FL_idx        = RS[i].FL_idx;                         // op code
-      FU_packet[i].T_idx         = RS[i].T_idx;                          // Output T_idx
-      FU_T_idx[i].T1_idx         = RS[i].T1.idx;                         // Output T1_idx
-      FU_T_idx[i].T2_idx         = RS[i].T2.idx;                         // Output T2_idx
+      FU_packet[i].ready         = RS_entry_ready[i];   // Ready to issue
+      FU_packet[i].ROB_idx       = RS[i].ROB_idx;       // op code
+      FU_packet[i].inst          = RS[i].inst;          // inst
+      FU_packet[i].func          = RS[i].func;          // op code
+      FU_packet[i].NPC           = RS[i].NPC;           // op code
+      FU_packet[i].dest_idx      = RS[i].dest_idx;      // op code
+      FU_packet[i].opa_select    = RS[i].opa_select;    // Output T2_idx
+      FU_packet[i].opb_select    = RS[i].opb_select;    // Output T2_idx
+      FU_packet[i].uncond_branch = RS[i].uncond_branch; // Output T2_idx
+      FU_packet[i].cond_branch   = RS[i].cond_branch;   // Output T2_idx
+      FU_packet[i].FL_idx        = RS[i].FL_idx;        // op code
+      FU_packet[i].T_idx         = RS[i].T_idx;         // Output T_idx
+      FU_T_idx[i].T1_idx         = RS[i].T1.idx;        // Output T1_idx
+      FU_T_idx[i].T2_idx         = RS[i].T2.idx;        // Output T2_idx
     end
   end
 
@@ -106,7 +113,7 @@ module RS (
     for (int i = 0; i < `NUM_FU; i++) begin
       next_RS[i].T1.ready = T1_ready[i]; // T1 ready
       next_RS[i].T2.ready = T2_ready[i]; // T2 ready
-      if ( RS_entry_empty[i] || RS_rollback[i] ) begin
+      if ( RS_entry_ready[i] || RS_rollback[i] ) begin
         next_RS[i] = `RS_ENTRY_RESET; // Clear RS entry
       end // if ( RS[i].busy == `FALSE && dispatch_en ) begin
     end // for (int i = 0; i < `NUM_FU; i++) begin
@@ -136,5 +143,4 @@ module RS (
       RS <= `SD next_RS;
     end // else if(en) begin
   end // always
-
 endmodule // RS
