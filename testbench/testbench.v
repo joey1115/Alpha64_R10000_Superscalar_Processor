@@ -107,7 +107,6 @@ module testbench;
     .proc2mem_data     (proc2mem_data)
   );
 
-
   // Instantiate the Data Memory
   mem memory (
     // Inputs

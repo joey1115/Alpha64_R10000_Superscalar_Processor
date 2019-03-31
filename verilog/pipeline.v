@@ -1,14 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//   Modulename :  pipeline.v                                          //
-//                                                                     //
-//  Description :  Top-level module of the verisimple pipeline;        //
-//                 This instantiates and connects the 5 stages of the  //
-//                 Verisimple pipeline togeather.                      //
-//                                                                     //
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
-
 `timescale 1ns/100ps
 
 module pipeline (
@@ -109,7 +98,6 @@ module pipeline (
   logic [1:0] proc2Imem_command;
   logic [63:0] proc2Dmem_addr;
   logic [63:0] proc2Imem_addr;
-
   // Icache wires
   logic [63:0] cachemem_data;
   logic        cachemem_valid;
@@ -157,7 +145,6 @@ module pipeline (
                                                NO_ERROR;
   assign proc2Dmem_command = BUS_NONE;
   assign proc2Dmem_addr = 0;
-  
   assign proc2mem_command =
     (proc2Dmem_command==BUS_NONE) ? proc2Imem_command:proc2Dmem_command;
   assign proc2mem_addr =
@@ -417,5 +404,4 @@ module pipeline (
     .RS_FU_out(RS_FU_out),
     .RS_PR_out(RS_PR_out)
   );
-
 endmodule  // module verisimple

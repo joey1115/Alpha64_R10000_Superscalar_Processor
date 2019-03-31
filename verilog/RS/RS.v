@@ -40,7 +40,6 @@ module RS (
   assign RS_FU_out = '{FU_packet};
   assign RS_PR_out = '{FU_T_idx};
   assign RS_valid  = RS_match_hit;
-
 `ifndef SYNTH_TEST
   assign RS_out = RS;
 `endif
@@ -144,5 +143,4 @@ module RS (
       RS <= `SD next_RS;
     end // else if(en) begin
   end // always
-
 endmodule // RS

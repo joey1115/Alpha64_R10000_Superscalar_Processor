@@ -51,7 +51,6 @@ module ROB (
   //assign ROB_valid = tail_plus_one!=rob.head;
   //assign halt out
   assign halt_out = retire_en & rob.entry[rob.head].halt;
-
   assign ROB_idx = Nrob.tail - 1;
 
   always_comb begin

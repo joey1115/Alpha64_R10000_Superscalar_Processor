@@ -1,22 +1,3 @@
-/***********************************************
- * PR procedure:
- * 
- * Important Note:
- * Physical Register 31(`ZERO_PR) is read-only.
- * It is the zero register and contains value zero
- * 
- * --- Complete ---
- * 1. X stage result write back to PR
- * input: write_en (CDB), T_idx (CDB), T_value (CDB)
- * 
- * ---- Excution ----
- * 1. send reg values to FU
- * input: T1_idx, T2_idx
- * output: T1_value, T2_value (T_value can be interally
- * forward to T1_value or T2_value)
- * 
- ************************************************/
-
 `timescale 1ns/100ps
 
 module PR (
@@ -59,5 +40,4 @@ module PR (
       pr <= `SD next_pr;
     end
   end // always_ff
-
 endmodule

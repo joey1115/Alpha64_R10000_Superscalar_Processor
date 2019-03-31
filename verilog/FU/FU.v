@@ -81,8 +81,8 @@ module mult_stage (
   output logic [63:0]                 T1_value_out,
   output logic [63:0]                 T2_value_out,
 `endif
-  output logic                        done, valid_out,
-  output logic [63:0]                 product_out, mplier_out, mcand_out, next_product,
+  output logic                        done,
+  output logic [63:0]                 product_out, mplier_out, mcand_out,
   output logic [4:0]                  dest_idx_out,
   output logic [$clog2(`NUM_PR)-1:0]  T_idx_out,
   output logic [$clog2(`NUM_ROB)-1:0] ROB_idx_out,
@@ -96,7 +96,7 @@ module mult_stage (
   logic [$clog2(`NUM_PR)-1:0]    next_T_idx_out;
   logic [$clog2(`NUM_PR)-1:0]    next_ROB_idx_out;
   logic [$clog2(`NUM_FL)-1:0]    next_FL_idx_out;
-  logic [63:0]                   partial_product, next_mplier, next_mcand;
+  logic [63:0]                   partial_product, next_mplier, next_mcand, next_product;
   logic                          rollback_valid_out, rollback_valid;
   logic                          next_done;
   logic [$clog2(`NUM_ROB)-1:0]   diff;
@@ -113,10 +113,10 @@ module mult_stage (
   assign diff               = ROB_idx - ROB_rollback_idx;
   assign rollback_valid_out = rollback_en && diff_ROB >= diff_out;
   assign rollback_valid     = rollback_en && diff_ROB >= diff;
-  assign valid_out          = !ready || valid || rollback_valid_out;
+  // assign valid_out          = !ready || valid || rollback_valid_out;
 `else
   assign diff               = next_ROB_idx_out - ROB_rollback_idx;
-  assign valid_out          = ( !ready || valid ) && !rollback_valid;
+  // assign valid_out          = ( !ready || valid ) && !rollback_valid;
   assign rollback_valid     = rollback_en && diff_ROB >= diff;
   assign next_mplier_out    = valid ? next_mplier : mplier_out;
   assign next_mcand_out     = valid ? next_mcand : mcand_out;
@@ -165,16 +165,16 @@ module mult_stage (
       next_T2_value_out = T2_value;
 `endif
     end else begin
-      next_mplier_out   = {64{1'b0}};
-      next_mcand_out    = {64{1'b0}};
-      next_product_out  = {64{1'b0}};
+      next_mplier_out   = 64'hbaadbeefdeadbeef;
+      next_mcand_out    = 64'hbaadbeefdeadbeef;
+      next_product_out  = 64'hbaadbeefdeadbeef;
       next_dest_idx_out = `ZERO_REG;
       next_T_idx_out    = `ZERO_PR;
       next_ROB_idx_out  = {`NUM_ROB{1'b0}};
       next_done         = `FALSE;
 `ifndef SYNTH_TEST
-      next_T1_value_out = {64{1'b0}};
-      next_T2_value_out = {64{1'b0}};
+      next_T1_value_out = 64'hbaadbeefdeadbeef;
+      next_T2_value_out = 64'hbaadbeefdeadbeef;
 `endif
     end
   end
@@ -265,7 +265,7 @@ module mult (
 `endif
   logic [63:0]                                       mcand_out, mplier_out, regA, regB;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_products, internal_mcands, internal_mpliers;
-  logic [(`NUM_MULT_STAGE*64)-1:0]                   next_products;
+  // logic [(`NUM_MULT_STAGE*64)-1:0]                   next_products;
   logic [63:0]                                       result;
   logic                                              done;
   logic [4:0]                                        dest_idx;
@@ -273,18 +273,18 @@ module mult (
   logic [$clog2(`NUM_ROB)-1:0]                       ROB_idx;
   logic [$clog2(`NUM_FL)-1:0]                        FL_idx;
 
-  assign dest_idx = internal_dest_idx[5*(`NUM_MULT_STAGE-1)-1:5*(`NUM_MULT_STAGE-2)];
-  assign T_idx = internal_T_idx[($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_PR)*(`NUM_MULT_STAGE-2)];
-  assign ROB_idx = internal_ROB_idx[($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2)];
-  assign FL_idx = internal_FL_idx[($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_FL)*(`NUM_MULT_STAGE-2)];
-  assign result = next_products[`NUM_MULT_STAGE*64-1:(`NUM_MULT_STAGE-1)*64];
-  assign done = internal_dones[`NUM_MULT_STAGE-2];
   // assign dest_idx = internal_dest_idx[5*(`NUM_MULT_STAGE-1)-1:5*(`NUM_MULT_STAGE-2)];
   // assign T_idx = internal_T_idx[($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_PR)*(`NUM_MULT_STAGE-2)];
   // assign ROB_idx = internal_ROB_idx[($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2)];
   // assign FL_idx = internal_FL_idx[($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_FL)*(`NUM_MULT_STAGE-2)];
   // assign result = next_products[`NUM_MULT_STAGE*64-1:(`NUM_MULT_STAGE-1)*64];
-  // assign done = last_done;
+  // assign done = internal_dones[`NUM_MULT_STAGE-2];
+  assign dest_idx = last_dest_idx;
+  assign T_idx = last_T_idx;
+  assign ROB_idx = last_ROB_idx;
+  assign FL_idx = last_FL_idx;
+  assign result = product_out;
+  assign done = last_done;
   assign FU_out = '{done, result, dest_idx, T_idx, ROB_idx, FL_idx};
   assign regA   = FU_in.T1_value;
 
@@ -300,17 +300,18 @@ module mult (
     // input
     .clock({`NUM_MULT_STAGE{clock}}),
     .reset({`NUM_MULT_STAGE{reset}}),
+    .ready({internal_dones, FU_in.ready}),
+    // .valid({CDB_valid, internal_valids}),
+    .valid({`NUM_MULT_STAGE{CDB_valid}}),
     .product_in({internal_products, {64{1'b0}}}),
     .mplier_in({internal_mpliers, regA}),
     .mcand_in({internal_mcands, regB}),
-    .valid({CDB_valid, internal_valids}),
-    .rollback_en({`NUM_MULT_STAGE{rollback_en}}),
-    .ROB_rollback_idx({`NUM_MULT_STAGE{ROB_rollback_idx}}),
-    .diff_ROB({`NUM_MULT_STAGE{diff_ROB}}),
-    .ready({internal_dones, FU_in.ready}),
     .dest_idx({internal_dest_idx, FU_in.dest_idx}),
     .T_idx({internal_T_idx, FU_in.T_idx}),
     .ROB_idx({internal_ROB_idx, FU_in.ROB_idx}),
+    .rollback_en({`NUM_MULT_STAGE{rollback_en}}),
+    .ROB_rollback_idx({`NUM_MULT_STAGE{ROB_rollback_idx}}),
+    .diff_ROB({`NUM_MULT_STAGE{diff_ROB}}),
     .FL_idx({internal_FL_idx, FU_in.FL_idx}),
 `ifndef SYNTH_TEST
     .T1_value({internal_T1_values, regA}),
@@ -319,18 +320,17 @@ module mult (
     .T2_value_out({T2_value, internal_T2_values}),
 `endif
     // Ouput
+    .done({last_done, internal_dones}),
+    // .valid_out({internal_valids, FU_valid}),
     .product_out({product_out, internal_products}),
     .mplier_out({mplier_out, internal_mpliers}),
     .mcand_out({mcand_out, internal_mcands}),
-    .valid_out({internal_valids, FU_valid}),
-    .next_product(next_products),
-    .done({last_done, internal_dones}),
+    // .next_product(next_products),
     .dest_idx_out({last_dest_idx, internal_dest_idx}),
     .T_idx_out({last_T_idx, internal_T_idx}),
     .ROB_idx_out({last_ROB_idx, internal_ROB_idx}),
     .FL_idx_out({last_FL_idx, internal_FL_idx})
   );
-
 endmodule
 
 module br(
@@ -436,7 +436,6 @@ module ld (
     FU_out.ROB_idx  = FU_in.ROB_idx;
     FU_out.done     = !rollback_valid && FU_in.ready;
   end
-
 endmodule
 
 module st (
