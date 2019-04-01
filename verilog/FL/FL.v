@@ -25,6 +25,8 @@ module FL (
   logic [$clog2(`NUM_FL)-1:0]                 tail, next_tail;
   logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]    FL_table, next_FL_table;
 `endif
+  logic [$clog2(`NUM_FL)-1:0]                 head_plus_one, head_plus_two;
+  logic [$clog2(`NUM_FL)-1:0]                 tail_plus_one, tail_plus_two;
   logic [$clog2(`NUM_FL)-1:0]                 virtual_tail;
   logic [`NUM_SUPER-1:0]                      move_head;
   logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;
@@ -38,6 +40,10 @@ module FL (
   assign next_tail       = rollback_en ? FL_rollback_idx :
                            dispatch_en ? virtual_tail    : tail;
   assign FL_valid        = (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) || virtual_tail != next_head;
+  assign tail_plus_one   = tail + 1;
+  assign tail_plus_two   = tail + 2;
+  assign head_plus_one   = head + 1;
+  assign head_plus_two   = head + 2;
 
   always_comb begin
     if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
@@ -53,11 +59,11 @@ module FL (
 
   always_comb begin
     if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
-      T_idx = '{FL_table[tail], FL_table[tail+1]};
+      T_idx = '{FL_table[tail_plus_one], FL_table[tail]};
     end else if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) begin
-      T_idx = '{`ZERO_PR_UNPACKED, FL_table[tail]};
-    end else if (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
       T_idx = '{FL_table[tail], `ZERO_PR_UNPACKED};
+    end else if (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
+      T_idx = '{`ZERO_PR_UNPACKED, FL_table[tail]};
     end else begin
       T_idx = '{`ZERO_PR_UNPACKED, `ZERO_PR_UNPACKED};
     end
@@ -65,11 +71,11 @@ module FL (
 
   always_comb begin
     if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
-      FL_idx = '{tail+2, tail+1};
+      FL_idx = '{tail_plus_two, tail_plus_one};
     end else if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) begin
-      FL_idx = '{tail+1, tail+1};
+      FL_idx = '{tail_plus_one, tail_plus_one};
     end else if (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
-      FL_idx = '{tail, tail+1};
+      FL_idx = '{tail_plus_one, tail};
     end else begin
       FL_idx = '{tail, tail};
     end
@@ -94,12 +100,12 @@ module FL (
   always_comb begin
     next_FL_table = FL_table;
     if (head1 && head2) begin
-      next_FL_table[head+1] = ROB_FL_out.Told_idx[0];
-      next_FL_table[head+2] = ROB_FL_out.Told_idx[1];
+      next_FL_table[head] = ROB_FL_out.Told_idx[0];
+      next_FL_table[head_plus_one] = ROB_FL_out.Told_idx[1];
     end else if (head1 && !head2) begin
-      next_FL_table[head+1] = ROB_FL_out.Told_idx[0];
+      next_FL_table[head] = ROB_FL_out.Told_idx[0];
     end else if (!head1 && head2) begin
-      next_FL_table[head+1] = ROB_FL_out.Told_idx[1];
+      next_FL_table[head] = ROB_FL_out.Told_idx[1];
     end
   end
 
