@@ -148,7 +148,7 @@ module ROB (
   always_comb begin
     case(state)
       0: Nstate = (mispredict) ? 1 : state;
-      1: Nstate = (rob.head == ROB_rollback_idx_reg) ? 0 : state;
+      1: Nstate = ((rob.head == ROB_rollback_idx_reg) || (rob.head == (ROB_rollback_idx_reg + 1))) ? 0 : state;
       default: Nstate = state;
     endcase 
   end
