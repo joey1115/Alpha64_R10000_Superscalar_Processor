@@ -483,20 +483,29 @@ void print_close()
   ppfile = NULL;
 }
 
-void print_reg(int wb_reg_wr_data_out_hi, int wb_reg_wr_data_out_lo,
-                  int wb_reg_wr_idx_out, int wb_reg_wr_en_out)
+void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
+              int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
+                  int wb_reg_wr_idx_out_1, int wb_reg_wr_idx_out_2, int wb_reg_wr_en_out_1, int wb_reg_wr_en_out_2)
 {
   if (ppfile == NULL)
     return;
 
-  if(wb_reg_wr_en_out)
-    if((wb_reg_wr_data_out_hi==0)||
-       ((wb_reg_wr_data_out_hi==-1)&&(wb_reg_wr_data_out_lo<0)))
-      fprintf(ppfile, "r%d=%d  ",wb_reg_wr_idx_out,wb_reg_wr_data_out_lo);
+  if(wb_reg_wr_en_out_1){
+    if((wb_reg_wr_data_out_hi_1==0)||
+       ((wb_reg_wr_data_out_hi_1==-1)&&(wb_reg_wr_data_out_lo_1<0)))
+      fprintf(ppfile, "r%d=%d  ",wb_reg_wr_idx_out_1,wb_reg_wr_data_out_lo_1);
     else 
-      fprintf(ppfile, "r%d=0x%x%x  ",wb_reg_wr_idx_out,
-              wb_reg_wr_data_out_hi,wb_reg_wr_data_out_lo);
-
+      fprintf(ppfile, "r%d=0x%x%x  ",wb_reg_wr_idx_out_1,
+              wb_reg_wr_data_out_hi_1,wb_reg_wr_data_out_lo_1);
+  }
+  if(wb_reg_wr_en_out_2){
+    if((wb_reg_wr_data_out_hi_2==0)||
+       ((wb_reg_wr_data_out_hi_2==-1)&&(wb_reg_wr_data_out_lo_2<0)))
+      fprintf(ppfile, "r%d=%d  ",wb_reg_wr_idx_out_2,wb_reg_wr_data_out_lo_2);
+    else 
+      fprintf(ppfile, "r%d=0x%x%x  ",wb_reg_wr_idx_out_2,
+              wb_reg_wr_data_out_hi_2,wb_reg_wr_data_out_lo_2);
+  }
 }
 
 void print_membus(int proc2mem_command, int mem2proc_response,

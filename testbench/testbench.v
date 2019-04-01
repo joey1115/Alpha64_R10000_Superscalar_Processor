@@ -30,8 +30,10 @@ extern void print_dispatch_en(int dispatch_en, int ROB_valid, int RS_valid, int 
 extern void print_freelist_head(int FL_head, int FL_tail);
 extern void print_freelist_entry(int i, int freePR);
 
-extern void print_reg(int wb_reg_wr_data_out_hi, int wb_reg_wr_data_out_lo,
-                      int wb_reg_wr_idx_out, int wb_reg_wr_en_out);
+extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
+                      int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
+                      int wb_reg_wr_idx_out_1, int wb_reg_wr_idx_out_2,
+                      int wb_reg_wr_en_out_1, int wb_reg_wr_en_out_2)
 extern void print_membus(int proc2mem_command, int mem2proc_response,
                          int proc2mem_addr_hi, int proc2mem_addr_lo,
                          int proc2mem_data_hi, int proc2mem_data_lo);
@@ -349,8 +351,10 @@ module testbench;
 
 
 
-       print_reg(CDB_PR_out.T_value[63:32], CDB_PR_out.T_value[31:0],
-            {{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx}, {31'b0,complete_en});
+       print_reg(CDB_PR_out.T_value[0][63:32], CDB_PR_out.T_value[0][31:0],
+                CDB_PR_out.T_value[1][63:32], CDB_PR_out.T_value[1][31:0],
+                {{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx[0]},{{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx[1]},
+                {31'b0,complete_en[0]}, {31'b0,complete_en[1]});
        print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
             proc2mem_addr[63:32], proc2mem_addr[31:0],
             proc2mem_data[63:32], proc2mem_data[31:0]);
