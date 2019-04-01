@@ -118,21 +118,21 @@ module pipeline (
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_head;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_tail;
-  logic                                                                   last_done;
-  logic       [63:0]                                                      product_out;
-  logic       [4:0]                                                       last_dest_idx;
-  logic       [$clog2(`NUM_PR)-1:0]                                       last_T_idx;
-  logic       [$clog2(`NUM_ROB)-1:0]                                      last_ROB_idx;
-  logic       [$clog2(`NUM_FL)-1:0]                                       last_FL_idx;
-  logic       [63:0]                                                      T1_value;
-  logic       [63:0]                                                      T2_value;
-  logic       [((`NUM_MULT_STAGE-1)*64)-1:0]                              internal_T1_values, internal_T2_values;
-  logic       [`NUM_MULT_STAGE-2:0]                                       internal_valids;
-  logic       [`NUM_MULT_STAGE-2:0]                                       internal_dones;
-  logic       [5*(`NUM_MULT_STAGE-1)-1:0]                                 internal_dest_idx;
-  logic       [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:0]                 internal_T_idx;
-  logic       [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0]                internal_ROB_idx;
-  logic       [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]                 internal_FL_idx;
+  // logic                                                                   last_done;
+  // logic       [63:0]                                                      product_out;
+  // logic       [4:0]                                                       last_dest_idx;
+  // logic       [$clog2(`NUM_PR)-1:0]                                       last_T_idx;
+  // logic       [$clog2(`NUM_ROB)-1:0]                                      last_ROB_idx;
+  // logic       [$clog2(`NUM_FL)-1:0]                                       last_FL_idx;
+  // logic       [63:0]                                                      T1_value;
+  // logic       [63:0]                                                      T2_value;
+  // logic       [((`NUM_MULT_STAGE-1)*64)-1:0]                              internal_T1_values, internal_T2_values;
+  // logic       [`NUM_MULT_STAGE-2:0]                                       internal_valids;
+  // logic       [`NUM_MULT_STAGE-2:0]                                       internal_dones;
+  // logic       [5*(`NUM_MULT_STAGE-1)-1:0]                                 internal_dest_idx;
+  // logic       [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:0]                 internal_T_idx;
+  // logic       [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0]                internal_ROB_idx;
+  // logic       [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]                 internal_FL_idx;
   logic       [`NUM_SUPER-1:0]                                            RS_match_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]                       RS_match_idx;
 `endif
@@ -307,24 +307,24 @@ module pipeline (
     .CDB_valid(CDB_valid),
     .RS_FU_out(RS_FU_out),
     .PR_FU_out(PR_FU_out),
-`ifdef DEBUG
-    .last_done(last_done),
-    .product_out(product_out),
-    .last_dest_idx(last_dest_idx),
-    .last_T_idx(last_T_idx),
-    .last_ROB_idx(last_ROB_idx),
-    .last_FL_idx(last_FL_idx),
-    .T1_value(T1_value),
-    .T2_value(T2_value),
-    .internal_T1_values(internal_T1_values),
-    .internal_T2_values(internal_T2_values),
-    .internal_valids(internal_valids),
-    .internal_dones(internal_dones),
-    .internal_dest_idx(internal_dest_idx),
-    .internal_T_idx(internal_T_idx),
-    .internal_ROB_idx(internal_ROB_idx),
-    .internal_FL_idx(internal_FL_idx),
-`endif
+// `ifdef DEBUG
+//     .last_done(last_done),
+//     .product_out(product_out),
+//     .last_dest_idx(last_dest_idx),
+//     .last_T_idx(last_T_idx),
+//     .last_ROB_idx(last_ROB_idx),
+//     .last_FL_idx(last_FL_idx),
+//     .T1_value(T1_value),
+//     .T2_value(T2_value),
+//     .internal_T1_values(internal_T1_values),
+//     .internal_T2_values(internal_T2_values),
+//     .internal_valids(internal_valids),
+//     .internal_dones(internal_dones),
+//     .internal_dest_idx(internal_dest_idx),
+//     .internal_T_idx(internal_T_idx),
+//     .internal_ROB_idx(internal_ROB_idx),
+//     .internal_FL_idx(internal_FL_idx),
+// `endif
     .FU_valid(FU_valid),
     .rollback_en(rollback_en),
     .ROB_rollback_idx(ROB_rollback_idx),
