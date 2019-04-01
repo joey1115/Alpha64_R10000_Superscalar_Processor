@@ -86,22 +86,26 @@ typedef enum logic [2:0] {
 } FU_t;
 
 typedef struct packed {
-  logic        valid; // If low, the data in this struct is garbage
-  INST_t       inst;  // fetched instruction out
-  logic [63:0] NPC; // PC + 4 
+  logic        valid;   // If low, the data in this struct is garbage
+  INST_t       inst;    // fetched instruction out
+  logic [63:0] PC;
+  logic [63:0] NPC;     // PC + 4
+  logic [63:0] next_PC_target;
 } F_DECODER_OUT_t;
 
 `define F_DECODER_OUT_RESET '{ \
   `FALSE,                      \
   `NOOP_INST,                  \
+  0,                           \
+  0,                           \
   0                            \
 }
 
-typedef struct packed {
-  INST_t        inst;  // fetched instruction out
-  logic  [63:0] NPC;  // fetched instruction out
-  logic         valid; // PC + 4 
-} DECODER_PACKET_IN;
+// typedef struct packed {
+//   INST_t        inst;  // fetched instruction out
+//   logic  [63:0] NPC;  // fetched instruction out
+//   logic         valid; // PC + 4 
+// } DECODER_PACKET_IN;
 
 typedef struct packed {
   logic        halt;
@@ -112,7 +116,9 @@ typedef struct packed {
   FU_t                  FU;
   INST_t                inst;  // fetched instruction out
   ALU_FUNC              func;
+  logic          [63:0] PC;   // fetched instruction out
   logic          [63:0] NPC;  // fetched instruction out
+  logic          [63:0] next_PC_target; // fetched instruction out
   logic          [4:0]  dest_idx;
   ALU_OPA_SELECT        opa_select;  // fetched instruction out
   ALU_OPB_SELECT        opb_select;

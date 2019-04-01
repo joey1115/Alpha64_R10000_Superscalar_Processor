@@ -12,19 +12,22 @@
 `timescale 1ns/100ps
 
 module F_stage(
-          input         clock,                      // system clock
-          input         reset,                      // system reset
-          input         get_next_inst,          // only go to next instruction when true
-                                  // makes pipeline behave as single-cycle
-          input         take_branch_out,         // taken-branch signal
-          input  [63:0] take_branch_target,           // target pc: use if take_branch_out is TRUE
-          input  [63:0] Imem2proc_data,        // Data coming back from instruction-memory
+          input         clock,                    // system clock
+          input         reset,                    // system reset
+          input         get_next_inst,            // only go to next instruction when true
+                                                  // makes pipeline behave as single-cycle
+          input         take_branch_out,          // taken-branch signal
+          input  [63:0] take_branch_target,       // target pc: use if take_branch_out is TRUE
+          input  [63:0] Imem2proc_data,           // Data coming back from instruction-memory
           input         Imem_valid,
 
-          output logic [63:0] proc2Imem_addr, // Address sent to Instruction memory
-          output logic [63:0] if_NPC_out, // PC of instruction after fetched (PC+4).
-          output logic [31:0] if_IR_out, // fetched instruction out
-          output logic        if_valid_inst_out	    // when low, instruction is garbage
+          output logic [63:0] proc2Imem_addr,     // Address sent to Instruction memory
+          output F_BP_OUT_t   F_BP_out,
+          output logic [63:0] if_PC_out,          // PC
+          output logic [63:0] if_NPC_out,         // PC of instruction after fetched (PC+4).
+          output logic [63:0] if_next_PC_target,  // next PC target (either PC+4 or the branch target)
+          output logic [31:0] if_IR_out,          // fetched instruction out
+          output logic        if_valid_inst_out	  // when low, instruction is garbage
                );
 
   logic    [63:0] PC_reg;               // PC we are currently fetching
@@ -34,6 +37,8 @@ module F_stage(
   logic   [63:0] next_PC;
   logic          PC_enable;
   // logic          next_ready_for_valid;
+
+  assign if_PC_out = PC_reg;
 
   assign proc2Imem_addr = {PC_reg[63:3], 3'b0};
 
@@ -47,6 +52,7 @@ module F_stage(
   // the next sequential PC (PC+4) if no branch
   // (halting is handled with the enable PC_enable;
   assign next_PC = take_branch_out ? take_branch_target : PC_plus_4;
+  assign if_next_PC_target = next_PC;
 
   // The take-branch signal must override stalling (otherwise it may be lost)
   assign PC_enable = (if_valid_inst_out && get_next_inst) || take_branch_out;

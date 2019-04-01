@@ -17,7 +17,9 @@ typedef struct packed {
   logic                                 ready;    // If an entry is ready
   INST_t                                inst;
   ALU_FUNC                              func;
+  logic          [63:0]                 PC;
   logic          [63:0]                 NPC;
+  logic          [63:0]                 next_PC_target;
   logic          [4:0]                  dest_idx;
   logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic          [$clog2(`NUM_FL)-1:0]  FL_idx;
@@ -42,5 +44,11 @@ typedef struct packed {
 typedef struct packed {
   FU_OUT_t [`NUM_FU-1:0] FU_out;
 } FU_CDB_OUT_t;
+
+typedef struct packed {
+  logic        take_branch_out;
+  logic [63:0] take_branch_target;
+  logic [63:0] take_branch_PC;
+} FU_BP_OUT_t;
 
 `endif

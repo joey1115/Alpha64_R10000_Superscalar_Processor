@@ -95,7 +95,9 @@ module RS (
       FU_packet[i].ROB_idx       = RS[i].ROB_idx;       // op code
       FU_packet[i].inst          = RS[i].inst;          // inst
       FU_packet[i].func          = RS[i].func;          // op code
+      FU_packet[i].PC            = RS[i].PC;
       FU_packet[i].NPC           = RS[i].NPC;           // op code
+      FU_packet[i].next_PC_target = RS[i].next_PC_target;
       FU_packet[i].dest_idx      = RS[i].dest_idx;      // op code
       FU_packet[i].opa_select    = RS[i].opa_select;    // Output T2_idx
       FU_packet[i].opb_select    = RS[i].opb_select;    // Output T2_idx
@@ -122,7 +124,9 @@ module RS (
       next_RS[RS_match_idx].ROB_idx       = ROB_idx;                      // op code
       next_RS[RS_match_idx].inst          = decoder_RS_out.inst;          // inst
       next_RS[RS_match_idx].func          = decoder_RS_out.func;          // func
+      next_RS[RS_match_idx].PC            = decoder_RS_out.PC;            // PC
       next_RS[RS_match_idx].NPC           = decoder_RS_out.NPC;           // Write T1 select
+      next_RS[RS_match_idx].next_PC_target = decoder_RS_out.next_PC_target; // next PC target (either PC+4 or branch target)
       next_RS[RS_match_idx].dest_idx      = decoder_RS_out.dest_idx;      // Write T1 select
       next_RS[RS_match_idx].opa_select    = decoder_RS_out.opa_select;    // Output T2_idx
       next_RS[RS_match_idx].opb_select    = decoder_RS_out.opb_select;    // Output T2_idx

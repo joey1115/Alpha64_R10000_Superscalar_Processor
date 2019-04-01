@@ -33,7 +33,9 @@ module decoder(
 );
 
   INST_t                inst;  // fetched instruction out
+  logic          [63:0] PC;    // fetched instruction out
   logic          [63:0] NPC;  // fetched instruction out
+  logic          [63:0] next_PC_target; // fetched instruction out
   ALU_OPA_SELECT        opa_select;  // fetched instruction out
   ALU_OPB_SELECT        opb_select;
   logic                 rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
@@ -47,13 +49,15 @@ module decoder(
   logic          [4:0]  regb_idx;
 
   assign decoder_ROB_out       = '{halt, dest_idx};
-  assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch};
+  assign decoder_RS_out        = '{FU, inst, func, PC, NPC, next_PC_target, dest_idx, opa_select, opb_select, cond_branch, uncond_branch};
   assign decoder_FL_out        = '{dest_idx};
   assign decoder_Map_Table_out = '{dest_idx, rega_idx, regb_idx};
 
   always_comb begin
     inst          = `NOOP_INST;
+    PC            = 64'h0; 
     NPC           = 64'h0;
+    next_PC_target = 64'h0;
     opa_select    = ALU_OPA_IS_REGA;
     opb_select    = ALU_OPB_IS_REGB;
     func          = ALU_ADDQ;
@@ -73,7 +77,9 @@ module decoder(
     regb_idx      = `ZERO_REG;
     if(F_decoder_out.valid) begin
       inst          = F_decoder_out.inst;
+      PC            = F_decoder_out.PC;
       NPC           = F_decoder_out.NPC;
+      next_PC_target = F_decoder_out.next_PC_target;
       valid = `TRUE;
       case(F_decoder_out.inst.m.opcode)
         `PAL_INST: begin

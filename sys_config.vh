@@ -13,6 +13,7 @@
 `define NUM_FU         (`NUM_ALU + `NUM_ST + `NUM_LD + `NUM_MULT + `NUM_BR)
 `define NUM_ARCH_TABLE (32)
 `define NUM_MULT_STAGE (8)
+`define NUM_BR_PC_BITS (4)
 
 `define DEBUG
 // `define MULT_FORWARDING

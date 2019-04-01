@@ -75,6 +75,7 @@ module pipeline (
   logic                   [$clog2(`NUM_ROB)-1:0] diff_ROB;
   logic                                          take_branch_out;
   logic                   [63:0]                 take_branch_target;
+  FU_BP_OUT_t                                    FU_BP_out;
   FU_CDB_OUT_t                                   FU_CDB_out;
   MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;
   MAP_TABLE_RS_OUT_t                             Map_Table_RS_out;
@@ -109,7 +110,9 @@ module pipeline (
   logic [63:0] Icache_data_out, proc2Icache_addr;
   logic        Icache_valid_out;
   logic [3:0]  Imem2proc_response;
+  logic [63:0] if_PC_out;
   logic [63:0] if_NPC_out;
+  logic [63:0] if_next_PC_target;
   logic [31:0] if_IR_out;
   logic fetch_en;
 `ifdef DEBUG
@@ -203,7 +206,9 @@ module pipeline (
     .Imem2proc_data(Icache_data_out),
     .Imem_valid(Icache_valid_out),
     // Outputs
+    .if_PC_out(if_PC_out),
     .if_NPC_out(if_NPC_out), 
+    .if_next_PC_target(if_next_PC_target),
     .if_IR_out(if_IR_out),
     .proc2Imem_addr(proc2Icache_addr),
     .if_valid_inst_out(if_valid_inst_out)
@@ -218,9 +223,11 @@ module pipeline (
     if (reset) begin
       F_decoder_out <= `SD `F_DECODER_OUT_RESET;
     end else if (F_decoder_en) begin
-      F_decoder_out.inst   <= `SD if_IR_out;
-      F_decoder_out.NPC    <= `SD if_NPC_out;
-      F_decoder_out.valid  <= `SD if_valid_inst_out;
+      F_decoder_out.valid          <= `SD if_valid_inst_out;
+      F_decoder_out.inst           <= `SD if_IR_out;
+      F_decoder_out.PC             <= `SD if_PC_out;
+      F_decoder_out.NPC            <= `SD if_NPC_out;
+      F_decoder_out.next_PC_target <= `SD if_next_PC_target;
     end // if (F_decoder_en)
   end // always
 
@@ -265,7 +272,7 @@ module pipeline (
     .decoder_Map_Table_out(decoder_Map_Table_out),
     .illegal(illegal),
     .halt(halt)
-  );
+  )
 
   FL fl_0 (
     .clock(clock),
@@ -320,8 +327,7 @@ module pipeline (
     .ROB_rollback_idx(ROB_rollback_idx),
     .FL_rollback_idx(FL_rollback_idx),
     .diff_ROB(diff_ROB),
-    .take_branch_out(take_branch_out),
-    .take_branch_target(take_branch_target),
+    .FU_BP_out(FU_BP_out),
     .FU_CDB_out(FU_CDB_out)
   );
 

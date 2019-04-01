@@ -491,8 +491,7 @@ module FU (
   output logic        [$clog2(`NUM_FL)-1:0]                        FL_rollback_idx,
   output logic        [$clog2(`NUM_ROB)-1:0]                       ROB_rollback_idx,
   output logic        [$clog2(`NUM_ROB)-1:0]                       diff_ROB,
-  output logic                                                     take_branch_out,
-  output logic        [63:0]                                       take_branch_target,
+  output FU_BP_OUT_t                                               FU_BP_out,
   output FU_CDB_OUT_t                                              FU_CDB_out
 );
 
@@ -503,19 +502,22 @@ module FU (
 
   assign FU_CDB_out = '{FU_out};
 
-  assign rollback_en        = take_branch[0];
+  assign FU_BP_out.take_branch_out    = take_branch[0];
+  assign FU_BP_out.take_branch_target = (take_branch[0]) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result : FU_in[i].NPC;
+  assign FU_BP_out.take_branch_PC     = FU_in[i].PC;
+  assign rollback_en = (next_PC_target != FU_BP_out.take_branch_target);
   assign ROB_rollback_idx   = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
   assign FL_rollback_idx    = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
   assign diff_ROB           = ROB_idx - ROB_rollback_idx;
-  assign take_branch_out    = take_branch[0];
-  assign take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
       FU_in[i].ready         = RS_FU_out.FU_packet[i].ready;    // If an entry is ready
       FU_in[i].inst          = RS_FU_out.FU_packet[i].inst;
       FU_in[i].func          = RS_FU_out.FU_packet[i].func;
+      FU_in[i].PC            = RS_FU_out.FU_packet[i].PC;
       FU_in[i].NPC           = RS_FU_out.FU_packet[i].NPC;
+      FU_in[i].next_PC_target = RS_FU_out.FU_packet[i].next_PC_target;
       FU_in[i].dest_idx      = RS_FU_out.FU_packet[i].dest_idx;
       FU_in[i].ROB_idx       = RS_FU_out.FU_packet[i].ROB_idx;
       FU_in[i].FL_idx        = RS_FU_out.FU_packet[i].FL_idx;
