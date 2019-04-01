@@ -84,12 +84,12 @@
 `define MAP_TABLE_STACK_RESET '{`NUM_ROB{`MAP_TABLE_STACK_ENTRY_RESET}}
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] Told_idx;           // output Told to ROB
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] Told_idx;           // output Told to ROB
 } MAP_TABLE_ROB_OUT_t;
 
 typedef struct packed {
-  T_t T1;
-  T_t T2;
+  T_t [`NUM_SUPER-1:0] T1;
+  T_t [`NUM_SUPER-1:0] T2;
 } MAP_TABLE_RS_OUT_t;
 
 `endif

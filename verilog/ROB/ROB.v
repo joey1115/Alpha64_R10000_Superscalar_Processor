@@ -2,25 +2,25 @@
 
 module ROB (
   //inputs
-  input  logic                                      en, clock, reset,
-  input  logic                                      dispatch_en,
-  input  logic                                      rollback_en,
-  input  logic               [`NUM_SUPER-1:0]       complete_en,
-  input  logic               [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
-  input  DECODER_ROB_OUT_t                          decoder_ROB_out,
-  input  FL_ROB_OUT_t                               FL_ROB_out,
-  input  MAP_TABLE_ROB_OUT_t                        Map_Table_ROB_out,
-  input  CDB_ROB_OUT_t                              CDB_ROB_out,
-  //Outputs
-`ifdef DEBUG
-  output ROB_t                                      rob,
-`endif
-  output logic                                      ROB_valid,
-  output logic               [`NUM_SUPER-1:0]       retire_en,
-  output logic                                      halt_out,
-  output logic               [$clog2(`NUM_ROB)-1:0] ROB_idx,
-  output ROB_ARCH_MAP_OUT_t                         ROB_Arch_Map_out,
-  output ROB_FL_OUT_t                               ROB_FL_out
+  input  logic                                                      en, clock, reset,
+  input  logic                                                      dispatch_en,
+  input  logic                                                      rollback_en,
+  input  logic               [`NUM_SUPER-1:0]                       complete_en,
+  input  logic               [$clog2(`NUM_ROB)-1:0]                 ROB_rollback_idx,
+  input  DECODER_ROB_OUT_t                                          decoder_ROB_out,
+  input  FL_ROB_OUT_t                                               FL_ROB_out,
+  input  MAP_TABLE_ROB_OUT_t                                        Map_Table_ROB_out,
+  input  CDB_ROB_OUT_t                                              CDB_ROB_out,
+  //Outputs                
+`ifdef DEBUG                
+  output ROB_t                                                      rob,
+`endif                
+  output logic                                                      ROB_valid,
+  output logic               [`NUM_SUPER-1:0]                       retire_en,
+  output logic                                                      halt_out,
+  output logic               [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
+  output ROB_ARCH_MAP_OUT_t                                         ROB_Arch_Map_out,
+  output ROB_FL_OUT_t                                               ROB_FL_out
 );
 
 `ifndef DEBUG
@@ -53,8 +53,9 @@ module ROB (
 
   //assign ROB_valid = tail_plus_one!=rob.head;
   //assign halt out
-  assign halt_out = retire_en & rob.entry[rob.head].halt;
-  assign ROB_idx = Nrob.tail - 1;
+  assign halt_out =  (retire_en[0] && rob.entry[rob.head].halt) || (retire_en[1] && rob.entry[head_plus_one].halt);
+  assign ROB_idx[0] = tail_minus_one - 1;
+  assign ROB_idx[1] = tail_minus_one;
 
   always_comb begin
     retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid;
@@ -63,8 +64,8 @@ module ROB (
     // condition for Retire
     moveHead = (retire_en[0]) 
                 && en;
-    // condition for Dispatch
-    writeTail = (dispatch_en) 
+    // condition for Dispatch (only when 2 instruction is able to be dispatched)
+    writeTail = (dispatch_en)
                 && en 
                 && (!rob.entry[rob.tail].valid || retire_en[0])
                 && (!rob.entry[tail_plus_one].valid || retire_en[1]);
@@ -81,14 +82,18 @@ module ROB (
     end
     
     //Next state logic
-    Nrob.tail = (writeTail) ? tail_plus_one : Nrob.tail;
+    Nrob.tail = (writeTail) ? (tail_plus_one + 1) : Nrob.tail;
     Nrob.head = (moveHead & retire_en[1]) ? (rob.head + `NUM_SUPER) :
                 (moveHead)                ? (head_plus_one)         :
                                             Nrob.head;
-    Nrob.entry[rob.tail].T_idx = (writeTail) ? FL_ROB_out.T_idx : Nrob.entry[rob.tail].T_idx;
-    Nrob.entry[rob.tail].Told_idx = (writeTail) ? Map_Table_ROB_out.Told_idx : Nrob.entry[rob.tail].Told_idx;
-    Nrob.entry[rob.tail].dest_idx = (writeTail) ? decoder_ROB_out.dest_idx : Nrob.entry[rob.tail].dest_idx;
-    Nrob.entry[rob.tail].halt = writeTail & decoder_ROB_out.halt;
+    Nrob.entry[rob.tail].T_idx = (writeTail) ? FL_ROB_out.T_idx[0] : Nrob.entry[rob.tail].T_idx;
+    Nrob.entry[tail_plus_one].T_idx = (writeTail) ? FL_ROB_out.T_idx[1] : Nrob.entry[tail_plus_one].T_idx;
+    Nrob.entry[rob.tail].Told_idx = (writeTail) ? Map_Table_ROB_out.Told_idx[0] : Nrob.entry[rob.tail].Told_idx;
+    Nrob.entry[tail_plus_one].Told_idx = (writeTail) ? Map_Table_ROB_out.Told_idx[1] : Nrob.entry[tail_plus_one].Told_idx;
+    Nrob.entry[rob.tail].dest_idx = (writeTail) ? decoder_ROB_out.dest_idx[0] : Nrob.entry[rob.tail].dest_idx;
+    Nrob.entry[tail_plus_one].dest_idx = (writeTail) ? decoder_ROB_out.dest_idx[1] : Nrob.entry[tail_plus_one].dest_idx;
+    Nrob.entry[rob.tail].halt = writeTail & decoder_ROB_out.halt[0];
+    Nrob.entry[tail_plus_one].halt = writeTail & decoder_ROB_out.halt[1];
 
     
   
@@ -98,13 +103,17 @@ module ROB (
       Nrob.entry[head_plus_one].valid = (moveHead & retire_en[1]) ? 0 : Nrob.entry[head_plus_one].valid;
       // Nrob.entry[rob.head].complete = (moveHead) ? 0 : Nrob.entry[rob.head].complete;
       Nrob.entry[rob.tail].valid = (writeTail) ? 1 : Nrob.entry[rob.tail].valid;
+      Nrob.entry[tail_plus_one].valid = (writeTail) ? 1 : Nrob.entry[tail_plus_one].valid;
       Nrob.entry[rob.tail].complete = (writeTail) ? 0 : Nrob.entry[rob.tail].complete;
+      Nrob.entry[tail_plus_one].complete = (writeTail) ? 0 : Nrob.entry[tail_plus_one].complete;
     end
     else begin
-      Nrob.entry[rob.tail].valid = (writeTail) ? 1 :
-                                    (moveHead) ? 0 : Nrob.entry[rob.head].valid;
-      Nrob.entry[head_plus_one].valid = (moveHead & retire_en[1]) ? 0 : Nrob.entry[head_plus_one].valid;
-      Nrob.entry[rob.tail].complete = (writeTail) ? 0 : Nrob.entry[rob.head].complete;
+      Nrob.entry[rob.tail].valid = (moveHead) ? 0:
+                                   (writeTail) ? 1 : Nrob.entry[rob.tail].valid;
+      Nrob.entry[tail_plus_one].valid = (moveHead & retire_en[1]) ? 0 :
+                                        (!(moveHead & retire_en[1]) & writeTail) ? 1 : Nrob.entry[head_plus_one].valid;
+      Nrob.entry[rob.tail].complete = (writeTail) ? 0 : Nrob.entry[rob.tail].complete;
+      Nrob.entry[tail_plus_one].complete = (writeTail) ? 0 : Nrob.entry[tail_plus_one].complete;
     end
 
     //rollback functionality
