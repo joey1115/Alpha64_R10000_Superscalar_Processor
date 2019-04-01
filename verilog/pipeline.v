@@ -15,6 +15,7 @@ module pipeline (
   output logic        [`NUM_SUPER-1:0]                   complete_en,
   output CDB_PR_OUT_t                                    CDB_PR_out,
   output logic                                           dispatch_en,
+  output logic                                           dispatch_valid,
   output logic                                           ROB_valid,
   output logic                                           RS_valid,
   output logic                                           FL_valid,
@@ -37,6 +38,7 @@ module pipeline (
   logic                                          en, F_decoder_en, illegal, if_valid_inst_out;
 `ifndef DEBUG
   logic                                          dispatch_en;
+  logic                                          dispatch_valid;
   logic       [`NUM_PR-1:0][63:0]                pipeline_PR;
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL;
   CDB_entry_t [`NUM_FU-1:0]                      pipeline_CDB;
@@ -140,6 +142,7 @@ module pipeline (
   assign en           = `TRUE;
   assign fetch_en = ROB_valid && RS_valid && FL_valid && !rollback_en;
   assign dispatch_en  = fetch_en && F_decoder_out.valid;
+  
   assign F_decoder_en = fetch_en;
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = num_inst;
@@ -280,7 +283,7 @@ module pipeline (
   FL fl_0 (
     .clock(clock),
     .reset(reset),
-    .dispatch_en(dispatch_en),
+    .dispatch_en(dispatch_valid),
     .rollback_en(rollback_en),
     .retire_en(retire_en),
     .FL_rollback_idx(FL_rollback_idx),
@@ -339,7 +342,7 @@ module pipeline (
     .en(en),
     .clock(clock),
     .reset(reset),
-    .dispatch_en(dispatch_en),
+    .dispatch_en(dispatch_valid),
     .rollback_en(rollback_en),
     .complete_en(complete_en),
     .ROB_rollback_idx(ROB_rollback_idx),
@@ -383,6 +386,7 @@ module pipeline (
     .rob(pipeline_ROB),
 `endif
     .ROB_valid(ROB_valid),
+    .dispatch_valid(dispatch_valid),
     .retire_en(retire_en),
     .halt_out(halt_out),
     .ROB_idx(ROB_idx),
@@ -395,7 +399,7 @@ module pipeline (
     .reset(reset),
     .en(en),
     .complete_en(complete_en),
-    .dispatch_en(dispatch_en),
+    .dispatch_en(dispatch_valid),
     .rollback_en(rollback_en),
     .FU_valid(FU_valid),
     .ROB_rollback_idx(ROB_rollback_idx),

@@ -16,6 +16,7 @@ module ROB (
   output ROB_t                                                      rob,
 `endif                
   output logic                                                      ROB_valid,
+  output logic                                                      dispatch_valid,
   output logic               [`NUM_SUPER-1:0]                       retire_en,
   output logic                                                      halt_out,
   output logic               [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
@@ -47,6 +48,7 @@ module ROB (
   assign tail_minus_one = rob.tail - 1;
   assign head_plus_one = rob.head + 1;
   assign ROB_rollback_idx_reg_plus_one = ROB_rollback_idx_reg + 1;
+  assign dispatch_valid = writeTail;
   
   assign ROB_valid = (stall_dispatch | rollback_en)? 0 : !rob.entry[rob.tail].valid;
   
