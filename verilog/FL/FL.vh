@@ -24,6 +24,6 @@ typedef struct packed {
   logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;            // tags from freelist
 } FL_MAP_TABLE_OUT_t;
 
-`define ZERO_PR_UNPACKED {(`$clog2(`NUM_PR)-5){1'b0}, `ZERO_REG}
+`define ZERO_PR_UNPACKED {{($clog2(`NUM_PR)-5){1'b0}}, `ZERO_REG}
 
 `endif

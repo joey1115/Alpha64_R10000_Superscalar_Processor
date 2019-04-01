@@ -45,7 +45,7 @@ module pipeline (
   logic       [31:0][$clog2(`NUM_PR)-1:0]        pipeline_ARCHMAP;
   T_t         [31:0]                             pipeline_MAPTABLE;
 `endif
-  logic                                          write_en;
+  logic       [`NUM_SUPER-1:0]                   write_en;
 `ifndef DEBUG
   logic                   [`NUM_SUPER-1:0]       complete_en;
 `endif
@@ -84,7 +84,7 @@ module pipeline (
 `endif
   logic                   [`NUM_SUPER-1:0]       retire_en;
   logic                                          halt_out;
-  logic                   [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  logic            [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
   ROB_FL_OUT_t                                   ROB_FL_out;
 `ifndef DEBUG
@@ -134,7 +134,7 @@ module pipeline (
   logic       [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0]                internal_ROB_idx;
   logic       [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]                 internal_FL_idx;
   logic       [`NUM_FU-1:0]                                               RS_match_hit;
-  logic       [$clog2(`NUM_FU)-1:0]                                       RS_match_idx;
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]                       RS_match_idx;
 `endif
 
   assign en           = `TRUE;
@@ -156,7 +156,7 @@ module pipeline (
   // assign Dmem2proc_response = 
   //   (proc2Dmem_command==`BUS_NONE) ? 0 : mem2proc_response;
   assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
-`define DEBUG
+`ifdef DEBUG
   always_comb begin
     case(retire_en)
       2'b00: num_inst = 0;

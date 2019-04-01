@@ -100,23 +100,23 @@ module decoder(
 endmodule // decoder
 
 module inst_decoder(
-  input  logic                          valid_in;
-  input  INST_t                         inst_in;
-  input  logic  [`NUM_SUPER-1:0][63:0]  NPC_in;
-  output INST_t                         inst;  // fetched instruction out
-  output logic                  [63:0]  NPC;  // fetched instruction out
-  output ALU_OPA_SELECT                 opa_select;  // fetched instruction out
-  output ALU_OPB_SELECT                 opb_select;
-  output logic                          rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
-  output logic                          cpuid;     // get CPUID instruction
-  output logic                          valid; // for counting valid instructions executed
-  output logic                  [4:0]   dest_idx;
-  output FU_t                           FU;
-  output ALU_FUNC                       func;
-  output logic                  [4:0]   rega_idx;
-  output logic                  [4:0]   regb_idx;
-  output logic                          illegal;
-  output logic                          halt;
+  input  logic                          valid_in,
+  input  INST_t                         inst_in,
+  input  logic                  [63:0]  NPC_in,
+  output INST_t                         inst,  // fetched instruction ou,
+  output logic                  [63:0]  NPC,  // fetched instruction ou,
+  output ALU_OPA_SELECT                 opa_select,  // fetched instruction ou,
+  output ALU_OPB_SELECT                 opb_select,
+  output logic                          rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch,
+  output logic                          cpuid,     // get CPUID instructio,
+  output logic                          valid, // for counting valid instructions execute,
+  output logic                  [4:0]   dest_idx,
+  output FU_t                           FU,
+  output ALU_FUNC                       func,
+  output logic                  [4:0]   rega_idx,
+  output logic                  [4:0]   regb_idx,
+  output logic                          illegal,
+  output logic                          halt
 );
 
   always_comb begin

@@ -76,7 +76,7 @@ module FL (
   end
 
   always_comb begin
-    if (retire_en[0] && = ROB_FL_out.Told_idx[0] != `ZERO_PR) begin
+    if (retire_en[0] && ROB_FL_out.Told_idx[0] != `ZERO_PR) begin
       head1 = `TRUE;
     end else begin
       head1 = `FALSE;

@@ -1,11 +1,12 @@
 `timescale 1ns/100ps
 
 module RS (
-  input  logic                                                     clock, reset, en, complete_en, dispatch_en, rollback_en,
+  input  logic                                                     clock, reset, en, dispatch_en, rollback_en,
+  input  logic              [`NUM_SUPER-1:0]                       complete_en,
   input  logic              [`NUM_FU-1:0]                          FU_valid,
   input  logic              [$clog2(`NUM_ROB)-1:0]                 ROB_rollback_idx,
   input  logic              [$clog2(`NUM_ROB)-1:0]                 diff_ROB,
-  input  logic              [`NUM_SPUER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
+  input  logic              [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
   input  DECODER_RS_OUT_t                                          decoder_RS_out,
   input  FL_RS_OUT_t                                               FL_RS_out,
   input  MAP_TABLE_RS_OUT_t                                        Map_Table_RS_out,
@@ -13,9 +14,9 @@ module RS (
 `ifdef DEBUG
   output RS_ENTRY_t         [`NUM_FU-1:0]                          RS_out,
   output logic              [`NUM_FU-1:0]                          RS_match_hit,   // If a RS entry is ready
-  output logic              [`NUM_SPUER-1:0][$clog2(`NUM_FU)-1:0]  RS_match_idx,
+  output logic              [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]  RS_match_idx,
 `endif
-  output logic              [`NUM_SPUER-1:0]                       RS_valid,
+  output logic                                                     RS_valid,
   output RS_FU_OUT_t                                               RS_FU_out,
   output RS_PR_OUT_t                                               RS_PR_out
 );
@@ -34,21 +35,21 @@ module RS (
   logic          [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0]   diff;
 `ifndef DEBUG
   logic          [`NUM_FU-1:0]                         RS_match_hit;   // If a RS entry is ready
-  logic          [`NUM_SPUER-1:0][$clog2(`NUM_FU)-1:0] RS_match_idx;
+  logic          [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0] RS_match_idx;
 `endif
 
   assign RS_FU_out = '{FU_packet};
   assign RS_PR_out = '{FU_T_idx};
-  assign RS_valid  = RS_match_hit == {`NUM_SPUER{`TRUE}};
+  assign RS_valid  = RS_match_hit == {`NUM_SUPER{`TRUE}};
 `ifdef DEBUG
   assign RS_out = RS;
 `endif
 
   always_comb begin
-    for (int i = 0; i < `NUM_SPUER; i++) begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
       RS_match_hit[i] =  `FALSE;
       RS_match_idx[i] = {$clog2(`NUM_FU){1'b0}};
-      for (int j = i; j < `NUM_FU; j = j + `NUM_SPUER) begin
+      for (int j = i; j < `NUM_FU; j = j + `NUM_SUPER) begin
         if ( RS[j].busy == `FALSE && FU_entry_match[j] ) begin
           RS_match_hit[i] = `TRUE; // RS entry match
           RS_match_idx[i] = j;
@@ -59,7 +60,7 @@ module RS (
   end
 
   always_comb begin
-    for (int i = 0; i < `NUM_SPUER; i++) begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
       for (int j = 0; j < `NUM_FU; j = j + 2) begin
         T1_CDB[j]   = RS[j].T1.idx == CDB_RS_out.T_idx[i] && CDB_RS_out.T_idx[i] != `ZERO_PR && complete_en[i]; // T1 is complete
         T1_ready[j] = RS[j].T1.ready || T1_CDB[j];                     // T1 is ready or updated by CDB
@@ -68,7 +69,7 @@ module RS (
   end // always_comb begin
 
   always_comb begin
-    for (int i = 0; i < `NUM_SPUER; i++) begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
       for (int j = 0; j < `NUM_FU; j = j + 2) begin
         T2_CDB[j]   = RS[j].T1.idx == CDB_RS_out.T_idx[i] && CDB_RS_out.T_idx[i] != `ZERO_PR && complete_en[i]; // T1 is complete
         T2_ready[j] = RS[j].T1.ready || T2_CDB[j];                     // T1 is ready or updated by CDB
@@ -83,7 +84,7 @@ module RS (
   end // always_comb begin
 
   always_comb begin
-    for (int i = 0; i < `NUM_SPUER; i++) begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
       for (int j = 0; j < `NUM_FU; j = j + 2) begin
         FU_entry_match[j] = FU_list[j] == decoder_RS_out.FU[i];
       end // for (int i = 0; i < `NUM_FU; i++) begin
@@ -125,7 +126,7 @@ module RS (
         next_RS[j] = `RS_ENTRY_RESET; // Clear RS entry
       end // if ( RS[i].busy == `FALSE && dispatch_en ) begin
     end // for (int i = 0; i < `NUM_FU; i++) begin
-    for (int i = 0; i < `NUM_SPUER; i++) begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
       if ( dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
         next_RS[RS_match_idx[i]].busy          = `TRUE;                        // RS entry busy
         next_RS[RS_match_idx[i]].ROB_idx       = ROB_idx[i];                      // op code
@@ -145,7 +146,7 @@ module RS (
     end
   end // always_comb begin
 
-  assign FU_list = {{(`NUM_ALU){FU_ALU}}, {(`NUM_MULT){FU_MULT}}, {(`NUM_BR){FU_BR}}, {(`NUM_ST){FU_ST}}, {(`NUM_LD){FU_LD}}, {(`NUM_NONE){FU_NONE}}};
+  assign FU_list = {{(`NUM_ALU){FU_ALU}}, {(`NUM_MULT){FU_MULT}}, {(`NUM_BR){FU_BR}}, {(`NUM_ST){FU_ST}}, {(`NUM_LD){FU_LD}}};
 
   always_ff @(posedge clock) begin
     if(reset) begin

@@ -2,7 +2,7 @@
 
 module PR (
   input  logic                                            en, clock, reset,
-  input  logic                                            write_en,         // (complete) write enable  from CDB
+  input  logic [`NUM_SUPER-1:0]                           write_en,         // (complete) write enable  from CDB
   input  CDB_PR_OUT_t                                     CDB_PR_out,
   input  RS_PR_OUT_t                                      RS_PR_out,
 `ifdef DEBUG

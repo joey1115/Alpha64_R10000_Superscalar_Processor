@@ -229,25 +229,7 @@ module testbench;
       end
       //print RS
       print_RS_head();
-      for(int i = 0; i < `NUM_NONE; i++) begin
-        print_RS_entry("NONE",
-                      {{(32-1){1'b0}},pipeline_RS[i].busy},
-                      pipeline_RS[i].inst.I,
-                      {{(32-5){1'b0}},pipeline_RS[i].func},
-                      pipeline_RS[i].NPC[63:32],
-                      pipeline_RS[i].NPC[31:0],
-                      {{(32-5){1'b0}},pipeline_RS[i].dest_idx},
-                      {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_RS[i].ROB_idx},
-                      {{(32-$clog2(`NUM_FL)){1'b0}},pipeline_RS[i].FL_idx},
-                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T_idx},
-                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T1.idx},
-                      {{(32-1){1'b0}},pipeline_RS[i].T1.ready},
-                      {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
-                      {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
-                      {{(32-2){1'b0}},pipeline_RS[i].opa_select},
-                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
-      end
-      for(int i = `NUM_NONE; i < `NUM_NONE +`NUM_LD; i++) begin
+      for(int i = 0; i < `NUM_LD; i++) begin
         print_RS_entry("LD  ",
                       {{(32-1){1'b0}},pipeline_RS[i].busy},
                       pipeline_RS[i].inst.I,
@@ -265,7 +247,7 @@ module testbench;
                       {{(32-2){1'b0}},pipeline_RS[i].opa_select},
                       {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
-      for(int i =`NUM_NONE + `NUM_LD; i < (`NUM_NONE + `NUM_LD + `NUM_ST); i++) begin
+      for(int i =`NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
         print_RS_entry("ST  ",
                       {{(32-1){1'b0}},pipeline_RS[i].busy},
                       pipeline_RS[i].inst,
@@ -283,7 +265,7 @@ module testbench;
                       {{(32-2){1'b0}},pipeline_RS[i].opa_select},
                       {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
-      for(int i = (`NUM_NONE + `NUM_LD + `NUM_ST); i < (`NUM_NONE + `NUM_LD + `NUM_ST + `NUM_BR); i++) begin
+      for(int i = ( `NUM_LD + `NUM_ST); i < ( `NUM_LD + `NUM_ST + `NUM_BR); i++) begin
         print_RS_entry("BR  ",
                       {{(32-1){1'b0}},pipeline_RS[i].busy},
                       pipeline_RS[i].inst,
@@ -301,7 +283,7 @@ module testbench;
                       {{(32-2){1'b0}},pipeline_RS[i].opa_select},
                       {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
-      for(int i = (`NUM_NONE + `NUM_LD + `NUM_ST + `NUM_BR); i < (`NUM_NONE + `NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
+      for(int i = ( `NUM_LD + `NUM_ST + `NUM_BR); i < ( `NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
         print_RS_entry("MULT",
                       {{(32-1){1'b0}},pipeline_RS[i].busy},
                       pipeline_RS[i].inst,
@@ -319,7 +301,7 @@ module testbench;
                       {{(32-2){1'b0}},pipeline_RS[i].opa_select},
                       {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
-      for(int i = (`NUM_NONE + `NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < (`NUM_NONE + `NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
+      for(int i = ( `NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < ( `NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
         print_RS_entry("ALU ",
                       {{(32-1){1'b0}},pipeline_RS[i].busy},
                       pipeline_RS[i].inst,

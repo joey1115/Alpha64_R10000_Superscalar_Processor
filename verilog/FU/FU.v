@@ -465,7 +465,7 @@ endmodule
 module FU (
   input  logic                                                     clock,               // system clock
   input  logic                                                     reset,               // system reset
-  input  logic        [$clog2(`NUM_ROB)-1:0]                       ROB_idx,
+  input  logic        [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0]       ROB_idx,
   input  logic        [`NUM_FU-1:0]                                CDB_valid,
   input  RS_FU_OUT_t                                               RS_FU_out,
   input  PR_FU_OUT_t                                               PR_FU_out,
@@ -506,7 +506,7 @@ module FU (
   assign rollback_en        = take_branch[0];
   assign ROB_rollback_idx   = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
   assign FL_rollback_idx    = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
-  assign diff_ROB           = ROB_idx - ROB_rollback_idx;
+  assign diff_ROB           = ROB_idx[1] - ROB_rollback_idx;
   assign take_branch_out    = take_branch[0];
   assign take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
 
