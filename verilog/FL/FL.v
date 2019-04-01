@@ -21,38 +21,85 @@ module FL (
 );
 
 `ifndef DEBUG
-  logic [$clog2(`NUM_FL)-1:0]              head, next_head;
-  logic [$clog2(`NUM_FL)-1:0]              tail, next_tail;
-  logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] FL_table, next_FL_table;
+  logic [$clog2(`NUM_FL)-1:0]                 head, next_head;
+  logic [$clog2(`NUM_FL)-1:0]                 tail, next_tail;
+  logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]    FL_table, next_FL_table;
 `endif
-  logic [$clog2(`NUM_FL)-1:0]              virtual_tail;
-  logic [`NUM_SUPER-1:0]                   move_head;
-  logic [$clog2(`NUM_PR)-1:0]              T_idx;
-  logic [$clog2(`NUM_FL)-1:0]              FL_idx;
-  logic [$clog2(`NUM_FL)-1:0]              head_plus_one;
+  logic [$clog2(`NUM_FL)-1:0]                 virtual_tail;
+  logic [`NUM_SUPER-1:0]                      move_head;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0] FL_idx;
+  logic                                       head1, head2;
 
   assign FL_ROB_out       = '{T_idx};
   assign FL_RS_out        = '{T_idx, FL_idx};
   assign FL_Map_Table_out = '{T_idx};
-
-  assign head_plus_one = head + 1;
-
-  assign move_head[0]    = retire_en[0] && ROB_FL_out.Told_idx[0] != `ZERO_PR;
-  assign move_head[1]    = move_head[0] && retire_en[1] && ROB_FL_out.Told_idx[1] != `ZERO_PR;
-  assign next_head       = move_head[1] ? (head + `NUM_SUPER) :
-                           move_head[0] ? (head_plus_one)     : head;
-  assign virtual_tail    = decoder_FL_out.dest_idx == `ZERO_REG ? tail : tail + 1;
+  assign next_head       = head + head1 + head2;
   assign next_tail       = rollback_en ? FL_rollback_idx :
                            dispatch_en ? virtual_tail    : tail;
-  assign FL_idx          = next_tail;
-  assign T_idx           = decoder_FL_out.dest_idx == `ZERO_REG ? `ZERO_PR : FL_table[tail];
   assign FL_valid        = decoder_FL_out.dest_idx == `ZERO_REG || virtual_tail != next_head;
 
   always_comb begin
-    next_FL_table = FL_table;
+    if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
+      virtual_tail = tail + 2;
+    end else if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) begin
+      virtual_tail = tail + 1;
+    end else if (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
+      virtual_tail = tail + 1;
+    end else begin
+      virtual_tail = tail;
+    end
+  end
 
-    for(int i = 0; i < `NUM_SUPER; i++) begin
-      next_FL_table[head + i] = move_head[i] ? ROB_FL_out.Told_idx[i] : FL_table[head + i];
+  always_comb begin
+    if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
+      T_idx = '{FL_table[tail], FL_table[tail+1]};
+    end else if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) begin
+      T_idx = '{`ZERO_PR_UNPACKED, FL_table[tail]};
+    end else if (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
+      T_idx = '{FL_table[tail], `ZERO_PR_UNPACKED};
+    end else begin
+      T_idx = '{`ZERO_PR_UNPACKED, `ZERO_PR_UNPACKED};
+    end
+  end
+
+  always_comb begin
+    if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
+      FL_idx = '{tail+2, tail+1};
+    end else if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) begin
+      FL_idx = '{tail+1, tail+1};
+    end else if (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
+      FL_idx = '{tail, tail+1};
+    end else begin
+      FL_idx = '{tail, tail};
+    end
+  end
+
+  always_comb begin
+    if (retire_en[0] && = ROB_FL_out.Told_idx[0] != `ZERO_PR) begin
+      head1 = `TRUE;
+    end else begin
+      head1 = `FALSE;
+    end
+  end
+
+  always_comb begin
+    if (retire_en == 2'b11 && ROB_FL_out.Told_idx[1] != `ZERO_PR) begin
+      head2 = `TRUE;
+    end else begin
+      head2 = `FALSE;
+    end
+  end
+
+  always_comb begin
+    next_FL_table = FL_table;
+    if (head1 && head2) begin
+      next_FL_table[head+1] = ROB_FL_out.Told_idx[0];
+      next_FL_table[head+2] = ROB_FL_out.Told_idx[1];
+    end else if (head1 && !head2) begin
+      next_FL_table[head+1] = ROB_FL_out.Told_idx[0];
+    end else if (!head1 && head2) begin
+      next_FL_table[head+1] = ROB_FL_out.Told_idx[1];
     end
   end
 
