@@ -12,16 +12,16 @@
 `endif
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] T_idx;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;
 } FL_ROB_OUT_t;
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] T_idx;
-  logic [$clog2(`NUM_FL)-1:0] FL_idx;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0] FL_idx;
 } FL_RS_OUT_t;
 
 typedef struct packed {
-  logic [$clog2(`NUM_PR)-1:0] T_idx;            // tags from freelist
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;            // tags from freelist
 } FL_MAP_TABLE_OUT_t;
 
 `define ZERO_PR_UNPACKED {(`$clog2(`NUM_PR)-5){1'b0}, `ZERO_REG}
