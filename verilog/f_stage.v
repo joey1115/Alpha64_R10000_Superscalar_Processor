@@ -30,7 +30,7 @@ module F_stage(
   logic    [63:0] PC_reg;               // PC we are currently fetching
   // logic           ready_for_valid;
 
-  logic   PC_plus_8;
+  logic   [63:0] PC_plus_8;
   logic   [63:0] next_PC;
   logic          PC_enable;
   // logic          next_ready_for_valid  ;
