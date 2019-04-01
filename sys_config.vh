@@ -15,25 +15,6 @@
 `define NUM_MULT_STAGE (8)
 `define NUM_BR_PC_BITS (4)
 
-`define BHT_RESET {
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-{2'b00}, \
-}
-
 `define DEBUG
 // `define MULT_FORWARDING
 

@@ -20,4 +20,23 @@ typedef struct packed {
   logic [63:0] take_branch_target_out;
 } BP_F_OUT_t;
 
+`define BHT_RESET { \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}, \
+  {2'b00}  \
+}
+
 `endif
