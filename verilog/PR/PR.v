@@ -25,6 +25,7 @@ module PR (
         next_pr[CDB_PR_out.T_idx[i]] = CDB_PR_out.T_value[i];
       end
     end
+    next_pr[31] = 64'h0;
   end
 
   always_comb begin

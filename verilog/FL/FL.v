@@ -61,9 +61,9 @@ module FL (
     if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
       T_idx = '{FL_table[tail_plus_one], FL_table[tail]};
     end else if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) begin
-      T_idx = '{FL_table[tail], `ZERO_PR_UNPACKED};
-    end else if (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
       T_idx = '{`ZERO_PR_UNPACKED, FL_table[tail]};
+    end else if (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
+      T_idx = '{FL_table[tail], `ZERO_PR_UNPACKED};
     end else begin
       T_idx = '{`ZERO_PR_UNPACKED, `ZERO_PR_UNPACKED};
     end

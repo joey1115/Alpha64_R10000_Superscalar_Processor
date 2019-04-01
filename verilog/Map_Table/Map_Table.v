@@ -52,8 +52,8 @@ module Map_Table (
   assign Told_idx[0] = map_table[decoder_Map_Table_out.dest_idx[0]].idx;
   assign T1[0].idx   = map_table[decoder_Map_Table_out.rega_idx[0]].idx;
   assign T2[0].idx   = map_table[decoder_Map_Table_out.regb_idx[0]].idx;
-  assign T1[0].ready = ( complete_en[0] && T1[0].idx == CDB_Map_Table_out.T_idx[0] ) || map_table[decoder_Map_Table_out.rega_idx[0]].ready;
-  assign T2[0].ready = ( complete_en[0] && T2[0].idx == CDB_Map_Table_out.T_idx[0] ) || map_table[decoder_Map_Table_out.regb_idx[0]].ready;
+  assign T1[0].ready = ( complete_en[0] && T1[0].idx == CDB_Map_Table_out.T_idx[0] ) || ( complete_en[1] && T1[0].idx == CDB_Map_Table_out.T_idx[1] ) || map_table[decoder_Map_Table_out.rega_idx[0]].ready;
+  assign T2[0].ready = ( complete_en[0] && T2[0].idx == CDB_Map_Table_out.T_idx[0] ) || ( complete_en[1] && T2[0].idx == CDB_Map_Table_out.T_idx[1] ) || map_table[decoder_Map_Table_out.regb_idx[0]].ready;
 
 
   assign Told_idx[1] = (decoder_Map_Table_out.dest_idx[1] == decoder_Map_Table_out.dest_idx[0]) ?  
@@ -62,8 +62,8 @@ module Map_Table (
                         FL_Map_Table_out.T_idx[0]: map_table[decoder_Map_Table_out.rega_idx[1]].idx;
   assign T2[1].idx   = (decoder_Map_Table_out.dest_idx[0] == decoder_Map_Table_out.regb_idx[1]) ?
                         FL_Map_Table_out.T_idx[0]: map_table[decoder_Map_Table_out.regb_idx[1]].idx;
-  assign T1[1].ready = (( complete_en[1] && T1[1].idx == CDB_Map_Table_out.T_idx[1] ) || map_table[decoder_Map_Table_out.rega_idx[1]].ready) && (decoder_Map_Table_out.dest_idx[0] != decoder_Map_Table_out.rega_idx[1]);
-  assign T2[1].ready = (( complete_en[1] && T2[1].idx == CDB_Map_Table_out.T_idx[1] ) || map_table[decoder_Map_Table_out.regb_idx[1]].ready) && (decoder_Map_Table_out.dest_idx[0] != decoder_Map_Table_out.regb_idx[1]);
+  assign T1[1].ready = (( complete_en[0] && T1[1].idx == CDB_Map_Table_out.T_idx[0] ) || ( complete_en[1] && T1[1].idx == CDB_Map_Table_out.T_idx[1] ) || map_table[decoder_Map_Table_out.rega_idx[1]].ready) && (decoder_Map_Table_out.dest_idx[0] != decoder_Map_Table_out.rega_idx[1]);
+  assign T2[1].ready = (( complete_en[0] && T2[1].idx == CDB_Map_Table_out.T_idx[0] ) || ( complete_en[1] && T2[1].idx == CDB_Map_Table_out.T_idx[1] ) || map_table[decoder_Map_Table_out.regb_idx[1]].ready) && (decoder_Map_Table_out.dest_idx[0] != decoder_Map_Table_out.regb_idx[1]);
 
   //second indec for super scalar!!!!!!!!!!!!!!!!!!!
   always_comb begin
