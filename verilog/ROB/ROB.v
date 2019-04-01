@@ -30,7 +30,7 @@ module ROB (
   ROB_t Nrob;
 
   logic writeTail, moveHead, mispredict, b_t, stall_dispatch;
-  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg, ROB_rollback_idx_reg_plus_one;
   logic [1:0] state, Nstate;
   logic [$clog2(`NUM_ROB)-1:0] tail_plus_one;
   logic [$clog2(`NUM_ROB)-1:0] tail_minus_one;
