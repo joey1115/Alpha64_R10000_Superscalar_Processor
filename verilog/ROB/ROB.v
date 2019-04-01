@@ -54,8 +54,8 @@ module ROB (
   //assign ROB_valid = tail_plus_one!=rob.head;
   //assign halt out
   assign halt_out =  (retire_en[0] && rob.entry[rob.head].halt) || (retire_en[1] && rob.entry[head_plus_one].halt);
-  assign ROB_idx[0] = tail_minus_one - 1;
-  assign ROB_idx[1] = tail_minus_one;
+  assign ROB_idx[0] = rob.tail;
+  assign ROB_idx[1] = tail_plus_one;
 
   always_comb begin
     retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid;
