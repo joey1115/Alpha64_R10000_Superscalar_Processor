@@ -46,6 +46,7 @@ module ROB (
   assign tail_plus_one = rob.tail + 1;
   assign tail_minus_one = rob.tail - 1;
   assign head_plus_one = rob.head + 1;
+  assign ROB_rollback_idx_reg_plus_one = ROB_rollback_idx_reg + 1;
   
   assign ROB_valid = (stall_dispatch | rollback_en)? 0 : !rob.entry[rob.tail].valid;
   
@@ -148,7 +149,7 @@ module ROB (
   always_comb begin
     case(state)
       0: Nstate = (mispredict) ? 1 : state;
-      1: Nstate = ((rob.head == ROB_rollback_idx_reg) || (rob.head == (ROB_rollback_idx_reg + 1))) ? 0 : state;
+      1: Nstate = ((rob.head == ROB_rollback_idx_reg) || (rob.head == (ROB_rollback_idx_reg_plus_one))) ? 0 : state;
       default: Nstate = state;
     endcase 
   end
