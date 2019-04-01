@@ -144,7 +144,7 @@ module pipeline (
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = num_inst;
   assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
-                                    illegal  ? HALTED_ON_ILLEGAL:
+                                    // illegal  ? HALTED_ON_ILLEGAL:
                                                NO_ERROR;
   assign proc2Dmem_command = BUS_NONE;
   assign proc2Dmem_addr = 0;
