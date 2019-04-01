@@ -13,7 +13,7 @@ module RS (
   input  CDB_RS_OUT_t                                              CDB_RS_out,
 `ifdef DEBUG
   output RS_ENTRY_t         [`NUM_FU-1:0]                          RS_out,
-  output logic              [`NUM_FU-1:0]                          RS_match_hit,   // If a RS entry is ready
+  output logic              [`NUM_SUPER-1:0]                       RS_match_hit,   // If a RS entry is ready
   output logic              [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]  RS_match_idx,
 `endif
   output logic                                                     RS_valid,
@@ -31,10 +31,10 @@ module RS (
   logic          [`NUM_FU-1:0]                         T2_ready;       // If T2 is ready
   logic          [`NUM_FU-1:0]                         RS_entry_ready;       // If T2 is ready
   logic          [`NUM_FU-1:0]                         RS_rollback;    // If a RS entry is ready
-  logic          [`NUM_FU-1:0]                         FU_entry_match;
+  logic          [`NUM_SUPER-1:0][`NUM_FU-1:0]         FU_entry_match;
   logic          [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0]   diff;
 `ifndef DEBUG
-  logic          [`NUM_FU-1:0]                         RS_match_hit;   // If a RS entry is ready
+  logic          [`NUM_SUPER-1:0]                      RS_match_hit;   // If a RS entry is ready
   logic          [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0] RS_match_idx;
 `endif
 
@@ -50,7 +50,7 @@ module RS (
       RS_match_hit[i] =  `FALSE;
       RS_match_idx[i] = {$clog2(`NUM_FU){1'b0}};
       for (int j = i; j < `NUM_FU; j = j + `NUM_SUPER) begin
-        if ( RS[j].busy == `FALSE && FU_entry_match[j] ) begin
+        if ( RS[j].busy == `FALSE && FU_entry_match[i][j] ) begin
           RS_match_hit[i] = `TRUE; // RS entry match
           RS_match_idx[i] = j;
           break;
@@ -61,7 +61,7 @@ module RS (
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      for (int j = 0; j < `NUM_FU; j = j + 2) begin
+      for (int j = 0; j < `NUM_FU; j++) begin
         T1_CDB[j]   = RS[j].T1.idx == CDB_RS_out.T_idx[i] && CDB_RS_out.T_idx[i] != `ZERO_PR && complete_en[i]; // T1 is complete
         T1_ready[j] = RS[j].T1.ready || T1_CDB[j];                     // T1 is ready or updated by CDB
       end // for (int i = 0; i < `NUM_FU; i++) begin
@@ -70,9 +70,9 @@ module RS (
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      for (int j = 0; j < `NUM_FU; j = j + 2) begin
-        T2_CDB[j]   = RS[j].T1.idx == CDB_RS_out.T_idx[i] && CDB_RS_out.T_idx[i] != `ZERO_PR && complete_en[i]; // T1 is complete
-        T2_ready[j] = RS[j].T1.ready || T2_CDB[j];                     // T1 is ready or updated by CDB
+      for (int j = 0; j < `NUM_FU; j++) begin
+        T2_CDB[j]   = RS[j].T2.idx == CDB_RS_out.T_idx[i] && CDB_RS_out.T_idx[i] != `ZERO_PR && complete_en[i]; // T1 is complete
+        T2_ready[j] = RS[j].T2.ready || T2_CDB[j];                     // T1 is ready or updated by CDB
       end // for (int i = 0; i < `NUM_FU; i++) begin
     end
   end // always_comb begin
@@ -85,8 +85,8 @@ module RS (
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      for (int j = 0; j < `NUM_FU; j = j + 2) begin
-        FU_entry_match[j] = FU_list[j] == decoder_RS_out.FU[i];
+      for (int j = i; j < `NUM_FU; j = j + 2) begin
+        FU_entry_match[i][j] = FU_list[j] == decoder_RS_out.FU[i];
       end // for (int i = 0; i < `NUM_FU; i++) begin
     end
   end

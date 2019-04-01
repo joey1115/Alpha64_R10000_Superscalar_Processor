@@ -133,7 +133,7 @@ module pipeline (
   logic       [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:0]                 internal_T_idx;
   logic       [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0]                internal_ROB_idx;
   logic       [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]                 internal_FL_idx;
-  logic       [`NUM_FU-1:0]                                               RS_match_hit;
+  logic       [`NUM_SUPER-1:0]                                            RS_match_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]                       RS_match_idx;
 `endif
 

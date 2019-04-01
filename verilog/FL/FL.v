@@ -37,7 +37,7 @@ module FL (
   assign next_head       = head + head1 + head2;
   assign next_tail       = rollback_en ? FL_rollback_idx :
                            dispatch_en ? virtual_tail    : tail;
-  assign FL_valid        = decoder_FL_out.dest_idx == `ZERO_REG || virtual_tail != next_head;
+  assign FL_valid        = (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) || virtual_tail != next_head;
 
   always_comb begin
     if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin

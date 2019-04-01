@@ -33,7 +33,7 @@ extern void print_freelist_entry(int i, int freePR);
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
                       int wb_reg_wr_idx_out_1, int wb_reg_wr_idx_out_2,
-                      int wb_reg_wr_en_out_1, int wb_reg_wr_en_out_2)
+                      int wb_reg_wr_en_out_1, int wb_reg_wr_en_out_2);
 extern void print_membus(int proc2mem_command, int mem2proc_response,
                          int proc2mem_addr_hi, int proc2mem_addr_lo,
                          int proc2mem_data_hi, int proc2mem_data_lo);
@@ -68,7 +68,7 @@ module testbench;
   logic [31:0][$clog2(`NUM_PR)-1:0] pipeline_ARCHMAP;
   T_t [31:0] pipeline_MAPTABLE;
   CDB_entry_t [`NUM_FU-1:0] pipeline_CDB;
-  logic complete_en;
+  logic [`NUM_SUPER-1:0] complete_en;
   CDB_PR_OUT_t CDB_PR_out;
   logic dispatch_en, ROB_valid, RS_valid, FL_valid, rollback_en;
   logic [`NUM_PR-1:0][63:0] pipeline_PR;
