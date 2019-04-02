@@ -27,8 +27,8 @@ module decoder(
   output DECODER_ROB_OUT_t       decoder_ROB_out,
   output DECODER_RS_OUT_t        decoder_RS_out,
   output DECODER_FL_OUT_t        decoder_FL_out,
-  output DECODER_MAP_TABLE_OUT_t decoder_Map_Table_out,
-  output logic                   illegal
+  output DECODER_MAP_TABLE_OUT_t decoder_Map_Table_out
+  //output logic                   illegal
 );
 
   INST_t         [`NUM_SUPER-1:0]       inst;  // fetched instruction out
@@ -45,11 +45,11 @@ module decoder(
   logic          [`NUM_SUPER-1:0][4:0]  rega_idx;
   logic          [`NUM_SUPER-1:0][4:0]  regb_idx;
 
-  assign decoder_ROB_out       = '{halt, dest_idx};
+  assign decoder_ROB_out       = '{halt, dest_idx, internal_illegal};
   assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch};
   assign decoder_FL_out        = '{dest_idx};
   assign decoder_Map_Table_out = '{dest_idx, rega_idx, regb_idx};
-  assign illegal               = internal_illegal[0] | internal_illegal[1];
+  //assign illegal               = internal_illegal[0] | internal_illegal[1];
 
   inst_decoder inst_decoder_0 (.valid_in(F_decoder_out.valid),
                               .inst_in(F_decoder_out.inst[0]),

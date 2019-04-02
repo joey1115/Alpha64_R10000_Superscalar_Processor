@@ -19,6 +19,7 @@ module ROB (
   output logic                                                      dispatch_valid,
   output logic               [`NUM_SUPER-1:0]                       retire_en,
   output logic                                                      halt_out,
+  output logic                                                      illegal_out,
   output logic               [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
   output ROB_ARCH_MAP_OUT_t                                         ROB_Arch_Map_out,
   output ROB_FL_OUT_t                                               ROB_FL_out
@@ -57,6 +58,7 @@ module ROB (
   //assign ROB_valid = tail_plus_one!=rob.head;
   //assign halt out
   assign halt_out =  (retire_en[0] && rob.entry[rob.head].halt) || (retire_en[1] && rob.entry[head_plus_one].halt);
+  assign illegal_out =  (retire_en[0] && rob.entry[rob.head].illegal) || (retire_en[1] && rob.entry[head_plus_one].illegal);
   assign ROB_idx[0] = rob.tail;
   assign ROB_idx[1] = tail_plus_one;
 
@@ -97,6 +99,8 @@ module ROB (
     Nrob.entry[tail_plus_one].dest_idx = (writeTail) ? decoder_ROB_out.dest_idx[1] : Nrob.entry[tail_plus_one].dest_idx;
     Nrob.entry[rob.tail].halt = writeTail & decoder_ROB_out.halt[0];
     Nrob.entry[tail_plus_one].halt = writeTail & decoder_ROB_out.halt[1];
+    Nrob.entry[rob.tail].illegal = writeTail & decoder_ROB_out.illegal[0];
+    Nrob.entry[tail_plus_one].illegal = writeTail & decoder_ROB_out.illegal[1];
 
     
   
@@ -107,16 +111,16 @@ module ROB (
       // Nrob.entry[rob.head].complete = (moveHead) ? 0 : Nrob.entry[rob.head].complete;
       Nrob.entry[rob.tail].valid = (writeTail) ? 1 : Nrob.entry[rob.tail].valid;
       Nrob.entry[tail_plus_one].valid = (writeTail) ? 1 : Nrob.entry[tail_plus_one].valid;
-      Nrob.entry[rob.tail].complete = (writeTail) ? 0 : Nrob.entry[rob.tail].complete;
-      Nrob.entry[tail_plus_one].complete = (writeTail) ? 0 : Nrob.entry[tail_plus_one].complete;
+      Nrob.entry[rob.tail].complete = (writeTail | decoder_ROB_out.halt[0] | decoder_ROB_out.illegal[0]) ? 0 : Nrob.entry[rob.tail].complete;
+      Nrob.entry[tail_plus_one].complete = (writeTail | decoder_ROB_out.halt[1] | decoder_ROB_out.illegal[1]) ? 0 : Nrob.entry[tail_plus_one].complete;
     end
     else begin
       Nrob.entry[rob.tail].valid = (moveHead) ? 0:
                                    (writeTail) ? 1 : Nrob.entry[rob.tail].valid;
       Nrob.entry[tail_plus_one].valid = (moveHead & retire_en[1]) ? 0 :
                                         (!(moveHead & retire_en[1]) & writeTail) ? 1 : Nrob.entry[head_plus_one].valid;
-      Nrob.entry[rob.tail].complete = (writeTail) ? 0 : Nrob.entry[rob.tail].complete;
-      Nrob.entry[tail_plus_one].complete = (writeTail) ? 0 : Nrob.entry[tail_plus_one].complete;
+      Nrob.entry[rob.tail].complete = (writeTail | decoder_ROB_out.halt[0] | decoder_ROB_out.illegal[0]) ? 0 : Nrob.entry[rob.tail].complete;
+      Nrob.entry[tail_plus_one].complete = (writeTail | decoder_ROB_out.halt[1] | decoder_ROB_out.illegal[1]) ? 0 : Nrob.entry[tail_plus_one].complete;
     end
 
     //rollback functionality
@@ -165,6 +169,7 @@ module ROB (
          rob.entry[i].valid <= `SD 0;
          rob.entry[i].complete <= `SD 0;
          rob.entry[i].halt <= `SD 0;
+         rob.entry[i].illegal <= `SD 0;
          rob.entry[i].T_idx <= `SD 0;
          rob.entry[i].Told_idx <= `SD 0;
          rob.entry[i].dest_idx <= `SD 0;

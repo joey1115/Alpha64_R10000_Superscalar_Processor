@@ -16,6 +16,7 @@ typedef struct packed {
   logic [$clog2(`NUM_ARCH_TABLE)-1:0] dest_idx;
   logic complete;
   logic halt;
+  logic illegal;
 } ROB_ENTRY_t;
 
 typedef struct packed {

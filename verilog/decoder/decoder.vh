@@ -107,6 +107,7 @@ typedef struct packed {
 typedef struct packed {
   logic [`NUM_SUPER-1:0]       halt;
   logic [`NUM_SUPER-1:0][4:0]  dest_idx;
+  logic [`NUM_SUPER-1:0]       illegal;
 } DECODER_ROB_OUT_t;
 
 typedef struct packed {

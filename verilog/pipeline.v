@@ -35,7 +35,7 @@ module pipeline (
   output logic [3:0]  pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
-  logic                                          en, F_decoder_en, illegal, if_valid_inst_out;
+  logic                                          en, F_decoder_en, if_valid_inst_out;
 `ifndef DEBUG
   logic                                          dispatch_en;
   logic                                          dispatch_valid;
@@ -86,6 +86,7 @@ module pipeline (
 `endif
   logic                   [`NUM_SUPER-1:0]       retire_en;
   logic                                          halt_out;
+  logic                                          illegal_out;
   logic            [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
   ROB_FL_OUT_t                                   ROB_FL_out;
@@ -147,7 +148,7 @@ module pipeline (
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = num_inst;
   assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
-                                    // illegal  ? HALTED_ON_ILLEGAL:
+                                    illegal_out  ? HALTED_ON_ILLEGAL:
                                                NO_ERROR;
   assign proc2Dmem_command = BUS_NONE;
   assign proc2Dmem_addr = 0;
@@ -276,8 +277,8 @@ module pipeline (
     .decoder_ROB_out(decoder_ROB_out),
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
-    .decoder_Map_Table_out(decoder_Map_Table_out),
-    .illegal(illegal)
+    .decoder_Map_Table_out(decoder_Map_Table_out)
+    //.illegal(illegal)
   );
 
   FL fl_0 (
@@ -389,6 +390,7 @@ module pipeline (
     .dispatch_valid(dispatch_valid),
     .retire_en(retire_en),
     .halt_out(halt_out),
+    .illegal_out(illegal_out),
     .ROB_idx(ROB_idx),
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
     .ROB_FL_out(ROB_FL_out)
