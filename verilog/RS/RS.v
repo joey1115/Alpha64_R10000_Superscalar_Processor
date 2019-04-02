@@ -60,12 +60,6 @@ module RS (
   end
 
   always_comb begin
-    // for (int i = 0; i < `NUM_SUPER; i++) begin
-    //   for (int j = 0; j < `NUM_FU; j++) begin
-    //     T1_CDB[j]   = RS[j].T1.idx == CDB_RS_out.T_idx[i] && CDB_RS_out.T_idx[i] != `ZERO_PR && complete_en[i]; // T1 is complete
-    //     T1_ready[j] = RS[j].T1.ready || T1_CDB[j];                     // T1 is ready or updated by CDB
-    //   end // for (int i = 0; i < `NUM_FU; i++) begin
-    // end
     for (int j = 0; j < `NUM_FU; j++) begin
       T1_CDB[j]   = (RS[j].T1.idx == CDB_RS_out.T_idx[0] && CDB_RS_out.T_idx[0] != `ZERO_PR && complete_en[0]) || (RS[j].T1.idx == CDB_RS_out.T_idx[1] && CDB_RS_out.T_idx[1] != `ZERO_PR && complete_en[1]); // T1 is complete
       T1_ready[j] = RS[j].T1.ready || T1_CDB[j];                     // T1 is ready or updated by CDB
@@ -73,12 +67,6 @@ module RS (
   end // always_comb begin
 
   always_comb begin
-    // for (int i = 0; i < `NUM_SUPER; i++) begin
-    //   for (int j = 0; j < `NUM_FU; j++) begin
-    //     T2_CDB[j]   = RS[j].T2.idx == CDB_RS_out.T_idx[i] && CDB_RS_out.T_idx[i] != `ZERO_PR && complete_en[i]; // T1 is complete
-    //     T2_ready[j] = RS[j].T2.ready || T2_CDB[j];                     // T1 is ready or updated by CDB
-    //   end // for (int i = 0; i < `NUM_FU; i++) begin
-    // end
     for (int j = 0; j < `NUM_FU; j++) begin
       T2_CDB[j]   = (RS[j].T2.idx == CDB_RS_out.T_idx[0] && CDB_RS_out.T_idx[0] != `ZERO_PR && complete_en[0]) || (RS[j].T2.idx == CDB_RS_out.T_idx[1] && CDB_RS_out.T_idx[1] != `ZERO_PR && complete_en[1]); // T1 is complete
       T2_ready[j] = RS[j].T2.ready || T2_CDB[j];                     // T1 is ready or updated by CDB
