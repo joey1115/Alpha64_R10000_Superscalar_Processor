@@ -45,7 +45,7 @@ module decoder(
   logic          [`NUM_SUPER-1:0][4:0]  rega_idx;
   logic          [`NUM_SUPER-1:0][4:0]  regb_idx;
 
-  assign decoder_ROB_out       = '{halt, dest_idx, internal_illegal};
+  assign decoder_ROB_out       = '{halt, dest_idx, internal_illegal, NPC};
   assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch};
   assign decoder_FL_out        = '{dest_idx};
   assign decoder_Map_Table_out = '{dest_idx, rega_idx, regb_idx};

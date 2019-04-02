@@ -17,6 +17,7 @@ typedef struct packed {
   logic complete;
   logic halt;
   logic illegal;
+  logic [63:0] NPC;
 } ROB_ENTRY_t;
 
 typedef struct packed {

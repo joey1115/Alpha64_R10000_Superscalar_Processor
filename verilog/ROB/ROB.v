@@ -14,9 +14,9 @@ module ROB (
   //Outputs                
 `ifdef DEBUG                
   output ROB_t                                                      rob,
+  output logic               [`NUM_SUPER-1:0][63:0]                 retire_NPC,
 `endif                
   output logic                                                      ROB_valid,
-  output logic                                                      dispatch_valid,
   output logic               [`NUM_SUPER-1:0]                       retire_en,
   output logic                                                      halt_out,
   output logic                                                      illegal_out,
@@ -38,6 +38,10 @@ module ROB (
   logic [$clog2(`NUM_ROB)-1:0] tail_minus_one;
   logic [$clog2(`NUM_ROB)-1:0] head_plus_one;
 
+`ifdef DEBUG
+  assign retire_NPC[0] = rob.entry[rob.head].NPC;
+  assign retire_NPC[1] = rob.entry[head_plus_one].NPC; 
+`endif
   assign ROB_Arch_Map_out.T_idx = '{rob.entry[head_plus_one].T_idx, rob.entry[rob.head].T_idx};
   assign ROB_Arch_Map_out.dest_idx = '{rob.entry[head_plus_one].dest_idx, rob.entry[rob.head].dest_idx};
   assign ROB_FL_out.Told_idx = '{rob.entry[head_plus_one].Told_idx, rob.entry[rob.head].Told_idx};
@@ -49,9 +53,8 @@ module ROB (
   assign tail_minus_one = rob.tail - 1;
   assign head_plus_one = rob.head + 1;
   assign ROB_rollback_idx_reg_plus_one = ROB_rollback_idx_reg + 1;
-  assign dispatch_valid = writeTail;
   
-  assign ROB_valid = (stall_dispatch | rollback_en)? 0 : !rob.entry[rob.tail].valid;
+  assign ROB_valid = (stall_dispatch | rollback_en)? 0 : (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]);
   
   //(tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
 
@@ -67,13 +70,9 @@ module ROB (
     retire_en[1] = rob.entry[head_plus_one].complete & rob.entry[head_plus_one].valid & retire_en[0];
 
     // condition for Retire
-    moveHead = (retire_en[0]) 
-                && en;
+    moveHead = retire_en[0];
     // condition for Dispatch (only when 2 instruction is able to be dispatched)
-    writeTail = (dispatch_en)
-                && en 
-                && (!rob.entry[rob.tail].valid || retire_en[0])
-                && (!rob.entry[tail_plus_one].valid || retire_en[1]);
+    writeTail = dispatch_en;
   end
 
   always_comb begin
@@ -101,6 +100,8 @@ module ROB (
     Nrob.entry[tail_plus_one].halt = writeTail & decoder_ROB_out.halt[1];
     Nrob.entry[rob.tail].illegal = writeTail & decoder_ROB_out.illegal[0];
     Nrob.entry[tail_plus_one].illegal = writeTail & decoder_ROB_out.illegal[1];
+    Nrob.entry[rob.tail].NPC = (writeTail) ? decoder_ROB_out.NPC[0] : Nrob.entry[rob.tail].NPC;
+    Nrob.entry[tail_plus_one].NPC = (writeTail) ? decoder_ROB_out.NPC[1] : Nrob.entry[tail_plus_one].NPC;
 
     
   

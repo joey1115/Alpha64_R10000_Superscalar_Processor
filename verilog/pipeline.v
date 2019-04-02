@@ -15,7 +15,6 @@ module pipeline (
   output logic        [`NUM_SUPER-1:0]                   complete_en,
   output CDB_PR_OUT_t                                    CDB_PR_out,
   output logic                                           dispatch_en,
-  output logic                                           dispatch_valid,
   output logic                                           ROB_valid,
   output logic                                           RS_valid,
   output logic                                           FL_valid,
@@ -24,21 +23,20 @@ module pipeline (
   output logic        [$clog2(`NUM_FL)-1:0]              FL_head,
   output logic        [$clog2(`NUM_FL)-1:0]              FL_tail,
   output logic        [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL,
-  // output logic [4:0]  pipeline_commit_wr_idx,
-  // output logic [63:0] pipeline_commit_wr_data,
-  // output logic        pipeline_commit_wr_en,
-  // output logic [63:0] pipeline_commit_NPC
+  output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
+  output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
+  output logic        [`NUM_SUPER-1:0]                   pipeline_commit_wr_en,
+  output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_NPC,
 `endif
-  output logic [1:0]  proc2mem_command,    // command sent to memory
-  output logic [63:0] proc2mem_addr,      // Address sent to memory
-  output logic [63:0] proc2mem_data,      // Data sent to memory
-  output logic [3:0]  pipeline_completed_insts,
+  output logic        [1:0]                               proc2mem_command,    // command sent to memory
+  output logic        [63:0]                              proc2mem_addr,      // Address sent to memory
+  output logic        [63:0]                              proc2mem_data,      // Data sent to memory
+  output logic        [3:0]                               pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
   logic                                          en, F_decoder_en, if_valid_inst_out;
 `ifndef DEBUG
   logic                                          dispatch_en;
-  logic                                          dispatch_valid;
   logic       [`NUM_PR-1:0][63:0]                pipeline_PR;
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL;
   CDB_entry_t [`NUM_FU-1:0]                      pipeline_CDB;
@@ -96,6 +94,8 @@ module pipeline (
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
   F_DECODER_OUT_t                                F_decoder_out;
+
+  logic                   [`NUM_SUPER-1:0][63:0]retire_NPC;
   // memory registers
   logic [1:0] proc2Dmem_command;
   logic [1:0] proc2Imem_command;
@@ -167,6 +167,14 @@ module pipeline (
       2'b01, 2'b10: num_inst = 1;
       2'b11: num_inst = 2;
     endcase
+  end
+  always_comb begin
+    for(int i = 0; i < `NUM_SUPER; i++) begin
+      pipeline_commit_wr_idx[i] = ROB_Arch_Map_out.dest_idx[i];
+      pipeline_commit_wr_data[i] = pipeline_PR[ROB_Arch_Map_out.T_idx[i]];
+      pipeline_commit_wr_en[i] = (ROB_Arch_Map_out.T_idx[i] == 31)? 0 : retire_en[i];
+      pipeline_commit_NPC[i] = retire_NPC[i];
+    end
   end
 `endif
    // Actual cache (data and tag RAMs)
@@ -284,7 +292,7 @@ module pipeline (
   FL fl_0 (
     .clock(clock),
     .reset(reset),
-    .dispatch_en(dispatch_valid),
+    .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .retire_en(retire_en),
     .FL_rollback_idx(FL_rollback_idx),
@@ -343,7 +351,7 @@ module pipeline (
     .en(en),
     .clock(clock),
     .reset(reset),
-    .dispatch_en(dispatch_valid),
+    .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .complete_en(complete_en),
     .ROB_rollback_idx(ROB_rollback_idx),
@@ -385,9 +393,9 @@ module pipeline (
     .CDB_ROB_out(CDB_ROB_out),
 `ifdef DEBUG
     .rob(pipeline_ROB),
+    .retire_NPC(retire_NPC),
 `endif
     .ROB_valid(ROB_valid),
-    .dispatch_valid(dispatch_valid),
     .retire_en(retire_en),
     .halt_out(halt_out),
     .illegal_out(illegal_out),
@@ -401,7 +409,7 @@ module pipeline (
     .reset(reset),
     .en(en),
     .complete_en(complete_en),
-    .dispatch_en(dispatch_valid),
+    .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .FU_valid(FU_valid),
     .ROB_rollback_idx(ROB_rollback_idx),
