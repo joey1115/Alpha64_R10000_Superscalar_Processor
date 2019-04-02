@@ -9,11 +9,13 @@ module BP(
   output BP_F_OUT_t BP_F_out
 );
 
-  logic                                  is_cond_br;
-  logic                                  is_uncond_br;
-  logic  [`NUM_BR_PC_BITS-1:0]           br_PC;
-  logic  [`NUM_BR_PC_BITS-1:0]           FU_br_PC;
-  logic  [2**`NUM_BR_PC_BITS-1:0]  [1:0] BHT, next_BHT;
+  logic                                   is_cond_br;
+  logic                                   is_uncond_br;
+  logic  [`NUM_BR_PC_BITS-1:0]            br_PC;
+  logic  [`NUM_BR_PC_BITS-1:0]            FU_br_PC;
+  logic  [2**`NUM_BR_PC_BITS-1:0]  [1:0]  BHT, next_BHT;
+  logic  [2**`NUM_BR_PC_BITS-1:0]  [63:0] BTB, next_BTB
+  logic  [63:0]                           BTB_NPC;
 
   assign br_PC = if_PC_out[`NUM_BR_PC_BITS+1:2];
   always_comb begin
@@ -37,6 +39,7 @@ module BP(
   assign FU_br_PC = FU_BP_out.take_branch_PC[`NUM_BR_PC_BITS+1:2];
   // Simplified from the 2-bit saturation counter stage machine
   always_comb begin
+    next_BHT = BHT;
     next_BHT[FU_br_PC][1] = (FU_BP_out.take_branch_out && BHT[FU_br_PC][0]) ||
                             (FU_BP_out.take_branch_out && BHT[FU_br_PC][1]) ||
                             (BHT[FU_br_PC][1] && BHT[FU_br_PC][0]);
@@ -45,15 +48,23 @@ module BP(
                             ( BHT[FU_br_PC][1] && !BHT[FU_br_PC][0]);
   end
 
-
+  assign BTB_NPC = if_PC_out + 4;
+  assign BTB_take_branch_target = BP_F_out.take_branch_out ? next_BTB[br_pc] : BTB_NPC;
+  assign BP_F_out.take_branch_target = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target;
+  always_comb begin
+    next_BTB = BTB;
+    next_BTB[br_pc] = BP_F_out.take_branch_out ? FU_BP_out.take_branch_target : BTB[br_pc];
+  end
 
   // assign BP_F_out.take_branch_target_out = (rollback_en) ? FU_take_branch_target : BP_take_branch_target;
   
   always_ff @(posedge clock) begin
     if (reset) begin
       BHT <= `SD `BHT_RESET;
+      BTB <= `SD `BTB_RESET;
     end else begin
       BHT <= next_BHT;
+      BTB <= next_BTB;
     end
   end
 
