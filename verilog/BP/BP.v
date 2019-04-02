@@ -48,16 +48,19 @@ module BP(
                             ( BHT[FU_br_PC][1] && !BHT[FU_br_PC][0]);
   end
 
+  // predict branch target for Fetch
   assign BTB_NPC = if_PC_out + 4;
   assign BTB_take_branch_target = BP_F_out.take_branch_out ? next_BTB[br_pc] : BTB_NPC;
-  assign BP_F_out.take_branch_target = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target;
+  //??? BP_F_out有吗
+  assign BP_F_out.take_branch_target_out = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target;
+  // Refresh BTB
   always_comb begin
     next_BTB = BTB;
     next_BTB[br_pc] = BP_F_out.take_branch_out ? FU_BP_out.take_branch_target : BTB[br_pc];
   end
 
+
   // assign BP_F_out.take_branch_target_out = (rollback_en) ? FU_take_branch_target : BP_take_branch_target;
-  
   always_ff @(posedge clock) begin
     if (reset) begin
       BHT <= `SD `BHT_RESET;
