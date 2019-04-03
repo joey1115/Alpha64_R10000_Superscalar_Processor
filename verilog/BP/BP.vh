@@ -16,6 +16,7 @@
 // } F_BP_OUT_t;
 
 typedef struct packed {
+  logic        branch;
   logic        take_branch_out;
   logic [63:0] take_branch_target_out;
 } BP_F_OUT_t;

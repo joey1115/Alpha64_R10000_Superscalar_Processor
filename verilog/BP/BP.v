@@ -24,10 +24,12 @@ module BP(
     if (if_valid_inst_out) begin
       case(if_IR_out.m.opcode)
         `BLBC_INST, `BEQ_INST, `BLT_INST, `BLE_INST, `BLBS_INST, `BNE_INST, `BGE_INST, `BGT_INST: begin
-          is_cond_br   = `TRUE;
+          is_cond_br      = `TRUE;
+          BP_F_out.branch = 1;
         end
         `BR_INST, `BSR_INST, `JSR_GRP: begin
           is_uncond_br = `TRUE;
+          BP_F_out     = 0;
         end
         default: begin
         end
@@ -51,7 +53,7 @@ module BP(
   // predict branch target for Fetch
   assign BTB_NPC = if_PC_out + 4;
   assign BTB_take_branch_target = BP_F_out.take_branch_out ? next_BTB[br_pc] : BTB_NPC;
-  //??? BP_F_out有吗
+  //have BP_F_out ???
   assign BP_F_out.take_branch_target_out = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target;
   // Refresh BTB
   always_comb begin
