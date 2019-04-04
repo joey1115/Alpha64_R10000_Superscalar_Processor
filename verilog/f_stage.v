@@ -24,7 +24,7 @@ module F_stage(
           output logic [63:0] proc2Imem_addr, // Address sent to Instruction memory
           output logic [`NUM_SUPER-1:0][63:0] if_NPC_out, // PC of instruction after fetched (PC+4).
           output logic [`NUM_SUPER-1:0][31:0] if_IR_out, // fetched instruction out
-          output logic if_valid_inst_out    // when low, instruction is garbage
+          output logic [`NUM_SUPER-1:0]if_valid_inst_out    // when low, instruction is garbage
                );
 
   logic    [63:0] PC_reg;               // PC we are currently fetching
@@ -56,7 +56,7 @@ module F_stage(
   assign if_NPC_out[0] = PC_reg + 4;
   assign if_NPC_out[1] = PC_plus_8;
 
-  assign if_valid_inst_out = Imem_valid;
+  assign if_valid_inst_out = (Imem_valid)? 2'b11 : 2'b00;
 
   // assign next_ready_for_valid =	(ready_for_valid | get_next_inst) & 
   // !if_valid_inst_out;

@@ -48,6 +48,7 @@ HEADERS      += $(wildcard verilog/Map_Table/Map_Table.vh)
 HEADERS      += $(wildcard verilog/PR/PR.vh)
 HEADERS      += $(wildcard verilog/ROB/ROB.vh)
 HEADERS      += $(wildcard verilog/RS/RS.vh)
+HEADERS      += $(wildcard verilog/FETCH_BUFFER/FETCH_BUFFER.vh)
 TESTBENCH     = $(wildcard testbench/*.v)
 TESTBENCH    += $(wildcard testbench/*.c)
 PIPEFILES     = $(wildcard verilog/*.v)
@@ -61,8 +62,9 @@ MAPTABLEFILES = $(wildcard verilog/Map_Table/Map_Table.v)
 PRFILES       = $(wildcard verilog/PR/PR.v)
 ROBFILES      = $(wildcard verilog/ROB/ROB.v)
 RSFILES       = $(wildcard verilog/RS/RS.v)
+FBFILES       = $(wildcard verilog/FETCH_BUFFER/FETCH_BUFFER.v)
 
-SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES)
+SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES) $(FBFILES)
 
 # SYNTHESIS CONFIG
 

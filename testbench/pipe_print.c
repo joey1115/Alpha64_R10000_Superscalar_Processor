@@ -313,6 +313,18 @@ void print_freelist_entry(int i, int freePR){
   }
 }
 
+void print_fetchbuffer_head(int FB_head, int FB_tail){
+  if(ppfile != NULL){
+    fprintf(ppfile, "------Fetch Buffer------\nhead: %3d tail: %3d\n", FB_head, FB_tail);
+  }
+}
+
+void print_fetchbuffer_entry(int i, int NPC_hi, int NPC_lo, int inst){
+  if(ppfile != NULL){
+    fprintf(ppfile, " %3d | NPC: %x%x | inst:%x |\n", i, NPC_hi, NPC_lo, inst);
+  }
+}
+
 
 void print_stage(char* div, int inst, int npc, int valid_inst)
 {

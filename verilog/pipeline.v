@@ -20,8 +20,11 @@ module pipeline (
   output logic                                           FL_valid,
   output logic                                           rollback_en,
   output logic        [`NUM_PR-1:0][63:0]                pipeline_PR,
+  output INST_ENTRY_t [`NUM_FB-1:0]                      pipeline_FB,
   output logic        [$clog2(`NUM_FL)-1:0]              FL_head,
   output logic        [$clog2(`NUM_FL)-1:0]              FL_tail,
+  output logic        [$clog2(`NUM_FB)-1:0]              FB_head,
+  output logic        [$clog2(`NUM_FB)-1:0]              FB_tail,
   output logic        [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL,
   output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
@@ -34,7 +37,8 @@ module pipeline (
   output logic        [3:0]                               pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
-  logic                                          en, F_decoder_en, if_valid_inst_out;
+  logic                                          en;
+  logic       [`NUM_SUPER-1:0]                   if_valid_inst_out;
 `ifndef DEBUG
   logic                                          dispatch_en;
   logic       [`NUM_PR-1:0][63:0]                pipeline_PR;
@@ -115,6 +119,9 @@ module pipeline (
   logic [`NUM_SUPER-1:0][63:0] if_NPC_out;
   logic [`NUM_SUPER-1:0][31:0] if_IR_out;
   logic fetch_en;
+  logic inst_out_valid;
+  logic get_fetch_buff;
+  FB_DECODER_OUT_t FB_decoder_out;
 
   logic [3:0] num_inst;
 `ifdef DEBUG
@@ -141,10 +148,10 @@ module pipeline (
 `endif
 
   assign en           = `TRUE;
-  assign fetch_en = ROB_valid && RS_valid && FL_valid && !rollback_en;
-  assign dispatch_en  = fetch_en && F_decoder_out.valid;
+  assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
+  assign dispatch_en  = get_fetch_buff && inst_out_valid;
   
-  assign F_decoder_en = fetch_en;
+  //assign F_decoder_en = fetch_en;
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = num_inst;
   assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
@@ -237,15 +244,34 @@ module pipeline (
   //            IF/ID Pipeline Register           //
   //                                              //
   //////////////////////////////////////////////////
-  always_ff @(posedge clock) begin
-    if (reset) begin
-      F_decoder_out <= `SD `F_DECODER_OUT_RESET;
-    end else if (F_decoder_en) begin
-      F_decoder_out.inst   <= `SD if_IR_out;
-      F_decoder_out.NPC    <= `SD if_NPC_out;
-      F_decoder_out.valid  <= `SD if_valid_inst_out;
-    end // if (F_decoder_en)
-  end // always
+  // always_ff @(posedge clock) begin
+  //   if (reset) begin
+  //     F_decoder_out <= `SD `F_DECODER_OUT_RESET;
+  //   end else if (F_decoder_en) begin
+  //     F_decoder_out.inst   <= `SD if_IR_out;
+  //     F_decoder_out.NPC    <= `SD if_NPC_out;
+  //     F_decoder_out.valid  <= `SD if_valid_inst_out;
+  //   end // if (F_decoder_en)
+  // end // always
+
+  FETCH_BUFFER fetch_buffer_0 (
+    .en(en),
+    .clock(clock),
+    .reset(reset),
+    .if_NPC_out(if_NPC_out),
+    .if_IR_out(if_IR_out),
+    .if_valid_inst_out(if_valid_inst_out),
+    .get_next_inst(dispatch_en & 0),
+    .rollback_en(rollback_en),
+`ifdef DEBUG
+    .FB(pipeline_FB),
+    .head(FB_head),
+    .tail(FB_tail),
+`endif
+    .FB_decoder_out(FB_decoder_out),
+    .inst_out_valid(inst_out_valid),
+    .fetch_en(fetch_en)
+  );
 
   Arch_Map arch_map_0 (
     .en(en),
@@ -281,7 +307,7 @@ module pipeline (
   );
 
   decoder decoder_0 (
-    .F_decoder_out(F_decoder_out),
+    .FB_decoder_out(FB_decoder_out),
     .decoder_ROB_out(decoder_ROB_out),
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
