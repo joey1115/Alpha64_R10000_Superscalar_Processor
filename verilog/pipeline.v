@@ -23,18 +23,18 @@ module pipeline (
   output logic        [$clog2(`NUM_FL)-1:0]              FL_head,
   output logic        [$clog2(`NUM_FL)-1:0]              FL_tail,
   output logic        [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL,
-  // output logic [4:0]  pipeline_commit_wr_idx,
-  // output logic [63:0] pipeline_commit_wr_data,
-  // output logic        pipeline_commit_wr_en,
-  // output logic [63:0] pipeline_commit_NPC
+  output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
+  output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
+  output logic        [`NUM_SUPER-1:0]                   pipeline_commit_wr_en,
+  output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_NPC,
 `endif
-  output logic [1:0]  proc2mem_command,    // command sent to memory
-  output logic [63:0] proc2mem_addr,      // Address sent to memory
-  output logic [63:0] proc2mem_data,      // Data sent to memory
-  output logic [3:0]  pipeline_completed_insts,
+  output logic        [1:0]                               proc2mem_command,    // command sent to memory
+  output logic        [63:0]                              proc2mem_addr,      // Address sent to memory
+  output logic        [63:0]                              proc2mem_data,      // Data sent to memory
+  output logic        [3:0]                               pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
-  logic                                          en, F_decoder_en, illegal, if_valid_inst_out;
+  logic                                          en, F_decoder_en, if_valid_inst_out;
 `ifndef DEBUG
   logic                                          dispatch_en;
   logic       [`NUM_PR-1:0][63:0]                pipeline_PR;
@@ -84,6 +84,7 @@ module pipeline (
 `endif
   logic                   [`NUM_SUPER-1:0]       retire_en;
   logic                                          halt_out;
+  logic                                          illegal_out;
   logic            [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
   ROB_FL_OUT_t                                   ROB_FL_out;
@@ -93,6 +94,8 @@ module pipeline (
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
   F_DECODER_OUT_t                                F_decoder_out;
+
+  logic                   [`NUM_SUPER-1:0][63:0]retire_NPC;
   // memory registers
   logic [1:0] proc2Dmem_command;
   logic [1:0] proc2Imem_command;
@@ -140,11 +143,12 @@ module pipeline (
   assign en           = `TRUE;
   assign fetch_en = ROB_valid && RS_valid && FL_valid && !rollback_en;
   assign dispatch_en  = fetch_en && F_decoder_out.valid;
+  
   assign F_decoder_en = fetch_en;
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = num_inst;
   assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
-                                    // illegal  ? HALTED_ON_ILLEGAL:
+                                    illegal_out  ? HALTED_ON_ILLEGAL:
                                                NO_ERROR;
   assign proc2Dmem_command = BUS_NONE;
   assign proc2Dmem_addr = 0;
@@ -163,6 +167,14 @@ module pipeline (
       2'b01, 2'b10: num_inst = 1;
       2'b11: num_inst = 2;
     endcase
+  end
+  always_comb begin
+    for(int i = 0; i < `NUM_SUPER; i++) begin
+      pipeline_commit_wr_idx[i] = ROB_Arch_Map_out.dest_idx[i];
+      pipeline_commit_wr_data[i] = pipeline_PR[ROB_Arch_Map_out.T_idx[i]];
+      pipeline_commit_wr_en[i] = (ROB_Arch_Map_out.T_idx[i] == 31)? 0 : retire_en[i];
+      pipeline_commit_NPC[i] = retire_NPC[i];
+    end
   end
 `endif
    // Actual cache (data and tag RAMs)
@@ -273,8 +285,8 @@ module pipeline (
     .decoder_ROB_out(decoder_ROB_out),
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
-    .decoder_Map_Table_out(decoder_Map_Table_out),
-    .illegal(illegal)
+    .decoder_Map_Table_out(decoder_Map_Table_out)
+    //.illegal(illegal)
   );
 
   FL fl_0 (
@@ -381,10 +393,12 @@ module pipeline (
     .CDB_ROB_out(CDB_ROB_out),
 `ifdef DEBUG
     .rob(pipeline_ROB),
+    .retire_NPC(retire_NPC),
 `endif
     .ROB_valid(ROB_valid),
     .retire_en(retire_en),
     .halt_out(halt_out),
+    .illegal_out(illegal_out),
     .ROB_idx(ROB_idx),
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
     .ROB_FL_out(ROB_FL_out)
