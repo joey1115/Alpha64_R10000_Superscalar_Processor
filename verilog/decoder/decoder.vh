@@ -87,15 +87,15 @@ typedef enum logic [2:0] {
 } FU_t;
 
 typedef struct packed {
-  logic                            valid; // If low, the data in this struct is garbage
+  logic  [`NUM_SUPER-1:0]          valid; // If low, the data in this struct is garbage
   INST_t [`NUM_SUPER-1:0]          inst;  // fetched instruction out
   logic  [`NUM_SUPER-1:0][63:0]    NPC; // PC + 4 
 } F_DECODER_OUT_t;
 
 `define F_DECODER_OUT_RESET '{ \
-  `FALSE,                      \
-  `NOOP_INST,                  \
-  0                            \
+  '{`FALSE, `FALSE},           \
+  '{`NOOP_INST, `NOOP_INST},   \
+  '{64'b0, 64'b0}              \
 }
 
 typedef struct packed {

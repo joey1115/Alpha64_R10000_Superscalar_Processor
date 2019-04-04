@@ -51,7 +51,7 @@ module decoder(
   assign decoder_Map_Table_out = '{dest_idx, rega_idx, regb_idx};
   //assign illegal               = internal_illegal[0] | internal_illegal[1];
 
-  inst_decoder inst_decoder_0 (.valid_in(F_decoder_out.valid),
+  inst_decoder inst_decoder_0 (.valid_in(F_decoder_out.valid[0]),
                               .inst_in(F_decoder_out.inst[0]),
                               .NPC_in(F_decoder_out.NPC[0]),
                               .inst(inst[0]),
@@ -74,7 +74,7 @@ module decoder(
                               .illegal(internal_illegal[0]),
                               .halt(halt[0]));
 
-  inst_decoder inst_decoder_1 (.valid_in(F_decoder_out.valid),
+  inst_decoder inst_decoder_1 (.valid_in(F_decoder_out.valid[1]),
                               .inst_in(F_decoder_out.inst[1]),
                               .NPC_in(F_decoder_out.NPC[1]),
                               .inst(inst[1]),

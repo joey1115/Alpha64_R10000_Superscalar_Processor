@@ -34,7 +34,8 @@ module pipeline (
   output logic        [3:0]                               pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
-  logic                                          en, F_decoder_en, if_valid_inst_out;
+  logic                                          en, F_decoder_en, illegal;
+  logic                    [`NUM_SUPER-1:0]      if_valid_inst_out;
 `ifndef DEBUG
   logic                                          dispatch_en;
   logic       [`NUM_PR-1:0][63:0]                pipeline_PR;
