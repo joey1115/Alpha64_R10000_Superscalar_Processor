@@ -29,6 +29,8 @@ extern void print_archmap_entries(int reg_idx, int pr);
 extern void print_dispatch_en(int dispatch_en, int ROB_valid, int RS_valid, int FL_valid, int rollback_en);
 extern void print_freelist_head(int FL_head, int FL_tail);
 extern void print_freelist_entry(int i, int freePR);
+extern void print_fetchbuffer_head(int FB_head, int FB_tail);
+extern void print_fetchbuffer_entry(int i, int NPC_hi, int NPC_lo, int inst);
 
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
@@ -74,6 +76,8 @@ module testbench;
   logic [`NUM_PR-1:0][63:0] pipeline_PR;
   logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL;
   logic [$clog2(`NUM_FL)-1:0]              FL_head, FL_tail;
+  INST_ENTRY_t [`NUM_FB-1:0]               pipeline_FB;
+  logic [$clog2(`NUM_FB)-1:0]              FB_head, FB_tail;
 
   // Instantiate the Pipeline
   `DUT(pipeline) pipeline_0 (// Inputs
@@ -89,6 +93,7 @@ module testbench;
     .pipeline_ARCHMAP(pipeline_ARCHMAP),
     .pipeline_MAPTABLE(pipeline_MAPTABLE),
     .pipeline_CDB(pipeline_CDB),
+    .pipeline_FB(pipeline_FB),
     .complete_en(complete_en),
     .CDB_PR_out(CDB_PR_out),
     .dispatch_en(dispatch_en),
@@ -100,6 +105,8 @@ module testbench;
     .pipeline_FL(pipeline_FL),
     .FL_head(FL_head),
     .FL_tail(FL_tail),
+    .FB_head(FB_head),
+    .FB_tail(FB_tail),
 `endif
     // Outputs
     .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
@@ -228,6 +235,10 @@ module testbench;
       print_cycles();
       //print dispatch_en
       print_dispatch_en({{(32-1){1'b0}},dispatch_en}, {{(32-1){1'b0}},ROB_valid}, {{(32-1){1'b0}},RS_valid}, {{(32-1){1'b0}},FL_valid}, {{(32-1){1'b0}},rollback_en});
+      print_fetchbuffer_head({{(32-$clog2(`NUM_FB)){1'b0}},FB_head}, {{(32-$clog2(`NUM_FB)){1'b0}},FB_tail});
+      for(int i=0; i < `NUM_FB; i++) begin
+        print_fetchbuffer_entry(i, pipeline_FB[i].NPC[63:32], pipeline_FB[i].NPC[31:0], pipeline_FB[i].inst);
+      end
       // print ROB
       print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
       for(int i = 0; i < `NUM_ROB; i++) begin
