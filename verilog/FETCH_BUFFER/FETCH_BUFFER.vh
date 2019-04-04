@@ -12,7 +12,7 @@
 typedef struct packed {
   logic [63:0] NPC;
   logic [31:0] inst;
-  logic valid;
+  logic        valid;
 } INST_ENTRY_t;
 
 typedef struct packed {

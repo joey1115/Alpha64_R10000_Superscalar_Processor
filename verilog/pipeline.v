@@ -37,6 +37,7 @@ module pipeline (
   output logic        [3:0]                               pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
+
   logic                                          en;
   logic       [`NUM_SUPER-1:0]                   if_valid_inst_out;
 `ifndef DEBUG
@@ -97,7 +98,7 @@ module pipeline (
 `endif
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
-  F_DECODER_OUT_t                                F_decoder_out;
+  // F_DECODER_OUT_t                                F_decoder_out;
 
   logic                   [`NUM_SUPER-1:0][63:0]retire_NPC;
   // memory registers
@@ -254,14 +255,14 @@ module pipeline (
   //   end // if (F_decoder_en)
   // end // always
 
-  FETCH_BUFFER fetch_buffer_0 (
+  FETCH_BUFFER FETCH_BUFFER_0 (
     .en(en),
     .clock(clock),
     .reset(reset),
     .if_NPC_out(if_NPC_out),
     .if_IR_out(if_IR_out),
     .if_valid_inst_out(if_valid_inst_out),
-    .get_next_inst(dispatch_en & 0),
+    .get_next_inst(dispatch_en),
     .rollback_en(rollback_en),
 `ifdef DEBUG
     .FB(pipeline_FB),

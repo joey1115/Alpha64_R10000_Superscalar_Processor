@@ -51,11 +51,13 @@ module FETCH_BUFFER (
         2'b11: begin
           head2 = `TRUE;
         end
+        default: begin
+        end
     endcase
   end
 
-  always_comb begin
-  end
+  // always_comb begin
+  // end
 
   assign next_head = (head1 & fetch_en) ? head_plus_one : 
                      (head2 & fetch_en) ? head_plus_two : head;

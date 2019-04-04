@@ -87,7 +87,7 @@ typedef enum logic [2:0] {
 } FU_t;
 
 typedef struct packed {
-  logic  [`NUM_SUPER-1:0]          valid; // If low, the data in this struct is garbage
+  logic                            valid; // If low, the data in this struct is garbage
   INST_t [`NUM_SUPER-1:0]          inst;  // fetched instruction out
   logic  [`NUM_SUPER-1:0][63:0]    NPC; // PC + 4 
 } F_DECODER_OUT_t;
