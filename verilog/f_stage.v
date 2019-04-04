@@ -14,17 +14,18 @@
 module F_stage(
           input         clock,                      // system clock
           input         reset,                      // system reset
-          input         get_next_inst,          // only go to next instruction when true
-                                  // makes pipeline behave as single-cycle
-          input         take_branch_out,         // taken-branch signal
-          input  [63:0] take_branch_target,           // target pc: use if take_branch_out is TRUE
-          input  [63:0] Imem2proc_data,        // Data coming back from instruction-memory
+          input         get_next_inst,              // only go to next instruction when true
+                                                    // makes pipeline behave as single-cycle
+          input         take_branch_out,            // taken-branch signal
+          input  [63:0] take_branch_target,         // target pc: use if take_branch_out is TRUE
+          input  [63:0] Imem2proc_data,             // Data coming back from instruction-memory
           input         Imem_valid,
 
-          output logic [63:0] proc2Imem_addr, // Address sent to Instruction memory
+          output logic [63:0] proc2Imem_addr,             // Address sent to Instruction memory
+          output logic [`NUM_SUPER-1:0][63:0] if_PC_out,  // PC of current instruction
           output logic [`NUM_SUPER-1:0][63:0] if_NPC_out, // PC of instruction after fetched (PC+4).
-          output logic [`NUM_SUPER-1:0][31:0] if_IR_out, // fetched instruction out
-          output logic if_valid_inst_out    // when low, instruction is garbage
+          output logic [`NUM_SUPER-1:0][31:0] if_IR_out,  // fetched instruction out
+          output logic if_valid_inst_out                  // when low, instruction is garbage
                );
 
   logic    [63:0] PC_reg;               // PC we are currently fetching
@@ -52,6 +53,10 @@ module F_stage(
   // The take-branch signal must override stalling (otherwise it may be lost)
   assign PC_enable = (if_valid_inst_out && get_next_inst) || take_branch_out;
 
+  // PC for current instructions
+  assign if_PC_out[0]  = PC_reg;
+  assign if_PC_out[1]  = PC_reg + 4;
+  
   // Pass PC+4 down pipeline w/instruction
   assign if_NPC_out[0] = PC_reg + 4;
   assign if_NPC_out[1] = PC_plus_8;
