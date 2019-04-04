@@ -17,7 +17,7 @@ extern void print_open();
 extern void print_cycles();
 // extern void print_stage(string div, int inst, int npc, int valid_inst);
 extern void print_ROB_ht(int head, int tail);
-extern void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, int complete, int halt);
+extern void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, int complete, int halt, int illegal, int NPC_hi, int NPC_lo);
 extern void print_RS_head();
 extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int opa_select, int opb_select);
 extern void print_maptable_head();
@@ -29,6 +29,8 @@ extern void print_archmap_entries(int reg_idx, int pr);
 extern void print_dispatch_en(int dispatch_en, int ROB_valid, int RS_valid, int FL_valid, int rollback_en);
 extern void print_freelist_head(int FL_head, int FL_tail);
 extern void print_freelist_entry(int i, int freePR);
+extern void print_fetchbuffer_head(int FB_head, int FB_tail);
+extern void print_fetchbuffer_entry(int i, int NPC_hi, int NPC_lo, int inst);
 
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
@@ -58,10 +60,10 @@ module testbench;
 
   logic  [3:0] pipeline_completed_insts;
   logic  [3:0] pipeline_error_status;
-  //logic  [4:0] pipeline_commit_wr_idx;
-  //logic [63:0] pipeline_commit_wr_data;
-  //logic        pipeline_commit_wr_en;
-  logic [63:0] pipeline_commit_NPC;
+  logic [`NUM_SUPER-1:0] [4:0] pipeline_commit_wr_idx;
+  logic [`NUM_SUPER-1:0][63:0] pipeline_commit_wr_data;
+  logic [`NUM_SUPER-1:0]       pipeline_commit_wr_en;
+  logic [`NUM_SUPER-1:0][63:0] pipeline_commit_NPC;
 
   ROB_t pipeline_ROB;
   RS_ENTRY_t [`NUM_FU-1:0]  pipeline_RS;
@@ -74,6 +76,8 @@ module testbench;
   logic [`NUM_PR-1:0][63:0] pipeline_PR;
   logic [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL;
   logic [$clog2(`NUM_FL)-1:0]              FL_head, FL_tail;
+  INST_ENTRY_t [`NUM_FB-1:0]               pipeline_FB;
+  logic [$clog2(`NUM_FB)-1:0]              FB_head, FB_tail;
 
   // Instantiate the Pipeline
   `DUT(pipeline) pipeline_0 (// Inputs
@@ -89,6 +93,7 @@ module testbench;
     .pipeline_ARCHMAP(pipeline_ARCHMAP),
     .pipeline_MAPTABLE(pipeline_MAPTABLE),
     .pipeline_CDB(pipeline_CDB),
+    .pipeline_FB(pipeline_FB),
     .complete_en(complete_en),
     .CDB_PR_out(CDB_PR_out),
     .dispatch_en(dispatch_en),
@@ -100,8 +105,14 @@ module testbench;
     .pipeline_FL(pipeline_FL),
     .FL_head(FL_head),
     .FL_tail(FL_tail),
+    .FB_head(FB_head),
+    .FB_tail(FB_tail),
 `endif
     // Outputs
+    .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
+    .pipeline_commit_wr_data(pipeline_commit_wr_data),
+    .pipeline_commit_wr_en(pipeline_commit_wr_en),
+    .pipeline_commit_NPC(pipeline_commit_NPC),
     .pipeline_completed_insts(pipeline_completed_insts),
     .pipeline_error_status(pipeline_error_status),
     .proc2mem_command  (proc2mem_command),
@@ -224,10 +235,14 @@ module testbench;
       print_cycles();
       //print dispatch_en
       print_dispatch_en({{(32-1){1'b0}},dispatch_en}, {{(32-1){1'b0}},ROB_valid}, {{(32-1){1'b0}},RS_valid}, {{(32-1){1'b0}},FL_valid}, {{(32-1){1'b0}},rollback_en});
+      print_fetchbuffer_head({{(32-$clog2(`NUM_FB)){1'b0}},FB_head}, {{(32-$clog2(`NUM_FB)){1'b0}},FB_tail});
+      for(int i=0; i < `NUM_FB; i++) begin
+        print_fetchbuffer_entry(i, pipeline_FB[i].NPC[63:32], pipeline_FB[i].NPC[31:0], pipeline_FB[i].inst);
+      end
       // print ROB
       print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
       for(int i = 0; i < `NUM_ROB; i++) begin
-      print_ROB_entry(i,{{(32-1){1'b0}},pipeline_ROB.entry[i].valid}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].T_idx}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].Told_idx},{{(32-5){1'b0}},pipeline_ROB.entry[i].dest_idx},{{(32-1){1'b0}},pipeline_ROB.entry[i].complete},{{(32-1){1'b0}},pipeline_ROB.entry[i].halt});
+      print_ROB_entry(i,{{(32-1){1'b0}},pipeline_ROB.entry[i].valid}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].T_idx}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].Told_idx},{{(32-5){1'b0}},pipeline_ROB.entry[i].dest_idx},{{(32-1){1'b0}},pipeline_ROB.entry[i].complete},{{(32-1){1'b0}},pipeline_ROB.entry[i].halt},{{(32-1){1'b0}},pipeline_ROB.entry[i].illegal}, pipeline_ROB.entry[i].NPC[63:32], pipeline_ROB.entry[i].NPC[31:0]);
       end
       //print RS
       print_RS_head();
@@ -370,6 +385,20 @@ module testbench;
       // else
       //   $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC-4);
       // end
+
+      if(pipeline_completed_insts>0) begin
+        for(int i=0; i < pipeline_completed_insts; i++) begin
+          if(pipeline_commit_wr_en[i]) begin
+            $fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
+                pipeline_commit_NPC[i]-4,
+                pipeline_commit_wr_idx[i],
+                pipeline_commit_wr_data[i]);
+          end
+          else begin
+            $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[i]-4);
+          end
+        end
+      end
 
       // deal with any halting conditions
       if(pipeline_error_status!=NO_ERROR)

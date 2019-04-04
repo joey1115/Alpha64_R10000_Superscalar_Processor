@@ -23,12 +23,12 @@
 `timescale 1ns/100ps
 
 module decoder(
-  input  F_DECODER_OUT_t         F_decoder_out,
+  input  FB_DECODER_OUT_t         FB_decoder_out,
   output DECODER_ROB_OUT_t       decoder_ROB_out,
   output DECODER_RS_OUT_t        decoder_RS_out,
   output DECODER_FL_OUT_t        decoder_FL_out,
-  output DECODER_MAP_TABLE_OUT_t decoder_Map_Table_out,
-  output logic                   illegal
+  output DECODER_MAP_TABLE_OUT_t decoder_Map_Table_out
+  //output logic                   illegal
 );
 
   INST_t         [`NUM_SUPER-1:0]       inst;  // fetched instruction out
@@ -45,15 +45,15 @@ module decoder(
   logic          [`NUM_SUPER-1:0][4:0]  rega_idx;
   logic          [`NUM_SUPER-1:0][4:0]  regb_idx;
 
-  assign decoder_ROB_out       = '{halt, dest_idx};
+  assign decoder_ROB_out       = '{halt, dest_idx, internal_illegal, NPC};
   assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch};
   assign decoder_FL_out        = '{dest_idx};
   assign decoder_Map_Table_out = '{dest_idx, rega_idx, regb_idx};
-  assign illegal               = internal_illegal[0] | internal_illegal[1];
+  //assign illegal               = internal_illegal[0] | internal_illegal[1];
 
-  inst_decoder inst_decoder_0 (.valid_in(F_decoder_out.valid),
-                              .inst_in(F_decoder_out.inst[0]),
-                              .NPC_in(F_decoder_out.NPC[0]),
+  inst_decoder inst_decoder_0 (.valid_in(FB_decoder_out.valid),
+                              .inst_in(FB_decoder_out.inst[0]),
+                              .NPC_in(FB_decoder_out.NPC[0]),
                               .inst(inst[0]),
                               .NPC(NPC[0]),
                               .opa_select(opa_select[0]),
@@ -74,9 +74,9 @@ module decoder(
                               .illegal(internal_illegal[0]),
                               .halt(halt[0]));
 
-  inst_decoder inst_decoder_1 (.valid_in(F_decoder_out.valid),
-                              .inst_in(F_decoder_out.inst[1]),
-                              .NPC_in(F_decoder_out.NPC[1]),
+  inst_decoder inst_decoder_1 (.valid_in(FB_decoder_out.valid),
+                              .inst_in(FB_decoder_out.inst[1]),
+                              .NPC_in(FB_decoder_out.NPC[1]),
                               .inst(inst[1]),
                               .NPC(NPC[1]),
                               .opa_select(opa_select[1]),

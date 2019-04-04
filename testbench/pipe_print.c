@@ -39,9 +39,9 @@ void print_ROB_ht(int head, int tail)
     
 }
 
-void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, int complete, int halt){
+void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, int complete, int halt, int illegal, int NPC_hi, int NPC_lo){
   if (ppfile != NULL)
-    fprintf(ppfile, "index: %3d | valid: %1d | T: %3d | T_old: %3d | dest_idx: %3d | complete: %1d | halt: %1d|\n", i,valid, T, T_old, dest_idx, complete, halt);
+    fprintf(ppfile, "index: %3d | valid: %1d | T: %3d | T_old: %3d | dest_idx: %3d | complete: %1d | halt: %1d | illegal: %1d | NPC: %x%x |\n", i,valid, T, T_old, dest_idx, complete, halt, illegal, NPC_hi, NPC_lo);
 }
 
 void print_RS_head(){
@@ -310,6 +310,18 @@ void print_freelist_head(int FL_head, int FL_tail){
 void print_freelist_entry(int i, int freePR){
   if(ppfile != NULL){
     fprintf(ppfile, " %3d | %3d \n", i, freePR);
+  }
+}
+
+void print_fetchbuffer_head(int FB_head, int FB_tail){
+  if(ppfile != NULL){
+    fprintf(ppfile, "------Fetch Buffer------\nhead: %3d tail: %3d\n", FB_head, FB_tail);
+  }
+}
+
+void print_fetchbuffer_entry(int i, int NPC_hi, int NPC_lo, int inst){
+  if(ppfile != NULL){
+    fprintf(ppfile, " %3d | NPC: %x%x | inst:%x |\n", i, NPC_hi, NPC_lo, inst);
   }
 }
 

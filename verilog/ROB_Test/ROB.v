@@ -53,9 +53,9 @@ module ROB (
   assign tail_minus_one = rob.tail - 1;
   assign head_plus_one = rob.head + 1;
   assign ROB_rollback_idx_reg_plus_one = ROB_rollback_idx_reg + 1;
-  
+
   assign ROB_valid = (stall_dispatch | rollback_en)? 0 : (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]);
-  
+
   //(tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
 
   //assign ROB_valid = tail_plus_one!=rob.head;
@@ -103,8 +103,7 @@ module ROB (
     Nrob.entry[rob.tail].NPC = (writeTail) ? decoder_ROB_out.NPC[0] : Nrob.entry[rob.tail].NPC;
     Nrob.entry[tail_plus_one].NPC = (writeTail) ? decoder_ROB_out.NPC[1] : Nrob.entry[tail_plus_one].NPC;
 
-    
-  
+
     //update valid and complete bits of entry
     if(rob.head != rob.tail) begin
       Nrob.entry[rob.head].valid = (moveHead) ? 0 : Nrob.entry[rob.head].valid;

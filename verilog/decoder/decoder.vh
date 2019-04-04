@@ -93,9 +93,9 @@ typedef struct packed {
 } F_DECODER_OUT_t;
 
 `define F_DECODER_OUT_RESET '{ \
-  `FALSE,                      \
-  `NOOP_INST,                  \
-  0                            \
+  '{`FALSE, `FALSE},           \
+  '{`NOOP_INST, `NOOP_INST},   \
+  '{64'b0, 64'b0}              \
 }
 
 typedef struct packed {
@@ -107,6 +107,8 @@ typedef struct packed {
 typedef struct packed {
   logic [`NUM_SUPER-1:0]       halt;
   logic [`NUM_SUPER-1:0][4:0]  dest_idx;
+  logic [`NUM_SUPER-1:0]       illegal;
+  logic [`NUM_SUPER-1:0][63:0] NPC;
 } DECODER_ROB_OUT_t;
 
 typedef struct packed {
