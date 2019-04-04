@@ -16,7 +16,7 @@
 // } F_BP_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0]       branch;                    // branch or not
+  // logic [`NUM_SUPER-1:0]       branch;                    // branch or not
   logic [`NUM_SUPER-1:0]       take_branch_out;           // taken or not taken
   logic [63:0]                 take_branch_target_out;    // if taken, target
 } BP_F_OUT_t;

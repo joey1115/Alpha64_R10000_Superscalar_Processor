@@ -27,16 +27,16 @@ module BP(
     for (int i=0; i<`NUM_SUPER; i++) begin
       is_cond_br[i]      = `FALSE;
       is_uncond_br[i]    = `FALSE;
-      BP_F_out.branch[i] = `FALSE;
+      // BP_F_out.branch[i] = `FALSE;
       if (if_valid_inst_out && !rollback_en) begin
         case(if_IR_out[i].m.opcode)
           `BLBC_INST, `BEQ_INST, `BLT_INST, `BLE_INST, `BLBS_INST, `BNE_INST, `BGE_INST, `BGT_INST: begin
             is_cond_br[i]      = `TRUE;
-            BP_F_out.branch[i] = `TRUE;
+            // BP_F_out.branch[i] = `TRUE;
           end
           `BR_INST, `BSR_INST, `JSR_GRP: begin
             is_uncond_br[i]    = `TRUE;
-            BP_F_out.branch[i] = `TRUE;
+            // BP_F_out.branch[i] = `TRUE;
           end
           default: begin
           end
