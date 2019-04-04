@@ -6,7 +6,7 @@ module BP(
   input  reset,
   input  [`NUM_SUPER-1:0] [63:0]      if_PC_out,          // (from F-stage) PC
   input  [`NUM_SUPER-1:0] [31:0]      if_IR_out,          // (from F-stage) fetched instruction out
-  input                               if_valid_inst_out   // (from F-stage) when low, instruction is garbage
+  input                    [1:0]      if_valid_inst_out   // (from F-stage) when low, instruction is garbage
   input                               rollback_en,        // (from FU)
   input  FU_BP_OUT_t                  FU_BP_out,          // (from FU)
   output BP_F_OUT_t                   BP_F_out
@@ -14,20 +14,20 @@ module BP(
 
   logic  [`NUM_SUPER-1:0]                                  is_cond_br;
   logic  [`NUM_SUPER-1:0]                                  is_uncond_br;
-  logic  [`NUM_SUPER-1:0]          [`NUM_BR_PC_BITS-1:0]   br_PC;
-  logic  [`NUM_SUPER-1:0]          [`NUM_BR_PC_BITS-1:0]   FU_br_PC;
-  logic  [2**`NUM_BR_PC_BITS-1:0]  [1:0]                   BHT, next_BHT;
-  logic  [2**`NUM_BR_PC_BITS-1:0]  [63:0]                  BTB, next_BTB
-  logic  [63:0]                                            BTB_NPC;
-  logic  [`NUM_SUPER-1:0]          [63:0]                  BTB_take_branch_target;
+  logic  [`NUM_SUPER-1:0]          [`NUM_BH_IDX_BITS-1:0]  bh_idx;
+  logic                            [`NUM_BH_IDX_BITS-1:0]  bh_idx_FU;
+  logic  [2**`NUM_BH_IDX_BITS-1:0] [1:0]                   BHT, next_BHT;
+  logic  [2**`NUM_BH_IDX_BITS-1:0] [63:0]                  BTB, next_BTB
+  // logic  [63:0]                                            BTB_NPC;
+  // logic  [`NUM_SUPER-1:0]          [63:0]                  BTB_take_branch_target;
 
-
+  // 1. Identify Branch
   always_comb begin
     for (int i=0; i<`NUM_SUPER; i++) begin
       is_cond_br[i]      = `FALSE;
       is_uncond_br[i]    = `FALSE;
       BP_F_out.branch[i] = `FALSE;
-      if (if_valid_inst_out) begin
+      if (if_valid_inst_out && !rollback_en) begin
         case(if_IR_out[i].m.opcode)
           `BLBC_INST, `BEQ_INST, `BLT_INST, `BLE_INST, `BLBS_INST, `BNE_INST, `BGE_INST, `BGT_INST: begin
             is_cond_br[i]      = `TRUE;
@@ -44,61 +44,76 @@ module BP(
     end
   end // always_comb
 
-  assign br_PC[0] = if_PC_out[0][`NUM_BR_PC_BITS+1:2];
-  assign br_PC[1] = if_PC_out[1][`NUM_BR_PC_BITS+1:2];
-  assign BP_F_out.take_branch_out[0] = is_uncond_br[0] || (is_cond_br[0] && next_BHT[br_PC[0]][1]) || rollback_en;
-  assign BP_F_out.take_branch_out[1] = is_uncond_br[1] || (is_cond_br[1] && next_BHT[br_PC[1]][1]) || rollback_en;
+  // 2. Determine take or not
+  assign bh_idx[0] = if_PC_out[0][`NUM_BH_IDX_BITS+1:2];
+  assign bh_idx[1] = if_PC_out[1][`NUM_BH_IDX_BITS+1:2];
+
+  assign BP_F_out.take_branch_out[0] = is_uncond_br[0] || (is_cond_br[0] && next_BHT[bh_idx[0]][1]) || rollback_en;
+  assign BP_F_out.take_branch_out[1] = is_uncond_br[1] || (is_cond_br[1] && next_BHT[bh_idx[1]][1]) || rollback_en;
   
-  assign FU_br_PC[0] = FU_BP_out.take_branch_PC[0][`NUM_BR_PC_BITS+1:2];
-  assign FU_br_PC[1] = FU_BP_out.take_branch_PC[1][`NUM_BR_PC_BITS+1:2];
-  // Simplified from the 2-bit saturation counter stage machine
+  // Update BHT
+  assign bh_idx_FU = FU_BP_out.take_branch_PC_out[`NUM_BH_IDX_BITS+1:2];
+
   always_comb begin
     next_BHT = BHT;
     for (int i=0; i<`NUM_SUPER; i++) begin
       if (FU_BP_out.is_branch_out[i]) begin
-        next_BHT[FU_br_PC[i]][1] = (FU_BP_out.take_branch_out[i] && BHT[FU_br_PC[i]][0]) ||
-                                (FU_BP_out.take_branch_out[i] && BHT[FU_br_PC[i]][1]) ||
-                                (BHT[FU_br_PC[i]][1] && BHT[FU_br_PC[i]][0]);
-        next_BHT[FU_br_PC[i]][0] = (!BHT[FU_br_PC[i]][1] && !BHT[FU_br_PC[i]][0] && FU_BP_out.take_branch_out[i]) ||
-                                ( BHT[FU_br_PC[i]][1] &&  FU_BP_out.take_branch_out[i]) ||
-                                ( BHT[FU_br_PC[i]][1] && !BHT[FU_br_PC[i]][0]);
+        // Simplified from the 2-bit saturation counter stage machine
+        next_BHT[bh_idx_FU[i]][1] = (FU_BP_out.take_branch_out[i] && BHT[bh_idx_FU[i]][0]) ||
+                                (FU_BP_out.take_branch_out[i] && BHT[bh_idx_FU[i]][1]) ||
+                                (BHT[bh_idx_FU[i]][1] && BHT[bh_idx_FU[i]][0]);
+        next_BHT[bh_idx_FU[i]][0] = (!BHT[bh_idx_FU[i]][1] && !BHT[bh_idx_FU[i]][0] && FU_BP_out.take_branch_out[i]) ||
+                                ( BHT[bh_idx_FU[i]][1] &&  FU_BP_out.take_branch_out[i]) ||
+                                ( BHT[bh_idx_FU[i]][1] && !BHT[bh_idx_FU[i]][0]);
       end // if
     end // for
   end
 
-  // predict branch target for Fetch
-  assign BTB_NPC[0] = if_PC_out[0] + 4;
-  assign BTB_NPC[1] = if_PC_out[1] + 4;
-  
-  always_comb begin
-    if (rollback_en) begin
-      if (BP_F_out.take_branch_out[0]) begin
-        BP_F_out.take_branch_target = 
-      end
+  always_ff @(posedge clock) begin
+    if (reset) begin
+      BHT <= `SD `BHT_RESET;
+    end else begin
+      BHT <= `SD next_BHT;
     end
   end
-  assign BTB_take_branch_target[0] = BP_F_out.take_branch_out[0] ? next_BTB[br_pc[0]] : BTB_NPC[0];
-  assign BTB_take_branch_target[1] = BP_F_out.take_branch_out[1] ? next_BTB[br_pc[1]] : BTB_NPC[1];
+
+
+  // assign BTB_NPC[0] = if_PC_out[0] + 4;
+  // assign BTB_NPC[1] = if_PC_out[1] + 4;
+
+  // assign BTB_take_branch_target[0] = BP_F_out.take_branch_out[0] ? next_BTB[br_pc[0]] : BTB_NPC[0];
+  // assign BTB_take_branch_target[1] = BP_F_out.take_branch_out[1] ? next_BTB[br_pc[1]] : BTB_NPC[1];
   
   //have BP_F_out ???
-  assign BP_F_out[0].take_branch_target_out = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target[0];
-  assign BP_F_out[1].take_branch_target_out = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target[1];
+  // assign BP_F_out[0].take_branch_target_out = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target[0];
+  // assign BP_F_out[1].take_branch_target_out = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target[1];
   
+  // 3. Predict branch target
+  assign
+  always_comb begin
+    if (rollback_en) begin
+      BP_F_out.take_branch_target_out = FU_BP_out.take_branch_target_out;
+    end else if (BP_F_out.take_branch_out[0]) begin
+      BP_F_out.take_branch_target_out = next_BTB[bh_idx[0]];
+    end else if (BP_F_out.take_branch_out[1]) begin
+      BP_F_out.take_branch_target_out = next_BTB[bh_idx[1]];
+    end else begin
+      BP_F_out.take_branch_target_out = 0;
+    end
+  end
+
   // Refresh BTB
   always_comb begin
     next_BTB = BTB;
-    next_BTB[br_pc[0]] = FU_BP_out.take_branch_out[0] ? FU_BP_out.take_branch_target : BTB[br_pc[0]];
-    next_BTB[br_pc[1]] = FU_BP_out.take_branch_out[1] ? FU_BP_out.take_branch_target : BTB[br_pc[1]];
+    next_BTB[bh_idx_FU] = FU_BP_out.take_branch_out[0] ? FU_BP_out.take_branch_target_out : BTB[bh_idx[0]];
   end
 
 
   // assign BP_F_out.take_branch_target_out = (rollback_en) ? FU_take_branch_target : BP_take_branch_target;
   always_ff @(posedge clock) begin
     if (reset) begin
-      BHT <= `SD `BHT_RESET;
       BTB <= `SD `BTB_RESET;
     end else begin
-      BHT <= next_BHT;
       BTB <= next_BTB;
     end
   end
