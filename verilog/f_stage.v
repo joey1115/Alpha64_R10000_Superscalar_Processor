@@ -16,15 +16,17 @@ module F_stage(
   input         reset,                      // system reset
   input         get_next_inst,              // only go to next instruction when true
                                             // makes pipeline behave as single-cycle
-  input         take_branch_out,            // taken-branch signal
-  input  [63:0] take_branch_target,         // target pc: use if take_branch_out is TRUE
+  // input         take_branch_out,            // taken-branch signal
+  // input  [63:0] take_branch_target,         // target pc: use if take_branch_out is TRUE
   input  [63:0] Imem2proc_data,             // Data coming back from instruction-memory
   input         Imem_valid,
+  input  BP_F_OUT_t                   BP_F_out,
 
   output logic [63:0] proc2Imem_addr, // Address sent to Instruction memory
   output logic [`NUM_SUPER-1:0][63:0] if_NPC_out, // PC of instruction after fetched (PC+4).
   output logic [`NUM_SUPER-1:0][31:0] if_IR_out, // fetched instruction out
-  output logic [`NUM_SUPER-1:0]       if_valid_inst_out    // when low, instruction is garbage
+  output logic [`NUM_SUPER-1:0]       if_valid_inst_out,    // when low, instruction is garbage
+  output F_BP_OUT_t                   F_BP_out
 );
 
   logic    [63:0] PC_reg;               // PC we are currently fetching
@@ -48,21 +50,24 @@ module F_stage(
   // next PC is target_pc if there is a taken branch or
   // the next sequential PC (PC+4) if no branch
   // (halting is handled with the enable PC_enable;
-  assign next_PC = take_branch_out ? take_branch_target : PC_plus;
+  assign next_PC = BP_F_out.take_branch_target_out;
 
   // The take-branch signal must override stalling (otherwise it may be lost)
-  assign PC_enable = (Imem_valid && get_next_inst) || take_branch_out;
+  assign PC_enable = (Imem_valid && get_next_inst) || BP_F_out.take_branch_out;
 
   // Pass PC_plus down pipeline w/instruction
   assign if_NPC_out[0] = (PC_reg[2]) ? PC_reg : (PC_reg + 4);
   assign if_NPC_out[1] = PC_plus;
 
-  // Determine if the instruction is valid
-  assign if_valid_inst_out[0] = (PC_reg[2]) ? `FALSE : Imem_valid;
-  assign if_valid_inst_out[1] = Imem_valid;
+  // Determine if the instruction from Icache is valid
+  assign F_BP_out.inst_valid[0] = (PC_reg[2]) ? `FALSE : Imem_valid;
+  assign F_BP_out.inst_valid[1] = Imem_valid;
+
+  assign if_valid_inst_out[0] = BP_F_out.inst_valid[0];
+  assign if_valid_inst_out[1] = BP_F_out.inst_valid[1];
 
   // assign next_ready_for_valid =	(ready_for_valid | get_next_inst) & 
-  // !if_valid_inst_out;
+  // !F_BP_out.inst_valid;
 
   // This register holds the PC value
   // synopsys sync_set_reset "reset"
