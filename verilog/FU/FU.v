@@ -439,8 +439,8 @@ module ld (
 endmodule
 
 module st (
-  input  logic                        clock, reset,
-  input  FU_IN_t               FU_in,
+  input  logic                        clock, reset, en
+  input  FU_IN_t                      FU_in,
   input  logic                        CDB_valid,
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
@@ -448,6 +448,11 @@ module st (
   output FU_OUT_t                     FU_out,
   output logic                        FU_valid
 );
+
+  assign regA = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
+  assign regB = FU_in.T2_value;
+  assign addr = regA + regB;
+  assign value = FU_in.T1_value;
 
   assign FU_out = '{
     `FALSE,

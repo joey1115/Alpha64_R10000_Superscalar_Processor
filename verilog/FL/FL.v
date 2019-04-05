@@ -39,7 +39,7 @@ module FL (
   assign next_head       = head + head1 + head2;
   assign next_tail       = rollback_en ? FL_rollback_idx :
                            dispatch_en ? virtual_tail    : tail;
-  assign FL_valid        = (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) || virtual_tail != next_head;
+  // assign FL_valid        = (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) || virtual_tail != next_head;
   assign tail_plus_one   = tail + 1;
   assign tail_plus_two   = tail + 2;
   assign head_plus_one   = head + 1;
@@ -47,13 +47,17 @@ module FL (
 
   always_comb begin
     if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
-      virtual_tail = tail + 2;
+      virtual_tail = tail_plus_two;
+      FL_valid     = tail_plus_two != head;
     end else if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] == `ZERO_REG) begin
-      virtual_tail = tail + 1;
+      virtual_tail = tail_plus_one;
+      FL_valid     = tail_plus_one != head;
     end else if (decoder_FL_out.dest_idx[0] == `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
-      virtual_tail = tail + 1;
+      virtual_tail = tail_plus_one;
+      FL_valid     = tail_plus_one != head;
     end else begin
       virtual_tail = tail;
+      FL_valid     = `TRUE;
     end
   end
 

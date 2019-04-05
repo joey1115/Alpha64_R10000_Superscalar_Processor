@@ -109,23 +109,17 @@ module CDB (
 
   always_comb begin
     complete_hit = {`NUM_SUPER{`FALSE}};
-    complete_idx = 0;
-    // broadcast one completed instruction (if one is found) for first half of FU
-    for (int i=0; i<`NUM_FU; i=i+2) begin
-      if (CDB[i].taken) begin
-        complete_hit[0] = `TRUE;
-        complete_idx[0] = i;
-        break;
-      end // if
-    end // for
-    // broadcast one completed instruction (if one is found) for second half of FU
-    for (int j=1; j<`NUM_FU; j=j+2) begin
-      if (CDB[j].taken) begin
-        complete_hit[1] = `TRUE;
-        complete_idx[1] = j;
-        break;
-      end // if
-    end // for
+    complete_idx = {`NUM_SUPER{($clog2(`NUM_FU){1'b0})}};
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      // broadcast one completed instruction (if one is found) for first half of FU
+      for (int j=i; j<`NUM_FU; j=j+2) begin
+        if (CDB[i].taken) begin
+          complete_hit[i] = `TRUE;
+          complete_idx[i] = j;
+          break;
+        end // if
+      end // for
+    end
   end // always_comb
 
   always_comb begin

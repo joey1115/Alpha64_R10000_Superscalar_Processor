@@ -287,7 +287,7 @@ module inst_decoder(
           wr_mem       = `TRUE;
           dest_idx     = `ZERO_REG;
           FU           = FU_ST;
-          rega_idx     = `ZERO_REG;
+          rega_idx     = inst_in.r.rega_idx;
           regb_idx     = inst_in.r.regb_idx;
         end
 
@@ -295,11 +295,11 @@ module inst_decoder(
           opa_select   = ALU_OPA_IS_MEM_DISP;
           opb_select   = ALU_OPB_IS_REGB;
           func         = ALU_ADDQ;
-          dest_idx = inst_in.r.rega_idx;
+          dest_idx     = `ZERO_REG;
           wr_mem       = `TRUE;
           stc_mem      = `TRUE;
           FU           = FU_ST;
-          rega_idx     = `ZERO_REG;
+          rega_idx     = inst_in.r.rega_idx;
           regb_idx     = inst_in.r.regb_idx;
         end
 
