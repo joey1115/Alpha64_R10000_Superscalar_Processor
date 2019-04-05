@@ -16,7 +16,6 @@ module BP(
   logic  [`NUM_SUPER-1:0]                                  is_uncond_br;
   logic  [`NUM_SUPER-1:0]          [`NUM_BH_IDX_BITS-1:0]  bh_idx;
   logic  [`NUM_SUPER-1:0]          [`NUM_BH_IDX_BITS-1:0]  bh_idx_FU;
-  logic  [`NUM_SUPER-1:0]                                  take_branch;
   logic  [2**`NUM_BH_IDX_BITS-1:0] [1:0]                   BHT, next_BHT;
   logic  [2**`NUM_BH_IDX_BITS-1:0] [63:0]                  BTB, next_BTB
   // logic  [63:0]                                            BTB_NPC;
@@ -51,9 +50,8 @@ module BP(
   assign bh_idx[0] = if_NPC_out[0][`NUM_BH_IDX_BITS+1:2];
   assign bh_idx[1] = if_NPC_out[1][`NUM_BH_IDX_BITS+1:2];
 
-  assign take_branch[0] = is_uncond_br[0] || (is_cond_br[0] && next_BHT[bh_idx[0]][1]) || rollback_en;
-  assign take_branch[1] = is_uncond_br[1] || (is_cond_br[1] && next_BHT[bh_idx[1]][1]) || rollback_en;
-  assign BP_F_out.take_branch_out = take_branch[0] || take_branch[1]; 
+  assign BP_F_out.take_branch_out[0] = is_uncond_br[0] || (is_cond_br[0] && next_BHT[bh_idx[0]][1]) || rollback_en;
+  assign BP_F_out.take_branch_out[1] = is_uncond_br[1] || (is_cond_br[1] && next_BHT[bh_idx[1]][1]) || rollback_en;
 
   // Update BHT
   assign bh_idx_FU[0] = FU_BP_out.take_branch_NPC_out[0][`NUM_BH_IDX_BITS+1:2];
@@ -82,14 +80,13 @@ module BP(
     end
   end
 
-  assign BP_F_out.inst_valid[0] = F_BP_out.inst_valid[0];
-  assign BP_F_out.inst_valid[1] = take_branch[0] ? 0:
-                                  F_BP_out.inst_valid[1];
+  assign BP_F_out.inst_valid[0] = !rollback_en && F_BP_out.inst_valid[0];
+  assign BP_F_out.inst_valid[1] = !rollback_en && !BP_F_out.take_branch_out[0] && F_BP_out.inst_valid[1];
 
   // 3. Predict branch target
   assign BP_F_out.take_branch_target_out = (rollback_en)                 ? FU_BP_out.take_branch_target_out[FU_BP_out.take_branch_selection] :
-                                           (take_branch[0]) ? next_BTB[bh_idx[0]] :
-                                           (take_branch[1]) ? next_BTB[bh_idx[1]] :
+                                           (BP_F_out.take_branch_out[0]) ? next_BTB[bh_idx[0]] :
+                                           (BP_F_out.take_branch_out[1]) ? next_BTB[bh_idx[1]] :
                                            if_NPC_out[1];
 
 
@@ -119,8 +116,8 @@ endmodule
  // assign BTB_NPC[0] = if_PC_out[0] + 4;
   // assign BTB_NPC[1] = if_PC_out[1] + 4;
 
-  // assign BTB_take_branch_target[0] = take_branch[0] ? next_BTB[br_pc[0]] : BTB_NPC[0];
-  // assign BTB_take_branch_target[1] = take_branch[1] ? next_BTB[br_pc[1]] : BTB_NPC[1];
+  // assign BTB_take_branch_target[0] = BP_F_out.take_branch_out[0] ? next_BTB[br_pc[0]] : BTB_NPC[0];
+  // assign BTB_take_branch_target[1] = BP_F_out.take_branch_out[1] ? next_BTB[br_pc[1]] : BTB_NPC[1];
   
   //have BP_F_out ???
   // assign BP_F_out[0].take_branch_target_out = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target[0];

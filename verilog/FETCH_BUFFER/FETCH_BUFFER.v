@@ -5,6 +5,7 @@ module FETCH_BUFFER (
   input logic [`NUM_SUPER-1:0][63:0] if_NPC_out,              // PC of instruction after fetched (PC+4).
   input logic [`NUM_SUPER-1:0][31:0] if_IR_out,               // fetched instruction out
   input logic [`NUM_SUPER-1:0]       if_valid_inst_out,       // when low, instruction is garbage
+  input logic [`NUM_SUPER-1:0][63:0] if_target_out,
   input logic                        get_next_inst,           // high when want to get next inst
   input logic                        rollback_en,             // if rollback
 `ifdef DEBUG

@@ -117,8 +117,11 @@ module pipeline (
   logic [63:0] Icache_data_out, proc2Icache_addr;
   logic        Icache_valid_out;
   logic [3:0]  Imem2proc_response;
+  BP_F_OUT_t   BP_F_out
   logic [`NUM_SUPER-1:0][63:0] if_NPC_out;
   logic [`NUM_SUPER-1:0][31:0] if_IR_out;
+  logic [`NUM_SUPER-1:0][63:0] if_target_out;
+  F_BP_OUT_t                   F_BP_out;
   logic fetch_en;
   logic inst_out_valid;
   logic get_fetch_buff;
@@ -229,15 +232,18 @@ module pipeline (
     .clock (clock),
     .reset (reset),
     .get_next_inst(fetch_en), //only go to next insn when high
-    .take_branch_out(take_branch_out),
-    .take_branch_target(take_branch_target),
+    // .take_branch_out(take_branch_out),
+    // .take_branch_target(take_branch_target),
     .Imem2proc_data(Icache_data_out),
     .Imem_valid(Icache_valid_out),
+    .BP_F_out(BP_F_out),
     // Outputs
+    .proc2Imem_addr(proc2Icache_addr),
     .if_NPC_out(if_NPC_out), 
     .if_IR_out(if_IR_out),
-    .proc2Imem_addr(proc2Icache_addr),
-    .if_valid_inst_out(if_valid_inst_out)
+    .if_target_out(if_target_out),
+    .if_valid_inst_out(if_valid_inst_out),
+    .F_BP_out(F_BP_out)
   );
 
   //////////////////////////////////////////////////
@@ -261,6 +267,7 @@ module pipeline (
     .reset(reset),
     .if_NPC_out(if_NPC_out),
     .if_IR_out(if_IR_out),
+    .if_target_out(if_target_out),
     .if_valid_inst_out(if_valid_inst_out),
     .get_next_inst(dispatch_en),
     .rollback_en(rollback_en),
