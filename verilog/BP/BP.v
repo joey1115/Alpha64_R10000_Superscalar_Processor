@@ -4,7 +4,7 @@
 module BP(
   input  clock,
   input  reset,
-  input  [`NUM_SUPER-1:0] [63:0]      if_NPC_out,          // (from F-stage) NPC
+  input  [`NUM_SUPER-1:0] [63:0]      if_PC_out,          // (from F-stage) PC
   input  [`NUM_SUPER-1:0] [31:0]      if_IR_out,          // (from F-stage) fetched instruction out
   input                    [1:0]      if_valid_inst_out   // (from F-stage) when low, instruction is garbage
   input                               rollback_en,        // (from FU)
@@ -47,8 +47,8 @@ module BP(
 
 
   // 2. Determine take or not
-  assign bh_idx[0] = if_NPC_out[0][`NUM_BH_IDX_BITS+1:2];
-  assign bh_idx[1] = if_NPC_out[1][`NUM_BH_IDX_BITS+1:2];
+  assign bh_idx[0] = if_PC_out[0][`NUM_BH_IDX_BITS+1:2];
+  assign bh_idx[1] = if_PC_out[1][`NUM_BH_IDX_BITS+1:2];
 
   assign BP_F_out.take_branch_out[0] = is_uncond_br[0] || (is_cond_br[0] && next_BHT[bh_idx[0]][1]) || rollback_en;
   assign BP_F_out.take_branch_out[1] = is_uncond_br[1] || (is_cond_br[1] && next_BHT[bh_idx[1]][1]) || rollback_en;
