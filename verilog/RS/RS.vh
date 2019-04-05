@@ -31,6 +31,7 @@ typedef struct packed {
   ALU_OPB_SELECT                  opb_select;
   logic                           uncond_branch;
   logic                           cond_branch;
+  logic    [63:0]                 target;
 } RS_ENTRY_t;
 
 `define FU_LIST '{      \
@@ -39,7 +40,7 @@ typedef struct packed {
   {(`NUM_BR){FU_BR}},     \
   {(`NUM_ST){FU_ST}},     \
   {(`NUM_LD){FU_LD}},     \
-  {(`NUM_NONE){FU_NONE}},     \
+  {(`NUM_NONE){FU_NONE}}  \
 }
 
 `define ZERO_PR {{($clog2(`NUM_PR)-5){1'b0}}, `ZERO_REG}
@@ -58,7 +59,8 @@ typedef struct packed {
   ALU_OPA_IS_REGA,          \
   ALU_OPB_IS_REGB,          \
   `FALSE,                   \
-  `FALSE                    \
+  `FALSE,                   \
+  64'b0                     \
 } // RS entry reset
 `define RS_RESET '{`NUM_FU{`RS_ENTRY_RESET}} // RS reset
 
@@ -75,6 +77,7 @@ typedef struct packed {
   ALU_OPB_SELECT                        opb_select;
   logic                                 uncond_branch;
   logic                                 cond_branch;
+  logic          [63:0]                 target;
 } FU_PACKET_t;
 
 typedef struct packed {

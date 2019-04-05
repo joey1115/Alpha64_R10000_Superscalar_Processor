@@ -560,6 +560,7 @@ module FU (
       FU_in[i].opb_select    = RS_FU_out.FU_packet[i].opb_select;
       FU_in[i].uncond_branch = RS_FU_out.FU_packet[i].uncond_branch;
       FU_in[i].cond_branch   = RS_FU_out.FU_packet[i].cond_branch;
+      FU_in[i].target        = RS_FU_out.FU_packet[i].target;
       FU_in[i].T1_value      = PR_FU_out.T1_value[i]; // T1 idx
       FU_in[i].T2_value      = PR_FU_out.T2_value[i]; // T2 idx
     end

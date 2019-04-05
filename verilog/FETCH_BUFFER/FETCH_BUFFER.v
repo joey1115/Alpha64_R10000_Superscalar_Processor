@@ -2,10 +2,10 @@
 
 module FETCH_BUFFER (
   input logic                        en, clock, reset,
-  input logic [`NUM_SUPER-1:0][63:0] if_NPC_out,              // PC of instruction after fetched (PC+4).
+  input logic [`NUM_SUPER-1:0][63:0] if_NPC_out,              // PC of instruction after fetched (PC_plus).
   input logic [`NUM_SUPER-1:0][31:0] if_IR_out,               // fetched instruction out
+  input logic [`NUM_SUPER-1:0][63:0] if_target_out,           // PC of the real instruction after this one (PC_plus or branch target)
   input logic [`NUM_SUPER-1:0]       if_valid_inst_out,       // when low, instruction is garbage
-  input logic [`NUM_SUPER-1:0][63:0] if_target_out,
   input logic                        get_next_inst,           // high when want to get next inst
   input logic                        rollback_en,             // if rollback
 `ifdef DEBUG
@@ -31,6 +31,7 @@ module FETCH_BUFFER (
 
   assign FB_decoder_out.NPC = '{FB[tail_plus_one].NPC, FB[tail].NPC};
   assign FB_decoder_out.inst = '{FB[tail_plus_one].inst, FB[tail].inst};
+  assign FB_decoder_out.target = '{FB[tail_plus_one].target, FB[tail].target};
   assign FB_decoder_out.valid = inst_out_valid;
 
   assign head_plus_one = head + 1;
@@ -66,14 +67,16 @@ module FETCH_BUFFER (
   always_comb begin
     nFB = FB;
     if(if_valid_inst_out[0] & fetch_en) begin
-      nFB[head].NPC = if_NPC_out[0];
-      nFB[head].inst = if_IR_out[0];
-      nFB[head].valid = 1;
+      nFB[head].NPC    = if_NPC_out[0];
+      nFB[head].inst   = if_IR_out[0];
+      nFB[head].target = if_target_out[0];
+      nFB[head].valid  = 1;
     end
     if(if_valid_inst_out[1] & fetch_en) begin
-      nFB[head_plus_one].NPC = if_NPC_out[1];
-      nFB[head_plus_one].inst = if_IR_out[1];
-      nFB[head_plus_one].valid = 1;
+      nFB[head_plus_one].NPC    = if_NPC_out[1];
+      nFB[head_plus_one].inst   = if_IR_out[1];
+      nFB[head_plus_one].target = if_target_out[1];
+      nFB[head_plus_one].valid  = 1;
     end
     if(get_next_inst)begin
       nFB[tail].valid = 0;

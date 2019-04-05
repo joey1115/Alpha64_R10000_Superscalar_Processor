@@ -36,6 +36,7 @@ module decoder(
   ALU_OPA_SELECT [`NUM_SUPER-1:0]       opa_select;  // fetched instruction out
   ALU_OPB_SELECT [`NUM_SUPER-1:0]       opb_select;
   logic          [`NUM_SUPER-1:0]       rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch, halt;
+  logic          [`NUM_SUPER-1:0][63:0] target;
   logic          [`NUM_SUPER-1:0]       cpuid;     // get CPUID instruction
   logic          [`NUM_SUPER-1:0]       internal_illegal;   // non-zero on an illegal instruction
   logic          [`NUM_SUPER-1:0]       valid; // for counting valid instructions executed
@@ -46,7 +47,7 @@ module decoder(
   logic          [`NUM_SUPER-1:0][4:0]  regb_idx;
 
   assign decoder_ROB_out       = '{halt, dest_idx, internal_illegal, NPC};
-  assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch};
+  assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch, target};
   assign decoder_FL_out        = '{dest_idx};
   assign decoder_Map_Table_out = '{dest_idx, rega_idx, regb_idx};
   //assign illegal               = internal_illegal[0] | internal_illegal[1];
@@ -54,6 +55,7 @@ module decoder(
   inst_decoder inst_decoder_0 (.valid_in(FB_decoder_out.valid),
                               .inst_in(FB_decoder_out.inst[0]),
                               .NPC_in(FB_decoder_out.NPC[0]),
+                              .target_in(FB_decoder_out.target[0]),
                               .inst(inst[0]),
                               .NPC(NPC[0]),
                               .opa_select(opa_select[0]),
@@ -64,6 +66,7 @@ module decoder(
                               .stc_mem(stc_mem[0]),
                               .cond_branch(cond_branch[0]),
                               .uncond_branch(uncond_branch[0]),
+                              .target(target[0]),
                               .cpuid(cpuid[0]),
                               .valid(valid[0]),
                               .dest_idx(dest_idx[0]),
@@ -77,6 +80,7 @@ module decoder(
   inst_decoder inst_decoder_1 (.valid_in(FB_decoder_out.valid),
                               .inst_in(FB_decoder_out.inst[1]),
                               .NPC_in(FB_decoder_out.NPC[1]),
+                              .target_in(FB_decoder_out.target[1]),
                               .inst(inst[1]),
                               .NPC(NPC[1]),
                               .opa_select(opa_select[1]),
@@ -87,6 +91,7 @@ module decoder(
                               .stc_mem(stc_mem[1]),
                               .cond_branch(cond_branch[1]),
                               .uncond_branch(uncond_branch[1]),
+                              .target(target[1]),
                               .cpuid(cpuid[1]),
                               .valid(valid[1]),
                               .dest_idx(dest_idx[1]),
@@ -103,11 +108,13 @@ module inst_decoder(
   input  logic                          valid_in,
   input  INST_t                         inst_in,
   input  logic                  [63:0]  NPC_in,
+  input  logic                  [63:0]  target_in,
   output INST_t                         inst,  // fetched instruction ou,
   output logic                  [63:0]  NPC,  // fetched instruction ou,
   output ALU_OPA_SELECT                 opa_select,  // fetched instruction ou,
   output ALU_OPB_SELECT                 opb_select,
   output logic                          rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch,
+  output logic                  [63:0]  target,
   output logic                          cpuid,     // get CPUID instructio,
   output logic                          valid, // for counting valid instructions execute,
   output logic                  [4:0]   dest_idx,

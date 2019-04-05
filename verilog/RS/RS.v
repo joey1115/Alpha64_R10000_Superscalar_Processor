@@ -106,6 +106,7 @@ module RS (
       FU_packet[j].opb_select    = RS[j].opb_select;    // Output T2_idx
       FU_packet[j].uncond_branch = RS[j].uncond_branch; // Output T2_idx
       FU_packet[j].cond_branch   = RS[j].cond_branch;   // Output T2_idx
+      FU_packet[j].target        = RS[j].target;
       FU_packet[j].FL_idx        = RS[j].FL_idx;        // op code
       FU_packet[j].T_idx         = RS[j].T_idx;         // Output T_idx
       FU_T_idx[j].T1_idx         = RS[j].T1.idx;        // Output T1_idx
@@ -134,6 +135,7 @@ module RS (
         next_RS[RS_match_idx[i]].opb_select    = decoder_RS_out.opb_select[i];    // Output T2_idx
         next_RS[RS_match_idx[i]].uncond_branch = decoder_RS_out.uncond_branch[i]; // Output T2_idx
         next_RS[RS_match_idx[i]].cond_branch   = decoder_RS_out.cond_branch[i];   // Output T2_idx
+        next_RS[RS_match_idx[i]].target        = decoder_RS_out.target[i];
         next_RS[RS_match_idx[i]].FL_idx        = FL_RS_out.FL_idx[i];             // Write T1 select
         next_RS[RS_match_idx[i]].T_idx         = FL_RS_out.T_idx[i];              // Write T
         next_RS[RS_match_idx[i]].T1            = Map_Table_RS_out.T1[i];          // Write T1

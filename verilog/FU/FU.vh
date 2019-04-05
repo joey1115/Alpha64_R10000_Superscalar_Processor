@@ -28,6 +28,7 @@ typedef struct packed {
   ALU_OPB_SELECT                        opb_select;
   logic                                 uncond_branch;
   logic                                 cond_branch;
+  logic          [63:0]                 target;
 } FU_IN_t;
 
 typedef struct packed {
