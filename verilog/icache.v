@@ -37,7 +37,7 @@ module icache(
 
 	assign Icache_data_out = cachemem_data;
 
-	assign Icache_valid_out = cachemem_valid; 
+	assign Icache_valid_out = cachemem_valid;  //determines if cache hit or miss
 
 	assign proc2Imem_addr = {proc2Icache_addr[63:3],3'b0};
 	assign proc2Imem_command = (miss_outstanding && !changed_addr) ?	BUS_LOAD :
@@ -48,6 +48,7 @@ module icache(
 
 	wire update_mem_tag = changed_addr | miss_outstanding | data_write_enable;
 
+	//memory doesnt answer the miss
 	wire unanswered_miss = changed_addr ?	!Icache_valid_out :
 											miss_outstanding & (Imem2proc_response==0);
 
@@ -59,7 +60,7 @@ module icache(
 			last_index       <= `SD -1;   // These are -1 to get ball rolling when
 			last_tag         <= `SD -1;   // reset goes low because addr "changes"
 			current_mem_tag  <= `SD 0;              
-			miss_outstanding <= `SD 0;
+			miss_outstanding <= `SD 0; //memory doesnt ack the miss
 		end
 		else
 		begin

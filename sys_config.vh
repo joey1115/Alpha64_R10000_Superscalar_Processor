@@ -15,6 +15,20 @@
 `define NUM_MULT_STAGE (8)
 `define NUM_FB         (8)
 
+//D cache parameters
+`define MEMORY_BLOCK_SIZE(8)
+`define CACHE_SIZE       (256) //cache size in bytes
+`define LINE_SIZE        (8) // multiple of 8 bytes (memory blocks)
+`define ADDRESS_BITS     (64) //size of an address in bits
+`define NUM_WAY          (2) //num of lines in a set (NEED MORE THAN 1 !!!!!)
+
+
+`define TOTAL_LINES      (`CACHE_SIZE/`LINE_SIZE)
+`define NUM_IDX          (`TOTAL_LINES / `NUM_WAY) // number of IDX, sets
+`define NUM_BLOCK        (`LINE_SIZE / `MEMORY_BLOCK_SIZE) // number of BLOCKS PER LINE, block offset
+`define NUM_TAG_BITS     (`ADDRESS_BITS - $clog2(`NUM_IDX) - $clog2(`NUM_BLOCK))
+
+
 `define DEBUG
 // `define MULT_FORWARDING
 
