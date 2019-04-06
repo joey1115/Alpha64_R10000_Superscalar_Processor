@@ -139,6 +139,7 @@ module SQ (
     end
   end
 
+  // Age logic
   always_comb begin
     ld_hit = {`NUM_SUPER{`FALSE}};
     ld_idx = {`NUM_SUPER{`FALSE}};
