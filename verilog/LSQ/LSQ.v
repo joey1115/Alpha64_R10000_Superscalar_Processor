@@ -2,7 +2,7 @@
 
 module SQ (
   input  logic                                   clock, reset, en, dispatch_en,
-  input  logic            [`NUM_SUPER-1:0]       retire_en, rollback_en,
+  input  logic            [`NUM_SUPER-1:0]       retire_en, rollback_en, D_cache_valid,
   input  logic            [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx,
   input  logic            [$clog2(`NUM_LSQ)-1:0] diff_SQ,
   input  DECODER_SQ_OUT_t                        decoder_SQ_out,
@@ -52,19 +52,19 @@ module SQ (
       end
       2'b01: begin
         virtual_tail = tail_plus_one;
-        valid        = tail_plus_one != head;
+        valid        = tail_plus_one != head && D_cache_valid[0];
         tail1        = tail_plus_one;
         tail2        = tail_plus_one;
       end
       2'b10: begin
         virtual_tail = tail_plus_one;
-        valid        = tail_plus_one != head;
+        valid        = tail_plus_one != head && D_cache_valid[0];
         tail1        = tail;
         tail2        = tail_plus_one;
       end
       2'b11: begin
         virtual_tail = tail_plus_two;
-        valid        = tail_plus_one != head && tail_plus_two != head;
+        valid        = tail_plus_one != head && tail_plus_two != head && D_cache_valid == 2'b11;
         tail1        = tail_plus_one;
         tail2        = tail_plus_two;
       end
@@ -156,8 +156,8 @@ module SQ (
 
   always_ff @(posedge clock) begin
     if (reset) begin
-      head <= `SD {`NUM_LSQ{1'b0}};
-      tail <= `SD {`NUM_LSQ{1'b0}};
+      head <= `SD {($clog2(`NUM_LSQ)){1'b0}};
+      tail <= `SD {($clog2(`NUM_LSQ)){1'b0}};
       sq   <= `SD `SQ_RESET;
     end else if (en) begin
       head <= `SD next_head;
