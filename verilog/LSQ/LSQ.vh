@@ -17,7 +17,8 @@ typedef struct packed {
 } SQ_ENTRY_t;
 
 typedef struct packed {
-  logic valid;
+  logic [`NUM_SUPER-1:0] dispatch_valid;
+  logic [`NUM_SUPER-1:0] retire_valid;
 } SQ_ROB_OUT_t;
 
 typedef struct packed {

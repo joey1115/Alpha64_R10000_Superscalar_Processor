@@ -7,6 +7,7 @@ module SQ (
   input  logic            [$clog2(`NUM_LSQ)-1:0] diff_SQ,
   input  DECODER_SQ_OUT_t                        decoder_SQ_out,
   input  LQ_SQ_OUT_t                             LQ_SQ_out,
+  input  ROB_SQ_OUT_t                            ROB_SQ_out,
   output logic                                   SQ_valid,
   output SQ_ROB_OUT_t                            SQ_ROB_out,
   output SQ_RS_OUT_t                             SQ_RS_out,
@@ -15,7 +16,6 @@ module SQ (
 );
 
   logic      [$clog2(NUM_LSQ)-1:0]                  head, next_head, tail, next_tail, tail1, tail2, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, diff_tail, virtual_tail;
-  logic      [`NUM_SUPER-1:0][$clog2(NUM_LSQ)-1:0]  sq_retire_idx;
   logic      [`NUM_LSQ-1:0][$clog2(NUM_LSQ)-1:0]    sq_tmp_idx;
   SQ_ENTRY_t [`NUM_LSQ-1:0]                         sq, next_sq;
   logic      [63:0]                                 ld_value;
@@ -26,6 +26,9 @@ module SQ (
   logic      [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] ld_map_idx;
   logic      [`NUM_SUPER-1:0]                       LD_valid;
   logic      [`NUM_SUPER-1:0][63:0]                 LD_value;
+  logic      [`NUM_SUPER-1:0]                       dispatch_valid;
+  logic      [`NUM_SUPER-1:0]                       retire_valid;
+  logic                                             valid1, valid2;
 
   assign tail_plus_one    = tail + 1;
   assign tail_plus_two    = tail + 2;
@@ -34,39 +37,41 @@ module SQ (
   assign diff_tail        = {`NUM_LSQ{1'b1}} - tail;
   assign next_tail        = rollback_en ? SQ_rollback_idx :
                             dispatch_en ? virtual_tail    : tail;
-  assign next_head        = SQ_retire_en ? head_plus_one : head;
   assign SQ_RS_out.SQ_idx = '{tail2, tail1};
   assign LD_valid         = ld_hit;
   assign LD_value         = ld_value;
   assign SQ_LQ_out        = '{LD_valid, LD_value};
+  assign wr_en            = retire_en & ROB_SQ_out.wr_mem;
   assign SQ_D_cache_out   = '{wr_en, addr, value};
+  assign retire_valid     = '{valid2, valid1};
+  assign SQ_ROB_out.valid = '{dispatch_valid, retire_valid};
 
-  // Valid
+  // Dispatch Valid
   always_comb begin
     case(decoder_SQ_out.wr_mem)
       2'b00: begin
-        virtual_tail = tail;
-        valid        = `TRUE;
-        tail1        = tail;
-        tail2        = tail;
+        virtual_tail   = tail;
+        dispatch_valid = `TRUE;
+        tail1          = tail;
+        tail2          = tail;
       end
       2'b01: begin
-        virtual_tail = tail_plus_one;
-        valid        = tail_plus_one != head && D_cache_valid[0];
-        tail1        = tail_plus_one;
-        tail2        = tail_plus_one;
+        virtual_tail   = tail_plus_one;
+        dispatch_valid = tail_plus_one != head;
+        tail1          = tail_plus_one;
+        tail2          = tail_plus_one;
       end
       2'b10: begin
-        virtual_tail = tail_plus_one;
-        valid        = tail_plus_one != head && D_cache_valid[0];
-        tail1        = tail;
-        tail2        = tail_plus_one;
+        virtual_tail   = tail_plus_one;
+        dispatch_valid = tail_plus_one != head;
+        tail1          = tail;
+        tail2          = tail_plus_one;
       end
       2'b11: begin
-        virtual_tail = tail_plus_two;
-        valid        = tail_plus_one != head && tail_plus_two != head && D_cache_valid == 2'b11;
-        tail1        = tail_plus_one;
-        tail2        = tail_plus_two;
+        virtual_tail   = tail_plus_two;
+        dispatch_valid = tail_plus_one != head && tail_plus_two != head;
+        tail1          = tail_plus_one;
+        tail2          = tail_plus_two;
       end
     endcase
   end
@@ -91,11 +96,44 @@ module SQ (
     end
   end
 
-  // Retire idx
+  // Retire valid
   always_comb begin
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      sq_retire_idx[i] = head + i;
-    end
+    case(ROB_SQ_out.wr_mem)
+      2'b00: begin
+        valid1 = `TRUE;
+        valid2 = `TRUE;
+      end
+      2'b01: begin
+        valid1 = tail_plus_one != head;
+        valid2 = `TRUE;
+      end
+      2'b10: begin
+        valid1 = `TRUE;
+        valid2 = tail_plus_one != head;
+      end
+      2'b11: begin
+        valid1 = tail_plus_one != head;
+        valid2 = valid1 && tail_plus_two != head;
+      end
+    endcase
+  end
+
+  // Retire
+  always_comb begin
+    case(ROB_SQ_out.wr_mem & retire_en)
+      2'b00: begin
+        next_head = head;
+      end
+      2'b01: begin
+        next_head = head_plus_one;
+      end
+      2'b10: begin
+        next_head = head_plus_one;
+      end
+      2'b11: begin
+        next_head = head_plus_two;
+      end
+    endcase
   end
 
   // Retire addr and value
@@ -103,13 +141,6 @@ module SQ (
     for (int i = 0; i < `NUM_SUPER; i++) begin
       addr[i]  = sq[ROB_SQ_out.SQ_idx[i]].addr;
       value[i] = sq[ROB_SQ_out.SQ_idx[i]].value;
-    end
-  end
-
-  // Retire wr_en
-  always_comb begin
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      wr_en[i] = retire_en[i] && ROB_SQ_out.wr_mem[i];
     end
   end
 
@@ -272,13 +303,13 @@ module LQ (
 
   always_ff @(posedge clock) begin
     if (reset) begin
-      head <= `SD {`NUM_LSQ{1'b0}};
-      tail <= `SD {`NUM_LSQ{1'b0}};
-      sq   <= `SD `SQ_RESET;
+      head <= `SD {($clog2(`NUM_LSQ)){1'b0}};
+      tail <= `SD {($clog2(`NUM_LSQ)){1'b0}};
+      lq   <= `SD `LQ_RESET;
     end else if (en) begin
       head <= `SD next_head;
       tail <= `SD next_tail;
-      sq   <= `SD next_sq;
+      lq   <= `SD next_lq;
     end
   end
 endmodule
