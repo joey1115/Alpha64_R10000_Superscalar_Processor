@@ -1,52 +1,70 @@
 `timescale 1ns/100ps
 
 module SQ (
-  input  logic                        clock, reset, en, dispatch_en,
-  input  DECODER_SQ_OUT_t             decoder_SQ_out,
-  input  logic                        rollback_en,
-  input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
-  input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  output logic                        SQ_valid,
-  output SQ_RS_OUT_t                  SQ_RS_out
+  input  logic                                   clock, reset, en, dispatch_en,
+  input  logic            [`NUM_SUPER-1:0]       retire_en, rollback_en,
+  input  logic            [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx,
+  input  logic            [$clog2(`NUM_LSQ)-1:0] diff_SQ,
+  input  DECODER_SQ_OUT_t                        decoder_SQ_out,
+  input  LQ_SQ_OUT_t                             LQ_SQ_out,
+  output logic                                   SQ_valid,
+  output SQ_ROB_OUT_t                            SQ_ROB_out,
+  output SQ_RS_OUT_t                             SQ_RS_out,
+  output SQ_LQ_OUT_t                             SQ_LQ_out,
+  output SQ_D_CACHE_OUT_t                        SQ_D_cache_out
 );
-  // TODO: Cache interface
-  logic      [$clog2(NUM_LSQ)-1:0]       head, next_head, tail, next_tail;
-  SQ_ENTRY_t [`NUM_LSQ-1:0]              sq, next_sq;
-  logic      [63:0]                      rega, regb;
 
-  assign next_tail = rollback_en ? SQ_rollback_idx :
-                     dispatch_en ? virtual_tail    : tail;
-  assign tail_plus_one = tail + 1;
-  assign tail_plus_two = tail + 2;
-  assign head_plus_one = head + 1;
-  assign head_plus_two = head + 2;
+  logic      [$clog2(NUM_LSQ)-1:0]                  head, next_head, tail, next_tail, tail1, tail2, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, diff_tail, virtual_tail;
+  logic      [`NUM_SUPER-1:0][$clog2(NUM_LSQ)-1:0]  sq_retire_idx;
+  logic      [`NUM_LSQ-1:0][$clog2(NUM_LSQ)-1:0]    sq_tmp_idx;
+  SQ_ENTRY_t [`NUM_LSQ-1:0]                         sq, next_sq;
+  logic      [63:0]                                 ld_value;
+  logic      [`NUM_SUPER-1:0]                       wr_en;
+  logic      [`NUM_SUPER-1:0][60:0]                 addr;
+  logic      [`NUM_SUPER-1:0][63:0]                 value;
+  logic      [`NUM_SUPER-1:0][`NUM_LSQ-1:0]         LD_match;
+  logic      [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] ld_map_idx;
+  logic      [`NUM_SUPER-1:0]                       LD_valid;
+  logic      [`NUM_SUPER-1:0][63:0]                 LD_value;
+
+  assign tail_plus_one    = tail + 1;
+  assign tail_plus_two    = tail + 2;
+  assign head_plus_one    = head + 1;
+  assign head_plus_two    = head + 2;
+  assign diff_tail        = {`NUM_LSQ{1'b1}} - tail;
+  assign next_tail        = rollback_en ? SQ_rollback_idx :
+                            dispatch_en ? virtual_tail    : tail;
+  assign next_head        = SQ_retire_en ? head_plus_one : head;
   assign SQ_RS_out.SQ_idx = '{tail2, tail1};
-  assign next_head = SQ_retire_en ? head_plus_one : head;
-  assign SQ_LQ_out = '{ld_hit, ld_value};
+  assign LD_valid         = ld_hit;
+  assign LD_value         = ld_value;
+  assign SQ_LQ_out        = '{LD_valid, LD_value};
+  assign SQ_D_cache_out   = '{wr_en, addr, value};
 
+  // Valid
   always_comb begin
     case(decoder_SQ_out.wr_mem)
       2'b00: begin
         virtual_tail = tail;
-        SQ_valid     = `TRUE;
+        valid        = `TRUE;
         tail1        = tail;
         tail2        = tail;
       end
       2'b01: begin
         virtual_tail = tail_plus_one;
-        SQ_valid     = tail_plus_one != head;
+        valid        = tail_plus_one != head;
         tail1        = tail_plus_one;
         tail2        = tail_plus_one;
       end
       2'b10: begin
         virtual_tail = tail_plus_one;
-        SQ_valid     = tail_plus_one != head;
+        valid        = tail_plus_one != head;
         tail1        = tail;
         tail2        = tail_plus_one;
       end
       2'b11: begin
         virtual_tail = tail_plus_two;
-        SQ_valid     = tail_plus_one != head && tail_plus_two != head;
+        valid        = tail_plus_one != head && tail_plus_two != head;
         tail1        = tail_plus_one;
         tail2        = tail_plus_two;
       end
@@ -55,36 +73,83 @@ module SQ (
 
   always_comb begin
     next_sq = sq;
-    case(dispatch_en)
-      2'b01, 2'b10: next_sq[tail] = `SQ_ENTRY_RESET_PACKED;
-      2'b11: begin
-        next_sq[tail]          = `SQ_ENTRY_RESET_PACKED;
-        next_sq[tail_plus_one] = `SQ_ENTRY_RESET_PACKED;
-      end
-    endcase
+    // Dispatch
+    if (dispatch_en) begin
+      case(decoder_SQ_out.wr_mem)
+        2'b01, 2'b10: next_sq[tail] = `SQ_ENTRY_RESET_PACKED;
+        2'b11: begin
+          next_sq[tail]          = `SQ_ENTRY_RESET_PACKED;
+          next_sq[tail_plus_one] = `SQ_ENTRY_RESET_PACKED;
+        end
+      endcase
+    end
+    // Execute
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      if (FU_SQ_out.wr_mem[i]) begin
+      if (FU_SQ_out.wr_mem[i] && FU_SQ_out.done[i]) begin
         next_sq[FU_LSQ_out.SQ_idx[i]] = '{FU_LSQ_out.result[i][63:3], `TRUE, FU_LSQ_out.T1_value[i]};
       end
     end
   end
 
+  // Retire idx
   always_comb begin
-    ld_hit = '{`NUM_SUPER{1'b0}};
-    ld_idx = '{`NUM_SUPER{($clog2(`NUM_LSQ)-1){1'b0}}};
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      for (int j = head; i != tail; i++) begin
-        if (LQ_SQ_out.addr[i] == sq[j].addr && sq[j].valid == `TRUE) begin
-            ld_hit[i] = `TRUE;
-            ld_idx[i] = j;
-        end
+      sq_retire_idx[i] = head + i;
+    end
+  end
+
+  // Retire addr and value
+  always_comb begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      addr[i]  = sq[ROB_SQ_out.SQ_idx[i]].addr;
+      value[i] = sq[ROB_SQ_out.SQ_idx[i]].value;
+    end
+  end
+
+  // Retire wr_en
+  always_comb begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      wr_en[i] = retire_en[i] && ROB_SQ_out.wr_mem[i];
+    end
+  end
+
+  // Age logic
+  // Map SQ idx
+  always_comb begin
+    for (int j = 0; j < `NUM_LSQ; j++) begin
+      if (j < diff_tail) begin
+        ld_map_idx[j] = tail + j + 1;
+      end else begin
+        ld_map_idx[j] = j - diff_tail;
       end
     end
   end
 
+  // diff SQ_idx
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      ld_value[i] = sq[ld_idx[i]];
+      diff_LD[i] = LQ_SQ_out.SQ_idx[i] - head;
+    end
+  end
+
+  // diff map
+  always_comb begin
+    for (int j = 0; j < `NUM_LSQ; j++) begin
+      diff[j] = ld_map_idx[j] - head;
+    end
+  end
+
+  always_comb begin
+    ld_hit = {`NUM_SUPER{`FALSE}};
+    ld_idx = {`NUM_SUPER{`FALSE}};
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      for (int j = 0; j < `NUM_LSQ; j++) begin
+        if (LQ_SQ_out.addr[i] == sq[ld_map_idx[j]].addr && sq[ld_map_idx[j]].valid && diff_LD[i] >= diff[j]) begin
+          ld_hit[i] = `TRUE;
+          ld_idx[i] = ld_map_idx[j];
+          break;
+        end
+      end
     end
   end
 
@@ -132,7 +197,7 @@ module LQ (
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      for (int j = SQ_LQ_out.LD_idx[i]; j != tail; j++) begin
+      for (int j = SQ_LQ_out.ld_map_idx[i]; j != tail; j++) begin
         if (SQ_LQ_out.addr[i] == lq[j].addr) begin
           st_hit[i] = `TRUE;
           st_idx[i] = j;
