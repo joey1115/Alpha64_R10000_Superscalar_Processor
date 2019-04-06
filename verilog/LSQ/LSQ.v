@@ -118,9 +118,9 @@ module SQ (
   always_comb begin
     for (int j = 0; j < `NUM_LSQ; j++) begin
       if (j < diff_tail) begin
-        ld_map_idx[j] = tail + j + 1;
+        ld_map_idx[j] = {`NUM_LSQ{1'b1}} - (tail + j + 1);
       end else begin
-        ld_map_idx[j] = j - diff_tail;
+        ld_map_idx[j] = {`NUM_LSQ{1'b1}} - (j - diff_tail);
       end
     end
   end
