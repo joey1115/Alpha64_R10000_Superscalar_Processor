@@ -81,6 +81,7 @@ module pipeline (
   logic                                          take_branch_out;
   logic                   [63:0]                 take_branch_target;
   FU_CDB_OUT_t                                   FU_CDB_out;
+  FU_BP_OUT_t                                    FU_BP_out;
   MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;
   MAP_TABLE_RS_OUT_t                             Map_Table_RS_out;
   PR_FU_OUT_t                                    PR_FU_out;
@@ -294,6 +295,17 @@ module pipeline (
 `endif
   );
 
+  BP BP_0 (
+    .clock(clock),
+    .reset(reset),
+    .if_NPC_out(if_NPC_out),
+    .if_IR_out(if_IR_out),
+    .F_BP_out(F_BP_out),
+    .rollback_en(rollback_en),
+    .FU_BP_out(FU_BP_out),
+    .BP_F_out(BP_F_out)
+  );
+
   CDB cdb_0 (
     .en(en),
     .clock(clock),
@@ -376,9 +388,10 @@ module pipeline (
     .ROB_rollback_idx(ROB_rollback_idx),
     .FL_rollback_idx(FL_rollback_idx),
     .diff_ROB(diff_ROB),
-    .take_branch_out(take_branch_out),
-    .take_branch_target(take_branch_target),
-    .FU_CDB_out(FU_CDB_out)
+    // .take_branch_out(take_branch_out),
+    // .take_branch_target(take_branch_target),
+    .FU_CDB_out(FU_CDB_out),
+    .FU_BP_out(FU_BP_out)
   );
 
   Map_Table map_table_0 (

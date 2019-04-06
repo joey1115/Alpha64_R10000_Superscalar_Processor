@@ -339,21 +339,23 @@ module br(
   input  logic             CDB_valid,
   output FU_OUT_t          FU_out,
   output                   FU_valid,
-  output logic             take_branch
+  output logic             take_branch,
+  output logic [63:0]      NPC
 );
 
   logic result;
   logic [63:0] regA, regB;
   assign FU_valid = CDB_valid || !FU_in.ready;
   assign take_branch = FU_in.uncond_branch || (FU_in.cond_branch && result);
+  assign NPC = FU_in.NPC;
 
   always_comb begin
     result = `FALSE;
     if(FU_in.ready == `TRUE) begin
-      case (FU_in.inst.r.br_func[1:0])                                               // 'full-case'  All cases covered, no need for a default
-        2'b00: result = (FU_in.T1_value[0] == 0);                               // LBC: (lsb(opa) == 0) ?
-        2'b01: result = (FU_in.T1_value == 0);                                  // EQ: (opa == 0) ?
-        2'b10: result = (FU_in.T1_value[63] == 1);                              // LT: (signed(opa) < 0) : check sign bit
+      case (FU_in.inst.r.br_func[1:0])                                      // 'full-case'  All cases covered, no need for a default
+        2'b00: result = (FU_in.T1_value[0] == 0);                           // LBC: (lsb(opa) == 0) ?
+        2'b01: result = (FU_in.T1_value == 0);                              // EQ: (opa == 0) ?
+        2'b10: result = (FU_in.T1_value[63] == 1);                          // LT: (signed(opa) < 0) : check sign bit
         2'b11: result = (FU_in.T1_value[63] == 1) || (FU_in.T1_value == 0); // LE: (signed(opa) <= 0)
       endcase
       // negate cond if func[2] is set
@@ -463,12 +465,12 @@ module st (
 endmodule
 
 module FU (
-  input  logic                                                                    clock,               // system clock
-  input  logic                                                                    reset,               // system reset
-  input  logic        [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0]                      ROB_idx,
-  input  logic        [`NUM_FU-1:0]                                               CDB_valid,
-  input  RS_FU_OUT_t                                                              RS_FU_out,
-  input  PR_FU_OUT_t                                                              PR_FU_out,
+  input  logic                                                          clock,               // system clock
+  input  logic                                                          reset,               // system reset
+  input  logic        [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0]            ROB_idx,
+  input  logic        [`NUM_FU-1:0]                                     CDB_valid,
+  input  RS_FU_OUT_t                                                    RS_FU_out,
+  input  PR_FU_OUT_t                                                    PR_FU_out,
 // `ifdef DEBUG
 //   output logic        [`NUM_MULT-1:0]                                             last_done,
 //   output logic        [`NUM_MULT-1:0][63:0]                                       product_out,
@@ -486,21 +488,24 @@ module FU (
 //   output logic        [`NUM_MULT-1:0][($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0] internal_ROB_idx,
 //   output logic        [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]  internal_FL_idx,
 // `endif
-  output logic        [`NUM_FU-1:0]                                               FU_valid,
-  output logic                                                                    rollback_en,
-  output logic        [$clog2(`NUM_FL)-1:0]                                       FL_rollback_idx,
-  output logic        [$clog2(`NUM_ROB)-1:0]                                      ROB_rollback_idx,
-  output logic        [$clog2(`NUM_ROB)-1:0]                                      diff_ROB,
-  output logic                                                                    take_branch_out,
-  output logic        [63:0]                                                      take_branch_target,
-  output FU_CDB_OUT_t                                                             FU_CDB_out
+  output logic        [`NUM_FU-1:0]                                     FU_valid,
+  output logic                                                          rollback_en,
+  output logic        [$clog2(`NUM_FL)-1:0]                             FL_rollback_idx,
+  output logic        [$clog2(`NUM_ROB)-1:0]                            ROB_rollback_idx,
+  output logic        [$clog2(`NUM_ROB)-1:0]                            diff_ROB,
+  // output logic                                                          take_branch_out,
+  // output logic        [63:0]                                            take_branch_target,
+  output FU_CDB_OUT_t                                                   FU_CDB_out,
+  output FU_BP_OUT_t                                                    FU_BP_out
 );
 
   FU_OUT_t       [`NUM_FU-1:0]          FU_out;
   FU_IN_t        [`NUM_FU-1:0]          FU_in;
   logic          [`NUM_BR-1:0]          take_branch;
+  logic          [`NUM_BR-1:0] [63:0]   NPC;
   FU_IDX_ENTRY_t [`NUM_FU-1:0]          FU_T_idx;
   logic          [$clog2(`NUM_ROB)-1:0] diff_ROB1, diff_ROB2;
+  logic          [`NUM_BR-1:0]          predict_wrong;
 
   assign FU_CDB_out = '{FU_out};
 
@@ -513,38 +518,51 @@ module FU (
   // assign take_branch_out    = take_branch[0];
   // assign take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
 
+  assign predict_wrong[1] = (FU_in[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].target != FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result);
+  assign predict_wrong[0] = (FU_in[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].target != FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result);
+
+  assign rollback_en = predict_wrong[1] || predict_wrong[0];
+  assign FU_BP_out.is_branch_out = {FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].done, FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].done};
+  assign FU_BP_out.take_branch_out = take_branch;
+  assign FU_BP_out.take_branch_target_out[1] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result);
+  assign FU_BP_out.take_branch_target_out[0] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result);
+  assign FU_BP_out.take_branch_NPC_out = NPC;
+  assign FU_BP_out.take_branch_selection = (diff_ROB1 < diff_ROB2);
+
   always_comb begin
-    case(take_branch)
+    case(predict_wrong)
       2'b00: begin
-        rollback_en = `FALSE;
+        // rollback_en = `FALSE;
         ROB_rollback_idx   = {`NUM_ROB{1'b0}};
         FL_rollback_idx    = {`NUM_FL{1'b0}};
-        take_branch_target = 64'hbaadbeefdeadbeef;
-        take_branch_out    = `FALSE;
+        // take_branch_target = 64'hbaadbeefdeadbeef;
+        // take_branch_out    = `FALSE;
       end
       2'b01: begin
-        rollback_en = `TRUE;
+        // rollback_en = `TRUE;
         ROB_rollback_idx   = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
         FL_rollback_idx    = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
-        take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
-        take_branch_out    = `TRUE;
+        // take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
+        // take_branch_out    = `TRUE;
       end
       2'b10: begin
-        rollback_en = `TRUE;
+        // rollback_en = `TRUE;
         ROB_rollback_idx   = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].ROB_idx;
         FL_rollback_idx    = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].FL_idx;
-        take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result;
-        take_branch_out    = `TRUE;
+        // take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result;
+        // take_branch_out    = `TRUE;
       end
       2'b11: begin
-        rollback_en = `TRUE;
-        ROB_rollback_idx   = (diff_ROB1 >= diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].ROB_idx;
-        FL_rollback_idx    = (diff_ROB1 >= diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].FL_idx;
-        take_branch_target = (diff_ROB1 >= diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result;
-        take_branch_out    = `TRUE;
+        // rollback_en = `TRUE;
+        ROB_rollback_idx   = (diff_ROB1 < diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].ROB_idx : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
+        FL_rollback_idx    = (diff_ROB1 < diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].FL_idx : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
+        // take_branch_target = (diff_ROB1 < diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
+        // take_branch_out    = `TRUE;
       end
     endcase
   end
+
+
 
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
@@ -621,7 +639,8 @@ module FU (
     // Output
     .FU_out(FU_out[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
-    .take_branch(take_branch[`NUM_BR-1:0])
+    .take_branch(take_branch[`NUM_BR-1:0]),
+    .NPC(NPC)
   );
 
   st st_0 [`NUM_ST-1:0] (

@@ -45,7 +45,7 @@ typedef struct packed {
 } FU_CDB_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0]          is_branch_out;              // is branch or not
+  logic [`NUM_SUPER-1:0]          is_branch_out;              // whether BTB and BHT should be updated
   logic [`NUM_SUPER-1:0]          take_branch_out;            // branch taken or not
   logic [`NUM_SUPER-1:0][63:0]    take_branch_target_out;     // if taken, target
   logic [`NUM_SUPER-1:0][63:0]    take_branch_NPC_out;        // branch inst NPC

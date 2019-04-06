@@ -1,6 +1,3 @@
-
-
-
 module BP(
   input  clock,
   input  reset,
@@ -89,16 +86,13 @@ module BP(
                                            (BP_F_out.take_branch_out[1]) ? next_BTB[bh_idx[1]] :
                                            if_NPC_out[1];
 
-
   // Update BTB
   always_comb begin
     next_BTB = BTB;
     if (rollback_en && FU_BP_out.take_branch_out[FU_BP_out.take_branch_selection]) begin
-      next_BTB[bh_idx_FU[FU_BP_out.take_branch_selection]] = FU_BP_out.take_branch_out[FU_BP_out.take_branch_selection] ? FU_BP_out.take_branch_target_out[FU_BP_out.take_branch_selection]
-                                                                                                                        : BTB[bh_idx[FU_BP_out.take_branch_selection]];
+      next_BTB[bh_idx_FU[FU_BP_out.take_branch_selection]] = FU_BP_out.take_branch_target_out[FU_BP_out.take_branch_selection];
     end
   end
-
 
   // assign BP_F_out.take_branch_target_out = (rollback_en) ? FU_take_branch_target : BP_take_branch_target;
   always_ff @(posedge clock) begin
@@ -110,16 +104,3 @@ module BP(
   end
 
 endmodule
-
-
-
- // assign BTB_NPC[0] = if_PC_out[0] + 4;
-  // assign BTB_NPC[1] = if_PC_out[1] + 4;
-
-  // assign BTB_take_branch_target[0] = BP_F_out.take_branch_out[0] ? next_BTB[br_pc[0]] : BTB_NPC[0];
-  // assign BTB_take_branch_target[1] = BP_F_out.take_branch_out[1] ? next_BTB[br_pc[1]] : BTB_NPC[1];
-  
-  //have BP_F_out ???
-  // assign BP_F_out[0].take_branch_target_out = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target[0];
-  // assign BP_F_out[1].take_branch_target_out = rollback_en ? FU_BP_out.take_branch_target : BTB_take_branch_target[1];
- 
