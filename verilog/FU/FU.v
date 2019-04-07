@@ -227,28 +227,10 @@ module mult (
   input  logic                                                          rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0]                       ROB_rollback_idx,
   input  logic             [$clog2(`NUM_ROB)-1:0]                       diff_ROB,
-// `ifdef DEBUG
-//   output logic                                                          last_done,
-//   output logic             [63:0]                                       product_out,
-//   output logic             [4:0]                                        last_dest_idx,
-//   output logic             [$clog2(`NUM_PR)-1:0]                        last_T_idx,
-//   output logic             [$clog2(`NUM_ROB)-1:0]                       last_ROB_idx,
-//   output logic             [$clog2(`NUM_FL)-1:0]                        last_FL_idx,
-//   output logic             [63:0]                                       T1_value,
-//   output logic             [63:0]                                       T2_value,
-//   output logic             [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values,
-//   output logic             [`NUM_MULT_STAGE-2:0]                        internal_valids,
-//   output logic             [`NUM_MULT_STAGE-2:0]                        internal_dones,
-//   output logic             [5*(`NUM_MULT_STAGE-1)-1:0]                  internal_dest_idx,
-//   output logic             [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:0]  internal_T_idx,
-//   output logic             [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0] internal_ROB_idx,
-//   output logic             [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]  internal_FL_idx,
-// `endif
   output FU_OUT_t                                                       FU_out,
   output logic                                                          FU_valid
 );
 
-// `ifndef DEBUG
   logic                                              last_done;
   logic [63:0]                                       product_out;
   logic [4:0]                                        last_dest_idx;
@@ -256,16 +238,16 @@ module mult (
   logic [$clog2(`NUM_ROB)-1:0]                       last_ROB_idx;
   logic [$clog2(`NUM_FL)-1:0]                        last_FL_idx;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values;
+`ifdef MULT_FORWARDING
   logic [`NUM_MULT_STAGE-2:0]                        internal_valids;
+`endif
   logic [`NUM_MULT_STAGE-2:0]                        internal_dones;
   logic [5*(`NUM_MULT_STAGE-1)-1:0]                  internal_dest_idx;
   logic [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:0]  internal_T_idx;
   logic [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0] internal_ROB_idx;
   logic [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]  internal_FL_idx;
-// `endif
   logic [63:0]                                       mcand_out, mplier_out, regA, regB;
   logic [((`NUM_MULT_STAGE-1)*64)-1:0]               internal_products, internal_mcands, internal_mpliers;
-  // logic [(`NUM_MULT_STAGE*64)-1:0]                   next_products;
   logic [63:0]                                       result;
   logic                                              done;
   logic [4:0]                                        dest_idx;
@@ -273,12 +255,6 @@ module mult (
   logic [$clog2(`NUM_ROB)-1:0]                       ROB_idx;
   logic [$clog2(`NUM_FL)-1:0]                        FL_idx;
 
-  // assign dest_idx = internal_dest_idx[5*(`NUM_MULT_STAGE-1)-1:5*(`NUM_MULT_STAGE-2)];
-  // assign T_idx = internal_T_idx[($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_PR)*(`NUM_MULT_STAGE-2)];
-  // assign ROB_idx = internal_ROB_idx[($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_ROB)*(`NUM_MULT_STAGE-2)];
-  // assign FL_idx = internal_FL_idx[($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:$clog2(`NUM_FL)*(`NUM_MULT_STAGE-2)];
-  // assign result = next_products[`NUM_MULT_STAGE*64-1:(`NUM_MULT_STAGE-1)*64];
-  // assign done = internal_dones[`NUM_MULT_STAGE-2];
   assign dest_idx = last_dest_idx;
   assign T_idx = last_T_idx;
   assign ROB_idx = last_ROB_idx;
@@ -301,8 +277,11 @@ module mult (
     .clock({`NUM_MULT_STAGE{clock}}),
     .reset({`NUM_MULT_STAGE{reset}}),
     .ready({internal_dones, FU_in.ready}),
-    // .valid({CDB_valid, internal_valids}),
+`ifdef MULT_FORWARDING
+    .valid({CDB_valid, internal_valids}),
+`else
     .valid({`NUM_MULT_STAGE{CDB_valid}}),
+`endif
     .product_in({internal_products, {64{1'b0}}}),
     .mplier_in({internal_mpliers, regA}),
     .mcand_in({internal_mcands, regB}),
@@ -313,19 +292,14 @@ module mult (
     .ROB_rollback_idx({`NUM_MULT_STAGE{ROB_rollback_idx}}),
     .diff_ROB({`NUM_MULT_STAGE{diff_ROB}}),
     .FL_idx({internal_FL_idx, FU_in.FL_idx}),
-// `ifdef DEBUG
-//     .T1_value({internal_T1_values, regA}),
-//     .T2_value({internal_T2_values, regB}),
-//     .T1_value_out({T1_value, internal_T1_values}),
-//     .T2_value_out({T2_value, internal_T2_values}),
-// `endif
     // Ouput
     .done({last_done, internal_dones}),
-    // .valid_out({internal_valids, FU_valid}),
+`ifdef MULT_FORWARDING
+    .valid_out({internal_valids, FU_valid}),
+`endif
     .product_out({product_out, internal_products}),
     .mplier_out({mplier_out, internal_mpliers}),
     .mcand_out({mcand_out, internal_mcands}),
-    // .next_product(next_products),
     .dest_idx_out({last_dest_idx, internal_dest_idx}),
     .T_idx_out({last_T_idx, internal_T_idx}),
     .ROB_idx_out({last_ROB_idx, internal_ROB_idx}),
@@ -350,10 +324,10 @@ module br(
   always_comb begin
     result = `FALSE;
     if(FU_in.ready == `TRUE) begin
-      case (FU_in.inst.r.br_func[1:0])                                               // 'full-case'  All cases covered, no need for a default
-        2'b00: result = (FU_in.T1_value[0] == 0);                               // LBC: (lsb(opa) == 0) ?
-        2'b01: result = (FU_in.T1_value == 0);                                  // EQ: (opa == 0) ?
-        2'b10: result = (FU_in.T1_value[63] == 1);                              // LT: (signed(opa) < 0) : check sign bit
+      case (FU_in.inst.r.br_func[1:0])                                      // 'full-case'  All cases covered, no need for a default
+        2'b00: result = (FU_in.T1_value[0] == 0);                           // LBC: (lsb(opa) == 0) ?
+        2'b01: result = (FU_in.T1_value == 0);                              // EQ: (opa == 0) ?
+        2'b10: result = (FU_in.T1_value[63] == 1);                          // LT: (signed(opa) < 0) : check sign bit
         2'b11: result = (FU_in.T1_value[63] == 1) || (FU_in.T1_value == 0); // LE: (signed(opa) <= 0)
       endcase
       // negate cond if func[2] is set
@@ -400,11 +374,6 @@ module ld (
   input  logic                                    rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic             [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  // input  logic             [63:0]                 Dmem2proc_data,
-  // input  logic             [3:0]                  Dmem2proc_tag, Dmem2proc_response,
-  // output logic             [1:0]                  proc2Dmem_command,
-  // output logic             [63:0]                 proc2Dmem_addr,      // Address sent to data-memory
-  // output logic             [63:0]                 proc2Dmem_data      // Data sent to data-memory
   output FU_OUT_t                                 FU_out,
   output logic                                    FU_valid
 );
@@ -474,23 +443,6 @@ module FU (
   input  logic        [`NUM_FU-1:0]                                               CDB_valid,
   input  RS_FU_OUT_t                                                              RS_FU_out,
   input  PR_FU_OUT_t                                                              PR_FU_out,
-// `ifdef DEBUG
-//   output logic        [`NUM_MULT-1:0]                                             last_done,
-//   output logic        [`NUM_MULT-1:0][63:0]                                       product_out,
-//   output logic        [`NUM_MULT-1:0][4:0]                                        last_dest_idx,
-//   output logic        [`NUM_MULT-1:0][$clog2(`NUM_PR)-1:0]                        last_T_idx,
-//   output logic        [`NUM_MULT-1:0][$clog2(`NUM_ROB)-1:0]                       last_ROB_idx,
-//   output logic        [`NUM_MULT-1:0][$clog2(`NUM_FL)-1:0]                        last_FL_idx,
-//   output logic        [`NUM_MULT-1:0][63:0]                                       T1_value,
-//   output logic        [`NUM_MULT-1:0][63:0]                                       T2_value,
-//   output logic        [`NUM_MULT-1:0][((`NUM_MULT_STAGE-1)*64)-1:0]               internal_T1_values, internal_T2_values,
-//   output logic        [`NUM_MULT-1:0][`NUM_MULT_STAGE-2:0]                        internal_valids,
-//   output logic        [`NUM_MULT-1:0][`NUM_MULT_STAGE-2:0]                        internal_dones,
-//   output logic        [`NUM_MULT-1:0][5*(`NUM_MULT_STAGE-1)-1:0]                  internal_dest_idx,
-//   output logic        [`NUM_MULT-1:0][($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:0]  internal_T_idx,
-//   output logic        [`NUM_MULT-1:0][($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0] internal_ROB_idx,
-//   output logic        [`NUM_MULT-1:0][($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]  internal_FL_idx,
-// `endif
   output logic        [`NUM_FU-1:0]                                               FU_valid,
   output logic                                                                    rollback_en,
   output logic        [$clog2(`NUM_FL)-1:0]                                       FL_rollback_idx,
