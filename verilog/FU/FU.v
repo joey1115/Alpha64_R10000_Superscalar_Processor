@@ -518,14 +518,16 @@ module FU (
   // assign take_branch_out    = take_branch[0];
   // assign take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
 
-  assign predict_wrong[1] = (FU_in[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].target != FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result);
-  assign predict_wrong[0] = (FU_in[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].target != FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result);
+  assign predict_wrong[1] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].done
+           && (FU_in[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].target != FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result);
+  assign predict_wrong[0] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].done
+           && (FU_in[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].target != FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result);
 
   assign rollback_en = predict_wrong[1] || predict_wrong[0];
   assign FU_BP_out.is_branch_out = {FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].done, FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].done};
   assign FU_BP_out.take_branch_out = take_branch;
-  assign FU_BP_out.take_branch_target_out[1] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result);
-  assign FU_BP_out.take_branch_target_out[0] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result);
+  assign FU_BP_out.take_branch_target_out[1] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result;
+  assign FU_BP_out.take_branch_target_out[0] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
   assign FU_BP_out.take_branch_NPC_out = NPC;
   assign FU_BP_out.take_branch_selection = (diff_ROB1 < diff_ROB2);
 

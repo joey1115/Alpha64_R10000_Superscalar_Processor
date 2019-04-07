@@ -1,9 +1,11 @@
+`timescale 1ns/100ps
+
 module BP(
   input  clock,
   input  reset,
   input  [`NUM_SUPER-1:0] [63:0]      if_NPC_out,         // (from F-stage) PC
   input  [`NUM_SUPER-1:0] [31:0]      if_IR_out,          // (from F-stage) fetched instruction out
-  input  F_BP_OUT_t                   F_BP_out,   // (from F-stage) when low, instruction is garbage
+  input  F_BP_OUT_t                   F_BP_out,           // (from F-stage) when low, instruction is garbage
   input                               rollback_en,        // (from FU)
   input  FU_BP_OUT_t                  FU_BP_out,          // (from FU)
   output BP_F_OUT_t                   BP_F_out
@@ -14,7 +16,7 @@ module BP(
   logic  [`NUM_SUPER-1:0]          [`NUM_BH_IDX_BITS-1:0]  bh_idx;
   logic  [`NUM_SUPER-1:0]          [`NUM_BH_IDX_BITS-1:0]  bh_idx_FU;
   logic  [2**`NUM_BH_IDX_BITS-1:0] [1:0]                   BHT, next_BHT;
-  logic  [2**`NUM_BH_IDX_BITS-1:0] [63:0]                  BTB, next_BTB
+  logic  [2**`NUM_BH_IDX_BITS-1:0] [63:0]                  BTB, next_BTB;
   // logic  [63:0]                                            BTB_NPC;
   // logic  [`NUM_SUPER-1:0]          [63:0]                  BTB_take_branch_target;
 
@@ -26,7 +28,7 @@ module BP(
       is_uncond_br[i]    = `FALSE;
       // BP_F_out.branch[i] = `FALSE;
       if (F_BP_out.inst_valid[i] && !rollback_en) begin
-        case(if_IR_out[i].m.opcode)
+        case(if_IR_out[i][31:26]) // if_IR_out[i].m.opcode
           `BLBC_INST, `BEQ_INST, `BLT_INST, `BLE_INST, `BLBS_INST, `BNE_INST, `BGE_INST, `BGT_INST: begin
             is_cond_br[i]      = `TRUE;
             // BP_F_out.branch[i] = `TRUE;

@@ -40,6 +40,7 @@ ASSEMBLER = vs-asm
 
 HEADERS       = $(wildcard *.vh)
 HEADERS      += $(wildcard verilog/Arch_Map/Arch_Map.vh)
+HEADERS      += $(wildcard verilog/BP/BP.vh)
 HEADERS      += $(wildcard verilog/CDB/CDB.vh)
 HEADERS      += $(wildcard verilog/decoder/decoder.vh)
 HEADERS      += $(wildcard verilog/FETCH_BUFFER/FETCH_BUFFER.vh)
@@ -53,6 +54,7 @@ TESTBENCH     = $(wildcard testbench/*.v)
 TESTBENCH    += $(wildcard testbench/*.c)
 PIPEFILES     = $(wildcard verilog/*.v)
 ARCHMAPFILES  = $(wildcard verilog/Arch_Map/Arch_Map.v)
+BPFILES       = $(wildcard verilog/BP/BP.v)
 CACHEFILES    = $(wildcard verilog/cache/cachemem.v)
 CDBFILES      = $(wildcard verilog/CDB/CDB.v)
 DECODERFILES  = $(wildcard verilog/decoder/decoder.v)
@@ -64,7 +66,7 @@ PRFILES       = $(wildcard verilog/PR/PR.v)
 ROBFILES      = $(wildcard verilog/ROB/ROB.v)
 RSFILES       = $(wildcard verilog/RS/RS.v)
 
-SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FBFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES) $(FBFILES)
+SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(BPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FBFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES) $(FBFILES)
 
 # SYNTHESIS CONFIG
 
