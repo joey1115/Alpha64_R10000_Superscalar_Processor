@@ -43,4 +43,18 @@ typedef struct packed {
   FU_OUT_t [`NUM_FU-1:0] FU_out;
 } FU_CDB_OUT_t;
 
+typedef struct packed {
+ logic [`NUM_SUPER-1:0]                       done;
+ logic [`NUM_SUPER-1:0][63:0]                 result;
+ logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
+ logic [`NUM_SUPER-1:0][63:0]                 T1_value;
+} FU_SQ_OUT_t;
+
+typedef struct packed {
+ logic [`NUM_SUPER-1:0]                       done;
+ logic [`NUM_SUPER-1:0][63:0]                 result;
+ logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
+ logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
+} FU_LQ_OUT_t;
+
 `endif

@@ -546,24 +546,6 @@ module FU (
     .FU_in(FU_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     // Outputs
-// `ifdef DEBUG
-//     .last_done(last_done),
-//     .product_out(product_out),
-//     .last_dest_idx(last_dest_idx),
-//     .last_T_idx(last_T_idx),
-//     .last_ROB_idx(last_ROB_idx),
-//     .last_FL_idx(last_FL_idx),
-//     .T1_value(T1_value),
-//     .T2_value(T2_value),
-//     .internal_T1_values(internal_T1_values),
-//     .internal_T2_values(internal_T2_values),
-//     .internal_valids(internal_valids),
-//     .internal_dones(internal_dones),
-//     .internal_dest_idx(internal_dest_idx),
-//     .internal_T_idx(internal_T_idx),
-//     .internal_ROB_idx(internal_ROB_idx),
-//     .internal_FL_idx(internal_FL_idx),
-// `endif
     .FU_out(FU_out[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
   );

@@ -131,4 +131,12 @@ typedef struct packed {
   logic [`NUM_SUPER-1:0][4:0] regb_idx;
 } DECODER_MAP_TABLE_OUT_t;
 
+typedef struct packed {
+  logic [`NUM_SUPER-1:0] wr_mem;
+} DECODER_SQ_OUT_t;
+
+typedef struct packed {
+  logic [`NUM_SUPER-1:0] rd_mem;
+} DECODER_LQ_OUT_t;
+
 `endif
