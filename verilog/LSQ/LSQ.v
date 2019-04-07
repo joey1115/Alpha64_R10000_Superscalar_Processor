@@ -2,7 +2,7 @@
 
 module SQ (
   input  logic                                   clock, reset, en, dispatch_en, rollback_en,
-  input  logic            [`NUM_SUPER-1:0]       retire_en, D_cache_valid,
+  input  logic            [`NUM_SUPER-1:0]       retire_en,
   input  logic            [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx,
   input  DECODER_SQ_OUT_t                        decoder_SQ_out,
   input  LQ_SQ_OUT_t                             LQ_SQ_out,
@@ -191,7 +191,8 @@ module LQ (
   output LQ_SQ_OUT_t                             LQ_SQ_out,
   output LQ_ROB_OUT_t                            LQ_ROB_out,
   output LQ_FU_OUT_t                             LQ_FU_out,
-  output LQ_RS_OUT_t                             LQ_RS_out
+  output LQ_RS_OUT_t                             LQ_RS_out,
+  output LQ_D_CACHE_OUT_t                        LQ_D_cache_out
 );
 
   logic      [$clog2(`NUM_LSQ)-1:0]               head, next_head, tail, next_tail, tail1, tail2, virtual_tail, st_idx;
@@ -207,10 +208,11 @@ module LQ (
   assign head_plus_two = head + 2;
   assign tail_map_idx  = tail - head;
   assign LQ_RS_out.LQ_idx = '{tail2, tail1};
-  assign LQ_SQ_out  = '{FU_LQ_out.SQ_idx, FU_LQ_out.result};
-  assign LQ_valid   = SQ_LQ_out.hit | D_cache_LQ_out.hit;
-  assign LQ_FU_out  = '{st_hit, SQ_LQ_out.value};
-  assign LQ_ROB_out = {dispatch_valid, retire_valid};
+  assign LQ_SQ_out        = '{FU_LQ_out.SQ_idx, FU_LQ_out.result};
+  assign LQ_valid         = SQ_LQ_out.hit | D_cache_LQ_out.valid;
+  assign LQ_FU_out        = '{st_hit, SQ_LQ_out.value};
+  assign LQ_ROB_out       = {dispatch_valid, retire_valid};
+  // assign LQ_D_cache_out   = '{};
 
   // Dispatch valid
   always_comb begin
@@ -314,9 +316,9 @@ module LQ (
   end
 endmodule
 
-module LQ (
+module LSQ (
   input  logic                                   clock, reset, en, dispatch_en, rollback_en,
-  input  logic            [`NUM_SUPER-1:0]       retire_en, D_cache_valid,
+  input  logic            [`NUM_SUPER-1:0]       retire_en,
   input  logic            [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx,
   input  logic            [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx,
   input  DECODER_LQ_OUT_t                        decoder_LQ_out,
@@ -333,11 +335,55 @@ module LQ (
   output LQ_FU_OUT_t                             LQ_FU_out,
   output LQ_RS_OUT_t                             LQ_RS_out,
   output SQ_RS_OUT_t                             SQ_RS_out,
-  output SQ_D_CACHE_OUT_t                        LQ_D_cache_out,
+  output LQ_D_CACHE_OUT_t                        LQ_D_cache_out,
   output SQ_D_CACHE_OUT_t                        SQ_D_cache_out
 );
 
-  LQ_SQ_OUT_t                             LQ_SQ_out,
-  SQ_LQ_OUT_t                             SQ_LQ_out,
+  LQ_SQ_OUT_t LQ_SQ_out;
+  SQ_LQ_OUT_t SQ_LQ_out;
+
+  LQ lq_0 (
+    // Input
+    .clock(clock),
+    .reset(reset),
+    .en(en),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .retire_en(retire_en),
+    .LQ_rollback_idx(LQ_rollback_idx),
+    .decoder_LQ_out(decoder_LQ_out),
+    .D_cache_LQ_out(D_cache_LQ_out),
+    .FU_LQ_out(FU_LQ_out),
+    .ROB_LQ_out(ROB_LQ_out),
+    .SQ_LQ_out(SQ_LQ_out),
+    // Output
+    .LQ_valid(LQ_valid),
+    .LQ_SQ_out(LQ_SQ_out),
+    .LQ_ROB_out(LQ_ROB_out),
+    .LQ_FU_out(LQ_FU_out),
+    .LQ_RS_out(LQ_RS_out),
+    .LQ_D_cache_out(LQ_D_cache_out)
+  );
+
+  SQ sq_0 (
+    // Input
+    .clock(clock),
+    .reset(reset),
+    .en(en),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .retire_en(retire_en),
+    .SQ_rollback_idx(SQ_rollback_idx),
+    .decoder_SQ_out(decoder_SQ_out),
+    .LQ_SQ_out(LQ_SQ_out),
+    .ROB_SQ_out(ROB_SQ_out),
+    .FU_SQ_out(FU_SQ_out),
+    // Output
+    .SQ_valid(SQ_valid),
+    .SQ_ROB_out(SQ_ROB_out),
+    .SQ_RS_out(SQ_RS_out),
+    .SQ_LQ_out(SQ_LQ_out),
+    .SQ_D_cache_out(SQ_D_cache_out)
+  );
 
 endmodule

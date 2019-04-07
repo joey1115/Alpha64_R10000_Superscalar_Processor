@@ -64,6 +64,11 @@ typedef struct packed {
   logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
 } LQ_RS_OUT_t;
 
+typedef struct packed {
+  logic [`NUM_SUPER-1:0]       wr_en;
+  logic [`NUM_SUPER-1:0][60:0] addr;
+} LQ_D_CACHE_OUT_t;
+
 `define SQ_ENTRY_RESET {61'h0, `FALSE, 64'hbaadbeafdeadbeef}
 `define SQ_ENTRY_RESET_PACKED '{61'h0, `FALSE, 64'hbaadbeafdeadbeef}
 `define SQ_RESET '{`NUM_LSQ{`SQ_ENTRY_RESET}}
@@ -74,7 +79,12 @@ typedef struct packed {
 
 // To be removed
 typedef struct packed {
-  logic [`NUM_SUPER-1:0] hit;
+  logic [`NUM_SUPER-1:0]       valid;
+} D_CACHE_SQ_OUT_t;
+
+typedef struct packed {
+  logic [`NUM_SUPER-1:0]       valid;
+  logic [`NUM_SUPER-1:0][63:0] value;
 } D_CACHE_LQ_OUT_t;
 
 `endif
