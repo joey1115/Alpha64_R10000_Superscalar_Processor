@@ -8,6 +8,7 @@
 `include "../../sys_config.vh"
 `include "../../sys_defs.vh"
 `include "../decoder/decoder.vh"
+`include "../ROB/ROB.vh"
 `endif
 
 typedef struct packed {
