@@ -313,3 +313,31 @@ module LQ (
     end
   end
 endmodule
+
+module LQ (
+  input  logic                                   clock, reset, en, dispatch_en, rollback_en,
+  input  logic            [`NUM_SUPER-1:0]       retire_en, D_cache_valid,
+  input  logic            [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx,
+  input  logic            [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx,
+  input  DECODER_LQ_OUT_t                        decoder_LQ_out,
+  input  DECODER_SQ_OUT_t                        decoder_SQ_out,
+  input  D_CACHE_LQ_OUT_t                        D_cache_LQ_out,
+  input  FU_LQ_OUT_t                             FU_LQ_out,
+  input  FU_SQ_OUT_t                             FU_SQ_out,
+  input  ROB_LQ_OUT_t                            ROB_LQ_out,
+  input  ROB_SQ_OUT_t                            ROB_SQ_out,
+  output logic            [`NUM_SUPER-1:0]       LQ_valid,
+  output logic            [`NUM_SUPER-1:0]       SQ_valid,
+  output LQ_ROB_OUT_t                            LQ_ROB_out,
+  output SQ_ROB_OUT_t                            SQ_ROB_out,
+  output LQ_FU_OUT_t                             LQ_FU_out,
+  output LQ_RS_OUT_t                             LQ_RS_out,
+  output SQ_RS_OUT_t                             SQ_RS_out,
+  output SQ_D_CACHE_OUT_t                        LQ_D_cache_out,
+  output SQ_D_CACHE_OUT_t                        SQ_D_cache_out
+);
+
+  LQ_SQ_OUT_t                             LQ_SQ_out,
+  SQ_LQ_OUT_t                             SQ_LQ_out,
+
+endmodule
