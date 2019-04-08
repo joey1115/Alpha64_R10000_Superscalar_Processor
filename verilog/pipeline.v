@@ -78,8 +78,8 @@ module pipeline (
   logic                   [$clog2(`NUM_FL)-1:0]  FL_rollback_idx;
   logic                   [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
   logic                   [$clog2(`NUM_ROB)-1:0] diff_ROB;
-  logic                                          take_branch_out;
-  logic                   [63:0]                 take_branch_target;
+  // logic                                          take_branch_out;
+  // logic                   [63:0]                 take_branch_target;
   FU_CDB_OUT_t                                   FU_CDB_out;
   FU_BP_OUT_t                                    FU_BP_out;
   MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;

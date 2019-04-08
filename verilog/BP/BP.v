@@ -20,6 +20,7 @@ module BP(
   // logic  [63:0]                                            BTB_NPC;
   // logic  [`NUM_SUPER-1:0]          [63:0]                  BTB_take_branch_target;
 
+  assign BP_F_out.rollback_en = rollback_en;
 
   // 1. Identify Branch
   always_comb begin

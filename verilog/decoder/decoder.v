@@ -126,6 +126,7 @@ module inst_decoder(
   output logic                          halt
 );
 
+  assign target = target_in;
   always_comb begin
     inst          = `NOOP_INST;
     NPC           = 64'h0;

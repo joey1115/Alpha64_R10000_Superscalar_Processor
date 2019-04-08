@@ -226,6 +226,22 @@ module testbench;
 
 
   always @(negedge clock) begin
+    if (clock_count > 50000)
+    begin
+        $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
+              show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
+        // 8Bytes per line, 16kB total
+
+        $display("@@  %t : System halted\n@@", $realtime);
+
+        $display(  "@@@ System halted on Time-out");
+        $display("@@@\n@@");
+        show_clk_count;
+        print_close(); // close the pipe_print output file
+        $fclose(wb_fileno);
+        #100 $finish;
+      end
+
     if(reset)
       $display(  "@@\n@@  %t : System STILL at reset, can't show anything\n@@",
             $realtime);
@@ -240,10 +256,10 @@ module testbench;
         print_fetchbuffer_entry(i, pipeline_FB[i].NPC[63:32], pipeline_FB[i].NPC[31:0], pipeline_FB[i].inst);
       end
       // print ROB
-      print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
-      for(int i = 0; i < `NUM_ROB; i++) begin
-      print_ROB_entry(i,{{(32-1){1'b0}},pipeline_ROB.entry[i].valid}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].T_idx}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].Told_idx},{{(32-5){1'b0}},pipeline_ROB.entry[i].dest_idx},{{(32-1){1'b0}},pipeline_ROB.entry[i].complete},{{(32-1){1'b0}},pipeline_ROB.entry[i].halt},{{(32-1){1'b0}},pipeline_ROB.entry[i].illegal}, pipeline_ROB.entry[i].NPC[63:32], pipeline_ROB.entry[i].NPC[31:0]);
-      end
+      // print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
+      // for(int i = 0; i < `NUM_ROB; i++) begin
+      // print_ROB_entry(i,{{(32-1){1'b0}},pipeline_ROB.entry[i].valid}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].T_idx}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].Told_idx},{{(32-5){1'b0}},pipeline_ROB.entry[i].dest_idx},{{(32-1){1'b0}},pipeline_ROB.entry[i].complete},{{(32-1){1'b0}},pipeline_ROB.entry[i].halt},{{(32-1){1'b0}},pipeline_ROB.entry[i].illegal}, pipeline_ROB.entry[i].NPC[63:32], pipeline_ROB.entry[i].NPC[31:0]);
+      // end
       //print RS
       print_RS_head();
       for(int i = 0; i < `NUM_LD; i++) begin
@@ -337,42 +353,42 @@ module testbench;
                       {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
 
-      //print Map table
-      print_maptable_head();
-      for(int i = 0; i < 32; i++) begin
-        print_maptable_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_MAPTABLE[i].idx},{{(32-1){1'b0}},pipeline_MAPTABLE[i].ready}, pipeline_PR[pipeline_MAPTABLE[i].idx][63:32], pipeline_PR[pipeline_MAPTABLE[i].idx][31:0]);
-      end
+      // //print Map table
+      // print_maptable_head();
+      // for(int i = 0; i < 32; i++) begin
+      //   print_maptable_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_MAPTABLE[i].idx},{{(32-1){1'b0}},pipeline_MAPTABLE[i].ready}, pipeline_PR[pipeline_MAPTABLE[i].idx][63:32], pipeline_PR[pipeline_MAPTABLE[i].idx][31:0]);
+      // end
 
-      //print Freelist
-      print_freelist_head({{(32 - $clog2(`NUM_ROB)){1'b0}},FL_head}, {{(32 - $clog2(`NUM_ROB)){1'b0}},FL_tail});
-      for(int i = 0; i < `NUM_ROB; i++) begin
-        print_freelist_entry(i,{{(32 - $clog2(`NUM_PR)){1'b0}},pipeline_FL[i]});
-      end
+      // //print Freelist
+      // print_freelist_head({{(32 - $clog2(`NUM_ROB)){1'b0}},FL_head}, {{(32 - $clog2(`NUM_ROB)){1'b0}},FL_tail});
+      // for(int i = 0; i < `NUM_ROB; i++) begin
+      //   print_freelist_entry(i,{{(32 - $clog2(`NUM_PR)){1'b0}},pipeline_FL[i]});
+      // end
 
-      //print CDB
-      print_CDB_head();
-      for(int i = 0; i < `NUM_FU; i++) begin
-        print_CDB_entries({{(32-1){1'b0}},pipeline_CDB[i].taken}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_CDB[i].T_idx}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_CDB[i].ROB_idx}, {{(32-5){1'b0}},pipeline_CDB[i].dest_idx}, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
-      end
+      // //print CDB
+      // print_CDB_head();
+      // for(int i = 0; i < `NUM_FU; i++) begin
+      //   print_CDB_entries({{(32-1){1'b0}},pipeline_CDB[i].taken}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_CDB[i].T_idx}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_CDB[i].ROB_idx}, {{(32-5){1'b0}},pipeline_CDB[i].dest_idx}, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
+      // end
 
-      //print archmap
-      print_archmap_head();
-      for(int i = 0; i < 32; i++) begin
-        print_archmap_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ARCHMAP[i]});
-      end
+      // //print archmap
+      // print_archmap_head();
+      // for(int i = 0; i < 32; i++) begin
+      //   print_archmap_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ARCHMAP[i]});
+      // end
 
       //print PR
       // print_PR_head();
 
 
 
-       print_reg(CDB_PR_out.T_value[0][63:32], CDB_PR_out.T_value[0][31:0],
-                CDB_PR_out.T_value[1][63:32], CDB_PR_out.T_value[1][31:0],
-                {{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx[0]},{{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx[1]},
-                {31'b0,complete_en[0]}, {31'b0,complete_en[1]});
-       print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
-            proc2mem_addr[63:32], proc2mem_addr[31:0],
-            proc2mem_data[63:32], proc2mem_data[31:0]);
+      //  print_reg(CDB_PR_out.T_value[0][63:32], CDB_PR_out.T_value[0][31:0],
+      //           CDB_PR_out.T_value[1][63:32], CDB_PR_out.T_value[1][31:0],
+      //           {{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx[0]},{{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx[1]},
+      //           {31'b0,complete_en[0]}, {31'b0,complete_en[1]});
+      //  print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
+      //       proc2mem_addr[63:32], proc2mem_addr[31:0],
+      //       proc2mem_data[63:32], proc2mem_data[31:0]);
 
 
       // print the writeback information to writeback.out

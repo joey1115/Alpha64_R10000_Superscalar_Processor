@@ -56,7 +56,7 @@ module F_stage(
   assign take_branch = BP_F_out.take_branch_out[0] || BP_F_out.take_branch_out[1]; 
 
   // The take-branch signal must override stalling (otherwise it may be lost)
-  assign PC_enable = (Imem_valid && get_next_inst) || take_branch;
+  assign PC_enable = (Imem_valid && get_next_inst) || BP_F_out.rollback_en;
 
   // Pass PC_plus down pipeline w/instruction
   assign if_NPC_out[0] = (PC_reg[2]) ? PC_reg : (PC_reg + 4);
