@@ -119,6 +119,8 @@ typedef struct packed {
   ALU_OPB_SELECT [`NUM_SUPER-1:0]       opb_select;
   logic          [`NUM_SUPER-1:0]       cond_branch;
   logic          [`NUM_SUPER-1:0]       uncond_branch;
+  logic          [`NUM_SUPER-1:0]       wr_mem;
+  logic          [`NUM_SUPER-1:0]       rd_mem;
 } DECODER_RS_OUT_t;
 
 typedef struct packed {

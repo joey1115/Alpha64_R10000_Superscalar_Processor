@@ -3,11 +3,13 @@
 module SQ (
   input  logic                                   clock, reset, en, dispatch_en, rollback_en,
   input  logic            [`NUM_SUPER-1:0]       retire_en,
+  input  logic            [`NUM_SUPER-1:0]       SQ_valid,
   input  logic            [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx,
   input  DECODER_SQ_OUT_t                        decoder_SQ_out,
   input  LQ_SQ_OUT_t                             LQ_SQ_out,
   input  ROB_SQ_OUT_t                            ROB_SQ_out,
   input  FU_SQ_OUT_t                             FU_SQ_out,
+  input  D_CACHE_SQ_OUT_t                        D_cache_SQ_out,
   output logic                                   SQ_valid,
   output SQ_ROB_OUT_t                            SQ_ROB_out,
   output SQ_RS_OUT_t                             SQ_RS_out,
@@ -43,6 +45,7 @@ module SQ (
   assign SQ_D_cache_out   = '{wr_en, addr, value};
   assign retire_valid     = '{valid2, valid1};
   assign SQ_ROB_out       = '{dispatch_valid, retire_valid};
+  assign SQ_valid         = '{D_cache_SQ_out.valid};
 
   // Dispatch Valid
   always_comb begin
@@ -212,7 +215,7 @@ module LQ (
   assign LQ_valid         = SQ_LQ_out.hit | D_cache_LQ_out.valid;
   assign LQ_FU_out        = '{st_hit, SQ_LQ_out.value};
   assign LQ_ROB_out       = {dispatch_valid, retire_valid};
-  // assign LQ_D_cache_out   = '{};
+  assign LQ_D_cache_out   = '{FU_LQ_out.done, FU_LQ_out.addr};
 
   // Dispatch valid
   always_comb begin

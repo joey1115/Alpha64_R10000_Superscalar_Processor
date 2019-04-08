@@ -11,6 +11,8 @@ module RS (
   input  FL_RS_OUT_t                                               FL_RS_out,
   input  MAP_TABLE_RS_OUT_t                                        Map_Table_RS_out,
   input  CDB_RS_OUT_t                                              CDB_RS_out,
+  input  LQ_RS_OUT_t                                               LQ_RS_out,
+  input  SQ_RS_OUT_t                                               SQ_RS_out,
 `ifdef DEBUG
   output RS_ENTRY_t         [`NUM_FU-1:0]                          RS_out,
   output logic              [`NUM_SUPER-1:0]                       RS_match_hit,   // If a RS entry is ready
@@ -29,7 +31,7 @@ module RS (
   logic          [`NUM_FU-1:0]                         T2_CDB;         // If T2 is complete
   logic          [`NUM_FU-1:0]                         T1_ready;       // If T1 is ready
   logic          [`NUM_FU-1:0]                         T2_ready;       // If T2 is ready
-  logic          [`NUM_FU-1:0]                         RS_entry_ready;       // If T2 is ready
+  logic          [`NUM_FU-1:0]                         RS_entry_ready; // If T2 is ready
   logic          [`NUM_FU-1:0]                         RS_rollback;    // If a RS entry is ready
   logic          [`NUM_SUPER-1:0][`NUM_FU-1:0]         FU_entry_match;
   logic          [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0]   diff;
@@ -60,12 +62,6 @@ module RS (
   end
 
   always_comb begin
-    // for (int i = 0; i < `NUM_SUPER; i++) begin
-    //   for (int j = 0; j < `NUM_FU; j++) begin
-    //     T1_CDB[j]   = RS[j].T1.idx == CDB_RS_out.T_idx[i] && CDB_RS_out.T_idx[i] != `ZERO_PR && complete_en[i]; // T1 is complete
-    //     T1_ready[j] = RS[j].T1.ready || T1_CDB[j];                     // T1 is ready or updated by CDB
-    //   end // for (int i = 0; i < `NUM_FU; i++) begin
-    // end
     for (int j = 0; j < `NUM_FU; j++) begin
       T1_CDB[j]   = (RS[j].T1.idx == CDB_RS_out.T_idx[0] && CDB_RS_out.T_idx[0] != `ZERO_PR && complete_en[0]) || (RS[j].T1.idx == CDB_RS_out.T_idx[1] && CDB_RS_out.T_idx[1] != `ZERO_PR && complete_en[1]); // T1 is complete
       T1_ready[j] = RS[j].T1.ready || T1_CDB[j];                     // T1 is ready or updated by CDB
@@ -73,12 +69,6 @@ module RS (
   end // always_comb begin
 
   always_comb begin
-    // for (int i = 0; i < `NUM_SUPER; i++) begin
-    //   for (int j = 0; j < `NUM_FU; j++) begin
-    //     T2_CDB[j]   = RS[j].T2.idx == CDB_RS_out.T_idx[i] && CDB_RS_out.T_idx[i] != `ZERO_PR && complete_en[i]; // T1 is complete
-    //     T2_ready[j] = RS[j].T2.ready || T2_CDB[j];                     // T1 is ready or updated by CDB
-    //   end // for (int i = 0; i < `NUM_FU; i++) begin
-    // end
     for (int j = 0; j < `NUM_FU; j++) begin
       T2_CDB[j]   = (RS[j].T2.idx == CDB_RS_out.T_idx[0] && CDB_RS_out.T_idx[0] != `ZERO_PR && complete_en[0]) || (RS[j].T2.idx == CDB_RS_out.T_idx[1] && CDB_RS_out.T_idx[1] != `ZERO_PR && complete_en[1]); // T1 is complete
       T2_ready[j] = RS[j].T2.ready || T2_CDB[j];                     // T1 is ready or updated by CDB
@@ -101,8 +91,8 @@ module RS (
 
   always_comb begin
     for (int j = 0; j < `NUM_FU; j++) begin
-      diff[j]        = RS[j].ROB_idx - ROB_rollback_idx;                // diff
-      RS_rollback[j] = ( diff_ROB >= diff[j] ) && rollback_en;          // Rollback
+      diff[j]        = RS[j].ROB_idx - ROB_rollback_idx;       // diff
+      RS_rollback[j] = ( diff_ROB >= diff[j] ) && rollback_en; // Rollback
     end // for (int i = 0; i < `NUM_FU; i++) begin
   end // always_comb begin
 
@@ -118,7 +108,11 @@ module RS (
       FU_packet[j].opb_select    = RS[j].opb_select;    // Output T2_idx
       FU_packet[j].uncond_branch = RS[j].uncond_branch; // Output T2_idx
       FU_packet[j].cond_branch   = RS[j].cond_branch;   // Output T2_idx
+      FU_packet[j].wr_mem        = RS[j].wr_mem;        // Output T2_idx
+      FU_packet[j].rd_mem        = RS[j].rd_mem;        // Output T2_idx
       FU_packet[j].FL_idx        = RS[j].FL_idx;        // op code
+      FU_T_idx[j].SQ_idx         = RS[j].SQ_idx;        // Output T1_idx
+      FU_T_idx[j].LQ_idx         = RS[j].LQ_idx;        // Output T2_idx
       FU_packet[j].T_idx         = RS[j].T_idx;         // Output T_idx
       FU_T_idx[j].T1_idx         = RS[j].T1.idx;        // Output T1_idx
       FU_T_idx[j].T2_idx         = RS[j].T2.idx;        // Output T2_idx
@@ -136,7 +130,7 @@ module RS (
     end // for (int i = 0; i < `NUM_FU; i++) begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       if ( dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
-        next_RS[RS_match_idx[i]].busy          = `TRUE;                        // RS entry busy
+        next_RS[RS_match_idx[i]].busy          = `TRUE;                           // RS entry busy
         next_RS[RS_match_idx[i]].ROB_idx       = ROB_idx[i];                      // op code
         next_RS[RS_match_idx[i]].inst          = decoder_RS_out.inst[i];          // inst
         next_RS[RS_match_idx[i]].func          = decoder_RS_out.func[i];          // func
@@ -146,7 +140,11 @@ module RS (
         next_RS[RS_match_idx[i]].opb_select    = decoder_RS_out.opb_select[i];    // Output T2_idx
         next_RS[RS_match_idx[i]].uncond_branch = decoder_RS_out.uncond_branch[i]; // Output T2_idx
         next_RS[RS_match_idx[i]].cond_branch   = decoder_RS_out.cond_branch[i];   // Output T2_idx
+        next_RS[RS_match_idx[i]].wr_mem        = decoder_RS_out.wr_mem[i];        // Output T2_idx
+        next_RS[RS_match_idx[i]].rd_mem        = decoder_RS_out.rd_mem[i];        // Output T2_idx
         next_RS[RS_match_idx[i]].FL_idx        = FL_RS_out.FL_idx[i];             // Write T1 select
+        next_RS[RS_match_idx[i]].SQ_idx        = SQ_RS_out.SQ_idx[i];             // Write T1 select
+        next_RS[RS_match_idx[i]].LQ_idx        = LQ_RS_out.LQ_idx[i];             // Write T1 select
         next_RS[RS_match_idx[i]].T_idx         = FL_RS_out.T_idx[i];              // Write T
         next_RS[RS_match_idx[i]].T1            = Map_Table_RS_out.T1[i];          // Write T1
         next_RS[RS_match_idx[i]].T2            = Map_Table_RS_out.T2[i];          // Write T2
