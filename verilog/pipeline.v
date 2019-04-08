@@ -311,7 +311,7 @@ module pipeline (
     rollback_en(rollback_en),
     retire_en(retire_en),
     CDB_SQ_valid(CDB_SQ_valid),
-    CDB_LQ_valid(CDB_SQ_valid),
+    CDB_LQ_valid(CDB_LQ_valid),
     SQ_rollback_idx(SQ_rollback_idx),
     LQ_rollback_idx(LQ_rollback_idx),
     ROB_rollback_idx(ROB_rollback_idx),
