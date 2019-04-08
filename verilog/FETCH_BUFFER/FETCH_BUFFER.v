@@ -9,13 +9,13 @@ module FETCH_BUFFER (
   input logic                        get_next_inst,           // high when want to get next inst
   input logic                        rollback_en,             // if rollback
 `ifdef DEBUG
-  output INST_ENTRY_t  [`NUM_FB-1:0] FB,
-  output logic [$clog2(`NUM_FB)-1:0] head,
-  output logic [$clog2(`NUM_FB)-1:0] tail,
+  output INST_ENTRY_t  [`NUM_FB-1:0]         FB,
+  output logic         [$clog2(`NUM_FB)-1:0] head,
+  output logic         [$clog2(`NUM_FB)-1:0] tail,
 `endif
-  output FB_DECODER_OUT_t FB_decoder_out,                     // output to decoder
-  output logic inst_out_valid,                                // tells when can dispatch
-  output logic fetch_en                                       // signal to the fetch stage
+  output FB_DECODER_OUT_t                    FB_decoder_out,  // output to decoder
+  output logic                               inst_out_valid,  // tells when can dispatch
+  output logic                               fetch_en         // signal to the fetch stage
 );
 
 `ifndef DEBUG
@@ -29,10 +29,10 @@ module FETCH_BUFFER (
   logic [$clog2(`NUM_FB)-1:0] next_tail;
   logic head1, head2;
 
-  assign FB_decoder_out.NPC = '{FB[tail_plus_one].NPC, FB[tail].NPC};
-  assign FB_decoder_out.inst = '{FB[tail_plus_one].inst, FB[tail].inst};
-  assign FB_decoder_out.target = '{FB[tail_plus_one].target, FB[tail].target};
-  assign FB_decoder_out.valid = inst_out_valid;
+  assign FB_decoder_out.NPC     = '{FB[tail_plus_one].NPC, FB[tail].NPC};
+  assign FB_decoder_out.inst    = '{FB[tail_plus_one].inst, FB[tail].inst};
+  assign FB_decoder_out.target  = '{FB[tail_plus_one].target, FB[tail].target};
+  assign FB_decoder_out.valid   = inst_out_valid;
 
   assign head_plus_one = head + 1;
   assign head_plus_two = head + 2;
