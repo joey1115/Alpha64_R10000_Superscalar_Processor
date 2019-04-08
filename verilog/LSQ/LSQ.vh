@@ -36,7 +36,6 @@ typedef struct packed {
 } SQ_LQ_OUT_t;
 
 typedef struct packed {
-  logic                  dispatch_valid;
   logic [`NUM_SUPER-1:0] retire_valid;
 } SQ_ROB_OUT_t;
 
@@ -52,16 +51,16 @@ typedef struct packed {
   logic [`NUM_SUPER-1:0][63:0]                 T1_value;
 } SQ_FU_OUT_t;
 
-`define SQ_FU_OUT_RESET '{              \
-  {`NUM_SUPER{`FALSE}},                 \
-  {`NUM_SUPER{64'hbaadbeafdeadbeef}},   \
-  {`NUM_SUPER{`ZERO_REG}},              \
-  {`NUM_SUPER{`ZERO_PR}},               \
-  {`NUM_SUPER{$clog2(`NUM_ROB){1'b0}}}, \
-  {`NUM_SUPER{$clog2(`NUM_FL){1'b0}}},  \
-  {`NUM_SUPER{$clog2(`NUM_LSQ){1'b0}}}, \
-  {`NUM_SUPER{$clog2(`NUM_LSQ){1'b0}}}, \
-  {`NUM_SUPER{64'hbaadbeafdeadbeef}}    \
+`define SQ_FU_OUT_RESET '{                \
+  {`NUM_SUPER{`FALSE}},                   \
+  {`NUM_SUPER{64'hbaadbeafdeadbeef}},     \
+  {`NUM_SUPER{`ZERO_REG}},                \
+  {`NUM_SUPER{`ZERO_PR}},                 \
+  {`NUM_SUPER{{$clog2(`NUM_ROB){1'b0}}}}, \
+  {`NUM_SUPER{{$clog2(`NUM_FL){1'b0}}}},  \
+  {`NUM_SUPER{{$clog2(`NUM_LSQ){1'b0}}}}, \
+  {`NUM_SUPER{{$clog2(`NUM_LSQ){1'b0}}}}, \
+  {`NUM_SUPER{{64'hbaadbeafdeadbeef}}}    \
 }
 
 typedef struct packed {
@@ -75,19 +74,25 @@ typedef struct packed {
 } LQ_SQ_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0]       st_hit;
-  logic [`NUM_SUPER-1:0][63:0] value;
+  logic [`NUM_SUPER-1:0]                       done;
+  logic [`NUM_SUPER-1:0][63:0]                 result;
+  logic [`NUM_SUPER-1:0][4:0]                  dest_idx;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0]  T_idx;   // Dest idx
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx; // Dest idx
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0]  FL_idx;  // Dest idx
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
 } LQ_FU_OUT_t;
 
-`define LQ_FU_OUT_RESET '{              \
-  {`NUM_SUPER{`FALSE}},                 \
-  {`NUM_SUPER{64'hbaadbeafdeadbeef}},   \
-  {`NUM_SUPER{`ZERO_REG}},              \
-  {`NUM_SUPER{`ZERO_PR}},               \
-  {`NUM_SUPER{$clog2(`NUM_ROB){1'b0}}}, \
-  {`NUM_SUPER{$clog2(`NUM_FL){1'b0}}},  \
-  {`NUM_SUPER{$clog2(`NUM_LSQ){1'b0}}}, \
-  {`NUM_SUPER{$clog2(`NUM_LSQ){1'b0}}}  \
+`define LQ_FU_OUT_RESET '{                \
+  {`NUM_SUPER{`FALSE}},                   \
+  {`NUM_SUPER{64'hbaadbeafdeadbeef}},     \
+  {`NUM_SUPER{`ZERO_REG}},                \
+  {`NUM_SUPER{`ZERO_PR}},                 \
+  {`NUM_SUPER{{$clog2(`NUM_ROB){1'b0}}}}, \
+  {`NUM_SUPER{{$clog2(`NUM_FL){1'b0}}}},  \
+  {`NUM_SUPER{{$clog2(`NUM_LSQ){1'b0}}}}, \
+  {`NUM_SUPER{{$clog2(`NUM_LSQ){1'b0}}}}  \
 }
 
 typedef struct packed {

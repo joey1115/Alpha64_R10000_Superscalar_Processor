@@ -20,19 +20,22 @@ module SQ (
   output SQ_D_CACHE_OUT_t                        SQ_D_cache_out
 );
 
-  logic      [$clog2(`NUM_LSQ)-1:0]                 head, next_head, tail, next_tail, tail1, tail2, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, diff_tail, virtual_tail;
-  logic      [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_tmp_idx;
-  SQ_ENTRY_t [`NUM_LSQ-1:0]                         sq, next_sq;
-  logic      [63:0]                                 ld_value;
-  logic                                             wr_en;
-  logic      [60:0]                                 addr;
-  logic      [63:0]                                 value;
-  logic      [`NUM_SUPER-1:0][`NUM_LSQ-1:0]         LD_match;
-  logic      [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx;
-  logic      [`NUM_SUPER-1:0]                       retire_valid;
-  logic                                             valid1, valid2;
-  logic      [`NUM_SUPER-1:0]                       ld_hit;
-  logic      [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] ld_idx;
+  SQ_FU_OUT_t                                        next_SQ_FU_out;
+  logic       [$clog2(`NUM_LSQ)-1:0]                 head, next_head, tail, next_tail, tail1, tail2, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, diff_tail, virtual_tail;
+  logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_tmp_idx;
+  SQ_ENTRY_t  [`NUM_LSQ-1:0]                         sq, next_sq;
+  logic       [63:0]                                 ld_value;
+  logic                                              wr_en;
+  logic       [60:0]                                 addr;
+  logic       [63:0]                                 value;
+  logic       [`NUM_SUPER-1:0][`NUM_LSQ-1:0]         LD_match;
+  logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx;
+  logic       [`NUM_SUPER-1:0]                       retire_valid;
+  logic                                              valid1, valid2;
+  logic       [`NUM_SUPER-1:0]                       ld_hit;
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] ld_idx;
+  logic       [`NUM_SUPER-1:0]                       rollback_valid;
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] diff;
 
   assign tail_plus_one    = tail + 1;
   assign tail_plus_two    = tail + 2;
@@ -42,10 +45,18 @@ module SQ (
   assign next_tail        = rollback_en ? SQ_rollback_idx :
                             dispatch_en ? virtual_tail    : tail;
   assign SQ_RS_out.SQ_idx = '{tail2, tail1};
-  assign SQ_LQ_out        = '{ld_hit, ld_value, SQ_FU_out.done, SQ_FU_out.result[63:3]};
   assign SQ_D_cache_out   = '{wr_en, addr, value};
   assign SQ_ROB_out       = '{retire_valid};
   assign SQ_valid         = ~SQ_FU_out.done | rollback_valid | CDB_valid;
+
+  always_comb begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      SQ_LQ_out.hit[i]   = ld_hit[i];
+      SQ_LQ_out.value[i] = ld_value[i];
+      SQ_LQ_out.done[i]  = SQ_FU_out.done[i];
+      SQ_LQ_out.addr[i]  = SQ_FU_out.result[i][63:3];
+    end
+  end
 
   // Dispatch Valid
   always_comb begin
@@ -242,10 +253,13 @@ module LQ (
   output LQ_D_CACHE_OUT_t                        LQ_D_cache_out
 );
 
-  logic      [$clog2(`NUM_LSQ)-1:0]               head, next_head, tail, next_tail, tail1, tail2, virtual_tail, st_idx;
-  LQ_ENTRY_t [`NUM_LSQ-1:0]                       lq, next_lq;
-  logic      [`NUM_SUPER-1:0]                     st_hit;
-  logic      [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0] lq_map_idx;
+  LQ_FU_OUT_t                                        next_LQ_FU_out;
+  logic       [$clog2(`NUM_LSQ)-1:0]                 head, next_head, tail, next_tail, tail1, tail2, virtual_tail, st_idx;
+  LQ_ENTRY_t  [`NUM_LSQ-1:0]                         lq, next_lq;
+  logic       [`NUM_SUPER-1:0]                       st_hit;
+  logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   lq_map_idx;
+  logic       [`NUM_SUPER-1:0]                       rollback_valid;
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] diff;
 
   assign next_tail        = rollback_en ? LQ_rollback_idx :
                             dispatch_en ? virtual_tail    : tail;
@@ -415,7 +429,7 @@ module LSQ (
   input  logic            [$clog2(`NUM_ROB)-1:0] diff_ROB,
   input  DECODER_SQ_OUT_t                        decoder_SQ_out,
   input  DECODER_LQ_OUT_t                        decoder_LQ_out,
-  input  DECODER_SQ_OUT_t                        D_cache_SQ_out,
+  input  D_CACHE_SQ_OUT_t                        D_cache_SQ_out,
   input  D_CACHE_LQ_OUT_t                        D_cache_LQ_out,
   input  FU_SQ_OUT_t                             FU_SQ_out,
   input  FU_LQ_OUT_t                             FU_LQ_out,
