@@ -317,7 +317,7 @@ module inst_decoder(
           opa_select    = ALU_OPA_IS_NPC;
           opb_select    = ALU_OPB_IS_BR_DISP;
           func          = ALU_ADDQ;
-          FU            = FU_ALU;
+          FU            = FU_BR;
         end
 
         // `FBEQ_INST, `FBLT_INST, `FBLE_INST, `FBNE_INST, `FBGE_INST, `FBGT_INST: begin
