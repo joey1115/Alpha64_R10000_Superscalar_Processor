@@ -80,8 +80,8 @@ typedef struct packed {
   `ZERO_PR,                 \
   {$clog2(`NUM_ROB){1'b0}}, \
   {$clog2(`NUM_FL){1'b0}},  \
-  {$clog2(`NUM_SQ){1'b0}},  \
-  {$clog2(`NUM_LQ){1'b0}},  \
+  {$clog2(`NUM_LSQ){1'b0}},  \
+  {$clog2(`NUM_LSQ){1'b0}},  \
   64'hbaadbeefdeadbeef      \
 }
 
@@ -114,8 +114,8 @@ typedef struct packed {
   `ZERO_PR,                 \
   {$clog2(`NUM_ROB){1'b0}}, \
   {$clog2(`NUM_FL){1'b0}},  \
-  {$clog2(`NUM_SQ){1'b0}},  \
-  {$clog2(`NUM_LQ){1'b0}}   \
+  {$clog2(`NUM_LSQ){1'b0}},  \
+  {$clog2(`NUM_LSQ){1'b0}}   \
 }
 
 `endif

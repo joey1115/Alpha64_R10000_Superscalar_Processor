@@ -169,8 +169,8 @@ module mult_stage (
       next_T_idx_out    = `ZERO_PR;
       next_ROB_idx_out  = {$clog2(`NUM_ROB){1'b0}};
       next_FL_idx_out   = {$clog2(`NUM_FL){1'b0}};
-      next_SQ_idx_out   = {$clog2(`NUM_SQ){1'b0}};
-      next_LQ_idx_out   = {$clog2(`NUM_LQ){1'b0}};
+      next_SQ_idx_out   = {$clog2(`NUM_LSQ){1'b0}};
+      next_LQ_idx_out   = {$clog2(`NUM_LSQ){1'b0}};
       next_done         = `FALSE;
     end
   end
@@ -189,8 +189,8 @@ module mult_stage (
       T_idx_out    <= `SD `ZERO_PR;
       ROB_idx_out  <= {$clog2(`NUM_ROB){1'b0}};
       FL_idx_out   <= {$clog2(`NUM_FL){1'b0}};
-      SQ_idx_out   <= {$clog2(`NUM_SQ){1'b0}};
-      LQ_idx_out   <= {$clog2(`NUM_LQ){1'b0}};
+      SQ_idx_out   <= {$clog2(`NUM_LSQ){1'b0}};
+      LQ_idx_out   <= {$clog2(`NUM_LSQ){1'b0}};
       done         <= `SD `FALSE;
     end else if (en) begin
       mplier_out       <= `SD next_mplier_out;
@@ -370,42 +370,40 @@ module br(
 endmodule // brcond
 
 module ld (
-  input  logic                                    clock, reset, en
-  input  FU_IN_t                                  FU_in,
-  input  logic                                    CDB_valid,
-  input  logic                                    rollback_en,
-  input  logic             [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
-  input  logic             [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  output FU_OUT_t                                 FU_out,
-  output logic                                    FU_valid
+  input  logic                        clock, reset, en
+  input  FU_IN_t                      FU_in,
+  input  logic                        LQ_valid,
+  input  logic                        rollback_en,
+  input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
+  output LD_OUT_t                     ld_out,
+  output logic                        FU_valid
 );
 
-  logic          [63:0]                 regA, regB;
-  logic                                 rollback_valid;
-  logic          [$clog2(`NUM_ROB)-1:0] diff;
+  logic                           rollback_valid;
+  logic    [$clog2(`NUM_ROB)-1:0] diff;
+  logic    [63:0]                 regA, regB, result;
 
-  assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff;
-  assign FU_valid       = CDB_valid || !FU_in.ready || rollback_valid;
-
-  function signed_lt;
-    input [63:0] a, b;
-    if (a[63] == b[63]) 
-      signed_lt = (a < b); // signs match: signed compare same as unsigned
-    else
-      signed_lt = a[63];   // signs differ: a is smaller if neg, larger if pos
-  endfunction
-
-  assign regA = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
-  assign regB = FU_in.T2_value;
+  assign diff               = FU_in.ROB_idx - ROB_rollback_idx;
+  assign rollback_valid     = rollback_en && diff_ROB >= diff;
+  assign regA               = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
+  assign regB               = FU_in.T2_value;
+  assign result             = regA + regB;
+  assign FU_valid           = !FU_in.done || LQ_valid || rollback_valid;
 
   always_comb begin
-    FU_out.result   = regA + regB;
-    FU_out.dest_idx = FU_in.dest_idx;
-    FU_out.T_idx    = FU_in.T_idx;
-    FU_out.FL_idx   = FU_in.FL_idx;
-    FU_out.ROB_idx  = FU_in.ROB_idx;
-    FU_out.done     = !rollback_valid && FU_in.ready;
+    if ( rollback_valid ) begin
+      sld_out = `LD_OUT_RESET;
+    end else begin
+      ld_out.done     = FU_in.done;
+      ld_out.result   = result;
+      ld_out.dest_idx = FU_in.dest_idx;
+      ld_out.T_idx    = FU_in.T_idx;
+      ld_out.ROB_idx  = FU_in.ROB_idx;
+      ld_out.FL_idx   = FU_in.FL_idx;
+      ld_out.SQ_idx   = FU_in.SQ_idx;
+      ld_out.LQ_idx   = FU_in.LQ_idx;
+    end
   end
 endmodule
 
@@ -420,19 +418,30 @@ module st (
   output logic                        FU_valid
 );
 
-  ST_OUT_t next_st_out;
+  logic                           rollback_valid;
+  logic    [$clog2(`NUM_ROB)-1:0] diff;
+  logic    [63:0]                 regA, regB, result;
 
-  assign regA = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
-  assign regB = FU_in.T2_value;
-  assign addr = regA + regB;
-  assign value = FU_in.T1_value;
+  assign diff               = FU_in.ROB_idx - ROB_rollback_idx;
+  assign rollback_valid     = rollback_en && diff_ROB >= diff;
+  assign regA               = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
+  assign regB               = FU_in.T2_value;
+  assign result             = regA + regB;
+  assign FU_valid           = !FU_in.done || SQ_valid || rollback_valid;
 
-  assign FU_valid = !FU_in.done || SQ_valid || rollback_valid;
-  always_ff @(posedge clock) begin
-    if ( reset ) begin
-      st_out <= `SD `ST_OUT_RESET;
-    end else if (en) begin
-      st_out <= `SD next_st_out;
+  always_comb begin
+    if ( rollback_valid ) begin
+      st_out = `ST_OUT_RESET;
+    end else begin
+      st_out.done     = FU_in.done;
+      st_out.result   = result;
+      st_out.dest_idx = FU_in.dest_idx;
+      st_out.T_idx    = FU_in.T_idx;
+      st_out.ROB_idx  = FU_in.ROB_idx;
+      st_out.FL_idx   = FU_in.FL_idx;
+      st_out.SQ_idx   = FU_in.SQ_idx;
+      st_out.LQ_idx   = FU_in.LQ_idx;
+      st_out.T1_value = FU_in.T1_value;
     end
   end
 endmodule
@@ -462,14 +471,9 @@ module FU (
 
   assign FU_CDB_out = '{FU_out};
 
-  // assign rollback_en        = take_branch[0];
-  // assign ROB_rollback_idx   = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
-  // assign FL_rollback_idx    = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
-  assign diff_ROB           = ROB_idx[1] - ROB_rollback_idx;
-  assign diff_ROB1          = ROB_idx[1] - FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1].ROB_idx;
-  assign diff_ROB2          = ROB_idx[1] - FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
-  // assign take_branch_out    = take_branch[0];
-  // assign take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
+  assign diff_ROB  = ROB_idx[1] - ROB_rollback_idx;
+  assign diff_ROB1 = ROB_idx[1] - FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1].ROB_idx;
+  assign diff_ROB2 = ROB_idx[1] - FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
 
   always_comb begin
     case(take_branch)
