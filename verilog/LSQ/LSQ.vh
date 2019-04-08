@@ -23,9 +23,9 @@ typedef struct packed {
 } SQ_RS_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0]       wr_en;
-  logic [`NUM_SUPER-1:0][60:0] addr;
-  logic [`NUM_SUPER-1:0][63:0] value;
+  logic        wr_en;
+  logic [60:0] addr;
+  logic [63:0] value;
 } SQ_D_CACHE_OUT_t;
 
 typedef struct packed {
@@ -36,7 +36,7 @@ typedef struct packed {
 } SQ_LQ_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0] dispatch_valid;
+  logic                  dispatch_valid;
   logic [`NUM_SUPER-1:0] retire_valid;
 } SQ_ROB_OUT_t;
 
@@ -113,7 +113,7 @@ typedef struct packed {
 
 // To be removed
 typedef struct packed {
-  logic [`NUM_SUPER-1:0]       valid;
+  logic valid;
 } D_CACHE_SQ_OUT_t;
 
 typedef struct packed {

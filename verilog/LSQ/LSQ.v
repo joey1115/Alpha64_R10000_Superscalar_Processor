@@ -2,8 +2,7 @@
 
 module SQ (
   input  logic                                   clock, reset, en, dispatch_en, rollback_en,
-  input  logic            [`NUM_SUPER-1:0]       retire_en,
-  input  logic            [`NUM_SUPER-1:0]       SQ_valid,
+  input  logic            [`NUM_SUPER-1:0]       retire_en, CDB_valid,
   input  logic            [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx,
   input  logic            [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic            [$clog2(`NUM_ROB)-1:0] diff_ROB,
@@ -43,45 +42,11 @@ module SQ (
   assign next_tail        = rollback_en ? SQ_rollback_idx :
                             dispatch_en ? virtual_tail    : tail;
   assign SQ_RS_out.SQ_idx = '{tail2, tail1};
-  assign SQ_LQ_out        = '{ld_hit, ld_value, FU_SQ_out.done, FU_SQ_out.result[63:3]};
-  assign wr_en            = !rollback_valid & retire_en & ROB_SQ_out.wr_mem;
+  assign SQ_LQ_out        = '{ld_hit, ld_value, SQ_FU_out.done, SQ_FU_out.result[63:3]};
   assign SQ_D_cache_out   = '{wr_en, addr, value};
-  assign retire_valid     = '{valid2, valid1};
+  assign retire_valid     = ~ROB_SQ_out.wr_mem | D_cache_SQ_out.valid;
   assign SQ_ROB_out       = '{dispatch_valid, retire_valid};
-  assign SQ_valid         = D_cache_SQ_out.valid | !FU_SQ_out.done | rollback_valid;
-
-  always_comb begin
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      diff[i]           = FU_SQ_out.ROB_idx[i] - ROB_rollback_idx;
-      rollback_valid[i] = rollback_en && diff_ROB >= diff[i];
-    end
-  end
-
-  always_comb begin
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      if (rollback_valid[i]) begin
-        next_SQ_FU_out.done[i]     = `FALSE;
-        next_SQ_FU_out.result[i]   = 64'hbaadbeefdeadbeef;
-        next_SQ_FU_out.dest_idx[i] = `ZERO_REG;
-        next_SQ_FU_out.T_idx[i]    = `ZERO_PR;
-        next_SQ_FU_out.ROB_idx[i]  = {$clog2(`NUM_ROB){1'b0}};
-        next_SQ_FU_out.FL_idx[i]   = {$clog2(`NUM_FL){1'b0}};
-        next_SQ_FU_out.SQ_idx[i]   = {$clog2(`NUM_LSQ){1'b0}};
-        next_SQ_FU_out.LQ_idx[i]   = {$clog2(`NUM_LSQ){1'b0}};
-        next_SQ_FU_out.T1_value[i] = 64'hbaadbeefdeadbeef;
-      end else begin
-        next_SQ_FU_out.done[i]     = D_cache_SQ_out.valid[i];
-        next_SQ_FU_out.result[i]   = FU_SQ_out.result[i];
-        next_SQ_FU_out.dest_idx[i] = FU_SQ_out.dest_idx[i];
-        next_SQ_FU_out.T_idx[i]    = FU_SQ_out.T_idx[i];
-        next_SQ_FU_out.ROB_idx[i]  = FU_SQ_out.ROB_idx[i];
-        next_SQ_FU_out.FL_idx[i]   = FU_SQ_out.FL_idx[i];
-        next_SQ_FU_out.SQ_idx[i]   = FU_SQ_out.SQ_idx[i];
-        next_SQ_FU_out.LQ_idx[i]   = FU_SQ_out.LQ_idx[i];
-        next_SQ_FU_out.T1_value[i] = FU_SQ_out.T1_value[i];
-      end
-    end
-  end
+  assign SQ_valid         = ~SQ_FU_out.done | rollback_valid | CDB_valid;
 
   // Dispatch Valid
   always_comb begin
@@ -114,6 +79,94 @@ module SQ (
   end
 
   always_comb begin
+    case(ROB_SQ_out.wr_mem)
+      2'b00: begin
+        retire_valid[0] = `TRUE;
+        retire_valid[1] = `TRUE;
+      end
+      2'b01: begin
+        retire_valid[0] = D_cache_SQ_out.valid;
+        retire_valid[1] = D_cache_SQ_out.valid;
+      end
+      2'b10: begin
+        retire_valid[0] = `TRUE;
+        retire_valid[1] = D_cache_SQ_out.valid;
+      end
+      2'b11: begin
+        retire_valid[0] = D_cache_SQ_out.valid;
+        retire_valid[1] = `FALSE;
+      end
+    endcase
+  end
+
+  always_comb begin
+    case(ROB_SQ_out.wr_mem)
+      2'b00: begin
+        wr_en           = `FALSE;
+        addr            = 61'h0;
+        value           = 64'hbaadbeefdeadbeef;
+      end
+      2'b01: begin
+        wr_en           = `TRUE;
+        addr            = sq[ROB_SQ_out.SQ_idx[0]].addr;
+        value           = sq[ROB_SQ_out.SQ_idx[0]].value;
+      end
+      2'b10: begin
+        wr_en           = `TRUE;
+        addr            = sq[ROB_SQ_out.SQ_idx[1]].addr;
+        value           = sq[ROB_SQ_out.SQ_idx[1]].value;
+      end
+      2'b11: begin
+        wr_en           = `TRUE;
+        addr            = sq[ROB_SQ_out.SQ_idx[0]].addr;
+        value           = sq[ROB_SQ_out.SQ_idx[0]].value;
+      end
+    endcase
+  end
+
+  always_comb begin
+    case(ROB_SQ_out.wr_mem & retire_en)
+      2'b00: next_head = head;
+      2'b01: next_head = head_plus_one;
+      2'b10: next_head = head_plus_one;
+      2'b11: next_head = head_plus_one;
+    endcase
+  end
+
+  always_comb begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      diff[i]           = SQ_FU_out.ROB_idx[i] - ROB_rollback_idx;
+      rollback_valid[i] = rollback_en && diff_ROB >= diff[i];
+    end
+  end
+
+  always_comb begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      if (rollback_valid[i]) begin
+        next_SQ_FU_out.done[i]     = `FALSE;
+        next_SQ_FU_out.result[i]   = 64'hbaadbeefdeadbeef;
+        next_SQ_FU_out.dest_idx[i] = `ZERO_REG;
+        next_SQ_FU_out.T_idx[i]    = `ZERO_PR;
+        next_SQ_FU_out.ROB_idx[i]  = {$clog2(`NUM_ROB){1'b0}};
+        next_SQ_FU_out.FL_idx[i]   = {$clog2(`NUM_FL){1'b0}};
+        next_SQ_FU_out.SQ_idx[i]   = {$clog2(`NUM_LSQ){1'b0}};
+        next_SQ_FU_out.LQ_idx[i]   = {$clog2(`NUM_LSQ){1'b0}};
+        next_SQ_FU_out.T1_value[i] = 64'hbaadbeefdeadbeef;
+      end else begin
+        next_SQ_FU_out.done[i]     = FU_SQ_out.done[i];
+        next_SQ_FU_out.result[i]   = FU_SQ_out.result[i];
+        next_SQ_FU_out.dest_idx[i] = FU_SQ_out.dest_idx[i];
+        next_SQ_FU_out.T_idx[i]    = FU_SQ_out.T_idx[i];
+        next_SQ_FU_out.ROB_idx[i]  = FU_SQ_out.ROB_idx[i];
+        next_SQ_FU_out.FL_idx[i]   = FU_SQ_out.FL_idx[i];
+        next_SQ_FU_out.SQ_idx[i]   = FU_SQ_out.SQ_idx[i];
+        next_SQ_FU_out.LQ_idx[i]   = FU_SQ_out.LQ_idx[i];
+        next_SQ_FU_out.T1_value[i] = FU_SQ_out.T1_value[i];
+      end
+    end
+  end
+
+  always_comb begin
     next_sq = sq;
     // Dispatch
     if (dispatch_en) begin
@@ -130,62 +183,6 @@ module SQ (
       if (SQ_FU_out.done[i]) begin
         next_sq[SQ_FU_out.SQ_idx[i]] = '{SQ_FU_out.result[i][63:3], `TRUE, SQ_FU_out.T1_value[i]};
       end
-    end
-  end
-
-  // Retire valid
-  always_comb begin
-    case(ROB_SQ_out.wr_mem)
-      2'b00: begin
-        valid1 = `TRUE;
-        valid2 = `TRUE;
-      end
-      2'b01: begin
-        valid1 = tail_plus_one != head;
-        valid2 = `TRUE;
-      end
-      2'b10: begin
-        valid1 = `TRUE;
-        valid2 = tail_plus_one != head;
-      end
-      2'b11: begin
-        valid1 = tail_plus_one != head;
-        valid2 = valid1 && tail_plus_two != head;
-      end
-    endcase
-  end
-
-  // Retire
-  always_comb begin
-    case(ROB_SQ_out.wr_mem & retire_en)
-      2'b00: begin
-        next_head = head;
-      end
-      2'b01: begin
-        next_head = head_plus_one;
-      end
-      2'b10: begin
-        next_head = head_plus_one;
-      end
-      2'b11: begin
-        next_head = head_plus_two;
-      end
-    endcase
-  end
-
-  // Retire addr and value
-  always_comb begin
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      addr[i]  = sq[ROB_SQ_out.SQ_idx[i]].addr;
-      value[i] = sq[ROB_SQ_out.SQ_idx[i]].value;
-    end
-  end
-
-  // Rollback valid
-  always_comb begin
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      addr[i]  = sq[ROB_SQ_out.SQ_idx[i]].addr;
-      value[i] = sq[ROB_SQ_out.SQ_idx[i]].value;
     end
   end
 
@@ -229,8 +226,10 @@ endmodule
 
 module LQ (
   input  logic                                   clock, reset, en, dispatch_en, rollback_en,
-  input  logic            [`NUM_SUPER-1:0]       retire_en,
+  input  logic            [`NUM_SUPER-1:0]       retire_en, CDB_valid,
   input  logic            [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx,
+  input  logic            [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input  logic            [$clog2(`NUM_ROB)-1:0] diff_ROB,
   input  DECODER_LQ_OUT_t                        decoder_LQ_out,
   input  D_CACHE_LQ_OUT_t                        D_cache_LQ_out,
   input  FU_LQ_OUT_t                             FU_LQ_out,
@@ -250,16 +249,46 @@ module LQ (
   logic      [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0] lq_map_idx;
   logic                                           dispatch_valid;
 
-  assign next_tail = rollback_en ? LQ_rollback_idx :
-                     dispatch_en ? virtual_tail    : tail;
-  assign tail_plus_one = tail + 1;
-  assign tail_plus_two = tail + 2;
-  assign head_plus_one = head + 1;
-  assign head_plus_two = head + 2;
-  assign tail_map_idx  = tail - head;
+  assign next_tail        = rollback_en ? LQ_rollback_idx :
+                            dispatch_en ? virtual_tail    : tail;
+  assign tail_plus_one    = tail + 1;
+  assign tail_plus_two    = tail + 2;
+  assign head_plus_one    = head + 1;
+  assign head_plus_two    = head + 2;
+  assign tail_map_idx     = tail - head;
   assign LQ_RS_out.LQ_idx = '{tail2, tail1};
-  assign LQ_valid         = rollback_valid | !LQ_FU_out.done | SQ_LQ_out.hit | D_cache_LQ_out.valid;
+  assign LQ_valid         = rollback_valid | !LQ_FU_out.done | SQ_LQ_out.hit | D_cache_LQ_out.valid | CDB_valid;
   assign LQ_ROB_out       = '{dispatch_valid};
+
+  // Dispatch valid
+  always_comb begin
+    case(decoder_LQ_out.rd_mem)
+      2'b00: begin
+        virtual_tail   = tail;
+        dispatch_valid = `TRUE;
+        tail1          = tail;
+        tail2          = tail;
+      end
+      2'b01: begin
+        virtual_tail   = tail_plus_one;
+        dispatch_valid = tail_plus_one != head;
+        tail1          = tail_plus_one;
+        tail2          = tail_plus_one;
+      end
+      2'b10: begin
+        virtual_tail   = tail_plus_one;
+        dispatch_valid = tail_plus_one != head;
+        tail1          = tail;
+        tail2          = tail_plus_one;
+      end
+      2'b11: begin
+        virtual_tail   = tail_plus_two;
+        dispatch_valid = tail_plus_one != head && tail_plus_two != head;
+        tail1          = tail_plus_one;
+        tail2          = tail_plus_two;
+      end
+    endcase
+  end
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
@@ -304,36 +333,6 @@ module LQ (
         next_LQ_FU_out.LQ_idx[i]   = FU_LQ_out.LQ_idx[i];
       end
     end
-  end
-
-  // Dispatch valid
-  always_comb begin
-    case(decoder_LQ_out.rd_mem)
-      2'b00: begin
-        virtual_tail   = tail;
-        dispatch_valid = `TRUE;
-        tail1          = tail;
-        tail2          = tail;
-      end
-      2'b01: begin
-        virtual_tail   = tail_plus_one;
-        dispatch_valid = tail_plus_one != head;
-        tail1          = tail_plus_one;
-        tail2          = tail_plus_one;
-      end
-      2'b10: begin
-        virtual_tail   = tail_plus_one;
-        dispatch_valid = tail_plus_one != head;
-        tail1          = tail;
-        tail2          = tail_plus_one;
-      end
-      2'b11: begin
-        virtual_tail   = tail_plus_two;
-        dispatch_valid = tail_plus_one != head && tail_plus_two != head;
-        tail1          = tail_plus_one;
-        tail2          = tail_plus_two;
-      end
-    endcase
   end
 
   // Age logic
@@ -412,29 +411,59 @@ endmodule
 
 module LSQ (
   input  logic                                   clock, reset, en, dispatch_en, rollback_en,
-  input  logic            [`NUM_SUPER-1:0]       retire_en,
-  input  logic            [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx,
+  input  logic            [`NUM_SUPER-1:0]       retire_en, CDB_SQ_valid, CDB_LQ_valid,
   input  logic            [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx,
-  input  DECODER_LQ_OUT_t                        decoder_LQ_out,
+  input  logic            [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx,
+  input  logic            [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  input  logic            [$clog2(`NUM_ROB)-1:0] diff_ROB,
   input  DECODER_SQ_OUT_t                        decoder_SQ_out,
+  input  DECODER_LQ_OUT_t                        decoder_LQ_out,
+  input  DECODER_SQ_OUT_t                        D_cache_SQ_out,
   input  D_CACHE_LQ_OUT_t                        D_cache_LQ_out,
-  input  FU_LQ_OUT_t                             FU_LQ_out,
   input  FU_SQ_OUT_t                             FU_SQ_out,
-  input  ROB_LQ_OUT_t                            ROB_LQ_out,
+  input  FU_LQ_OUT_t                             FU_LQ_out,
   input  ROB_SQ_OUT_t                            ROB_SQ_out,
-  output logic            [`NUM_SUPER-1:0]       LQ_valid,
+  input  ROB_LQ_OUT_t                            ROB_LQ_out,
   output logic            [`NUM_SUPER-1:0]       SQ_valid,
+  output logic            [`NUM_SUPER-1:0]       LQ_valid,
   output LQ_ROB_OUT_t                            LQ_ROB_out,
   output SQ_ROB_OUT_t                            SQ_ROB_out,
+  output SQ_FU_OUT_t                             SQ_FU_out,
   output LQ_FU_OUT_t                             LQ_FU_out,
-  output LQ_RS_OUT_t                             LQ_RS_out,
   output SQ_RS_OUT_t                             SQ_RS_out,
-  output LQ_D_CACHE_OUT_t                        LQ_D_cache_out,
-  output SQ_D_CACHE_OUT_t                        SQ_D_cache_out
+  output LQ_RS_OUT_t                             LQ_RS_out,
+  output SQ_D_CACHE_OUT_t                        SQ_D_cache_out,
+  output LQ_D_CACHE_OUT_t                        LQ_D_cache_out
 );
 
   LQ_SQ_OUT_t LQ_SQ_out;
   SQ_LQ_OUT_t SQ_LQ_out;
+
+  SQ sq_0 (
+    // Input
+    .clock(clock),
+    .reset(reset),
+    .en(en),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .retire_en(retire_en),
+    .CDB_valid(CDB_SQ_valid),
+    .SQ_rollback_idx(SQ_rollback_idx),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
+    .decoder_SQ_out(decoder_SQ_out),
+    .LQ_SQ_out(LQ_SQ_out),
+    .ROB_SQ_out(ROB_SQ_out),
+    .FU_SQ_out(FU_SQ_out),
+    .D_cache_SQ_out(D_cache_SQ_out),
+    // Output
+    .SQ_valid(SQ_valid),
+    .SQ_ROB_out(SQ_ROB_out),
+    .SQ_RS_out(SQ_RS_out),
+    .SQ_FU_out(SQ_FU_out),
+    .SQ_LQ_out(SQ_LQ_out),
+    .SQ_D_cache_out(SQ_D_cache_out)
+  );
 
   LQ lq_0 (
     // Input
@@ -444,7 +473,10 @@ module LSQ (
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .retire_en(retire_en),
+    .CDB_valid(CDB_LQ_valid),
     .LQ_rollback_idx(LQ_rollback_idx),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
     .decoder_LQ_out(decoder_LQ_out),
     .D_cache_LQ_out(D_cache_LQ_out),
     .FU_LQ_out(FU_LQ_out),
@@ -457,26 +489,5 @@ module LSQ (
     .LQ_FU_out(LQ_FU_out),
     .LQ_RS_out(LQ_RS_out),
     .LQ_D_cache_out(LQ_D_cache_out)
-  );
-
-  SQ sq_0 (
-    // Input
-    .clock(clock),
-    .reset(reset),
-    .en(en),
-    .dispatch_en(dispatch_en),
-    .rollback_en(rollback_en),
-    .retire_en(retire_en),
-    .SQ_rollback_idx(SQ_rollback_idx),
-    .decoder_SQ_out(decoder_SQ_out),
-    .LQ_SQ_out(LQ_SQ_out),
-    .ROB_SQ_out(ROB_SQ_out),
-    .FU_SQ_out(FU_SQ_out),
-    // Output
-    .SQ_valid(SQ_valid),
-    .SQ_ROB_out(SQ_ROB_out),
-    .SQ_RS_out(SQ_RS_out),
-    .SQ_LQ_out(SQ_LQ_out),
-    .SQ_D_cache_out(SQ_D_cache_out)
   );
 endmodule
