@@ -11,6 +11,7 @@ module SQ (
   input  ROB_SQ_OUT_t                            ROB_SQ_out,
   input  FU_SQ_OUT_t                             FU_SQ_out,
   input  D_CACHE_SQ_OUT_t                        D_cache_SQ_out,
+  output logic                                   dispatch_valid,
   output logic            [`NUM_SUPER-1:0]       SQ_valid,
   output SQ_ROB_OUT_t                            SQ_ROB_out,
   output SQ_RS_OUT_t                             SQ_RS_out,
@@ -23,12 +24,11 @@ module SQ (
   logic      [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_tmp_idx;
   SQ_ENTRY_t [`NUM_LSQ-1:0]                         sq, next_sq;
   logic      [63:0]                                 ld_value;
-  logic      [`NUM_SUPER-1:0]                       wr_en;
-  logic      [`NUM_SUPER-1:0][60:0]                 addr;
-  logic      [`NUM_SUPER-1:0][63:0]                 value;
+  logic                                             wr_en;
+  logic      [60:0]                                 addr;
+  logic      [63:0]                                 value;
   logic      [`NUM_SUPER-1:0][`NUM_LSQ-1:0]         LD_match;
   logic      [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx;
-  logic                                             dispatch_valid;
   logic      [`NUM_SUPER-1:0]                       retire_valid;
   logic                                             valid1, valid2;
   logic      [`NUM_SUPER-1:0]                       ld_hit;
@@ -44,8 +44,7 @@ module SQ (
   assign SQ_RS_out.SQ_idx = '{tail2, tail1};
   assign SQ_LQ_out        = '{ld_hit, ld_value, SQ_FU_out.done, SQ_FU_out.result[63:3]};
   assign SQ_D_cache_out   = '{wr_en, addr, value};
-  assign retire_valid     = ~ROB_SQ_out.wr_mem | D_cache_SQ_out.valid;
-  assign SQ_ROB_out       = '{dispatch_valid, retire_valid};
+  assign SQ_ROB_out       = '{retire_valid};
   assign SQ_valid         = ~SQ_FU_out.done | rollback_valid | CDB_valid;
 
   // Dispatch Valid
@@ -235,9 +234,9 @@ module LQ (
   input  FU_LQ_OUT_t                             FU_LQ_out,
   input  ROB_LQ_OUT_t                            ROB_LQ_out,
   input  SQ_LQ_OUT_t                             SQ_LQ_out,
+  output logic                                   dispatch_valid,
   output logic            [`NUM_SUPER-1:0]       LQ_valid,
   output LQ_SQ_OUT_t                             LQ_SQ_out,
-  output LQ_ROB_OUT_t                            LQ_ROB_out,
   output LQ_FU_OUT_t                             LQ_FU_out,
   output LQ_RS_OUT_t                             LQ_RS_out,
   output LQ_D_CACHE_OUT_t                        LQ_D_cache_out
@@ -247,7 +246,6 @@ module LQ (
   LQ_ENTRY_t [`NUM_LSQ-1:0]                       lq, next_lq;
   logic      [`NUM_SUPER-1:0]                     st_hit;
   logic      [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0] lq_map_idx;
-  logic                                           dispatch_valid;
 
   assign next_tail        = rollback_en ? LQ_rollback_idx :
                             dispatch_en ? virtual_tail    : tail;
@@ -258,7 +256,6 @@ module LQ (
   assign tail_map_idx     = tail - head;
   assign LQ_RS_out.LQ_idx = '{tail2, tail1};
   assign LQ_valid         = rollback_valid | !LQ_FU_out.done | SQ_LQ_out.hit | D_cache_LQ_out.valid | CDB_valid;
-  assign LQ_ROB_out       = '{dispatch_valid};
 
   // Dispatch valid
   always_comb begin
@@ -424,9 +421,9 @@ module LSQ (
   input  FU_LQ_OUT_t                             FU_LQ_out,
   input  ROB_SQ_OUT_t                            ROB_SQ_out,
   input  ROB_LQ_OUT_t                            ROB_LQ_out,
+  output logic                                   LSQ_valid,
   output logic            [`NUM_SUPER-1:0]       SQ_valid,
   output logic            [`NUM_SUPER-1:0]       LQ_valid,
-  output LQ_ROB_OUT_t                            LQ_ROB_out,
   output SQ_ROB_OUT_t                            SQ_ROB_out,
   output SQ_FU_OUT_t                             SQ_FU_out,
   output LQ_FU_OUT_t                             LQ_FU_out,
@@ -438,6 +435,9 @@ module LSQ (
 
   LQ_SQ_OUT_t LQ_SQ_out;
   SQ_LQ_OUT_t SQ_LQ_out;
+  logic       SQ_dispatch_valid, LQ_dispatch_valid;
+
+  assign LSQ_valid = SQ_dispatch_valid && LQ_dispatch_valid;
 
   SQ sq_0 (
     // Input
@@ -457,6 +457,7 @@ module LSQ (
     .FU_SQ_out(FU_SQ_out),
     .D_cache_SQ_out(D_cache_SQ_out),
     // Output
+    .dispatch_valid(SQ_dispatch_valid),
     .SQ_valid(SQ_valid),
     .SQ_ROB_out(SQ_ROB_out),
     .SQ_RS_out(SQ_RS_out),
@@ -483,9 +484,9 @@ module LSQ (
     .ROB_LQ_out(ROB_LQ_out),
     .SQ_LQ_out(SQ_LQ_out),
     // Output
+    .dispatch_valid(LQ_dispatch_valid),
     .LQ_valid(LQ_valid),
     .LQ_SQ_out(LQ_SQ_out),
-    .LQ_ROB_out(LQ_ROB_out),
     .LQ_FU_out(LQ_FU_out),
     .LQ_RS_out(LQ_RS_out),
     .LQ_D_cache_out(LQ_D_cache_out)

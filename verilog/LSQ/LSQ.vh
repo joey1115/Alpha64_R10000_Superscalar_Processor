@@ -75,10 +75,6 @@ typedef struct packed {
 } LQ_SQ_OUT_t;
 
 typedef struct packed {
-  logic dispatch_valid;
-} LQ_ROB_OUT_t;
-
-typedef struct packed {
   logic [`NUM_SUPER-1:0]       st_hit;
   logic [`NUM_SUPER-1:0][63:0] value;
 } LQ_FU_OUT_t;
