@@ -21,7 +21,7 @@ module Dcache(
   input logic                             wr1_en,
   input logic [$clog2(`NUM_IDX)-1:0]      wr1_idx, rd1_idx, rd2_idx,
   input logic [$clog2(`NUM_BLOCK)-1:0]    wr1_BO, rd1_BO, rd2_BO,
-  input logic [`NUM_D_TAG_BITS-1:0]       wr1_tag, rd1_tag, rd1_tag,
+  input logic [`NUM_D_TAG_BITS-1:0]       wr1_tag, rd1_tag, rd2_tag,
   input logic [63:0]                      wr1_data,
   
   output logic [63:0]                     rd1_data_out, rd2_data_out,
