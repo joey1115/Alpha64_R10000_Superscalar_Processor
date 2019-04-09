@@ -30,8 +30,6 @@ typedef struct packed {
   ALU_OPB_SELECT                        opb_select;
   logic                                 uncond_branch;
   logic                                 cond_branch;
-  logic                                 wr_mem;
-  logic                                 rd_mem;
 } FU_IN_t;
 
 typedef struct packed {
@@ -80,8 +78,8 @@ typedef struct packed {
   `ZERO_PR,                 \
   {$clog2(`NUM_ROB){1'b0}}, \
   {$clog2(`NUM_FL){1'b0}},  \
-  {$clog2(`NUM_LSQ){1'b0}},  \
-  {$clog2(`NUM_LSQ){1'b0}},  \
+  {$clog2(`NUM_LSQ){1'b0}}, \
+  {$clog2(`NUM_LSQ){1'b0}}, \
   64'hbaadbeefdeadbeef      \
 }
 

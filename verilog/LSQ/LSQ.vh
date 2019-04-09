@@ -64,8 +64,9 @@ typedef struct packed {
 }
 
 typedef struct packed {
-  logic [60:0] addr;
-  logic        valid;
+  logic [60:0]                 addr;
+  logic                        valid;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
 } LQ_ENTRY_t;
 
 typedef struct packed {
@@ -108,8 +109,8 @@ typedef struct packed {
 `define SQ_ENTRY_RESET_PACKED '{61'h0, `FALSE, 64'hbaadbeafdeadbeef}
 `define SQ_RESET '{`NUM_LSQ{`SQ_ENTRY_RESET}}
 
-`define LQ_ENTRY_RESET {61'h0, `FALSE}
-`define LQ_ENTRY_RESET_PACKED '{61'h0, `FALSE}
+`define LQ_ENTRY_RESET {61'h0, `FALSE, {`NUM_ROB{1'b0}}}
+`define LQ_ENTRY_RESET_PACKED '{61'h0, `FALSE, {`NUM_ROB{1'b0}}}
 `define LQ_RESET '{`NUM_LSQ{`LQ_ENTRY_RESET}}
 
 // To be removed

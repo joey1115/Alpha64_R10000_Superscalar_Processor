@@ -1,12 +1,14 @@
 `timescale 1ns/100ps
 
 module alu (
+  // Input
   input  logic                        clock, reset, en
   input  FU_IN_t                      FU_in,
   input  logic                        CDB_valid,
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
+  // Output
   output FU_OUT_t                     FU_out,
   output logic                        FU_valid
 );
@@ -74,6 +76,7 @@ module alu (
 endmodule // alu
 
 module mult_stage (
+  // Input
   input  logic                        clock, reset, en, ready, valid,
   input  logic [63:0]                 product_in, mplier_in, mcand_in,
   input  logic [4:0]                  dest_idx,
@@ -85,6 +88,7 @@ module mult_stage (
   input  logic [$clog2(`NUM_FL)-1:0]  FL_idx,
   input  logic [$clog2(`NUM_LSQ)-1:0] SQ_idx,
   input  logic [$clog2(`NUM_LSQ)-1:0] LQ_idx,
+  // Output
   output logic                        done,
   output logic [63:0]                 product_out, mplier_out, mcand_out,
   output logic [4:0]                  dest_idx_out,
@@ -208,12 +212,14 @@ module mult_stage (
 endmodule
 
 module mult (
+  // Input
   input  logic                                                          clock, reset, en
   input  FU_IN_t                                                        FU_in,
   input  logic                                                          CDB_valid,
   input  logic                                                          rollback_en,
   input  logic             [$clog2(`NUM_ROB)-1:0]                       ROB_rollback_idx,
   input  logic             [$clog2(`NUM_ROB)-1:0]                       diff_ROB,
+  // Output
   output FU_OUT_t                                                       FU_out,
   output logic                                                          FU_valid
 );
@@ -308,9 +314,11 @@ module mult (
 endmodule
 
 module br(
+  // Input
   input  logic             clock, reset, en
   input  FU_IN_t           FU_in,
   input  logic             CDB_valid,
+  // Output
   output FU_OUT_t          FU_out,
   output                   FU_valid,
   output logic             take_branch
@@ -370,14 +378,16 @@ module br(
 endmodule // brcond
 
 module ld (
+  // Input
   input  logic                        clock, reset, en
   input  FU_IN_t                      FU_in,
   input  logic                        LQ_valid,
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  output LD_OUT_t                     ld_out,
-  output logic                        FU_valid
+  // Output
+  output logic                        FU_valid,
+  output LD_OUT_t                     LD_out
 );
 
   logic                           rollback_valid;
@@ -395,27 +405,29 @@ module ld (
     if ( rollback_valid ) begin
       sld_out = `LD_OUT_RESET;
     end else begin
-      ld_out.done     = FU_in.done;
-      ld_out.result   = result;
-      ld_out.dest_idx = FU_in.dest_idx;
-      ld_out.T_idx    = FU_in.T_idx;
-      ld_out.ROB_idx  = FU_in.ROB_idx;
-      ld_out.FL_idx   = FU_in.FL_idx;
-      ld_out.SQ_idx   = FU_in.SQ_idx;
-      ld_out.LQ_idx   = FU_in.LQ_idx;
+      LD_out.done     = FU_in.done;
+      LD_out.result   = result;
+      LD_out.dest_idx = FU_in.dest_idx;
+      LD_out.T_idx    = FU_in.T_idx;
+      LD_out.ROB_idx  = FU_in.ROB_idx;
+      LD_out.FL_idx   = FU_in.FL_idx;
+      LD_out.SQ_idx   = FU_in.SQ_idx;
+      LD_out.LQ_idx   = FU_in.LQ_idx;
     end
   end
 endmodule
 
 module st (
+  // Input
   input  logic                        clock, reset, en
   input  FU_IN_t                      FU_in,
   input  logic                        SQ_valid,
   input  logic                        rollback_en,
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
-  output ST_OUT_t                     st_out,
-  output logic                        FU_valid
+  // Output
+  output logic                        FU_valid,
+  output ST_OUT_t                     ST_out
 );
 
   logic                           rollback_valid;
@@ -431,40 +443,47 @@ module st (
 
   always_comb begin
     if ( rollback_valid ) begin
-      st_out = `ST_OUT_RESET;
+      ST_out = `ST_OUT_RESET;
     end else begin
-      st_out.done     = FU_in.done;
-      st_out.result   = result;
-      st_out.dest_idx = FU_in.dest_idx;
-      st_out.T_idx    = FU_in.T_idx;
-      st_out.ROB_idx  = FU_in.ROB_idx;
-      st_out.FL_idx   = FU_in.FL_idx;
-      st_out.SQ_idx   = FU_in.SQ_idx;
-      st_out.LQ_idx   = FU_in.LQ_idx;
-      st_out.T1_value = FU_in.T1_value;
+      ST_out.done     = FU_in.done;
+      ST_out.result   = result;
+      ST_out.dest_idx = FU_in.dest_idx;
+      ST_out.T_idx    = FU_in.T_idx;
+      ST_out.ROB_idx  = FU_in.ROB_idx;
+      ST_out.FL_idx   = FU_in.FL_idx;
+      ST_out.SQ_idx   = FU_in.SQ_idx;
+      ST_out.LQ_idx   = FU_in.LQ_idx;
+      ST_out.T1_value = FU_in.T1_value;
     end
   end
 endmodule
 
 module FU (
-  input  logic                                                                    clock,               // system clock
-  input  logic                                                                    reset,               // system reset
-  input  logic        [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0]                      ROB_idx,
-  input  logic        [`NUM_FU-1:0]                                               CDB_valid,
-  input  RS_FU_OUT_t                                                              RS_FU_out,
-  input  PR_FU_OUT_t                                                              PR_FU_out,
-  input  SQ_FU_OUT_t                                                              SQ_FU_out,
-  input  LQ_FU_OUT_t                                                              LQ_FU_out,
-  output logic        [`NUM_FU-1:0]                                               FU_valid,
-  output logic                                                                    rollback_en,
-  output logic        [$clog2(`NUM_FL)-1:0]                                       FL_rollback_idx,
-  output logic        [$clog2(`NUM_ROB)-1:0]                                      ROB_rollback_idx,
-  output logic        [$clog2(`NUM_ROB)-1:0]                                      diff_ROB,
-  output logic                                                                    take_branch_out,
-  output logic        [63:0]                                                      take_branch_target,
-  output FU_CDB_OUT_t                                                             FU_CDB_out,
-  output FU_SQ_OUT_t                                                              FU_SQ_out,
-  output FU_LQ_OUT_t                                                              FU_LQ_out
+  input  logic                                               clock,               // system clock
+  input  logic                                               reset,               // system reset
+  input  logic                                               en,               // system reset
+  input  logic        [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
+  input  logic        [`NUM_FU-1:0]                          CDB_valid,
+  input  logic        [`NUM_SUPER-1:0]                       SQ_valid,
+  input  logic        [`NUM_SUPER-1:0]                       LQ_valid,
+  input  logic        [`NUM_SUPER-1:0]                       LQ_violate,
+  input  logic        [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] LQ_target_ROB_idx,
+  input  RS_FU_OUT_t                                         RS_FU_out,
+  input  PR_FU_OUT_t                                         PR_FU_out,
+  input  SQ_FU_OUT_t                                         SQ_FU_out,
+  input  LQ_FU_OUT_t                                         LQ_FU_out,
+  output logic        [`NUM_FU-1:0]                          FU_valid,
+  output logic                                               rollback_en,
+  output logic        [$clog2(`NUM_ROB)-1:0]                 ROB_rollback_idx,
+  output logic        [$clog2(`NUM_FL)-1:0]                  FL_rollback_idx,
+  output logic        [$clog2(`NUM_LSQ)-1:0]                 SQ_rollback_idx,
+  output logic        [$clog2(`NUM_LSQ)-1:0]                 LQ_rollback_idx,
+  output logic        [$clog2(`NUM_ROB)-1:0]                 diff_ROB,
+  output logic                                               take_branch_out,
+  output logic        [63:0]                                 take_branch_target,
+  output FU_CDB_OUT_t                                        FU_CDB_out,
+  output FU_SQ_OUT_t                                         FU_SQ_out,
+  output FU_LQ_OUT_t                                         FU_LQ_out
 );
 
   FU_OUT_t       [`NUM_FU-1:0]          FU_out;
@@ -472,12 +491,15 @@ module FU (
   logic          [`NUM_BR-1:0]          take_branch;
   FU_IDX_ENTRY_t [`NUM_FU-1:0]          FU_T_idx;
   logic          [$clog2(`NUM_ROB)-1:0] diff_ROB1, diff_ROB2;
+  LD_OUT_t       [`NUM_SUPER-1:0]       ST_out;
+  LD_OUT_t       [`NUM_SUPER-1:0]       LD_out;
 
   assign FU_CDB_out = '{FU_out};
-
-  assign diff_ROB  = ROB_idx[1] - ROB_rollback_idx;
-  assign diff_ROB1 = ROB_idx[1] - FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1].ROB_idx;
-  assign diff_ROB2 = ROB_idx[1] - FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
+  assign diff_ROB   = ROB_idx[1] - ROB_rollback_idx;
+  assign diff_ROB1  = ROB_idx[1] - FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1].ROB_idx;
+  assign diff_ROB2  = ROB_idx[1] - FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
+  assign diff_ROB3  = ROB_idx[1] - LD_out[0].ROB_idx;
+  assign diff_ROB4  = ROB_idx[1] - LD_out[1].ROB_idx;
 
   always_comb begin
     case(take_branch)
@@ -533,72 +555,129 @@ module FU (
     end
   end
 
+  always_comb begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      FU_SQ_out.done[i]     = SQ_out[i].done;
+      FU_SQ_out.result[i]   = SQ_out[i].result;
+      FU_SQ_out.dest_idx[i] = SQ_out[i].dest_idx;
+      FU_SQ_out.T_idx[i]    = SQ_out[i].T_idx;
+      FU_SQ_out.ROB_idx[i]  = SQ_out[i].ROB_idx;
+      FU_SQ_out.FL_idx[i]   = SQ_out[i].FL_idx;
+      FU_SQ_out.SQ_idx[i]   = SQ_out[i].SQ_idx;
+      FU_SQ_out.LQ_idx[i]   = SQ_out[i].LQ_idx;
+      FU_SQ_out.T1_value[i] = SQ_out[i].T1_value;
+    end
+  end
+
+  always_comb begin
+    for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR; i++) begin
+      FU_CDB_out[i].FU_out.done     = SQ_FU_out.done[i];
+      FU_CDB_out[i].FU_out.result   = SQ_FU_out.result[i];
+      FU_CDB_out[i].FU_out.dest_idx = SQ_FU_out.dest_idx[i];
+      FU_CDB_out[i].FU_out.T_idx    = SQ_FU_out.T_idx[i];
+      FU_CDB_out[i].FU_out.ROB_idx  = SQ_FU_out.ROB_idx[i];
+      FU_CDB_out[i].FU_out.FL_idx   = SQ_FU_out.FL_idx[i];
+      FU_CDB_out[i].FU_out.SQ_idx   = SQ_FU_out.SQ_idx[i];
+      FU_CDB_out[i].FU_out.LQ_idx   = SQ_FU_out.LQ_idx[i];
+    end
+  end
+
+  always_comb begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      FU_LQ_out.done[i]     = LD_out[i].done;
+      FU_LQ_out.result[i]   = LD_out[i].result;
+      FU_LQ_out.dest_idx[i] = LD_out[i].dest_idx;
+      FU_LQ_out.T_idx[i]    = LD_out[i].T_idx;
+      FU_LQ_out.ROB_idx[i]  = LD_out[i].ROB_idx;
+      FU_LQ_out.FL_idx[i]   = LD_out[i].FL_idx;
+      FU_LQ_out.SQ_idx[i]   = LD_out[i].SQ_idx;
+      FU_LQ_out.LQ_idx[i]   = LD_out[i].LQ_idx;
+    end
+  end
+
+  always_comb begin
+    for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i++) begin
+      FU_CDB_out[i].FU_out.done     = LQ_FU_out.done[i];
+      FU_CDB_out[i].FU_out.result   = LQ_FU_out.result[i];
+      FU_CDB_out[i].FU_out.dest_idx = LQ_FU_out.dest_idx[i];
+      FU_CDB_out[i].FU_out.T_idx    = LQ_FU_out.T_idx[i];
+      FU_CDB_out[i].FU_out.ROB_idx  = LQ_FU_out.ROB_idx[i];
+      FU_CDB_out[i].FU_out.FL_idx   = LQ_FU_out.FL_idx[i];
+      FU_CDB_out[i].FU_out.SQ_idx   = LQ_FU_out.SQ_idx[i];
+      FU_CDB_out[i].FU_out.LQ_idx   = LQ_FU_out.LQ_idx[i];
+    end
+  end
+
   alu alu_0 [`NUM_ALU-1:0] (
     // Inputs
     .clock({`NUM_ALU{clock}}),
     .reset({`NUM_ALU{reset}}),
+    .en({`NUM_ALU{en}}),
     .rollback_en({`NUM_ALU{rollback_en}}),
     .ROB_rollback_idx({`NUM_ALU{ROB_rollback_idx}}),
     .diff_ROB({`NUM_ALU{diff_ROB}}),
     .FU_in(FU_in[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     .CDB_valid(CDB_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
     // Output
-    .FU_out(FU_out[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
-    .FU_valid(FU_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)])
+    .FU_valid(FU_valid[`NUM_FU-1:(`NUM_FU-`NUM_ALU)]),
+    .FU_out(FU_out[`NUM_FU-1:(`NUM_FU-`NUM_ALU)])
   );
 
   mult mult_0 [`NUM_MULT-1:0] (
     // Inputs
     .clock({`NUM_MULT{clock}}),
     .reset({`NUM_MULT{reset}}),
+    .en({`NUM_MULT{en}}),
     .rollback_en({`NUM_MULT{rollback_en}}),
     .ROB_rollback_idx({`NUM_MULT{ROB_rollback_idx}}),
     .diff_ROB({`NUM_MULT{diff_ROB}}),
     .FU_in(FU_in[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
     // Outputs
-    .FU_out(FU_out[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
-    .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
+    .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)]),
+    .FU_out(FU_out[(`NUM_FU-`NUM_ALU-1):(`NUM_FU-`NUM_ALU-`NUM_MULT)])
   );
 
   br br_0 [`NUM_BR-1:0] (
     // Inputs
     .clock({`NUM_BR{clock}}),
     .reset({`NUM_BR{reset}}),
+    .en({`NUM_BR{en}}),
     .FU_in(FU_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     // Output
-    .FU_out(FU_out[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
     .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)]),
-    .take_branch(take_branch[`NUM_BR-1:0])
+    .take_branch(take_branch[`NUM_BR-1:0]),
+    .FU_out(FU_out[(`NUM_FU-`NUM_ALU-`NUM_MULT-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR)])
   );
 
   st st_0 [`NUM_ST-1:0] (
     // Inputs
     .clock({`NUM_ST{clock}}),
     .reset({`NUM_ST{reset}}),
+    .en({`NUM_ST{en}}),
+    .SQ_valid(SQ_valid),
     .rollback_en({`NUM_ST{rollback_en}}),
     .ROB_rollback_idx({`NUM_ST{ROB_rollback_idx}}),
     .diff_ROB({`NUM_ST{diff_ROB}}),
     .FU_in(FU_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
-    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
     // Output
-    .FU_out(FU_out[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
-    .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)])
+    .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST)]),
+    .ST_out(ST_out)
   );
 
   ld ld_0 [`NUM_LD-1:0] (
-    // Inputs
+    // Input
     .clock({`NUM_LD{clock}}),
     .reset({`NUM_LD{reset}}),
+    .en({`NUM_LD{en}}),
+    .LQ_valid(LQ_valid),
     .rollback_en({`NUM_LD{rollback_en}}),
     .ROB_rollback_idx({`NUM_LD{ROB_rollback_idx}}),
     .diff_ROB({`NUM_LD{diff_ROB}}),
     .FU_in(FU_in[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
-    .CDB_valid(CDB_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
     // Output
-    .FU_out(FU_out[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
-    .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)])
+    .FU_valid(FU_valid[(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-1):(`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD)]),
+    .LD_out(LD_out)
   );
-
 endmodule // FU

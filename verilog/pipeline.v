@@ -299,8 +299,12 @@ module pipeline (
     // Input
     .clock(clock),
     .reset(reset),
+    .en(en),
+    .dispatch_en(dispatch_en),
     .ROB_idx(ROB_idx),
     .CDB_valid(CDB_valid),
+    .SQ_valid(SQ_valid),
+    .LQ_valid(LQ_valid),
     .RS_FU_out(RS_FU_out),
     .PR_FU_out(PR_FU_out),
     .SQ_FU_out(SQ_FU_out),
@@ -310,6 +314,8 @@ module pipeline (
     .rollback_en(rollback_en),
     .ROB_rollback_idx(ROB_rollback_idx),
     .FL_rollback_idx(FL_rollback_idx),
+    .SQ_rollback_idx(SQ_rollback_idx),
+    .LQ_rollback_idx(LQ_rollback_idx),
     .diff_ROB(diff_ROB),
     .take_branch_out(take_branch_out),
     .take_branch_target(take_branch_target),
@@ -344,6 +350,8 @@ module pipeline (
     .LSQ_valid(LSQ_valid),
     .SQ_valid(SQ_valid),                // TODO
     .LQ_valid(LQ_valid),                // TODO
+    .LQ_violate(LQ_violate),
+    .LQ_target_ROB_idx(LQ_target_ROB_idx),
     .SQ_ROB_out(SQ_ROB_out),            // TODO
     .SQ_FU_out(SQ_FU_out),              // TODO
     .LQ_FU_out(LQ_FU_out),              // TODO
