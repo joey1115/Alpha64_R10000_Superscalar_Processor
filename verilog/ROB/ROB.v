@@ -11,16 +11,19 @@ module ROB (
   input  FL_ROB_OUT_t                                               FL_ROB_out,
   input  MAP_TABLE_ROB_OUT_t                                        Map_Table_ROB_out,
   input  CDB_ROB_OUT_t                                              CDB_ROB_out,
-  //Outputs                
-`ifdef DEBUG                
+  input  SQ_ROB_OUT_t                                               SQ_ROB_out,
+  //Outputs
+`ifdef DEBUG
   output ROB_t                                                      rob,
-`endif                
+`endif
   output logic                                                      ROB_valid,
   output logic               [`NUM_SUPER-1:0]                       retire_en,
   output logic                                                      halt_out,
   output logic               [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
   output ROB_ARCH_MAP_OUT_t                                         ROB_Arch_Map_out,
-  output ROB_FL_OUT_t                                               ROB_FL_out
+  output ROB_FL_OUT_t                                               ROB_FL_out,
+  output ROB_SQ_OUT_t                                               ROB_SQ_out,
+  output ROB_LQ_OUT_t                                               ROB_LQ_out
 );
 
 `ifndef DEBUG

@@ -453,6 +453,8 @@ module FU (
   input  logic        [`NUM_FU-1:0]                                               CDB_valid,
   input  RS_FU_OUT_t                                                              RS_FU_out,
   input  PR_FU_OUT_t                                                              PR_FU_out,
+  input  SQ_FU_OUT_t                                                              SQ_FU_out,
+  input  LQ_FU_OUT_t                                                              LQ_FU_out,
   output logic        [`NUM_FU-1:0]                                               FU_valid,
   output logic                                                                    rollback_en,
   output logic        [$clog2(`NUM_FL)-1:0]                                       FL_rollback_idx,
@@ -460,7 +462,9 @@ module FU (
   output logic        [$clog2(`NUM_ROB)-1:0]                                      diff_ROB,
   output logic                                                                    take_branch_out,
   output logic        [63:0]                                                      take_branch_target,
-  output FU_CDB_OUT_t                                                             FU_CDB_out
+  output FU_CDB_OUT_t                                                             FU_CDB_out,
+  output FU_SQ_OUT_t                                                              FU_SQ_out,
+  output FU_LQ_OUT_t                                                              FU_LQ_out
 );
 
   FU_OUT_t       [`NUM_FU-1:0]          FU_out;

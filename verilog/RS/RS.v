@@ -11,8 +11,8 @@ module RS (
   input  FL_RS_OUT_t                                               FL_RS_out,
   input  MAP_TABLE_RS_OUT_t                                        Map_Table_RS_out,
   input  CDB_RS_OUT_t                                              CDB_RS_out,
-  input  LQ_RS_OUT_t                                               LQ_RS_out,
   input  SQ_RS_OUT_t                                               SQ_RS_out,
+  input  LQ_RS_OUT_t                                               LQ_RS_out,
 `ifdef DEBUG
   output RS_ENTRY_t         [`NUM_FU-1:0]                          RS_out,
   output logic              [`NUM_SUPER-1:0]                       RS_match_hit,   // If a RS entry is ready

@@ -29,8 +29,8 @@ module decoder(
   assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch, wr_mem, rd_mem};
   assign decoder_FL_out        = '{dest_idx};
   assign decoder_Map_Table_out = '{dest_idx, rega_idx, regb_idx};
-  assign decoder_LQ_out        = '{rd_mem};
   assign decoder_SQ_out        = '{wr_mem};
+  assign decoder_LQ_out        = '{rd_mem};
   assign illegal               = internal_illegal[0] | internal_illegal[1];
 
   inst_decoder inst_decoder_0 (

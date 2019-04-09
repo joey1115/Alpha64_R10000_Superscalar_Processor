@@ -60,6 +60,8 @@ module pipeline (
   DECODER_RS_OUT_t                               decoder_RS_out;
   DECODER_FL_OUT_t                               decoder_FL_out;
   DECODER_MAP_TABLE_OUT_t                        decoder_Map_Table_out;
+  DECODER_SQ_OUT_t                               decoder_SQ_out;
+  DECODER_LQ_OUT_t                               decoder_LQ_out;
 `ifndef DEBUG
   logic                                          FL_valid;
 `endif
@@ -76,6 +78,9 @@ module pipeline (
   logic                                          take_branch_out;
   logic                   [63:0]                 take_branch_target;
   FU_CDB_OUT_t                                   FU_CDB_out;
+  FU_SQ_OUT_t                                    FU_SQ_out;
+  FU_LQ_OUT_t                                    FU_LQ_out;
+  logic                                          LSQ_valid;
   MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;
   MAP_TABLE_RS_OUT_t                             Map_Table_RS_out;
   PR_FU_OUT_t                                    PR_FU_out;
@@ -93,6 +98,9 @@ module pipeline (
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
   F_DECODER_OUT_t                                F_decoder_out;
+  // To be modified
+  D_CACHE_SQ_OUT_t                               D_cache_SQ_out;
+  D_CACHE_LQ_OUT_t                               D_cache_LQ_out;
   // memory registers
   logic [1:0] proc2Dmem_command;
   logic [1:0] proc2Imem_command;
@@ -259,6 +267,8 @@ module pipeline (
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
     .decoder_Map_Table_out(decoder_Map_Table_out),
+    .decoder_SQ_out(decoder_SQ_out),
+    .decoder_LQ_out(decoder_LQ_out),
     .illegal(illegal)
   );
 
@@ -286,12 +296,16 @@ module pipeline (
   );
 
   FU fu_0 (
+    // Input
     .clock(clock),
     .reset(reset),
     .ROB_idx(ROB_idx),
     .CDB_valid(CDB_valid),
     .RS_FU_out(RS_FU_out),
     .PR_FU_out(PR_FU_out),
+    .SQ_FU_out(SQ_FU_out),
+    .LQ_FU_out(LQ_FU_out),
+    // Output
     .FU_valid(FU_valid),
     .rollback_en(rollback_en),
     .ROB_rollback_idx(ROB_rollback_idx),
@@ -299,48 +313,51 @@ module pipeline (
     .diff_ROB(diff_ROB),
     .take_branch_out(take_branch_out),
     .take_branch_target(take_branch_target),
-    .FU_CDB_out(FU_CDB_out)
+    .FU_CDB_out(FU_CDB_out),
+    .FU_SQ_out(FU_SQ_out),
+    .FU_LQ_out(FU_LQ_out)
   );
 
   LSQ lsq_0 (
     // Input
-    clock(clock),
-    reset(reset),
-    en(en),
-    dispatch_en(dispatch_en),
-    rollback_en(rollback_en),
-    retire_en(retire_en),
-    CDB_SQ_valid(CDB_SQ_valid),
-    CDB_LQ_valid(CDB_LQ_valid),
-    SQ_rollback_idx(SQ_rollback_idx),
-    LQ_rollback_idx(LQ_rollback_idx),
-    ROB_rollback_idx(ROB_rollback_idx),
-    diff_ROB(diff_ROB),
-    decoder_SQ_out(decoder_SQ_out),
-    decoder_LQ_out(decoder_LQ_out),
-    D_cache_SQ_out(D_cache_SQ_out),
-    D_cache_LQ_out(D_cache_LQ_out),
-    FU_SQ_out(FU_SQ_out),
-    FU_LQ_out(FU_LQ_out),
-    ROB_SQ_out(ROB_SQ_out),
-    ROB_LQ_out(ROB_LQ_out),
-    // Input
-    LSQ_valid(LSQ_valid),
-    SQ_valid(SQ_valid),
-    LQ_valid(LQ_valid),
-    SQ_ROB_out(SQ_ROB_out),
-    SQ_FU_out(SQ_FU_out),
-    LQ_FU_out(LQ_FU_out),
-    SQ_RS_out(SQ_RS_out),
-    LQ_RS_out(LQ_RS_out),
-    SQ_D_cache_out(SQ_D_cache_out),
-    LQ_D_cache_out(LQ_D_cache_out)
+    .clock(clock),
+    .reset(reset),
+    .en(en),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .retire_en(retire_en),
+    .CDB_SQ_valid(CDB_SQ_valid),        // TODO
+    .CDB_LQ_valid(CDB_LQ_valid),        // TODO
+    .SQ_rollback_idx(SQ_rollback_idx),
+    .LQ_rollback_idx(LQ_rollback_idx),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
+    .decoder_SQ_out(decoder_SQ_out),
+    .decoder_LQ_out(decoder_LQ_out),
+    .D_cache_SQ_out(D_cache_SQ_out),    // To be modified
+    .D_cache_LQ_out(D_cache_LQ_out),    // To be modified
+    .FU_SQ_out(FU_SQ_out),              // TODO
+    .FU_LQ_out(FU_LQ_out),              // TODO
+    .ROB_SQ_out(ROB_SQ_out),            // TODO
+    .ROB_LQ_out(ROB_LQ_out),            // TODO
+    // Output
+    .LSQ_valid(LSQ_valid),
+    .SQ_valid(SQ_valid),                // TODO
+    .LQ_valid(LQ_valid),                // TODO
+    .SQ_ROB_out(SQ_ROB_out),            // TODO
+    .SQ_FU_out(SQ_FU_out),              // TODO
+    .LQ_FU_out(LQ_FU_out),              // TODO
+    .SQ_RS_out(SQ_RS_out),
+    .LQ_RS_out(LQ_RS_out),
+    .SQ_D_cache_out(SQ_D_cache_out),
+    .LQ_D_cache_out(LQ_D_cache_out)
   );
 
   Map_Table map_table_0 (
-    .en(en),
+    // Input
     .clock(clock),
     .reset(reset),
+    .en(en),
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .complete_en(complete_en),
@@ -357,9 +374,9 @@ module pipeline (
   );
 
   PR pr_0 (
-    .en(en),
     .clock(clock),
     .reset(reset),
+    .en(en),
     .write_en(write_en),
     .CDB_PR_out(CDB_PR_out),
     .RS_PR_out(RS_PR_out),
@@ -370,9 +387,9 @@ module pipeline (
   );
 
   ROB rob_0 (
-    .en(en),
     .clock(clock),
     .reset(reset),
+    .en(en),
     .dispatch_en(dispatch_en),
     .complete_en(complete_en),
     .rollback_en(rollback_en),
@@ -381,6 +398,7 @@ module pipeline (
     .FL_ROB_out(FL_ROB_out),
     .Map_Table_ROB_out(Map_Table_ROB_out),
     .CDB_ROB_out(CDB_ROB_out),
+    .SQ_ROB_out(SQ_ROB_out),
 `ifdef DEBUG
     .rob(pipeline_ROB),
 `endif
@@ -389,7 +407,9 @@ module pipeline (
     .halt_out(halt_out),
     .ROB_idx(ROB_idx),
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
-    .ROB_FL_out(ROB_FL_out)
+    .ROB_FL_out(ROB_FL_out),
+    .ROB_SQ_out(ROB_SQ_out),
+    .ROB_LQ_out(ROB_LQ_out)
   );
 
   RS rs_0 (
@@ -407,6 +427,8 @@ module pipeline (
     .FL_RS_out(FL_RS_out),
     .Map_Table_RS_out(Map_Table_RS_out),
     .CDB_RS_out(CDB_RS_out),
+    .SQ_RS_out(SQ_RS_out),
+    .LQ_RS_out(LQ_RS_out),
 `ifdef DEBUG
     .RS_out(pipeline_RS),
     .RS_match_hit(RS_match_hit),   // If a RS entry is ready
