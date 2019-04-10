@@ -1,7 +1,7 @@
 `ifndef __SYS_CONFIG_VH__
 `define __SYS_CONFIG_VH__
 
-`define NUM_SUPER      (2)
+`define NUM_SUPER      (2)          //DO NOT CHANGE!!!!!
 `define NUM_ROB        (8)
 `define NUM_PR         (`NUM_ROB + 32)
 `define NUM_FL         (`NUM_ROB)
@@ -18,7 +18,7 @@
 //D cache parameters
 `define MEMORY_BLOCK_SIZE(8)
 `define CACHE_SIZE       (256) //cache size in bytes
-`define LINE_SIZE        (8) // multiple of 8 bytes (memory blocks)
+`define LINE_SIZE        (16) // multiple of 8 bytes (memory blocks)
 `define ADDRESS_BITS     (64) //size of an address in bits
 `define NUM_WAY          (2) //num of lines in a set (NEED MORE THAN 1 !!!!!)
 

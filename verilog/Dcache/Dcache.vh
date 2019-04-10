@@ -12,23 +12,21 @@
 typedef struct packed {
   logic [`NUM_BLOCK-1:0][(MEMORY_BLOCK_SIZE*8-1):0] data;
   logic [`NUM_TAG_BITS-1:0] tag;
+  logic dirty;
   logic [`NUM_BLOCK-1:0] valid;
 } D_CACHE_LINE_t;
 
 typedef struct packed {
-  logic [$clog2(`NUM_ROB)-1:0] head;
-  logic [$clog2(`NUM_ROB)-1:0] tail;
-  ROB_ENTRY_t [`NUM_ROB-1:0] entry;
-} ROB_t;
+    logic [`NUM_TAG_BITS-1:0] tag;
+    logic [$clog2(`NUM_IDX)-1:0] set_index;
+    logic [$clog2(`NUM_BLOCK)-1:0] BO;
+} SASS_ADDR;
 
-typedef struct packed {
-  logic [`NUM_SUPER-1:0] [$clog2(`NUM_PR)-1:0] T_idx;            // T_idx at head to retire to archmap
-  logic [`NUM_SUPER-1:0] [4:0]                 dest_idx;         // T_idx at head to retire to archmap
-} ROB_ARCH_MAP_OUT_t;
-
-typedef struct packed {
-  logic [`NUM_SUPER-1:0] [$clog2(`NUM_PR)-1:0] Told_idx;            // T_idx at head to retire to archmap
-} ROB_FL_OUT_t;
+typedef enum logic {
+  STORE        = 2'b00,
+  LOAD         = 2'b01,
+  EVICT        = 2'b10,
+} MSHR_INST_TYPE;
 
 `endif
 
