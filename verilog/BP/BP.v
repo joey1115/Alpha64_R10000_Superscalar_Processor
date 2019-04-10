@@ -17,8 +17,6 @@ module BP(
   logic  [`NUM_SUPER-1:0]          [`NUM_BH_IDX_BITS-1:0]  bh_idx_FU;
   logic  [2**`NUM_BH_IDX_BITS-1:0] [1:0]                   BHT, next_BHT;
   logic  [2**`NUM_BH_IDX_BITS-1:0] [63:0]                  BTB, next_BTB;
-  // logic  [63:0]                                            BTB_NPC;
-  // logic  [`NUM_SUPER-1:0]          [63:0]                  BTB_take_branch_target;
 
   assign BP_F_out.rollback_en = rollback_en;
 
@@ -27,16 +25,13 @@ module BP(
     for (int i=0; i<`NUM_SUPER; i++) begin
       is_cond_br[i]      = `FALSE;
       is_uncond_br[i]    = `FALSE;
-      // BP_F_out.branch[i] = `FALSE;
       if (F_BP_out.inst_valid[i] && !rollback_en) begin
         case(if_IR_out[i][31:26]) // if_IR_out[i].m.opcode
           `BLBC_INST, `BEQ_INST, `BLT_INST, `BLE_INST, `BLBS_INST, `BNE_INST, `BGE_INST, `BGT_INST: begin
             is_cond_br[i]      = `TRUE;
-            // BP_F_out.branch[i] = `TRUE;
           end
           `BR_INST, `BSR_INST, `JSR_GRP: begin
             is_uncond_br[i]    = `TRUE;
-            // BP_F_out.branch[i] = `TRUE;
           end
           default: begin
           end

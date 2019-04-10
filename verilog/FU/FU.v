@@ -560,7 +560,7 @@ module FU (
       end
       2'b11: begin
         // rollback_en = `TRUE;
-        FU_BP_out.take_branch_selection = (diff_ROB1 < diff_ROB2);
+        FU_BP_out.take_branch_selection = !(diff_ROB1 < diff_ROB2);
         ROB_rollback_idx   = (diff_ROB1 < diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].ROB_idx : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
         FL_rollback_idx    = (diff_ROB1 < diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].FL_idx : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
         // take_branch_target = (diff_ROB1 < diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;

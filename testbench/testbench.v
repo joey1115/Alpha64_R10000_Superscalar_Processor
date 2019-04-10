@@ -10,6 +10,27 @@
 
 `timescale 1ns/100ps
 
+// ******** WARNING !!! *********
+// ******** WARNING !!! *********
+// ******** WARNING !!! *********
+// DANGEROUS FEATURE: HALT_ON_TIMEOUT should always be uncommented
+// unless you know the pipeline will never reach the halt instruction and run forever
+// `define HALT_ON_TIMEOUT
+// After runing for TIMEOUT_CYCLES cycles, halt!
+`define TIMEOUT_CYCLES 4000
+
+
+`define PRINT_DISPATCH_EN
+// `define PRINT_FETCHBUFFER
+// `define PRINT_ROB
+`define PRINT_RS
+// `define PRINT_MAP_TABLE
+// `define PRINT_FREELIST
+// `define PRINT_CDB
+// `define PRINT_ARCHMAP
+// `define PRINT_REG
+// `define PRINT_MEMBUS
+
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
 
@@ -208,7 +229,6 @@ module testbench;
 
     //Open header AFTER throwing the reset otherwise the reset state is displayed
     print_open();
-    // print_header("Cycle:      IF      |     ID      |     EX      |     MEM     |     WB      Reg Result");
   end
 
 
@@ -226,22 +246,6 @@ module testbench;
 
 
   always @(negedge clock) begin
-    if (clock_count > 5000)
-    begin
-        $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
-              show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
-        // 8Bytes per line, 16kB total
-
-        $display("@@  %t : System halted\n@@", $realtime);
-
-        $display(  "@@@ System halted on Timeout");
-        $display("@@@\n@@");
-        show_clk_count;
-        print_close(); // close the pipe_print output file
-        $fclose(wb_fileno);
-        #100 $finish;
-      end
-
     if(reset)
       $display(  "@@\n@@  %t : System STILL at reset, can't show anything\n@@",
             $realtime);
@@ -249,18 +253,30 @@ module testbench;
       `SD;
       `SD;
       print_cycles();
+
       //print dispatch_en
+`ifdef PRINT_DISPATCH_EN
       print_dispatch_en({{(32-1){1'b0}},dispatch_en}, {{(32-1){1'b0}},ROB_valid}, {{(32-1){1'b0}},RS_valid}, {{(32-1){1'b0}},FL_valid}, {{(32-1){1'b0}},rollback_en});
-      // print_fetchbuffer_head({{(32-$clog2(`NUM_FB)){1'b0}},FB_head}, {{(32-$clog2(`NUM_FB)){1'b0}},FB_tail});
-      // for(int i=0; i < `NUM_FB; i++) begin
-      //   print_fetchbuffer_entry(i, pipeline_FB[i].valid, pipeline_FB[i].NPC[63:32], pipeline_FB[i].NPC[31:0], pipeline_FB[i].inst);
-      // end
+`endif
+
+      //print fetch buffer
+`ifdef PRINT_FETCHBUFFER
+      print_fetchbuffer_head({{(32-$clog2(`NUM_FB)){1'b0}},FB_head}, {{(32-$clog2(`NUM_FB)){1'b0}},FB_tail});
+      for(int i=0; i < `NUM_FB; i++) begin
+        print_fetchbuffer_entry(i, pipeline_FB[i].valid, pipeline_FB[i].NPC[63:32], pipeline_FB[i].NPC[31:0], pipeline_FB[i].inst);
+      end
+`endif
+
       // print ROB
-      // print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
-      // for(int i = 0; i < `NUM_ROB; i++) begin
-      // print_ROB_entry(i,{{(32-1){1'b0}},pipeline_ROB.entry[i].valid}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].T_idx}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].Told_idx},{{(32-5){1'b0}},pipeline_ROB.entry[i].dest_idx},{{(32-1){1'b0}},pipeline_ROB.entry[i].complete},{{(32-1){1'b0}},pipeline_ROB.entry[i].halt},{{(32-1){1'b0}},pipeline_ROB.entry[i].illegal}, pipeline_ROB.entry[i].NPC[63:32], pipeline_ROB.entry[i].NPC[31:0]);
-      // end
+`ifdef PRINT_ROB
+      print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
+      for(int i = 0; i < `NUM_ROB; i++) begin
+        print_ROB_entry(i,{{(32-1){1'b0}},pipeline_ROB.entry[i].valid}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].T_idx}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].Told_idx},{{(32-5){1'b0}},pipeline_ROB.entry[i].dest_idx},{{(32-1){1'b0}},pipeline_ROB.entry[i].complete},{{(32-1){1'b0}},pipeline_ROB.entry[i].halt},{{(32-1){1'b0}},pipeline_ROB.entry[i].illegal}, pipeline_ROB.entry[i].NPC[63:32], pipeline_ROB.entry[i].NPC[31:0]);
+      end
+`endif
+
       //print RS
+`ifdef PRINT_RS
       print_RS_head();
       for(int i = 0; i < `NUM_LD; i++) begin
         print_RS_entry("LD  ",
@@ -352,55 +368,56 @@ module testbench;
                       {{(32-2){1'b0}},pipeline_RS[i].opa_select},
                       {{(32-2){1'b0}},pipeline_RS[i].opb_select});
       end
+`endif
 
-      // //print Map table
-      // print_maptable_head();
-      // for(int i = 0; i < 32; i++) begin
-      //   print_maptable_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_MAPTABLE[i].idx},{{(32-1){1'b0}},pipeline_MAPTABLE[i].ready}, pipeline_PR[pipeline_MAPTABLE[i].idx][63:32], pipeline_PR[pipeline_MAPTABLE[i].idx][31:0]);
-      // end
+      //print Map table
+`ifdef PRINT_MAP_TABLE
+      print_maptable_head();
+      for(int i = 0; i < 32; i++) begin
+        print_maptable_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_MAPTABLE[i].idx},{{(32-1){1'b0}},pipeline_MAPTABLE[i].ready}, pipeline_PR[pipeline_MAPTABLE[i].idx][63:32], pipeline_PR[pipeline_MAPTABLE[i].idx][31:0]);
+      end
+`endif
 
-      // //print Freelist
-      // print_freelist_head({{(32 - $clog2(`NUM_ROB)){1'b0}},FL_head}, {{(32 - $clog2(`NUM_ROB)){1'b0}},FL_tail});
-      // for(int i = 0; i < `NUM_ROB; i++) begin
-      //   print_freelist_entry(i,{{(32 - $clog2(`NUM_PR)){1'b0}},pipeline_FL[i]});
-      // end
+      //print Freelist
+`ifdef PRINT_FREELIST
+      print_freelist_head({{(32 - $clog2(`NUM_ROB)){1'b0}},FL_head}, {{(32 - $clog2(`NUM_ROB)){1'b0}},FL_tail});
+      for(int i = 0; i < `NUM_ROB; i++) begin
+        print_freelist_entry(i,{{(32 - $clog2(`NUM_PR)){1'b0}},pipeline_FL[i]});
+      end
+`endif
 
-      // //print CDB
-      // print_CDB_head();
-      // for(int i = 0; i < `NUM_FU; i++) begin
-      //   print_CDB_entries({{(32-1){1'b0}},pipeline_CDB[i].taken}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_CDB[i].T_idx}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_CDB[i].ROB_idx}, {{(32-5){1'b0}},pipeline_CDB[i].dest_idx}, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
-      // end
+      //print CDB
+`ifdef PRINT_CDB
+      print_CDB_head();
+      for(int i = 0; i < `NUM_FU; i++) begin
+        print_CDB_entries({{(32-1){1'b0}},pipeline_CDB[i].taken}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_CDB[i].T_idx}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_CDB[i].ROB_idx}, {{(32-5){1'b0}},pipeline_CDB[i].dest_idx}, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
+      end
+`endif
 
-      // //print archmap
-      // print_archmap_head();
-      // for(int i = 0; i < 32; i++) begin
-      //   print_archmap_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ARCHMAP[i]});
-      // end
-
-      //print PR
-      // print_PR_head();
-
-
-
-      //  print_reg(CDB_PR_out.T_value[0][63:32], CDB_PR_out.T_value[0][31:0],
-      //           CDB_PR_out.T_value[1][63:32], CDB_PR_out.T_value[1][31:0],
-      //           {{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx[0]},{{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx[1]},
-      //           {31'b0,complete_en[0]}, {31'b0,complete_en[1]});
-      //  print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
-      //       proc2mem_addr[63:32], proc2mem_addr[31:0],
-      //       proc2mem_data[63:32], proc2mem_data[31:0]);
+      //print archmap
+`ifdef PRINT_ARCHMAP
+      print_archmap_head();
+      for(int i = 0; i < 32; i++) begin
+        print_archmap_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ARCHMAP[i]});
+      end
+`endif
 
 
-      // print the writeback information to writeback.out
-      // if(pipeline_completed_insts>0) begin
-      //   if(pipeline_commit_wr_en)
-      //     $fdisplay(  wb_fileno, "PC=%x, REG[%d]=%x",
-      //           pipeline_commit_NPC-4,
-      //           pipeline_commit_wr_idx,
-      //           pipeline_commit_wr_data);
-      // else
-      //   $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC-4);
-      // end
+
+      //print reg
+`ifdef PRINT_REG
+      print_reg(CDB_PR_out.T_value[0][63:32], CDB_PR_out.T_value[0][31:0],
+                CDB_PR_out.T_value[1][63:32], CDB_PR_out.T_value[1][31:0],
+                {{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx[0]},{{(32-$clog2(`NUM_PR)){1'b0}},CDB_PR_out.T_idx[1]},
+                {31'b0,complete_en[0]}, {31'b0,complete_en[1]});
+`endif
+
+      //print mem_bus
+`ifdef PRINT_MEMBUS
+      print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
+            proc2mem_addr[63:32], proc2mem_addr[31:0],
+            proc2mem_data[63:32], proc2mem_data[31:0]);
+`endif
 
       if(pipeline_completed_insts>0) begin
         for(int i=0; i < pipeline_completed_insts; i++) begin
@@ -417,6 +434,24 @@ module testbench;
       end
 
       // deal with any halting conditions
+`ifdef HALT_ON_TIMEOUT
+      if (clock_count > `TIMEOUT_CYCLES)
+      begin
+        $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
+        show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
+        // 8Bytes per line, 16kB total
+
+        $display("@@  %t : System halted\n@@", $realtime);
+
+        $display(  "@@@ System halted on Timeout");
+        $display("@@@\n@@");
+        show_clk_count;
+        print_close(); // close the pipe_print output file
+        $fclose(wb_fileno);
+        #100 $finish;
+      end
+`endif
+
       if(pipeline_error_status!=NO_ERROR)
       begin
         $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
