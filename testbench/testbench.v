@@ -226,7 +226,7 @@ module testbench;
 
 
   always @(negedge clock) begin
-    if (clock_count > 2000)
+    if (clock_count > 5000)
     begin
         $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
               show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
