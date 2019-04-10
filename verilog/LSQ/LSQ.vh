@@ -29,10 +29,11 @@ typedef struct packed {
 } SQ_D_CACHE_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0]       hit;
-  logic [`NUM_SUPER-1:0][63:0] value;
-  logic [`NUM_SUPER-1:0]       done;
-  logic [`NUM_SUPER-1:0][60:0] addr;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
+  logic [`NUM_SUPER-1:0]                       hit;
+  logic [`NUM_SUPER-1:0][63:0]                 value;
+  logic [`NUM_SUPER-1:0]                       done;
+  logic [`NUM_SUPER-1:0][60:0]                 addr;
 } SQ_LQ_OUT_t;
 
 typedef struct packed {
