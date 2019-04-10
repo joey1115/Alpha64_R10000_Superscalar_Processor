@@ -17,7 +17,6 @@ typedef struct packed {
 
 typedef struct packed {
   logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0] FL_idx;
 } FL_RS_OUT_t;
 
 typedef struct packed {

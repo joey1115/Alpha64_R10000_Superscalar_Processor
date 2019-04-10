@@ -504,28 +504,61 @@ module FU (
   always_comb begin
     case(take_branch)
       2'b00: begin
-        rollback_en = `FALSE;
+        rollback_en        = `FALSE;
         ROB_rollback_idx   = {`NUM_ROB{1'b0}};
         FL_rollback_idx    = {`NUM_FL{1'b0}};
         take_branch_target = 64'hbaadbeefdeadbeef;
         take_branch_out    = `FALSE;
       end
       2'b01: begin
-        rollback_en = `TRUE;
+        rollback_en        = `TRUE;
         ROB_rollback_idx   = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx;
         FL_rollback_idx    = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
         take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
         take_branch_out    = `TRUE;
       end
       2'b10: begin
-        rollback_en = `TRUE;
+        rollback_en        = `TRUE;
         ROB_rollback_idx   = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].ROB_idx;
         FL_rollback_idx    = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].FL_idx;
         take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result;
         take_branch_out    = `TRUE;
       end
       2'b11: begin
-        rollback_en = `TRUE;
+        rollback_en        = `TRUE;
+        ROB_rollback_idx   = (diff_ROB1 >= diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].ROB_idx;
+        FL_rollback_idx    = (diff_ROB1 >= diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].FL_idx;
+        take_branch_target = (diff_ROB1 >= diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result;
+        take_branch_out    = `TRUE;
+      end
+    endcase
+  end
+
+  always_comb begin
+    case(LQ_violate)
+      2'b00: begin
+        rollback_en        = `FALSE;
+        ROB_rollback_idx   = {`NUM_ROB{1'b0}};
+        FL_rollback_idx    = {`NUM_FL{1'b0}};
+        take_branch_target = 64'hbaadbeefdeadbeef;
+        take_branch_out    = `FALSE;
+      end
+      2'b01: begin
+        rollback_en        = `TRUE;
+        ROB_rollback_idx   = LQ_target_ROB_idx[0];
+        FL_rollback_idx    = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx;
+        take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result;
+        take_branch_out    = `TRUE;
+      end
+      2'b10: begin
+        rollback_en        = `TRUE;
+        ROB_rollback_idx   = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].ROB_idx;
+        FL_rollback_idx    = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].FL_idx;
+        take_branch_target = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result;
+        take_branch_out    = `TRUE;
+      end
+      2'b11: begin
+        rollback_en        = `TRUE;
         ROB_rollback_idx   = (diff_ROB1 >= diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].ROB_idx : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].ROB_idx;
         FL_rollback_idx    = (diff_ROB1 >= diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].FL_idx : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].FL_idx;
         take_branch_target = (diff_ROB1 >= diff_ROB2) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result : FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result;

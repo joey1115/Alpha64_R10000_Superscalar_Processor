@@ -19,10 +19,6 @@ typedef struct packed {
 } SQ_ENTRY_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
-} SQ_RS_OUT_t;
-
-typedef struct packed {
   logic        wr_en;
   logic [60:0] addr;
   logic [63:0] value;
@@ -68,6 +64,8 @@ typedef struct packed {
   logic [60:0]                 addr;
   logic                        valid;
   logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  logic [$clog2(`NUM_FL)-1:0]  FL_idx;
+  logic [$clog2(`NUM_LSQ)-1:0] SQ_idx;
 } LQ_ENTRY_t;
 
 typedef struct packed {
@@ -98,20 +96,22 @@ typedef struct packed {
 }
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
-} LQ_RS_OUT_t;
-
-typedef struct packed {
   logic [`NUM_SUPER-1:0]       rd_en;
   logic [`NUM_SUPER-1:0][60:0] addr;
 } LQ_D_CACHE_OUT_t;
+
+typedef struct packed {
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0] FL_idx;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
+} LQ_TARGET_t;
 
 `define SQ_ENTRY_RESET {61'h0, `FALSE, 64'hbaadbeafdeadbeef}
 `define SQ_ENTRY_RESET_PACKED '{61'h0, `FALSE, 64'hbaadbeafdeadbeef}
 `define SQ_RESET '{`NUM_LSQ{`SQ_ENTRY_RESET}}
 
-`define LQ_ENTRY_RESET {61'h0, `FALSE, {`NUM_ROB{1'b0}}}
-`define LQ_ENTRY_RESET_PACKED '{61'h0, `FALSE, {`NUM_ROB{1'b0}}}
+`define LQ_ENTRY_RESET {61'h0, `FALSE, {`NUM_ROB{1'b0}}, {`NUM_FL{1'b0}}, {`NUM_LSQ{1'b0}}}
 `define LQ_RESET '{`NUM_LSQ{`LQ_ENTRY_RESET}}
 
 // To be removed

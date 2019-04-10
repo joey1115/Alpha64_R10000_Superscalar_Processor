@@ -7,6 +7,9 @@ module RS (
   input  logic              [$clog2(`NUM_ROB)-1:0]                 ROB_rollback_idx,
   input  logic              [$clog2(`NUM_ROB)-1:0]                 diff_ROB,
   input  logic              [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
+  input  logic              [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0]  FL_idx,
+  input  logic              [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx,
+  input  logic              [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx,
   input  DECODER_RS_OUT_t                                          decoder_RS_out,
   input  FL_RS_OUT_t                                               FL_RS_out,
   input  MAP_TABLE_RS_OUT_t                                        Map_Table_RS_out,
@@ -132,6 +135,9 @@ module RS (
       if ( dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
         next_RS[RS_match_idx[i]].busy          = `TRUE;                           // RS entry busy
         next_RS[RS_match_idx[i]].ROB_idx       = ROB_idx[i];                      // op code
+        next_RS[RS_match_idx[i]].FL_idx        = FL_idx[i];                       // Write T1 select
+        next_RS[RS_match_idx[i]].SQ_idx        = SQ_idx[i];                       // Write T1 select
+        next_RS[RS_match_idx[i]].LQ_idx        = LQ_idx[i];                       // Write T1 select
         next_RS[RS_match_idx[i]].inst          = decoder_RS_out.inst[i];          // inst
         next_RS[RS_match_idx[i]].func          = decoder_RS_out.func[i];          // func
         next_RS[RS_match_idx[i]].NPC           = decoder_RS_out.NPC[i];           // Write T1 select
@@ -142,9 +148,6 @@ module RS (
         next_RS[RS_match_idx[i]].cond_branch   = decoder_RS_out.cond_branch[i];   // Output T2_idx
         next_RS[RS_match_idx[i]].wr_mem        = decoder_RS_out.wr_mem[i];        // Output T2_idx
         next_RS[RS_match_idx[i]].rd_mem        = decoder_RS_out.rd_mem[i];        // Output T2_idx
-        next_RS[RS_match_idx[i]].FL_idx        = FL_RS_out.FL_idx[i];             // Write T1 select
-        next_RS[RS_match_idx[i]].SQ_idx        = SQ_RS_out.SQ_idx[i];             // Write T1 select
-        next_RS[RS_match_idx[i]].LQ_idx        = LQ_RS_out.LQ_idx[i];             // Write T1 select
         next_RS[RS_match_idx[i]].T_idx         = FL_RS_out.T_idx[i];              // Write T
         next_RS[RS_match_idx[i]].T1            = Map_Table_RS_out.T1[i];          // Write T1
         next_RS[RS_match_idx[i]].T2            = Map_Table_RS_out.T2[i];          // Write T2
