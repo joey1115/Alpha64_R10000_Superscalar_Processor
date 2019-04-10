@@ -30,7 +30,7 @@ extern void print_dispatch_en(int dispatch_en, int ROB_valid, int RS_valid, int 
 extern void print_freelist_head(int FL_head, int FL_tail);
 extern void print_freelist_entry(int i, int freePR);
 extern void print_fetchbuffer_head(int FB_head, int FB_tail);
-extern void print_fetchbuffer_entry(int i, int NPC_hi, int NPC_lo, int inst);
+extern void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst);
 
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
@@ -226,7 +226,7 @@ module testbench;
 
 
   always @(negedge clock) begin
-    if (clock_count > 50000)
+    if (clock_count > 2000)
     begin
         $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
               show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
@@ -234,7 +234,7 @@ module testbench;
 
         $display("@@  %t : System halted\n@@", $realtime);
 
-        $display(  "@@@ System halted on Time-out");
+        $display(  "@@@ System halted on Timeout");
         $display("@@@\n@@");
         show_clk_count;
         print_close(); // close the pipe_print output file
@@ -251,10 +251,10 @@ module testbench;
       print_cycles();
       //print dispatch_en
       print_dispatch_en({{(32-1){1'b0}},dispatch_en}, {{(32-1){1'b0}},ROB_valid}, {{(32-1){1'b0}},RS_valid}, {{(32-1){1'b0}},FL_valid}, {{(32-1){1'b0}},rollback_en});
-      print_fetchbuffer_head({{(32-$clog2(`NUM_FB)){1'b0}},FB_head}, {{(32-$clog2(`NUM_FB)){1'b0}},FB_tail});
-      for(int i=0; i < `NUM_FB; i++) begin
-        print_fetchbuffer_entry(i, pipeline_FB[i].NPC[63:32], pipeline_FB[i].NPC[31:0], pipeline_FB[i].inst);
-      end
+      // print_fetchbuffer_head({{(32-$clog2(`NUM_FB)){1'b0}},FB_head}, {{(32-$clog2(`NUM_FB)){1'b0}},FB_tail});
+      // for(int i=0; i < `NUM_FB; i++) begin
+      //   print_fetchbuffer_entry(i, pipeline_FB[i].valid, pipeline_FB[i].NPC[63:32], pipeline_FB[i].NPC[31:0], pipeline_FB[i].inst);
+      // end
       // print ROB
       // print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
       // for(int i = 0; i < `NUM_ROB; i++) begin

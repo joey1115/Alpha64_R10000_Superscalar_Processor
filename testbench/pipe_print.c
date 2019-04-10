@@ -319,9 +319,9 @@ void print_fetchbuffer_head(int FB_head, int FB_tail){
   }
 }
 
-void print_fetchbuffer_entry(int i, int NPC_hi, int NPC_lo, int inst){
+void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst){
   if(ppfile != NULL){
-    fprintf(ppfile, " %3d | NPC: %x%x | inst:%x |\n", i, NPC_hi, NPC_lo, inst);
+    fprintf(ppfile, " %3d | valid: %1d | NPC: %x%x | inst:%x |\n", i, valid, NPC_hi, NPC_lo, inst);
   }
 }
 

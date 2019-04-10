@@ -43,8 +43,8 @@ module F_stage(
   assign proc2Imem_addr = {PC_reg[63:3], 3'b0};
 
   // this mux is because the Imem gives us 64 bits not 32 bits
-  assign if_IR_out[0] = Imem2proc_data[31:0];
-  assign if_IR_out[1] = Imem2proc_data[63:32];
+  assign if_IR_out[0] = BP_F_out.inst_valid[0] ? Imem2proc_data[31:0] : `NOOP_INST;
+  assign if_IR_out[1] = BP_F_out.inst_valid[1] ? Imem2proc_data[63:32] : `NOOP_INST;
 
   // default next PC value
   assign PC_plus = (PC_reg[2]) ? (PC_reg + 4) : (PC_reg + (`NUM_SUPER*4)); // Warning: This works for only 2-way Superscalar
@@ -66,7 +66,8 @@ module F_stage(
   assign F_BP_out.inst_valid[0] = (PC_reg[2]) ? `FALSE : Imem_valid;
   assign F_BP_out.inst_valid[1] = Imem_valid;
 
-  assign if_valid_inst_out = BP_F_out.inst_valid;
+  // assign if_valid_inst_out = BP_F_out.inst_valid;
+  assign if_valid_inst_out = {Imem_valid, Imem_valid};
 
   assign if_target_out[0] = BP_F_out.take_branch_out[0] ? BP_F_out.take_branch_target_out:
                             if_NPC_out[0];
