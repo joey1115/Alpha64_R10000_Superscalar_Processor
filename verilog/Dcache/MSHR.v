@@ -29,10 +29,7 @@ module MSHR(
   output SASS_ADDR                                        mem_addr,
 
   //mshr to cache
-
   output logic                                            mshr_valid,
-
-
 
   //mem to mshr
   input logic [3:0]                           mem2proc_response,
