@@ -62,8 +62,10 @@ module Map_Table (
                         FL_Map_Table_out.T_idx[0]: map_table[decoder_Map_Table_out.rega_idx[1]].idx;
   assign T2[1].idx   = (decoder_Map_Table_out.dest_idx[0] == decoder_Map_Table_out.regb_idx[1]) ?
                         FL_Map_Table_out.T_idx[0]: map_table[decoder_Map_Table_out.regb_idx[1]].idx;
-  assign T1[1].ready = (( complete_en[0] && T1[1].idx == CDB_Map_Table_out.T_idx[0] ) || ( complete_en[1] && T1[1].idx == CDB_Map_Table_out.T_idx[1] ) || map_table[decoder_Map_Table_out.rega_idx[1]].ready) && (decoder_Map_Table_out.dest_idx[0] != decoder_Map_Table_out.rega_idx[1]);
-  assign T2[1].ready = (( complete_en[0] && T2[1].idx == CDB_Map_Table_out.T_idx[0] ) || ( complete_en[1] && T2[1].idx == CDB_Map_Table_out.T_idx[1] ) || map_table[decoder_Map_Table_out.regb_idx[1]].ready) && (decoder_Map_Table_out.dest_idx[0] != decoder_Map_Table_out.regb_idx[1]);
+  assign T1[1].ready = (( complete_en[0] && T1[1].idx == CDB_Map_Table_out.T_idx[0] ) || ( complete_en[1] && T1[1].idx == CDB_Map_Table_out.T_idx[1] ) || map_table[decoder_Map_Table_out.rega_idx[1]].ready) 
+                    && ((decoder_Map_Table_out.dest_idx[0] != decoder_Map_Table_out.rega_idx[1]) || T1[1].idx == `ZERO_REG);
+  assign T2[1].ready = (( complete_en[0] && T2[1].idx == CDB_Map_Table_out.T_idx[0] ) || ( complete_en[1] && T2[1].idx == CDB_Map_Table_out.T_idx[1] ) || map_table[decoder_Map_Table_out.regb_idx[1]].ready) 
+                    && ((decoder_Map_Table_out.dest_idx[0] != decoder_Map_Table_out.regb_idx[1]) || T2[1].idx == `ZERO_REG);
 
   //second indec for super scalar!!!!!!!!!!!!!!!!!!!
   always_comb begin
@@ -99,7 +101,7 @@ module Map_Table (
         next_map_table[CDB_Map_Table_out.dest_idx[i]].ready = `TRUE;
       end
       // PR update T_idx
-      if ( dispatch_en ) begin // no dispatch hazard
+      if ( dispatch_en && decoder_Map_Table_out.dest_idx[i] != `ZERO_REG) begin // no dispatch hazard
         next_map_table[decoder_Map_Table_out.dest_idx[i]] = '{FL_Map_Table_out.T_idx[i], `FALSE}; // renew maptable from freelist but not ready yet
       end
     end
