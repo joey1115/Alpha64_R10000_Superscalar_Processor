@@ -417,12 +417,3 @@ endmodule
       end
     endgenerate
   endmodule
-
-  module decoder_using_assign (
-      input logic [$clog2(`NUM_WAY)-1:0] binary_in;
-      output logic [`NUM_WAY-1:0] decoder_out; 
-          );
-
-    assign decoder_out = (1 << binary_in);
-
-  endmodule

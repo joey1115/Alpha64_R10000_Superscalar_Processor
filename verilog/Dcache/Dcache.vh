@@ -20,13 +20,9 @@ typedef struct packed {
     logic [`NUM_TAG_BITS-1:0] tag;
     logic [$clog2(`NUM_IDX)-1:0] set_index;
     logic [$clog2(`NUM_BLOCK)-1:0] BO;
+    logic [2:0] ignore;
 } SASS_ADDR;
 
-typedef enum logic {
-  STORE        = 2'b00,
-  LOAD         = 2'b01,
-  EVICT        = 2'b10,
-} MSHR_INST_TYPE;
 
 `endif
 
