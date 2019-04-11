@@ -676,27 +676,30 @@ module FU (
 
   always_comb begin
     for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i < `NUM_FU; i++) begin
-      FU_CDB_out[i] = FU_out[i];
-    end
-    for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i++) begin
-      FU_CDB_out[i].FU_out.done     = LQ_FU_out.done[i];
-      FU_CDB_out[i].FU_out.result   = LQ_FU_out.result[i];
-      FU_CDB_out[i].FU_out.dest_idx = LQ_FU_out.dest_idx[i];
-      FU_CDB_out[i].FU_out.T_idx    = LQ_FU_out.T_idx[i];
-      FU_CDB_out[i].FU_out.ROB_idx  = LQ_FU_out.ROB_idx[i];
-      FU_CDB_out[i].FU_out.FL_idx   = LQ_FU_out.FL_idx[i];
-      FU_CDB_out[i].FU_out.SQ_idx   = LQ_FU_out.SQ_idx[i];
-      FU_CDB_out[i].FU_out.LQ_idx   = LQ_FU_out.LQ_idx[i];
+      FU_CDB_out.FU_out[i] = FU_out[i];
     end
     for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR; i++) begin
-      FU_CDB_out[i].FU_out.done     = SQ_FU_out.done[i];
-      FU_CDB_out[i].FU_out.result   = SQ_FU_out.result[i];
-      FU_CDB_out[i].FU_out.dest_idx = SQ_FU_out.dest_idx[i];
-      FU_CDB_out[i].FU_out.T_idx    = SQ_FU_out.T_idx[i];
-      FU_CDB_out[i].FU_out.ROB_idx  = SQ_FU_out.ROB_idx[i];
-      FU_CDB_out[i].FU_out.FL_idx   = SQ_FU_out.FL_idx[i];
-      FU_CDB_out[i].FU_out.SQ_idx   = SQ_FU_out.SQ_idx[i];
-      FU_CDB_out[i].FU_out.LQ_idx   = SQ_FU_out.LQ_idx[i];
+      FU_CDB_out.FU_out[i].done     = SQ_FU_out.done[i];
+      FU_CDB_out.FU_out[i].result   = SQ_FU_out.result[i];
+      FU_CDB_out.FU_out[i].dest_idx = SQ_FU_out.dest_idx[i];
+      FU_CDB_out.FU_out[i].T_idx    = SQ_FU_out.T_idx[i];
+      FU_CDB_out.FU_out[i].ROB_idx  = SQ_FU_out.ROB_idx[i];
+      FU_CDB_out.FU_out[i].FL_idx   = SQ_FU_out.FL_idx[i];
+      FU_CDB_out.FU_out[i].SQ_idx   = SQ_FU_out.SQ_idx[i];
+      FU_CDB_out.FU_out[i].LQ_idx   = SQ_FU_out.LQ_idx[i];
+    end
+    for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i++) begin
+      FU_CDB_out.FU_out[i].done     = LQ_FU_out.done[i];
+      FU_CDB_out.FU_out[i].result   = LQ_FU_out.result[i];
+      FU_CDB_out.FU_out[i].dest_idx = LQ_FU_out.dest_idx[i];
+      FU_CDB_out.FU_out[i].T_idx    = LQ_FU_out.T_idx[i];
+      FU_CDB_out.FU_out[i].ROB_idx  = LQ_FU_out.ROB_idx[i];
+      FU_CDB_out.FU_out[i].FL_idx   = LQ_FU_out.FL_idx[i];
+      FU_CDB_out.FU_out[i].SQ_idx   = LQ_FU_out.SQ_idx[i];
+      FU_CDB_out.FU_out[i].LQ_idx   = LQ_FU_out.LQ_idx[i];
+    end
+    for (int i = 0; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i++) begin
+      FU_CDB_out.FU_out[i] = FU_out[i];
     end
   end
 
