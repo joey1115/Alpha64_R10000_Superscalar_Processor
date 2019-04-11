@@ -52,7 +52,7 @@ module F_stage(
   // next PC is target_pc if there is a taken branch or
   // the next sequential PC (PC+4) if no branch
   // (halting is handled with the enable PC_enable;
-  assign next_PC = (BP_F_out.take_branch_selection) ? BP_F_out.take_branch_target_out[1] : BP_F_out.take_branch_target_out[0];
+  assign next_PC = BP_F_out.take_branch_target_out;
   assign take_branch = BP_F_out.take_branch_out[0] || BP_F_out.take_branch_out[1]; 
 
   // The take-branch signal must override stalling (otherwise it may be lost)
