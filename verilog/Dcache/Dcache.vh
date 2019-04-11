@@ -10,10 +10,10 @@
 `endif
 
 typedef struct packed {
-  logic [`NUM_BLOCK-1:0][(MEMORY_BLOCK_SIZE*8-1):0] data;
+  logic [63:0] data;
   logic [`NUM_TAG_BITS-1:0] tag;
   logic dirty;
-  logic [`NUM_BLOCK-1:0] valid;
+  logic valid;
 } D_CACHE_LINE_t;
 
 typedef struct packed {
