@@ -15,18 +15,18 @@
 // ******** WARNING !!! *********
 // DANGEROUS FEATURE: HALT_ON_TIMEOUT should always be uncommented
 // unless you know the pipeline will never reach the halt instruction and run forever
-// `define HALT_ON_TIMEOUT
+`define HALT_ON_TIMEOUT
 // After runing for TIMEOUT_CYCLES cycles, halt!
-`define TIMEOUT_CYCLES 4000
+`define TIMEOUT_CYCLES 6000
 
 
 `define PRINT_DISPATCH_EN
-// `define PRINT_FETCHBUFFER
-// `define PRINT_ROB
+`define PRINT_FETCHBUFFER
+`define PRINT_ROB
 `define PRINT_RS
 // `define PRINT_MAP_TABLE
 // `define PRINT_FREELIST
-// `define PRINT_CDB
+`define PRINT_CDB
 // `define PRINT_ARCHMAP
 // `define PRINT_REG
 // `define PRINT_MEMBUS

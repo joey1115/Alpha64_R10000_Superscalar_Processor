@@ -66,13 +66,21 @@ module FETCH_BUFFER (
 
   always_comb begin
     nFB = FB;
-    if(if_valid_inst_out[0] & fetch_en) begin
+    if(head1 & if_valid_inst_out[0] & fetch_en) begin
       nFB[head].NPC    = if_NPC_out[0];
       nFB[head].inst   = if_IR_out[0];
       nFB[head].target = if_target_out[0];
       nFB[head].valid  = 1;
-    end
-    if(if_valid_inst_out[1] & fetch_en) begin
+    end else if(head1 & if_valid_inst_out[1] & fetch_en) begin
+      nFB[head].NPC    = if_NPC_out[1];
+      nFB[head].inst   = if_IR_out[1];
+      nFB[head].target = if_target_out[1];
+      nFB[head].valid  = 1;
+    end else if (head2 & fetch_en) begin
+      nFB[head].NPC    = if_NPC_out[0];
+      nFB[head].inst   = if_IR_out[0];
+      nFB[head].target = if_target_out[0];
+      nFB[head].valid  = 1;
       nFB[head_plus_one].NPC    = if_NPC_out[1];
       nFB[head_plus_one].inst   = if_IR_out[1];
       nFB[head_plus_one].target = if_target_out[1];

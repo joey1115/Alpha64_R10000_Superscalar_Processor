@@ -62,8 +62,8 @@ module ROB (
   //assign halt out
   assign halt_out =  (retire_en[0] && rob.entry[rob.head].halt) || (retire_en[1] && rob.entry[head_plus_one].halt);
   assign illegal_out =  (retire_en[0] && rob.entry[rob.head].illegal) || (retire_en[1] && rob.entry[head_plus_one].illegal);
-  assign ROB_idx[0] = rob.tail;
-  assign ROB_idx[1] = tail_plus_one;
+  assign ROB_idx[0] = dispatch_en ? rob.tail : (tail_minus_one - 1);
+  assign ROB_idx[1] = dispatch_en ? tail_plus_one : tail_minus_one;
 
   always_comb begin
     retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid;

@@ -67,7 +67,7 @@ module F_stage(
   assign F_BP_out.inst_valid[1] = Imem_valid;
 
   // assign if_valid_inst_out = BP_F_out.inst_valid;
-  assign if_valid_inst_out = {Imem_valid, Imem_valid};
+  assign if_valid_inst_out = BP_F_out.inst_valid;
 
   assign if_target_out[0] = BP_F_out.take_branch_out[0] ? BP_F_out.take_branch_target_out:
                             if_NPC_out[0];
