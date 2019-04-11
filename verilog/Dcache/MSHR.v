@@ -56,6 +56,9 @@ module MSHR(
   parameter TWO_LINE_ADD = 2*`NUM_BLOCK;
   parameter THREE_LINE_ADD = 3*`NUM_BLOCK;
   parameter FOUR_LINE_ADD = 4*`NUM_BLOCK;
+  parameter FIVE_LINE_ADD = 5*`NUM_BLOCK;
+  parameter SIX_LINE_ADD = 6*`NUM_BLOCK;
+  parameter SEVEN_LINE_ADD = 7*`NUM_BLOCK;
 
   //MSHR queue
   MSHR_ENTRY_t [MSHR_DEPTH-1:0] MSHR_queue, next_MSHR_queue;

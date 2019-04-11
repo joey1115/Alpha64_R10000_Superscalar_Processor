@@ -28,7 +28,7 @@
 `define NUM_BLOCK        (`LINE_SIZE / `MEMORY_BLOCK_SIZE) // number of BLOCKS PER LINE, block offset fixed to 2!!!!!!
 `define NUM_TAG_BITS     (`ADDRESS_BITS - $clog2(`NUM_IDX) - $clog2(`NUM_BLOCK) - 3)
 
-`define MSHR_DEPTH       (`NUM_BLOCK*8) // num of blocks need multiple of NUM_BLOCKS
+`define MSHR_DEPTH       (`NUM_BLOCK*16) // num of blocks need multiple of NUM_BLOCKS
 
 `define DEBUG
 // `define MULT_FORWARDING
