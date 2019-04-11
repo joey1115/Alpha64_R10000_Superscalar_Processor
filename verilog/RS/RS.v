@@ -95,7 +95,7 @@ module RS (
   always_comb begin
     for (int j = 0; j < `NUM_FU; j++) begin
       diff[j]        = RS[j].ROB_idx - ROB_rollback_idx;       // diff
-      RS_rollback[j] = ( diff_ROB >= diff[j] ) && rollback_en; // Rollback
+      RS_rollback[j] = ( diff_ROB > diff[j] ) && rollback_en; // Rollback
     end // for (int i = 0; i < `NUM_FU; i++) begin
   end // always_comb begin
 

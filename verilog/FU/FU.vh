@@ -43,6 +43,17 @@ typedef struct packed {
   logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
 } FU_OUT_t;
 
+`define FU_OUT_RESET '{     \
+  `FALSE,                   \
+  64'hbaadbeefdeadbeef,     \
+  `ZERO_REG,                \
+  `ZERO_PR,                 \
+  {$clog2(`NUM_ROB){1'b0}}, \
+  {$clog2(`NUM_FL){1'b0}},  \
+  {$clog2(`NUM_SQ){1'b0}},  \
+  {$clog2(`NUM_LQ){1'b0}},  \
+}
+
 typedef struct packed {
   FU_OUT_t [`NUM_FU-1:0] FU_out;
 } FU_CDB_OUT_t;
@@ -115,5 +126,12 @@ typedef struct packed {
   {$clog2(`NUM_LSQ){1'b0}},  \
   {$clog2(`NUM_LSQ){1'b0}}   \
 }
+
+typedef struct packed {
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  logic [$clog2(`NUM_FL)-1:0]  FL_idx;
+  logic [$clog2(`NUM_LSQ)-1:0] SQ_idx;
+  logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
+} BR_TARGET_t;
 
 `endif

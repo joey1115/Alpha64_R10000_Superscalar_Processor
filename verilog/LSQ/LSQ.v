@@ -141,7 +141,7 @@ module SQ (
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       diff[i]           = SQ_FU_out.ROB_idx[i] - ROB_rollback_idx;
-      rollback_valid[i] = rollback_en && diff_ROB >= diff[i];
+      rollback_valid[i] = rollback_en && diff_ROB > diff[i];
     end
   end
 
@@ -331,7 +331,7 @@ module LQ (
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       diff[i]           = FU_LQ_out.ROB_idx[i] - ROB_rollback_idx;
-      rollback_valid[i] = rollback_en && diff_ROB >= diff[i];
+      rollback_valid[i] = rollback_en && diff_ROB > diff[i];
     end
   end
 

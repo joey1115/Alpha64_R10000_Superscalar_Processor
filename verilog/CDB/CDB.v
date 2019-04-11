@@ -1,26 +1,3 @@
-/*****************CDB******************
-*   Fetch
-*   Dispatch
-*   Issue
-*   Execute
-*     Input: rollback_en (X/C)
-*     Input: ROB_rollback_idx (br module, LSQ)
-*     Input: diff_ROB (FU)    // diff_ROB = ROB_tail of the current cycle - ROB_rollback idx
-*   Complete
-*     Input: done   (X/C)  // taken signal from FU
-*     Input: T_idx     (X/C)  // tag from FU
-*     Input: ROB_idx   (X/C)
-*     Input: FU_out (X/C)  // result from FU
-*     Input: dest_idx  (X/C)
-*     Output: CDB_valid (FU)  // full entry means hazard(taken=0, entry is free)
-*     Output: complete_en (RS, ROB, Map table) 
-*     Output: write_en (PR)   // taken signal to PR
-*     Output: T_idx    (PR)   // tag to PR
-*     Output: T_value  (PR)   // result to PR
-*     Output: dest_idx (Map table)
-*   Retire
-***************************************/
-
 `timescale 1ns/100ps
 
 module CDB (
@@ -91,7 +68,7 @@ module CDB (
     if (rollback_en) begin
       for (int i=0; i<`NUM_FU; i++)begin
         diff[i] = CDB[i].ROB_idx - ROB_rollback_idx;
-        rollback_valid[i] = diff_ROB >= diff[i];
+        rollback_valid[i] = diff_ROB > diff[i];
       end
     end
   end

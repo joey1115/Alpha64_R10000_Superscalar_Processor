@@ -44,7 +44,6 @@ module FL (
   assign tail_plus_two   = tail + 2;
   assign head_plus_one   = head + 1;
   assign head_plus_two   = head + 2;
-  assign FL_idx          = '{tail_plus_two, tail_plus_one};
 
   always_comb begin
     if (decoder_FL_out.dest_idx[0] != `ZERO_REG && decoder_FL_out.dest_idx[1] != `ZERO_REG) begin
