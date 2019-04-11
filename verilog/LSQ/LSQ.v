@@ -141,7 +141,7 @@ module SQ (
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       diff[i]           = SQ_FU_out.ROB_idx[i] - ROB_rollback_idx;
-      rollback_valid[i] = rollback_en && diff_ROB > diff[i];
+      rollback_valid[i] = rollback_en && diff_ROB >= diff[i];
     end
   end
 
@@ -285,6 +285,7 @@ module LQ (
       LQ_target.FL_idx[i]  = lq[lq_map_idx[ld_idx[i]]].FL_idx;
       LQ_target.SQ_idx[i]  = lq[lq_map_idx[ld_idx[i]]].SQ_idx;
       LQ_target.LQ_idx[i]  = lq_map_idx[ld_idx[i]];
+      LQ_target.NPC[i]     = lq[lq_map_idx[ld_idx[i]]].NPC;
     end
   end
 
@@ -331,7 +332,7 @@ module LQ (
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       diff[i]           = FU_LQ_out.ROB_idx[i] - ROB_rollback_idx;
-      rollback_valid[i] = rollback_en && diff_ROB > diff[i];
+      rollback_valid[i] = rollback_en && diff_ROB >= diff[i];
     end
   end
 
@@ -346,6 +347,7 @@ module LQ (
         next_LQ_FU_out.FL_idx[i]   = {$clog2(`NUM_FL){1'b0}};
         next_LQ_FU_out.SQ_idx[i]   = {$clog2(`NUM_LSQ){1'b0}};
         next_LQ_FU_out.LQ_idx[i]   = {$clog2(`NUM_LSQ){1'b0}};
+        next_LQ_FU_out.NPC[i]      = 64'hbaadbeefdeadbeef;
       end else begin
         next_LQ_FU_out.done[i]     = D_cache_LQ_out.valid[i] || ld_hit[i];
         next_LQ_FU_out.result[i]   = D_cache_LQ_out.value[i];
@@ -355,6 +357,7 @@ module LQ (
         next_LQ_FU_out.FL_idx[i]   = FU_LQ_out.FL_idx[i];
         next_LQ_FU_out.SQ_idx[i]   = FU_LQ_out.SQ_idx[i];
         next_LQ_FU_out.LQ_idx[i]   = FU_LQ_out.LQ_idx[i];
+        next_LQ_FU_out.NPC[i]      = FU_LQ_out.NPC[i];
       end
     end
   end

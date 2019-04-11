@@ -52,6 +52,7 @@ module ROB (
   //assign ROB_valid
   assign stall_dispatch = (state == 1);
   //!Nrob.entry[Nrob.tail].valid
+  assign ROB_rollback_idx_minus_one = ROB_rollback_idx - 1;
   assign tail_plus_one = rob.tail + 1;
   assign tail_minus_one = rob.tail - 1;
   assign head_plus_one = rob.head + 1;
@@ -65,8 +66,8 @@ module ROB (
   //assign halt out
   assign halt_out =  (retire_en[0] && rob.entry[rob.head].halt) || (retire_en[1] && rob.entry[head_plus_one].halt);
   assign illegal_out =  (retire_en[0] && rob.entry[rob.head].illegal) || (retire_en[1] && rob.entry[head_plus_one].illegal);
-  assign ROB_idx[0] = rob.tail;
-  assign ROB_idx[1] = tail_plus_one;
+  assign ROB_idx[0] = tail_minus_one - 1;
+  assign ROB_idx[1] = tail_minus_one;
 
   always_comb begin
     retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid;
@@ -128,33 +129,33 @@ module ROB (
     end
 
     //rollback functionality
-    b_t = ROB_rollback_idx >= rob.tail;
+    b_t = ROB_rollback_idx_minus_one >= rob.tail;
 
-    mispredict = rollback_en && rob.entry[ROB_rollback_idx].valid;
+    mispredict = rollback_en && rob.entry[ROB_rollback_idx_minus_one].valid;
 
     if(mispredict) begin
         if(b_t) begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush only branch less than tail and greater than branch
-            if( i < rob.tail || i > ROB_rollback_idx)
+            if( i < rob.tail || i > ROB_rollback_idx_minus_one)
               Nrob.entry[i].valid = 0;
           end
         end
         else begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush instructions between tail and branch
-            if( i < rob.tail && i > ROB_rollback_idx)
+            if( i < rob.tail && i > ROB_rollback_idx_minus_one)
               Nrob.entry[i].valid = 0;
           end
         end
         //move tail index to after branch
-        Nrob.tail = ROB_rollback_idx + 1;
+        Nrob.tail = ROB_rollback_idx;
     end
     
    
   end
 
-  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx : ROB_rollback_idx_reg;
+  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx_minus_one : ROB_rollback_idx_reg;
 
   always_comb begin
     case(state)

@@ -68,7 +68,7 @@ module CDB (
     if (rollback_en) begin
       for (int i=0; i<`NUM_FU; i++)begin
         diff[i] = CDB[i].ROB_idx - ROB_rollback_idx;
-        rollback_valid[i] = diff_ROB > diff[i];
+        rollback_valid[i] = diff_ROB >= diff[i];
       end
     end
   end

@@ -66,6 +66,7 @@ typedef struct packed {
   logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic [$clog2(`NUM_FL)-1:0]  FL_idx;
   logic [$clog2(`NUM_LSQ)-1:0] SQ_idx;
+  logic [63:0]                 NPC;
 } LQ_ENTRY_t;
 
 typedef struct packed {
