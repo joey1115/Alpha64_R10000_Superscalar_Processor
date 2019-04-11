@@ -30,6 +30,7 @@ typedef struct packed {
   ALU_OPB_SELECT                        opb_select;
   logic                                 uncond_branch;
   logic                                 cond_branch;
+  logic          [63:0]                 target;
 } FU_IN_t;
 
 typedef struct packed {
@@ -138,4 +139,11 @@ typedef struct packed {
   logic [63:0]                 result;
 } BR_TARGET_t;
 
+typedef struct packed {
+  logic [`NUM_SUPER-1:0]          is_branch_out;              // whether BTB and BHT should be updated
+  logic [`NUM_SUPER-1:0]          take_branch_out;            // branch taken or not
+  logic [`NUM_SUPER-1:0][63:0]    take_branch_target_out;     // if taken, target
+  logic [`NUM_SUPER-1:0][63:0]    take_branch_NPC_out;        // branch inst NPC
+  logic                           take_branch_selection;      // select which is rollback
+} FU_BP_OUT_t;
 `endif

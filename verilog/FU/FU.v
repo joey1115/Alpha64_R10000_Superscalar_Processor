@@ -503,12 +503,14 @@ module FU (
   output logic        [63:0]                                 take_branch_target,
   output FU_CDB_OUT_t                                        FU_CDB_out,
   output FU_SQ_OUT_t                                         FU_SQ_out,
-  output FU_LQ_OUT_t                                         FU_LQ_out
+  output FU_LQ_OUT_t                                         FU_LQ_out,
+  output FU_BP_OUT_t                                         FU_BP_out
 );
 
   FU_OUT_t       [`NUM_FU-1:0]          FU_out;
   FU_IN_t        [`NUM_FU-1:0]          FU_in;
   logic          [`NUM_BR-1:0]          take_branch;
+  logic          [`NUM_BR-1:0] [63:0]   NPC;
   FU_IDX_ENTRY_t [`NUM_FU-1:0]          FU_T_idx;
   logic          [$clog2(`NUM_ROB)-1:0] diff_ROB1, diff_ROB2;
   LD_OUT_t       [`NUM_SUPER-1:0]       ST_out;
@@ -520,8 +522,22 @@ module FU (
   assign diff_ROB3  = ROB_idx[1] - LD_target.ROB_idx[0];
   assign diff_ROB4  = ROB_idx[1] - LD_target.ROB_idx[1];
 
+
+  assign FU_BP_out.is_branch_out = {FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].done, FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].done};
+  assign FU_BP_out.take_branch_out = take_branch;
+  assign FU_BP_out.take_branch_target_out[1] = (take_branch[1]) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result : NPC[1];
+  assign FU_BP_out.take_branch_target_out[0] = (take_branch[0]) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result   : NPC[0];
+  assign FU_BP_out.take_branch_NPC_out = NPC;
+
+  assign predict_wrong[1] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].done
+           && (FU_in[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].target != FU_BP_out.take_branch_target_out[1]);
+  assign predict_wrong[0] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].done
+           && (FU_in[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].target   != FU_BP_out.take_branch_target_out[0]);
+
+  assign rollback_en = predict_wrong[1] || predict_wrong[0];
+
   always_comb begin
-    case(take_branch)
+    case(predict_wrong)
       2'b00: begin
         rollback_en1        = `FALSE;
         ROB_rollback_idx1   = {`NUM_ROB{1'b0}};
@@ -639,6 +655,8 @@ module FU (
     endcase
   end
 
+
+
   always_comb begin
     for (int i = 0; i < `NUM_FU; i++) begin
       FU_in[i].ready         = RS_FU_out.FU_packet[i].ready;    // If an entry is ready
@@ -655,6 +673,7 @@ module FU (
       FU_in[i].opb_select    = RS_FU_out.FU_packet[i].opb_select;
       FU_in[i].uncond_branch = RS_FU_out.FU_packet[i].uncond_branch;
       FU_in[i].cond_branch   = RS_FU_out.FU_packet[i].cond_branch;
+      FU_in[i].target        = RS_FU_out.FU_packet[i].target;
       FU_in[i].T1_value      = PR_FU_out.T1_value[i]; // T1 idx
       FU_in[i].T2_value      = PR_FU_out.T2_value[i]; // T2 idx
     end

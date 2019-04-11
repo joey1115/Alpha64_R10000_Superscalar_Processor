@@ -113,6 +113,7 @@ module RS (
       FU_packet[j].cond_branch   = RS[j].cond_branch;   // Output T2_idx
       FU_packet[j].wr_mem        = RS[j].wr_mem;        // Output T2_idx
       FU_packet[j].rd_mem        = RS[j].rd_mem;        // Output T2_idx
+      FU_packet[j].target        = RS[j].target;
       FU_packet[j].FL_idx        = RS[j].FL_idx;        // op code
       FU_T_idx[j].SQ_idx         = RS[j].SQ_idx;        // Output T1_idx
       FU_T_idx[j].LQ_idx         = RS[j].LQ_idx;        // Output T2_idx
@@ -148,6 +149,7 @@ module RS (
         next_RS[RS_match_idx[i]].cond_branch   = decoder_RS_out.cond_branch[i];   // Output T2_idx
         next_RS[RS_match_idx[i]].wr_mem        = decoder_RS_out.wr_mem[i];        // Output T2_idx
         next_RS[RS_match_idx[i]].rd_mem        = decoder_RS_out.rd_mem[i];        // Output T2_idx
+        next_RS[RS_match_idx[i]].target        = decoder_RS_out.target[i];
         next_RS[RS_match_idx[i]].T_idx         = FL_RS_out.T_idx[i];              // Write T
         next_RS[RS_match_idx[i]].T1            = Map_Table_RS_out.T1[i];          // Write T1
         next_RS[RS_match_idx[i]].T2            = Map_Table_RS_out.T2[i];          // Write T2
