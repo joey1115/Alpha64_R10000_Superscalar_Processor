@@ -11,9 +11,8 @@ module ROB (
   input  FL_ROB_OUT_t                                               FL_ROB_out,
   input  MAP_TABLE_ROB_OUT_t                                        Map_Table_ROB_out,
   input  CDB_ROB_OUT_t                                              CDB_ROB_out,
-  input  SQ_ROB_OUT_t                                               SQ_ROB_out,
-  //Outputs
-`ifdef DEBUG
+  //Outputs                
+`ifdef DEBUG                
   output ROB_t                                                      rob,
   output logic               [`NUM_SUPER-1:0][63:0]                 retire_NPC,
 `endif                
@@ -23,9 +22,7 @@ module ROB (
   output logic                                                      illegal_out,
   output logic               [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
   output ROB_ARCH_MAP_OUT_t                                         ROB_Arch_Map_out,
-  output ROB_FL_OUT_t                                               ROB_FL_out,
-  output ROB_SQ_OUT_t                                               ROB_SQ_out,
-  output ROB_LQ_OUT_t                                               ROB_LQ_out
+  output ROB_FL_OUT_t                                               ROB_FL_out
 );
 
 `ifndef DEBUG
@@ -56,9 +53,9 @@ module ROB (
   assign tail_minus_one = rob.tail - 1;
   assign head_plus_one = rob.head + 1;
   assign ROB_rollback_idx_reg_plus_one = ROB_rollback_idx_reg + 1;
-  
+
   assign ROB_valid = (stall_dispatch | rollback_en)? 0 : (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]);
-  
+
   //(tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
 
   //assign ROB_valid = tail_plus_one!=rob.head;
@@ -106,8 +103,7 @@ module ROB (
     Nrob.entry[rob.tail].NPC = (writeTail) ? decoder_ROB_out.NPC[0] : Nrob.entry[rob.tail].NPC;
     Nrob.entry[tail_plus_one].NPC = (writeTail) ? decoder_ROB_out.NPC[1] : Nrob.entry[tail_plus_one].NPC;
 
-    
-  
+
     //update valid and complete bits of entry
     if(rob.head != rob.tail) begin
       Nrob.entry[rob.head].valid = (moveHead) ? 0 : Nrob.entry[rob.head].valid;

@@ -109,9 +109,10 @@ module Map_Table (
   always_comb begin
     next_backup_map_table = backup_map_table;
     if ( dispatch_en ) begin                                // no dispatch hazard
-      for(int j=0; j < `NUM_SUPER; j++) begin
-        next_backup_map_table[ROB_idx[j]] = next_map_table; // backup the map
-      end
+      next_backup_map_table[ROB_idx[0]] = next_map_table; // backup the map with first inst dispatched only
+      next_backup_map_table[ROB_idx[0]][decoder_Map_Table_out.dest_idx[1]] = map_table[decoder_Map_Table_out.dest_idx[1]]; // return back the old entry of dispatch 1
+
+      next_backup_map_table[ROB_idx[1]] = next_map_table;
       
       for (int i=0; i<32;i++) begin
         for(int j=0; j < `NUM_SUPER; j++) begin

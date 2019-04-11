@@ -32,7 +32,7 @@ LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 SYNTH_DIR = ./synth
 
-PROGRAM = test_progs/mult_no_lsq.s
+PROGRAM = test_progs/maptable_history_test.s
 ASSEMBLED = program.mem
 ASSEMBLER = vs-asm
 
@@ -42,6 +42,7 @@ HEADERS       = $(wildcard *.vh)
 HEADERS      += $(wildcard verilog/Arch_Map/Arch_Map.vh)
 HEADERS      += $(wildcard verilog/CDB/CDB.vh)
 HEADERS      += $(wildcard verilog/decoder/decoder.vh)
+HEADERS      += $(wildcard verilog/FETCH_BUFFER/FETCH_BUFFER.vh)
 HEADERS      += $(wildcard verilog/FL/FL.vh)
 HEADERS      += $(wildcard verilog/FU/FU.vh)
 HEADERS      += $(wildcard verilog/Map_Table/Map_Table.vh)
@@ -55,6 +56,7 @@ ARCHMAPFILES  = $(wildcard verilog/Arch_Map/Arch_Map.v)
 CACHEFILES    = $(wildcard verilog/cache/cachemem.v)
 CDBFILES      = $(wildcard verilog/CDB/CDB.v)
 DECODERFILES  = $(wildcard verilog/decoder/decoder.v)
+FBFILES       = $(wildcard verilog/FETCH_BUFFER/FETCH_BUFFER.v)
 FLFILES       = $(wildcard verilog/FL/FL.v)
 FUFILES       = $(wildcard verilog/FU/FU.v)
 MAPTABLEFILES = $(wildcard verilog/Map_Table/Map_Table.v)
@@ -62,7 +64,7 @@ PRFILES       = $(wildcard verilog/PR/PR.v)
 ROBFILES      = $(wildcard verilog/ROB/ROB.v)
 RSFILES       = $(wildcard verilog/RS/RS.v)
 
-SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES)
+SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FBFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES) $(FBFILES)
 
 # SYNTHESIS CONFIG
 

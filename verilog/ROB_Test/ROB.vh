@@ -36,13 +36,23 @@ typedef struct packed {
 } ROB_FL_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0]                       wr_mem;
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
-} ROB_SQ_OUT_t;
+  logic [`NUM_SUPER-1:0]       halt;
+  logic [`NUM_SUPER-1:0][4:0]  dest_idx;
+  logic [`NUM_SUPER-1:0]       illegal;
+  logic [`NUM_SUPER-1:0][63:0] NPC;
+} DECODER_ROB_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0] rd_mem;
-} ROB_LQ_OUT_t;
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;
+} FL_ROB_OUT_t;
+
+typedef struct packed {
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] Told_idx;           // output Told to ROB
+} MAP_TABLE_ROB_OUT_t;
+
+typedef struct packed {
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;         // tag to PR
+} CDB_ROB_OUT_t;
 
 `endif
 

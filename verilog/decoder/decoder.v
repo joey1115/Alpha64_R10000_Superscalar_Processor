@@ -1,7 +1,7 @@
 `timescale 1ns/100ps
 
 module decoder(
-  input  F_DECODER_OUT_t         F_decoder_out,
+  input  FB_DECODER_OUT_t         FB_decoder_out,
   output DECODER_ROB_OUT_t       decoder_ROB_out,
   output DECODER_RS_OUT_t        decoder_RS_out,
   output DECODER_FL_OUT_t        decoder_FL_out,
