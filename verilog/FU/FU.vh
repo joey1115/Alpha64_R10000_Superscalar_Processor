@@ -98,7 +98,8 @@ typedef struct packed {
   logic [`NUM_SUPER-1:0][4:0]                  dest_idx;
   logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0]  T_idx;   // Dest idx
   logic [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx; // Dest idx
-  
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx; // Dest idx
+  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx; // Dest idx
 } FU_LQ_OUT_t;
 
 typedef struct packed {

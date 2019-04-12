@@ -83,10 +83,7 @@ typedef struct packed {
   {`NUM_SUPER{64'hbaadbeafdeadbeef}},     \
   {`NUM_SUPER{`ZERO_REG}},                \
   {`NUM_SUPER{`ZERO_PR}},                 \
-  {`NUM_SUPER{{$clog2(`NUM_ROB){1'b0}}}}, \
-  {`NUM_SUPER{{$clog2(`NUM_FL){1'b0}}}},  \
-  {`NUM_SUPER{{$clog2(`NUM_LSQ){1'b0}}}}, \
-  {`NUM_SUPER{{$clog2(`NUM_LSQ){1'b0}}}}  \
+  {`NUM_SUPER{{$clog2(`NUM_ROB){1'b0}}}}  \
 }
 
 typedef struct packed {

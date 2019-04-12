@@ -245,7 +245,7 @@ module LQ (
       LQ_BP_out.LQ_target[i].ROB_idx    = lq[lq_map_idx[ld_idx[i]]].ROB_idx;
       LQ_BP_out.LQ_target[i].FL_idx     = lq[lq_map_idx[ld_idx[i]]].FL_idx;
       LQ_BP_out.LQ_target[i].SQ_idx     = lq[lq_map_idx[ld_idx[i]]].SQ_idx;
-      LQ_BP_out.LQ_target[i].LQ_idx     = lq_map_id[i]];
+      LQ_BP_out.LQ_target[i].LQ_idx     = lq_map_idx[ld_idx[i]];
       LQ_BP_out.LQ_target[i].target_PC  = lq[lq_map_idx[ld_idx[i]]].PC;
       LQ_BP_out.LQ_target[i].LQ_violate = ld_hit[i];
       LQ_BP_out.LQ_target[i].done       = LQ_FU_out.done[0];
@@ -560,8 +560,6 @@ module LSQ (
     .dispatch_valid   (LQ_dispatch_valid),
     .LQ_valid         (LQ_valid),
     .LQ_idx           (LQ_idx),
-    .LQ_violate       (LQ_violate),
-    .LQ_target        (LQ_target),
     .LQ_SQ_out        (LQ_SQ_out),
     .LQ_FU_out        (LQ_FU_out),
     .LQ_D_cache_out   (LQ_D_cache_out),

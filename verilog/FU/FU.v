@@ -520,6 +520,8 @@ module FU (
       FU_LQ_out.dest_idx[i] = LD_out[i].dest_idx;
       FU_LQ_out.T_idx[i]    = LD_out[i].T_idx;
       FU_LQ_out.ROB_idx[i]  = LD_out[i].ROB_idx;
+      FU_LQ_out.SQ_idx[i]   = LD_out[i].SQ_idx;
+      FU_LQ_out.LQ_idx[i]   = LD_out[i].LQ_idx;
     end
   end
 
