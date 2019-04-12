@@ -8,20 +8,19 @@ module MSHR(
   input logic                                                    stored,
       
   //storing to the MSHR      
-  input logic [3:0]                                              miss_en,
-  input SASS_ADDR [3:0]                                          miss_addr,
-  input logic [2:0][`NUM_BLOCK-1:0][(MEMORY_BLOCK_SIZE*8-1):0]   miss_data_in,
-  input logic [`NUM_BLOCK-1:0][(MEMORY_BLOCK_SIZE*8-1):0]        evict_data_in,
-  input MSHR_INST_TYPE [3:0]                                     inst_type,
-  input logic [3:0][1:0]                                         mshr_proc2mem_command,
+  input logic [2:0]                                              miss_en,
+  input SASS_ADDR [2:0]                                          miss_addr,
+  input logic [2:0][63:0]                                        miss_data_in,
+  input MSHR_INST_TYPE [2:0]                                     inst_type,
+  input logic [2:0][1:0]                                         mshr_proc2mem_command,
       
   //looking up the MSHR      
-  input SASS_ADDR [2:0]                                          search_addr, //address to search
-  input MSHR_INST_TYPE [2:0]                                     search_type, //address search type (might not need)
+  input SASS_ADDR [1:0]                                          search_addr, //address to search
+  input MSHR_INST_TYPE [1:0]                                     search_type, //address search type (might not need)
       
   output logic [1:0][63:0]                                       miss_data, //data returned
   output logic [1:0]                                             miss_data_valid, //if data returned is correct
-  output logic [2:0]                                             miss_addr_hit, // if address search in the MSHR
+  output logic [1:0]                                             miss_addr_hit, // if address search in the MSHR
       
   output logic                                                   mem_wr,
   output logic                                                   mem_dirty,
@@ -38,19 +37,18 @@ module MSHR(
   output logic [63:0]                                            wr_wb_data,
   output SASS_ADDR                                               wr_wb_addr,
 
-      
   //mshr to cache      
   output logic                                                   mshr_valid,
 
   //mem to mshr
-  input logic [3:0]                           mem2proc_response,
-  input logic [63:0]                          mem2proc_data,     // data resulting from a load
-  input logic [3:0]                           mem2proc_tag,       // 0 = no value, other=tag of transaction
+  input logic [3:0]                                             mem2proc_response,
+  input logic [63:0]                                            mem2proc_data,     // data resulting from a load
+  input logic [3:0]                                             mem2proc_tag,       // 0 = no value, other=tag of transaction
 
   //cache to mshr
-  output logic [63:0]                         proc2mem_addr,
-  output logic [63:0]                         proc2mem_data,
-  output logic [1:0]                          proc2mem_command
+  output logic [63:0]                                           proc2mem_addr,
+  output logic [63:0]                                           proc2mem_data,
+  output logic [1:0]                                            proc2mem_command
 );
 
 //need to be able to extend the addrs automatically to whole cache line

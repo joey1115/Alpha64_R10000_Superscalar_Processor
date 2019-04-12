@@ -25,18 +25,22 @@ module Dcache_controller(
     output logic [63:0]                                                           wr1_data,
 
     //MSHR to cache                                 
+    input logic                                                                   mshr_valid,
+
     input logic [1:0][63:0]                                                       miss_data,
     input logic [1:0]                                                             miss_data_valid,
     input logic [1:0]                                                             miss_addr_hit,
+
     input logic                                                                   mem_wr,
     input logic                                                                   mem_dirty,
     input logic [63:0]                                                            mem_data,
     input SASS_ADDR                                                               mem_addr,
-    input logic                                                                   mshr_valid,
+
     input logic                                                                   rd_wb_en,
     input logic                                                                   rd_wb_dirty,
     input logic [63:0]                                                            rd_wb_data,
     input SASS_ADDR                                                               rd_wb_addr,
+    
     input logic                                                                   wr_wb_en,
     input logic                                                                   wr_wb_dirty,
     input logic [63:0]                                                            wr_wb_data,
@@ -44,10 +48,10 @@ module Dcache_controller(
 
     //cache to MSHR (loading)                                 
     output logic [2:0]                                                            miss_en,
-    output SASS_ADDR [1:0]                                                        miss_addr,
-    output logic [1:0][63:0]                                                      miss_data_in,
-    output MSHR_INST_TYPE [1:0]                                                   inst_type,
-    output logic [1:0][1:0]                                                       mshr_proc2mem_command,
+    output SASS_ADDR [2:0]                                                        miss_addr,
+    output logic [2:0][63:0]                                                      miss_data_in,
+    output MSHR_INST_TYPE [2:0]                                                   inst_type,
+    output logic [2:0][1:0]                                                       mshr_proc2mem_command,
     //cache to MSHR (searching)                                 
     output SASS_ADDR [1:0]                                                        search_addr,
     output MSHR_INST_TYPE [1:0]                                                   search_type,
@@ -55,6 +59,8 @@ module Dcache_controller(
     output logic                                                                  stored_rd_wb,
     output logic                                                                  stored_wr_wb,
     output logic                                                                  stored_mem_wr,
+
+
 
     output logic                                                                  cache_valid
 );
