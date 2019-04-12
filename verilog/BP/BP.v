@@ -1,19 +1,21 @@
 `timescale 1ns/100ps
 
 module BP(
-  input  logic                               clock,
-  input  logic                               reset,
-  input  logic       [`NUM_SUPER-1:0] [63:0] if_NPC_out,         // (from F-stage) PC
-  input  logic       [`NUM_SUPER-1:0] [31:0] if_IR_out,          // (from F-stage) fetched instruction out
-  input  F_BP_OUT_t                          F_BP_out,           // (from F-stage) when low, instruction is garbage
-  input  FU_BP_OUT_t                         FU_BP_out,          // (from FU)
-  output logic                               rollback_en,
-  output logic       [$clog2(`NUM_ROB)-1:0]  ROB_rollback_idx,
-  output logic       [$clog2(`NUM_FL)-1:0]   FL_rollback_idx,
-  output logic       [$clog2(`NUM_LSQ)-1:0]  SQ_rollback_idx,
-  output logic       [$clog2(`NUM_LSQ)-1:0]  LQ_rollback_idx,
-  output logic       [$clog2(`NUM_ROB)-1:0]  diff_ROB,
-  output BP_F_OUT_t                          BP_F_out
+  input  logic                                               clock,
+  input  logic                                               reset,
+  input  logic       [`NUM_SUPER-1:0] [63:0]                 if_NPC_out,         // (from F-stage) PC
+  input  logic       [`NUM_SUPER-1:0] [31:0]                 if_IR_out,          // (from F-stage) fetched instruction out
+  input  F_BP_OUT_t                                          F_BP_out,           // (from F-stage) when low, instruction is garbage
+  input  FU_BP_OUT_t                                         FU_BP_out,          // (from FU)
+  input  logic       [`NUM_SUPER-1:0] [$clog2(`NUM_ROB)-1:0] ROB_idx,
+  input  LQ_BP_OUT_t                                         LQ_BP_out,
+  output logic                                               rollback_en,
+  output logic                        [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
+  output logic                        [$clog2(`NUM_FL)-1:0]  FL_rollback_idx,
+  output logic                        [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx,
+  output logic                        [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx,
+  output logic                        [$clog2(`NUM_ROB)-1:0] diff_ROB,
+  output BP_F_OUT_t                                          BP_F_out
 );
 
   logic  [`NUM_SUPER-1:0]                                  is_cond_br;
@@ -22,7 +24,7 @@ module BP(
   logic  [`NUM_SUPER-1:0]          [`NUM_BH_IDX_BITS-1:0]  bh_idx_FU;
   logic  [2**`NUM_BH_IDX_BITS-1:0] [1:0]                   BHT, next_BHT;
   logic  [2**`NUM_BH_IDX_BITS-1:0] [63:0]                  BTB, next_BTB;
-  logic  [$clog2(`NUM_ROB)-1:0]                            diff_ROB1, diff_ROB2;
+
 
   assign BP_F_out.rollback_en = rollback_en;
 
@@ -61,7 +63,7 @@ module BP(
   always_comb begin
     next_BHT = BHT;
     for (int i=0; i<`NUM_SUPER; i++) begin
-      if (FU_BP_out.is_branch_out[i]) begin
+      if (is_branch_out[i]) begin
         // Simplified from the 2-bit saturation counter stage machine
         next_BHT[bh_idx_FU[i]][1] = (FU_BP_out.take_branch_out[i] && BHT[bh_idx_FU[i]][0]) ||
                                 (FU_BP_out.take_branch_out[i] && BHT[bh_idx_FU[i]][1]) ||
@@ -85,7 +87,7 @@ module BP(
   assign BP_F_out.inst_valid[1] = !rollback_en && !BP_F_out.take_branch_out[0] && F_BP_out.inst_valid[1];
 
   // 3. Predict branch target
-  assign BP_F_out.take_branch_target_out = (rollback_en)                 ? FU_BP_out.take_branch_target_out[FU_BP_out.take_branch_selection] :
+  assign take_branch_target_out = (rollback_en)                 ? take_branch_target_out[FU_BP_out.take_branch_selection] :
                                            (BP_F_out.take_branch_out[0]) ? next_BTB[bh_idx[0]] :
                                            (BP_F_out.take_branch_out[1]) ? next_BTB[bh_idx[1]] :
                                            if_NPC_out[1];
@@ -94,7 +96,7 @@ module BP(
   always_comb begin
     next_BTB = BTB;
     if (rollback_en && FU_BP_out.take_branch_out[FU_BP_out.take_branch_selection]) begin
-      next_BTB[bh_idx_FU[FU_BP_out.take_branch_selection]] = FU_BP_out.take_branch_target_out[FU_BP_out.take_branch_selection];
+      next_BTB[bh_idx_FU[FU_BP_out.take_branch_selection]] = take_branch_target_out[FU_BP_out.take_branch_selection];
     end
   end
 
@@ -107,23 +109,34 @@ module BP(
   end
 
   
-  // TO BP
+  logic  [$clog2(`NUM_ROB)-1:0]                            diff_ROB1, diff_ROB2;
+  logic  [$clog2(`NUM_ROB)-1:0]                            diff_ROB3, diff_ROB4;
+  logic  [$clog2(`NUM_ROB)-1:0]                            diff_ROB5, diff_ROB6;
+  logic                                                    rollback_en1, rollback_en2;
+  logic  [$clog2(`NUM_ROB)-1:0]                            ROB_rollback_idx1, ROB_rollback_idx2;
+  logic  [$clog2(`NUM_FL)-1:0]                             FL_rollback_idx, FL_rollback_idx1, FL_rollback_idx2;
+  logic  [$clog2(`NUM_LSQ)-1:0]                            SQ_rollback_idx, SQ_rollback_idx1, SQ_rollback_idx2;
+  logic  [$clog2(`NUM_LSQ)-1:0]                            LQ_rollback_idx, LQ_rollback_idx1, LQ_rollback_idx2;
+  logic  [63:0]                                            take_branch_target, take_branch_target1, take_branch_target2;
+  logic  [`NUM_BR-1:0]          [63:0]                     take_branch_target_out;
+  logic  [`NUM_BR-1:0]                                     predict_wrong;
+
   assign diff_ROB   = ROB_idx[1] - ROB_rollback_idx;
-  assign diff_ROB1  = ROB_idx[1] - BR_target[0].ROB_idx;
-  assign diff_ROB2  = ROB_idx[1] - BR_target[1].ROB_idx;
-  assign diff_ROB3  = ROB_idx[1] - LD_target.ROB_idx[0];
-  assign diff_ROB4  = ROB_idx[1] - LD_target.ROB_idx[1];
+  assign diff_ROB1  = ROB_idx[1] - FU.BP.out.BR_target[0].ROB_idx;
+  assign diff_ROB2  = ROB_idx[1] - FU.BP.out.BR_target[1].ROB_idx;
+  assign diff_ROB3  = ROB_idx[1] - LQ_BP_out.LD_target[0].ROB_idx;
+  assign diff_ROB4  = ROB_idx[1] - LQ_BP_out.LD_target[1].ROB_idx;
 
-  assign FU_BP_out.is_branch_out = {FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].done, FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].done};
-  assign FU_BP_out.take_branch_out = take_branch;
-  assign FU_BP_out.take_branch_target_out[1] = (take_branch[1]) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].result : NPC[1];
-  assign FU_BP_out.take_branch_target_out[0] = (take_branch[0]) ? FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].result   : NPC[0];
-  assign FU_BP_out.take_branch_NPC_out = NPC;
+  assign is_branch_out             = {FU_BP_out.BR_target[1].done, FU_BP_out.BR_target[0].done};
+  assign take_branch_out           = {FU_BP_out.BR_target[1].take_branch, FU_BP_out.BR_target[0].take_branch};
+  assign take_branch_target_out[1] = (take_branch_out[1]) ? FU_BP_out.BR_target[1].target_PC : NPC[1];
+  assign take_branch_target_out[0] = (take_branch_out[0]) ? FU_BP_out.BR_target[0].target_PC : NPC[0];
+  assign take_branch_NPC_out       = NPC;
 
-  assign predict_wrong[1] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].done
-           && (FU_in[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR+1].target != FU_BP_out.take_branch_target_out[1]);
-  assign predict_wrong[0] = FU_out[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].done
-           && (FU_in[`NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR].target   != FU_BP_out.take_branch_target_out[0]);
+  assign predict_wrong[1] = FU_BP_out.BR_target[1].done
+                          && (FU_BP_out.BR_target[1].target != FU_BP_out.BR_target[1].target_PC);
+  assign predict_wrong[0] = FU_BP_out.BR_target[0].done
+                          && (FU_BP_out.BR_target[0].target != FU_BP_out.BR_target[0].target_PC);
 
   assign rollback_en = predict_wrong[1] || predict_wrong[0];
 
@@ -140,29 +153,29 @@ module BP(
       end
       2'b01: begin
         rollback_en1        = `TRUE;
-        ROB_rollback_idx1   = BR_target[0].ROB_idx + 1;
-        FL_rollback_idx1    = BR_target[0].FL_idx;
-        SQ_rollback_idx1    = BR_target[0].SQ_idx;
-        LQ_rollback_idx1    = BR_target[0].LQ_idx;
-        take_branch_target1 = BR_target[0].result;
+        ROB_rollback_idx1   = FU_BP_out.BR_target[0].ROB_idx + 1;
+        FL_rollback_idx1    = FU_BP_out.BR_target[0].FL_idx;
+        SQ_rollback_idx1    = FU_BP_out.BR_target[0].SQ_idx;
+        LQ_rollback_idx1    = FU_BP_out.BR_target[0].LQ_idx;
+        take_branch_target1 = FU_BP_out.BR_target[0].target_PC;
         diff_ROB5           = diff_ROB1;
       end
       2'b10: begin
         rollback_en1        = `TRUE;
-        ROB_rollback_idx1   = BR_target[1].ROB_idx + 1;
-        FL_rollback_idx1    = BR_target[1].FL_idx;
-        SQ_rollback_idx1    = BR_target[1].SQ_idx;
-        LQ_rollback_idx1    = BR_target[1].LQ_idx;
-        take_branch_target1 = BR_target[1].result;
+        ROB_rollback_idx1   = FU_BP_out.BR_target[1].ROB_idx + 1;
+        FL_rollback_idx1    = FU_BP_out.BR_target[1].FL_idx;
+        SQ_rollback_idx1    = FU_BP_out.BR_target[1].SQ_idx;
+        LQ_rollback_idx1    = FU_BP_out.BR_target[1].LQ_idx;
+        take_branch_target1 = FU_BP_out.BR_target[1].target_PC;
         diff_ROB5           = diff_ROB2;
       end
       2'b11: begin
         rollback_en1        = `TRUE;
-        ROB_rollback_idx1   = (diff_ROB1 >= diff_ROB2) ? (BR_target[0].ROB_idx + 1) : (BR_target[1].ROB_idx + 1);
-        FL_rollback_idx1    = (diff_ROB1 >= diff_ROB2) ? BR_target[0].FL_idx : BR_target[1].FL_idx;
-        SQ_rollback_idx1    = (diff_ROB1 >= diff_ROB2) ? BR_target[0].SQ_idx : BR_target[1].SQ_idx;
-        LQ_rollback_idx1    = (diff_ROB1 >= diff_ROB2) ? BR_target[0].LQ_idx : BR_target[1].LQ_idx;
-        take_branch_target1 = (diff_ROB1 >= diff_ROB2) ? BR_target[0].result : BR_target[1].result;
+        ROB_rollback_idx1   = (diff_ROB1 >= diff_ROB2) ? (FU_BP_out.BR_target[0].ROB_idx + 1) : (FU_BP_out.BR_target[1].ROB_idx + 1);
+        FL_rollback_idx1    = (diff_ROB1 >= diff_ROB2) ? FU_BP_out.BR_target[0].FL_idx        : FU_BP_out.BR_target[1].FL_idx;
+        SQ_rollback_idx1    = (diff_ROB1 >= diff_ROB2) ? FU_BP_out.BR_target[0].SQ_idx        : FU_BP_out.BR_target[1].SQ_idx;
+        LQ_rollback_idx1    = (diff_ROB1 >= diff_ROB2) ? FU_BP_out.BR_target[0].LQ_idx        : FU_BP_out.BR_target[1].LQ_idx;
+        take_branch_target1 = (diff_ROB1 >= diff_ROB2) ? FU_BP_out.BR_target[0].target_PC     : FU_BP_out.BR_target[1].target_PC;
         diff_ROB5           = (diff_ROB1 >= diff_ROB2) ? diff_ROB1 : diff_ROB2;
       end
     endcase
@@ -181,29 +194,29 @@ module BP(
       end
       2'b01: begin
         rollback_en2        = `TRUE;
-        ROB_rollback_idx2   = LD_target.ROB_idx[0];
-        FL_rollback_idx2    = LD_target.FL_idx[0] - 1;
-        SQ_rollback_idx2    = LD_target.SQ_idx[0];
-        LQ_rollback_idx2    = LD_target.LQ_idx[0];
-        take_branch_target2 = LD_target.NPC[0] - 4;
+        ROB_rollback_idx2   = LQ_BP_out.LD_target.ROB_idx[0];
+        FL_rollback_idx2    = LQ_BP_out.LD_target.FL_idx[0] - 1;
+        SQ_rollback_idx2    = LQ_BP_out.LD_target.SQ_idx[0];
+        LQ_rollback_idx2    = LQ_BP_out.LD_target.LQ_idx[0];
+        take_branch_target2 = LQ_BP_out.LD_target.NPC[0] - 4;
         diff_ROB6           = diff_ROB3;
       end
       2'b10: begin
         rollback_en2        = `TRUE;
-        ROB_rollback_idx2   = LD_target.ROB_idx[1];
-        FL_rollback_idx2    = LD_target.FL_idx[1] - 1;
-        SQ_rollback_idx2    = LD_target.SQ_idx[1];
-        LQ_rollback_idx2    = LD_target.LQ_idx[1];
-        take_branch_target2 = LD_target.NPC[1] - 4;
+        ROB_rollback_idx2   = LQ_BP_out.LQ_BP_out.LD_target.ROB_idx[1];
+        FL_rollback_idx2    = LQ_BP_out.LQ_BP_out.LD_target.FL_idx[1] - 1;
+        SQ_rollback_idx2    = LQ_BP_out.LQ_BP_out.LD_target.SQ_idx[1];
+        LQ_rollback_idx2    = LQ_BP_out.LQ_BP_out.LD_target.LQ_idx[1];
+        take_branch_target2 = LQ_BP_out.LQ_BP_out.LD_target.NPC[1] - 4;
         diff_ROB6           = diff_ROB4;
       end
       2'b11: begin
         rollback_en2        = `TRUE;
-        ROB_rollback_idx2   = (diff_ROB3 >= diff_ROB4) ? LD_target.ROB_idx[0] : LD_target.ROB_idx[1];
-        FL_rollback_idx2    = (diff_ROB3 >= diff_ROB4) ? (LD_target.FL_idx[0] - 1) : (LD_target.FL_idx[1] - 1);
-        SQ_rollback_idx2    = (diff_ROB3 >= diff_ROB4) ? LD_target.SQ_idx[0] : LD_target.SQ_idx[1];
-        LQ_rollback_idx2    = (diff_ROB3 >= diff_ROB4) ? LD_target.LQ_idx[0] : LD_target.LQ_idx[1];
-        take_branch_target2 = (diff_ROB3 >= diff_ROB4) ? (LD_target.NPC[0] - 4) : (LD_target.NPC[1] - 4);
+        ROB_rollback_idx2   = (diff_ROB3 >= diff_ROB4) ? LQ_BP_out.LD_target.ROB_idx[0] : LQ_BP_out.LD_target.ROB_idx[1];
+        FL_rollback_idx2    = (diff_ROB3 >= diff_ROB4) ? (LQ_BP_out.LD_target.FL_idx[0] - 1) : (LQ_BP_out.LD_target.FL_idx[1] - 1);
+        SQ_rollback_idx2    = (diff_ROB3 >= diff_ROB4) ? LQ_BP_out.LD_target.SQ_idx[0] : LQ_BP_out.LD_target.SQ_idx[1];
+        LQ_rollback_idx2    = (diff_ROB3 >= diff_ROB4) ? LQ_BP_out.LD_target.LQ_idx[0] : LQ_BP_out.LD_target.LQ_idx[1];
+        take_branch_target2 = (diff_ROB3 >= diff_ROB4) ? (LQ_BP_out.LD_target.NPC[0] - 4) : (LQ_BP_out.LD_target.NPC[1] - 4);
         diff_ROB6           = (diff_ROB3 >= diff_ROB4) ? diff_ROB3 : diff_ROB4;
       end
     endcase
