@@ -243,7 +243,7 @@ module LQ (
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       LQ_BP_out.LQ_target[i].ROB_idx    = lq[lq_map_idx[ld_idx[i]]].ROB_idx;
-      LQ_BP_out.LQ_target[i].FL_idx     = lq[lq_map_idx[ld_idx[i]]].FL_idx;
+      LQ_BP_out.LQ_target[i].FL_idx     = lq[lq_map_idx[ld_idx[i]]].FL_idx - 1;
       LQ_BP_out.LQ_target[i].SQ_idx     = lq[lq_map_idx[ld_idx[i]]].SQ_idx;
       LQ_BP_out.LQ_target[i].LQ_idx     = lq_map_idx[ld_idx[i]];
       LQ_BP_out.LQ_target[i].target_PC  = lq[lq_map_idx[ld_idx[i]]].PC;
