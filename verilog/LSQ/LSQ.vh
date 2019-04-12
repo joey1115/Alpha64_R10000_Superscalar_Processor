@@ -66,7 +66,7 @@ typedef struct packed {
   logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
   logic [$clog2(`NUM_FL)-1:0]  FL_idx;
   logic [$clog2(`NUM_LSQ)-1:0] SQ_idx;
-  logic [63:0]                 NPC;
+  logic [63:0]                 PC;
 } LQ_ENTRY_t;
 
 typedef struct packed {
@@ -80,9 +80,6 @@ typedef struct packed {
   logic [`NUM_SUPER-1:0][4:0]                  dest_idx;
   logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0]  T_idx;   // Dest idx
   logic [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx; // Dest idx
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0]  FL_idx;  // Dest idx
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
 } LQ_FU_OUT_t;
 
 `define LQ_FU_OUT_RESET '{                \
@@ -97,16 +94,23 @@ typedef struct packed {
 }
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0]       rd_en;
-  logic [`NUM_SUPER-1:0][60:0] addr;
+  logic        rd_en;
+  logic [60:0] addr;
 } LQ_D_CACHE_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0] FL_idx;
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
+  logic [$clog2(`NUM_FL)-1:0]  FL_idx;
+  logic [$clog2(`NUM_LSQ)-1:0] SQ_idx;
+  logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
+  logic [63:0]                 target_PC;   // 真
+  logic                        LQ_violate;
+  logic                        done;
 } LQ_TARGET_t;
+
+typedef struct packed {
+  LQ_TARGET_t [`NUM_SUPER-1:0] LQ_target;
+} LQ_BP_OUT_t;
 
 `define SQ_ENTRY_RESET {61'h0, `FALSE, 64'hbaadbeafdeadbeef}
 `define SQ_ENTRY_RESET_PACKED '{61'h0, `FALSE, 64'hbaadbeafdeadbeef}

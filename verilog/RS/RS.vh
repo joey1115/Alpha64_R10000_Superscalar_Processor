@@ -20,6 +20,7 @@ typedef struct packed {
   logic                                 busy;      // RS entry busy
   INST_t                                inst;
   ALU_FUNC                              func;
+  logic          [63:0]                 PC;
   logic          [63:0]                 NPC;
   logic          [4:0]                  dest_idx;
   logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
@@ -38,7 +39,7 @@ typedef struct packed {
   logic          [63:0]                 target;
 } RS_ENTRY_t;
 
-`define FU_LIST '{      \
+`define FU_LIST '{        \
   {(`NUM_ALU){FU_ALU}},   \
   {(`NUM_MULT){FU_MULT}}, \
   {(`NUM_BR){FU_BR}},     \
@@ -53,15 +54,20 @@ typedef struct packed {
   `FALSE,                   \
   `NOOP_INST,               \
   ALU_ADDQ,                 \
-  {64{1'b0}},               \
+  64'hbaadbeefdeadbeef,     \
+  64'hbaadbeefdeadbeef,     \
   `ZERO_REG,                \
   {$clog2(`NUM_ROB){1'b0}}, \
   {$clog2(`NUM_FL){1'b0}},  \
+  {$clog2(`NUM_LSQ){1'b0}}, \
+  {$clog2(`NUM_LSQ){1'b0}}, \
   `ZERO_PR,                 \
   `T_RESET,                 \
   `T_RESET,                 \
   ALU_OPA_IS_REGA,          \
   ALU_OPB_IS_REGB,          \
+  `FALSE,                   \
+  `FALSE,                   \
   `FALSE,                   \
   `FALSE,                   \
   64'hbaadbeefdeadbeef      \
@@ -72,6 +78,7 @@ typedef struct packed {
   logic                                 ready;  // If an entry is ready
   INST_t                                inst;
   ALU_FUNC                              func;
+  logic          [63:0]                 PC;
   logic          [63:0]                 NPC;
   logic          [4:0]                  dest_idx;
   logic          [$clog2(`NUM_ROB)-1:0] ROB_idx;
@@ -105,6 +112,7 @@ typedef struct packed {
   `FALSE,                        \
   `NOOP_INST,                    \
   ALU_ADDQ,                      \
+  64'hbaadbeefdeadbeef,          \
   64'hbaadbeefdeadbeef,          \
   `ZERO_REG,                     \
   {`NUM_ROB{1'b0}},              \

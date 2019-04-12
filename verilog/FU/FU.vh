@@ -39,9 +39,6 @@ typedef struct packed {
   logic [4:0]                  dest_idx;
   logic [$clog2(`NUM_PR)-1:0]  T_idx;   // Dest idx
   logic [$clog2(`NUM_ROB)-1:0] ROB_idx; // Dest idx
-  logic [$clog2(`NUM_FL)-1:0]  FL_idx;  // Dest idx
-  logic [$clog2(`NUM_LSQ)-1:0] SQ_idx;
-  logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
 } FU_OUT_t;
 
 `define FU_OUT_RESET '{     \
@@ -101,10 +98,7 @@ typedef struct packed {
   logic [`NUM_SUPER-1:0][4:0]                  dest_idx;
   logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0]  T_idx;   // Dest idx
   logic [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx; // Dest idx
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0]  FL_idx;  // Dest idx
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
-  logic [`NUM_SUPER-1:0][63:0]                 NPC;
+  
 } FU_LQ_OUT_t;
 
 typedef struct packed {
@@ -136,14 +130,13 @@ typedef struct packed {
   logic [$clog2(`NUM_FL)-1:0]  FL_idx;
   logic [$clog2(`NUM_LSQ)-1:0] SQ_idx;
   logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
-  logic [63:0]                 result;
+  logic [63:0]                 target;      // 假
+  logic [63:0]                 target_PC;   // 真
+  logic                        take_branch;
+  logic                        done;
 } BR_TARGET_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0]          is_branch_out;              // whether BTB and BHT should be updated
-  logic [`NUM_SUPER-1:0]          take_branch_out;            // branch taken or not
-  logic [`NUM_SUPER-1:0][63:0]    take_branch_target_out;     // if taken, target
-  logic [`NUM_SUPER-1:0][63:0]    take_branch_NPC_out;        // branch inst NPC
-  logic                           take_branch_selection;      // select which is rollback
+  BR_TARGET_t [`NUM_BR-1:0] BR_target;
 } FU_BP_OUT_t;
 `endif

@@ -115,19 +115,20 @@ typedef struct packed {
   FU_t           [`NUM_SUPER-1:0]       FU;
   INST_t         [`NUM_SUPER-1:0]       inst;  // fetched instruction out
   ALU_FUNC       [`NUM_SUPER-1:0]       func;
+  logic          [`NUM_SUPER-1:0][63:0] PC;   // fetched instruction out
   logic          [`NUM_SUPER-1:0][63:0] NPC;  // fetched instruction out
   logic          [`NUM_SUPER-1:0][4:0]  dest_idx;
   ALU_OPA_SELECT [`NUM_SUPER-1:0]       opa_select;  // fetched instruction out
   ALU_OPB_SELECT [`NUM_SUPER-1:0]       opb_select;
   logic          [`NUM_SUPER-1:0]       cond_branch;
   logic          [`NUM_SUPER-1:0]       uncond_branch;
-  logic          [`NUM_SUPER-1:0][63:0] target;
   logic          [`NUM_SUPER-1:0]       wr_mem;
   logic          [`NUM_SUPER-1:0]       rd_mem;
+  logic          [`NUM_SUPER-1:0][63:0] target;
 } DECODER_RS_OUT_t;
 
 typedef struct packed {
-  logic          [`NUM_SUPER-1:0][4:0]  dest_idx;
+  logic [`NUM_SUPER-1:0][4:0] dest_idx;
 } DECODER_FL_OUT_t;
 
 typedef struct packed {
@@ -141,7 +142,8 @@ typedef struct packed {
 } DECODER_SQ_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0] rd_mem;
+  logic [`NUM_SUPER-1:0]       rd_mem;
+  logic [`NUM_SUPER-1:0][63:0] PC;
 } DECODER_LQ_OUT_t;
 
 `endif

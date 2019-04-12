@@ -105,6 +105,7 @@ module RS (
       FU_packet[j].ROB_idx       = RS[j].ROB_idx;       // op code
       FU_packet[j].inst          = RS[j].inst;          // inst
       FU_packet[j].func          = RS[j].func;          // op code
+      FU_packet[j].PC            = RS[j].PC;           // op code
       FU_packet[j].NPC           = RS[j].NPC;           // op code
       FU_packet[j].dest_idx      = RS[j].dest_idx;      // op code
       FU_packet[j].opa_select    = RS[j].opa_select;    // Output T2_idx
@@ -114,10 +115,10 @@ module RS (
       FU_packet[j].wr_mem        = RS[j].wr_mem;        // Output T2_idx
       FU_packet[j].rd_mem        = RS[j].rd_mem;        // Output T2_idx
       FU_packet[j].target        = RS[j].target;
-      FU_packet[j].FL_idx        = RS[j].FL_idx;        // op code
-      FU_T_idx[j].SQ_idx         = RS[j].SQ_idx;        // Output T1_idx
-      FU_T_idx[j].LQ_idx         = RS[j].LQ_idx;        // Output T2_idx
       FU_packet[j].T_idx         = RS[j].T_idx;         // Output T_idx
+      FU_packet[j].FL_idx        = RS[j].FL_idx;        // op code
+      FU_packet[j].SQ_idx        = RS[j].SQ_idx;        // Output T1_idx
+      FU_packet[j].LQ_idx        = RS[j].LQ_idx;        // Output T2_idx
       FU_T_idx[j].T1_idx         = RS[j].T1.idx;        // Output T1_idx
       FU_T_idx[j].T2_idx         = RS[j].T2.idx;        // Output T2_idx
     end
@@ -135,14 +136,18 @@ module RS (
     for (int i = 0; i < `NUM_SUPER; i++) begin
       if ( dispatch_en ) begin // RS entry was not busy and inst ready to dispatch and FU match
         next_RS[RS_match_idx[i]].busy          = `TRUE;                           // RS entry busy
+        next_RS[RS_match_idx[i]].inst          = decoder_RS_out.inst[i];          // inst
+        next_RS[RS_match_idx[i]].func          = decoder_RS_out.func[i];          // func
+        next_RS[RS_match_idx[i]].PC            = decoder_RS_out.PC[i];            // Write T1 select
+        next_RS[RS_match_idx[i]].NPC           = decoder_RS_out.NPC[i];           // Write T1 select
+        next_RS[RS_match_idx[i]].dest_idx      = decoder_RS_out.dest_idx[i];      // Write T1 select
         next_RS[RS_match_idx[i]].ROB_idx       = ROB_idx[i];                      // op code
         next_RS[RS_match_idx[i]].FL_idx        = FL_idx[i];                       // Write T1 select
         next_RS[RS_match_idx[i]].SQ_idx        = SQ_idx[i];                       // Write T1 select
         next_RS[RS_match_idx[i]].LQ_idx        = LQ_idx[i];                       // Write T1 select
-        next_RS[RS_match_idx[i]].inst          = decoder_RS_out.inst[i];          // inst
-        next_RS[RS_match_idx[i]].func          = decoder_RS_out.func[i];          // func
-        next_RS[RS_match_idx[i]].NPC           = decoder_RS_out.NPC[i];           // Write T1 select
-        next_RS[RS_match_idx[i]].dest_idx      = decoder_RS_out.dest_idx[i];      // Write T1 select
+        next_RS[RS_match_idx[i]].T_idx         = FL_RS_out.T_idx[i];              // Write T
+        next_RS[RS_match_idx[i]].T1            = Map_Table_RS_out.T1[i];          // Write T1
+        next_RS[RS_match_idx[i]].T2            = Map_Table_RS_out.T2[i];          // Write T2
         next_RS[RS_match_idx[i]].opa_select    = decoder_RS_out.opa_select[i];    // Output T2_idx
         next_RS[RS_match_idx[i]].opb_select    = decoder_RS_out.opb_select[i];    // Output T2_idx
         next_RS[RS_match_idx[i]].uncond_branch = decoder_RS_out.uncond_branch[i]; // Output T2_idx
@@ -150,14 +155,11 @@ module RS (
         next_RS[RS_match_idx[i]].wr_mem        = decoder_RS_out.wr_mem[i];        // Output T2_idx
         next_RS[RS_match_idx[i]].rd_mem        = decoder_RS_out.rd_mem[i];        // Output T2_idx
         next_RS[RS_match_idx[i]].target        = decoder_RS_out.target[i];
-        next_RS[RS_match_idx[i]].T_idx         = FL_RS_out.T_idx[i];              // Write T
-        next_RS[RS_match_idx[i]].T1            = Map_Table_RS_out.T1[i];          // Write T1
-        next_RS[RS_match_idx[i]].T2            = Map_Table_RS_out.T2[i];          // Write T2
       end
     end
   end // always_comb begin
 
-  assign FU_list = {{(`NUM_ALU){FU_ALU}}, {(`NUM_MULT){FU_MULT}}, {(`NUM_BR){FU_BR}}, {(`NUM_ST){FU_ST}}, {(`NUM_LD){FU_LD}}};
+  assign FU_list = `FU_LIST;
 
   always_ff @(posedge clock) begin
     if(reset) begin

@@ -10,6 +10,7 @@
 `endif
 
 typedef struct packed {
+  logic [63:0] PC;
   logic [63:0] NPC;
   logic [31:0] inst;
   logic [63:0] target;
@@ -17,6 +18,7 @@ typedef struct packed {
 } INST_ENTRY_t;
 
 typedef struct packed {
+  logic [`NUM_SUPER-1:0][63:0] PC;
   logic [`NUM_SUPER-1:0][63:0] NPC;
   logic [`NUM_SUPER-1:0][31:0] inst;
   logic [`NUM_SUPER-1:0][63:0] target;
