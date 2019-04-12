@@ -105,7 +105,6 @@ module RS (
       FU_packet[j].ROB_idx       = RS[j].ROB_idx;       // op code
       FU_packet[j].inst          = RS[j].inst;          // inst
       FU_packet[j].func          = RS[j].func;          // op code
-      FU_packet[j].PC            = RS[j].PC;           // op code
       FU_packet[j].NPC           = RS[j].NPC;           // op code
       FU_packet[j].dest_idx      = RS[j].dest_idx;      // op code
       FU_packet[j].opa_select    = RS[j].opa_select;    // Output T2_idx
@@ -138,7 +137,6 @@ module RS (
         next_RS[RS_match_idx[i]].busy          = `TRUE;                           // RS entry busy
         next_RS[RS_match_idx[i]].inst          = decoder_RS_out.inst[i];          // inst
         next_RS[RS_match_idx[i]].func          = decoder_RS_out.func[i];          // func
-        next_RS[RS_match_idx[i]].PC            = decoder_RS_out.PC[i];            // Write T1 select
         next_RS[RS_match_idx[i]].NPC           = decoder_RS_out.NPC[i];           // Write T1 select
         next_RS[RS_match_idx[i]].dest_idx      = decoder_RS_out.dest_idx[i];      // Write T1 select
         next_RS[RS_match_idx[i]].ROB_idx       = ROB_idx[i];                      // op code
