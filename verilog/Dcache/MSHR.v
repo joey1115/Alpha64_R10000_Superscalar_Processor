@@ -5,7 +5,9 @@ module MSHR(
   input logic                                                    reset,
       
   //stored to cache input      
-  input logic                                                    stored,
+  input logic                                                    stored_rd_wb,
+  input logic                                                    stored_wr_wb,
+  input logic                                                    stored_mem_wr,
       
   //storing to the MSHR      
   input logic [2:0]                                              miss_en,
@@ -17,6 +19,7 @@ module MSHR(
   //looking up the MSHR      
   input SASS_ADDR [1:0]                                          search_addr, //address to search
   input MSHR_INST_TYPE [1:0]                                     search_type, //address search type (might not need)
+  input [63:0]                                                   search_wr_data,
       
   output logic [1:0][63:0]                                       miss_data, //data returned
   output logic [1:0]                                             miss_data_valid, //if data returned is correct
@@ -64,30 +67,19 @@ module MSHR(
 
 //need logic to check priority
 
-  parameter ONE_LINE_ADD = 1*`NUM_BLOCK;
-  parameter TWO_LINE_ADD = 2*`NUM_BLOCK;
-  parameter THREE_LINE_ADD = 3*`NUM_BLOCK;
-  parameter FOUR_LINE_ADD = 4*`NUM_BLOCK;
-  parameter FIVE_LINE_ADD = 5*`NUM_BLOCK;
-  parameter SIX_LINE_ADD = 6*`NUM_BLOCK;
-  parameter SEVEN_LINE_ADD = 7*`NUM_BLOCK;
-  parameter EIGHT_LINE_ADD = 5*`NUM_BLOCK;
-  parameter NINE_LINE_ADD = 6*`NUM_BLOCK;
-  parameter TEN_LINE_ADD = 7*`NUM_BLOCK;
-
   //MSHR queue
   MSHR_ENTRY_t [MSHR_DEPTH-1:0] MSHR_queue, next_MSHR_queue;
 
   //head and tail pointer
   logic [$clog2(MSHR_DEPTH)-1:0] writeback_head, head, tail, next_writeback_head, next_head, next_tail;
-  logic [3:0]                    tail_move;
-  logic [3:0][1:0]               data_idx;
-  logic [3:0]                    internal_miss_en1,internal_miss_en2,internal_miss_en3;
-  logic [3:0]                    internal_miss_en2_mask,internal_miss_en3_mask,internal_miss_en4_mask;
+  logic [1:0]                    tail_move;
+  logic [2:0][1:0]               data_idx;
+  logic [2:0]                    internal_miss_en1,internal_miss_en2;
+  logic [2:0]                    internal_miss_en2_mask,internal_miss_en3_mask;
 
   logic [$clog2(MSHR_DEPTH)-1:0] tail_plus_one, tail_plus_two, tail_plus_three, head_plus_one;
   //how many entries to allocate
-  assign tail_move = miss_en[0] + miss_en[1] + miss_en[2] + miss_en[3];
+  assign tail_move = miss_en[0] + miss_en[1] + miss_en[2];
 
   assign tail_plus_one = tail + 1;
   assign tail_plus_two = tail + 2;
@@ -96,25 +88,21 @@ module MSHR(
   assign writeback_head_plus_one = writeback_head + 1;
   
   //mshr valid logic
-  assign mshr_valid = MSHR_queue[tail].valid && MSHR_queue[tail_plus_one].valid && MSHR_queue[tail_plus_two].valid && MSHR_queue[tail_plus_three].valid;
+  assign mshr_valid = MSHR_queue[tail].valid && MSHR_queue[tail_plus_one].valid && MSHR_queue[tail_plus_two].valid;
 
   //priority logic
   always_comb begin
     internal_miss_en1 = miss_en & ~(internal_miss_en1_mask); //everything except the last bit
     internal_miss_en2 = internal_miss_en1 & ~(internal_miss_en2_mask); //everything except the 2 last bit
-    internal_miss_en3 = internal_miss_en2 & ~(internal_miss_en3_mask); //everything except the 3 last bit
-    // internal_miss_en4 = internal_miss_en3 & ~(internal_miss_en2_mask); //everything except the 4 last bit
   end
 
   ps priority1 (.req(miss_en), 1, .gnt(internal_miss_en1_mask));
   ps priority2 (.req(internal_miss_en1), 1, .gnt(internal_miss_en2_mask));
   ps priority3 (.req(internal_miss_en2), 1, .gnt(internal_miss_en3_mask));
-  ps priority4 (.req(internal_miss_en3), 1, .gnt(internal_miss_en4_mask));
 
   pe idx_select1 (miss_en, data_idx[0]);
   pe idx_select2 (internal_miss_en1, data_idx[1]);
   pe idx_select3 (internal_miss_en2, data_idx[2]);
-  pe idx_select4 (internal_miss_en3, data_idx[3]);
 
   //allocation logic
   always_comb begin
@@ -122,77 +110,98 @@ module MSHR(
     next_tail = tail;
     case(tail_move)
       1: begin
-        next_tail = tail + ONE_LINE_ADD; 
-        for(int i = 0; i < ONE_LINE_ADD; i++) begin
-          next_MSHR_queue[tail+i].valid = 1;
-          next_MSHR_queue[tail+i].data = miss_data_in[data_idx[0]][i];
-          next_MSHR_queue[tail+i].addr.tag = miss_addr[data_idx[0]].tag;
-          next_MSHR_queue[tail+i].addr.set_index = miss_addr[data_idx[0]].set_index;
-          next_MSHR_queue[tail+i].addr.BO = i;
-          next_MSHR_queue[tail+i].inst_type = inst_type[data_idx[0]];
-          next_MSHR_queue[tail+i].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
-          next_MSHR_queue[tail+i].complete = 0;
-          next_MSHR_queue[tail+i].mem_tag = 0;
-          next_MSHR_queue[tail+i].state = WAITING;
-          next_MSHR_queue[tail+i].dirty = 0;
-        end
+        next_tail = tail_plus_one;
+        next_MSHR_queue[tail].valid = 1;
+        next_MSHR_queue[tail].data = miss_data_in[data_idx[0]];
+        next_MSHR_queue[tail].addr = miss_addr[data_idx[0]];
+        next_MSHR_queue[tail].inst_type = inst_type[data_idx[0]];
+        next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
+        next_MSHR_queue[tail].complete = 0;
+        next_MSHR_queue[tail].mem_tag = 0;
+        next_MSHR_queue[tail].state = WAITING;
+        next_MSHR_queue[tail].dirty = 0;
       end
       2: begin
-        next_tail = tail + TWO_LINE_ADD;
-        for(int j = 0; j < 2; j++) begin
-          for(int i = 0; i < TWO_LINE_ADD; i++) begin
-            next_MSHR_queue[tail+i].valid = 1;
-            next_MSHR_queue[tail+i].data = miss_data_in[data_idx[j]][i];
-            next_MSHR_queue[tail+i].addr.tag = miss_addr[data_idx[j]].tag;
-            next_MSHR_queue[tail+i].addr.set_index = miss_addr[data_idx[j]].set_index;
-            next_MSHR_queue[tail+i].addr.BO = i;
-            next_MSHR_queue[tail+i].inst_type = inst_type[data_idx[j]];
-            next_MSHR_queue[tail+i].proc2mem_command = mshr_proc2mem_command[data_idx[j]];
-            next_MSHR_queue[tail+i].complete = 0;
-            next_MSHR_queue[tail+i].mem_tag = 0;
-            next_MSHR_queue[tail+i].state = WAITING;
-            next_MSHR_queue[tail+i].dirty = 0;
-          end
-        end
+        next_tail = tail_plus_two;
+        next_MSHR_queue[tail].valid = 1;
+        next_MSHR_queue[tail].data = miss_data_in[data_idx[1]];
+        next_MSHR_queue[tail].addr = miss_addr[data_idx[1]];
+        next_MSHR_queue[tail].inst_type = inst_type[data_idx[1]];
+        next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[1]];
+        next_MSHR_queue[tail].complete = 0;
+        next_MSHR_queue[tail].mem_tag = 0;
+        next_MSHR_queue[tail].state = WAITING;
+        next_MSHR_queue[tail].dirty = 0;
+
+  
+        next_MSHR_queue[tail_plus_one].valid = 1;
+        next_MSHR_queue[tail_plus_one].data = miss_data_in[data_idx[0]];
+        next_MSHR_queue[tail_plus_one].addr = miss_addr[data_idx[0]];
+        next_MSHR_queue[tail_plus_one].inst_type = inst_type[data_idx[0]];
+        next_MSHR_queue[tail_plus_one].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
+        next_MSHR_queue[tail_plus_one].complete = 0;
+        next_MSHR_queue[tail_plus_one].mem_tag = 0;
+        next_MSHR_queue[tail_plus_one].state = WAITING;
+        next_MSHR_queue[tail_plus_one].dirty = 0;
       end
       3: begin
-        next_tail = tail + THREE_LINE_ADD; 
-        for(int j = 0; j < 3; j++) begin
-          for(int i = 0; i < THREE_LINE_ADD; i++) begin
-            next_MSHR_queue[tail+i].valid = 1;
-            next_MSHR_queue[tail+i].data = miss_data_in[data_idx[j]][i];
-            next_MSHR_queue[tail+i].addr.tag = miss_addr[data_idx[j]].tag;
-            next_MSHR_queue[tail+i].addr.set_index = miss_addr[data_idx[j]].set_index;
-            next_MSHR_queue[tail+i].addr.BO = i;
-            next_MSHR_queue[tail+i].inst_type = inst_type[data_idx[j]];
-            next_MSHR_queue[tail+i].proc2mem_command = mshr_proc2mem_command[data_idx[j]];
-            next_MSHR_queue[tail+i].complete = 0;
-            next_MSHR_queue[tail+i].mem_tag = 0;
-            next_MSHR_queue[tail+i].state = WAITING;
-            next_MSHR_queue[tail+i].dirty = 0;
-          end
-        end
-      end
-      4: begin
-        next_tail = tail + FOUR_LINE_ADD;
-        for(int j = 0; j < 4; j++) begin
-          for(int i = 0; i < FOUR_LINE_ADD; i++) begin
-            next_MSHR_queue[tail+i].valid = 1;
-            next_MSHR_queue[tail+i].data = miss_data_in[data_idx[j]][i];
-            next_MSHR_queue[tail+i].addr.tag = miss_addr[data_idx[j]].tag;
-            next_MSHR_queue[tail+i].addr.set_index = miss_addr[data_idx[j]].set_index;
-            next_MSHR_queue[tail+i].addr.BO = i;
-            next_MSHR_queue[tail+i].inst_type = inst_type[data_idx[j]];
-            next_MSHR_queue[tail+i].proc2mem_command = mshr_proc2mem_command[data_idx[j]];
-            next_MSHR_queue[tail+i].complete = 0;
-            next_MSHR_queue[tail+i].mem_tag = 0;
-            next_MSHR_queue[tail+i].state = WAITING;
-            next_MSHR_queue[tail+i].dirty = 0;
-          end
-        end 
+        next_tail = tail_plus_three;
+        next_MSHR_queue[tail].valid = 1;
+        next_MSHR_queue[tail].data = miss_data_in[data_idx[2]];
+        next_MSHR_queue[tail].addr = miss_addr[data_idx[2]];
+        next_MSHR_queue[tail].inst_type = inst_type[data_idx[2]];
+        next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[2]];
+        next_MSHR_queue[tail].complete = 0;
+        next_MSHR_queue[tail].mem_tag = 0;
+        next_MSHR_queue[tail].state = WAITING;
+        next_MSHR_queue[tail].dirty = 0;
+
+        next_MSHR_queue[tail_plus_one].valid = 1;
+        next_MSHR_queue[tail_plus_one].data = miss_data_in[data_idx[1]];
+        next_MSHR_queue[tail_plus_one].addr = miss_addr[data_idx[1]];
+        next_MSHR_queue[tail_plus_one].inst_type = inst_type[data_idx[1]];
+        next_MSHR_queue[tail_plus_one].proc2mem_command = mshr_proc2mem_command[data_idx[1]];
+        next_MSHR_queue[tail_plus_one].complete = 0;
+        next_MSHR_queue[tail_plus_one].mem_tag = 0;
+        next_MSHR_queue[tail_plus_one].state = WAITING;
+        next_MSHR_queue[tail_plus_one].dirty = 0;
+
+        next_MSHR_queue[tail_plus_two].valid = 1;
+        next_MSHR_queue[tail_plus_two].data = miss_data_in[data_idx[0]];
+        next_MSHR_queue[tail_plus_two].addr = miss_addr[data_idx[0]];
+        next_MSHR_queue[tail_plus_two].inst_type = inst_type[data_idx[0]];
+        next_MSHR_queue[tail_plus_two].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
+        next_MSHR_queue[tail_plus_two].complete = 0;
+        next_MSHR_queue[tail_plus_two].mem_tag = 0;
+        next_MSHR_queue[tail_plus_two].state = WAITING;
+        next_MSHR_queue[tail_plus_two].dirty = 0;
       end
       default: pass;
     endcase
+
+    //send to mem nextqueue logic
+
+    next_MSHR_queue[head].mem_tag = mem2proc_response;
+
+    //if data is a store command and handled, invalidate as it is handled
+    next_MSHR_queue[head].complete = (MSHR_queue[head].proc2mem_command == BUS_STORE) ? request_accepted : MSHR_queue[head].complete;
+
+    next_MSHR_queue[head].state    = (request_accepted) ? INPROGRESS : MSHR_queue[head].state;
+
+
+    //mem complete request
+    for (int = i; i < `MSHR_DEPTH;i++) begin
+      if(MSHR_queue[i].state == INPROGRESS && mem2proc_tag == MSHR_queue[i].mem_tag && MSHR_queue[i].valid) begin
+        next_MSHR_queue[i].complete = 1;
+        next_MSHR_queue[i].state    = DONE;
+        next_MSHR_queue[i].data     = mem2proc_data;
+        next_MSHR_queue[i].dirty    = 0;
+      end
+    end
+
+    //retire logic
+    next_MSHR_queue[writeback_head].valid = (stored_mem_wr) ? 0 : MSHR_queue[head].valid;
+
   end
 
   //send data to mem
@@ -202,30 +211,9 @@ module MSHR(
   assign proc2mem_addr = MSHR_queue[head].addr;
   assign proc2mem_data = MSHR_queue[head].data;
   
-  assign next_MSHR_queue[head].mem_tag = mem2proc_response;
-
   assign request_accepted = (mem2proc_response != 0);
 
   assign next_head = (request_accepted) ? head_plus_one : head;
-
-  //if data is a store command and handled, invalidate as it is handled
-  assign next_MSHR_queue[head].complete = (MSHR_queue[head].proc2mem_command == BUS_STORE) ? request_accepted : MSHR_queue[head].complete;
-
-  assign next_MSHR_queue[head].state    = (request_accepted) ? INPROGRESS : MSHR_queue[head].state;
-
-  
-  //mem complete request
-  always_comb begin
-    for (int = i; i < `MSHR_DEPTH;i++) begin
-      if(MSHR_queue[i].state == INPROGRESS && mem2proc_tag == MSHR_queue[i].mem_tag) begin
-        next_MSHR_queue[head].complete = 1;
-        next_MSHR_queue[head].state    = DONE;
-        next_MSHR_queue[head].data     = mem2proc_data;
-        next_MSHR_queue[head].dirty    = 0;
-      end
-    end
-  end
-
 
   //logic to move the writeback head.
   assign mem_wr = MSHR_queue[writeback_head].valid & MSHR_queue[writeback_head].complete & MSHR_queue[writeback_head].proc2mem_command == BUS_LOAD;
@@ -234,57 +222,56 @@ module MSHR(
   assign mem_addr = MSHR_queue[writeback_head].addr;
 
   //retire logic
-  assign next_writeback_head = (stored)? writeback_head_plus_one : writeback_head;
-  assign next_MSHR_queue[head].valid = (stored) ? 0 : MSHR_queue[head].valid;
-
-
+  assign next_writeback_head = (stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command != BUS_LOAD) ? writeback_head_plus_one : writeback_head;
+ 
+logic [$clog2(`MSHR_DEPTH)] index_rd_search, index_wr_search, index;
   //search logic
   always_comb begin
     //if type of searcher is load
-    addr_hit = 0;
+    miss_addr_hit = 0;
     miss_data_valid = 0;
-    for (int i = 0; i < `MSHR_DEPTH; i++) begin
-      //rd1 search
-      if((search_addr[0] == MSHR_queue[i].addr) && (search_type[0] == LOAD)) begin
-        if(MSHR_queue[i].proc2mem_command == BUS_STORE) begin
-          rd1_data = MSHR_queue[i].data;
-          miss_data_valid[0] = 1;
-          forwards = 
-        end
-        else
-          addr_hit[0] = 1; 
+    rd_wb_en = 0;
+    wr_wb_en = 0;
+    for(int i = 0; i < `MSHR_DEPTH; i++) begin
+      index = head + i;
+      if((search_addr[0] == MSHR_queue[index].addr) && (search_type[0] == LOAD) && MSHR_queue[index].valid) begin
+        index_rd_search = index;
+        miss_addr_hit[0] = 1
       end
 
-      //rd2 search
-      if((search_addr[1] == MSHR_queue[i].addr) && (search_type[1] == LOAD)) begin
-        if(MSHR_queue[i].proc2mem_command == BUS_STORE) begin
-          rd2_data = MSHR_queue[i].data;
-          miss_data_valid[1] = 1;
-        end
-        else
-          addr_hit[1] = 1; 
+      if((search_addr[1] == MSHR_queue[i].addr) && (search_type[1] == STORE) && MSHR_queue[index].valid) begin
+        index_wr_search = index;
       end
-
-      //wr1 search
-      if((search_addr[2] == MSHR_queue[i].addr) && (search_type[2] == LOAD)) begin
-        if(MSHR_queue[i].proc2mem_command == BUS_STORE) begin
-          
-        end
-        else
-          addr_hit[2] = 1; 
-      end
-
     end
-  end
 
+    //load
+    if(MSHR_queue[index_rd_search].proc2mem_command == BUS_STORE) begin
+      rd_wb_en = 1;
+      rd_wb_dirty = 0;
+      rd_wb_data = MSHR_queue[index_rd_search].data;
+      rd_wb_addr = MSHR_queue[index_rd_search].addr;
+    end
 
-  
+    //store
+    if(MSHR_queue[index_wr_search].proc2mem_command == BUS_STORE) begin
+      miss_addr_hit[1] = 1;
+      next_MSHR_queue[index_wr_search].dirty = 0;
+      next_MSHR_queue[index_wr_search].data = search_wr_data;
 
-
-
-  //receive data back from mem
-  always_comb begin
-    data
+      wr_wb_en = 1;
+      wr_wb_addr = MSHR_queue[index_wr_search].addr;
+      wr_wb_data = search_wr_data;
+      wr_wb_dirty = 0;
+    end
+    else begin
+      if(MSHR_queue[index_wr_search].inst_type == LOAD) begin
+        miss_addr_hit[1] = 0; //make the store send to mshr
+      end
+      else begin
+        next_MSHR_queue[index_wr_search].data = search_wr_data;
+        next_MSHR_queue[index_wr_search].dirty = 1;
+      end
+    end
   end
 
   always_ff @(posedge clock) begin

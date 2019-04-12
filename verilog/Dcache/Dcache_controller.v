@@ -10,6 +10,7 @@ module Dcache_controller(
     //cache to proc                                 
     output logic [63:0]                                                           data,
     output logic                                                                  valid_data,
+    output logic                                                                  valid_store, // tells if a store can be moved on.
 
     //Dcachemem to cache                                  
     input logic [63:0]                                                            rd1_data, 
@@ -27,8 +28,8 @@ module Dcache_controller(
     //MSHR to cache                                 
     input logic                                                                   mshr_valid,
 
-    input logic [1:0][63:0]                                                       miss_data,
-    input logic [1:0]                                                             miss_data_valid,
+    // input logic [1:0][63:0]                                                       miss_data,
+    // input logic [1:0]                                                             miss_data_valid,
     input logic [1:0]                                                             miss_addr_hit,
 
     input logic                                                                   mem_wr,
@@ -40,7 +41,7 @@ module Dcache_controller(
     input logic                                                                   rd_wb_dirty,
     input logic [63:0]                                                            rd_wb_data,
     input SASS_ADDR                                                               rd_wb_addr,
-    
+
     input logic                                                                   wr_wb_en,
     input logic                                                                   wr_wb_dirty,
     input logic [63:0]                                                            wr_wb_data,
@@ -55,6 +56,7 @@ module Dcache_controller(
     //cache to MSHR (searching)                                 
     output SASS_ADDR [1:0]                                                        search_addr,
     output MSHR_INST_TYPE [1:0]                                                   search_type,
+    output [63:0]                                                                 search_wr_data,
     //cache to MSHR (Written back)                      
     output logic                                                                  stored_rd_wb,
     output logic                                                                  stored_wr_wb,
@@ -65,12 +67,15 @@ module Dcache_controller(
     output logic                                                                  cache_valid
 );
 //read cache outputs
+logic next_search_addr_reg
 
 //output data from mshr if exist otherwise from cache
 assign data = rd1_data; 
 
 //data is valid if it is read and if data is either in cache or mshr
-assign valid_data[0] = rd1_hit;
+assign valid_data = rd1_hit;
+
+assign valid_store = (stored_wr_wb || miss_en[1]);
 
 
 //set MSHR CMMD
@@ -82,6 +87,7 @@ assign search_type[0] = LOAD;
 //search mshr for wr1 data
 assign search_addr[1] = wr_in_addr;
 assign search_type[1] = STORE;
+assign search_wr_data = wr_data;
 
 //if not in cache, enable to push data to the MSHR
 assign miss_en[0] = (rd_en & !rd1_hit & !miss_addr_hit[0]);
@@ -135,5 +141,14 @@ assign stored_mem_wr = !wr_en & !rd_wb_en & !wr_wb_en & mem_wr;
 
 //set the cache id valid or not
 assign cache_valid = mshr_valid;
+
+always_ff @(posedge clock) begin
+  if(reset) begin
+    search_addr_reg <= `SD 0;
+  end
+  else begin
+    search_addr_reg <= `SD next_search_addr_reg;
+  end
+end
 
 endmodule
