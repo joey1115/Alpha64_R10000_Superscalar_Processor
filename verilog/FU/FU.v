@@ -422,17 +422,25 @@ module st (
 
   always_comb begin
     if ( rollback_valid ) begin
-      ST_out = `ST_OUT_RESET;
+      next_ST_out = `ST_OUT_RESET;
     end else begin
-      ST_out.done     = FU_in.done;
-      ST_out.result   = result;
-      ST_out.dest_idx = FU_in.dest_idx;
-      ST_out.T_idx    = FU_in.T_idx;
-      ST_out.ROB_idx  = FU_in.ROB_idx;
-      ST_out.FL_idx   = FU_in.FL_idx;
-      ST_out.SQ_idx   = FU_in.SQ_idx;
-      ST_out.LQ_idx   = FU_in.LQ_idx;
-      ST_out.T1_value = FU_in.T1_value;
+      next_ST_out.done     = FU_in.done;
+      next_ST_out.result   = result;
+      next_ST_out.dest_idx = FU_in.dest_idx;
+      next_ST_out.T_idx    = FU_in.T_idx;
+      next_ST_out.ROB_idx  = FU_in.ROB_idx;
+      next_ST_out.FL_idx   = FU_in.FL_idx;
+      next_ST_out.SQ_idx   = FU_in.SQ_idx;
+      next_ST_out.LQ_idx   = FU_in.LQ_idx;
+      next_ST_out.T1_value = FU_in.T1_value;
+    end
+  end
+
+  always_ff @(posedge clock) begin
+    if (reset) begin
+      ST_out <= `SD `ST_OUT_RESET;
+    end else if (en) begin
+      ST_out <= `SD next_ST_out;
     end
   end
 endmodule
@@ -448,8 +456,8 @@ module FU (
   input  logic        [`NUM_SUPER-1:0]                       LQ_valid,
   input  logic        [`NUM_SUPER-1:0]                       LQ_violate,
   input  logic                                               rollback_en,
-  input  logic       [$clog2(`NUM_ROB)-1:0]                  ROB_rollback_idx,
-  input  logic       [$clog2(`NUM_ROB)-1:0]                  diff_ROB,
+  input  logic        [$clog2(`NUM_ROB)-1:0]                 ROB_rollback_idx,
+  input  logic        [$clog2(`NUM_ROB)-1:0]                 diff_ROB,
   input  LQ_TARGET_t                                         LQ_target,
   input  RS_FU_OUT_t                                         RS_FU_out,
   input  PR_FU_OUT_t                                         PR_FU_out,
@@ -506,6 +514,16 @@ module FU (
   end
 
   always_comb begin
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      FU_LQ_out.done[i]     = LD_out[i].done;
+      FU_LQ_out.result[i]   = LD_out[i].result;
+      FU_LQ_out.dest_idx[i] = LD_out[i].dest_idx;
+      FU_LQ_out.T_idx[i]    = LD_out[i].T_idx;
+      FU_LQ_out.ROB_idx[i]  = LD_out[i].ROB_idx;
+    end
+  end
+
+  always_comb begin
     for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i < `NUM_FU; i++) begin
       FU_CDB_out.FU_out[i] = FU_out[i];
     end
@@ -515,9 +533,6 @@ module FU (
       FU_CDB_out.FU_out[i].dest_idx = SQ_FU_out.dest_idx[i];
       FU_CDB_out.FU_out[i].T_idx    = SQ_FU_out.T_idx[i];
       FU_CDB_out.FU_out[i].ROB_idx  = SQ_FU_out.ROB_idx[i];
-      FU_CDB_out.FU_out[i].FL_idx   = SQ_FU_out.FL_idx[i];
-      FU_CDB_out.FU_out[i].SQ_idx   = SQ_FU_out.SQ_idx[i];
-      FU_CDB_out.FU_out[i].LQ_idx   = SQ_FU_out.LQ_idx[i];
     end
     for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i++) begin
       FU_CDB_out.FU_out[i].done     = LQ_FU_out.done[i];
@@ -525,22 +540,9 @@ module FU (
       FU_CDB_out.FU_out[i].dest_idx = LQ_FU_out.dest_idx[i];
       FU_CDB_out.FU_out[i].T_idx    = LQ_FU_out.T_idx[i];
       FU_CDB_out.FU_out[i].ROB_idx  = LQ_FU_out.ROB_idx[i];
-      FU_CDB_out.FU_out[i].FL_idx   = LQ_FU_out.FL_idx[i];
-      FU_CDB_out.FU_out[i].SQ_idx   = LQ_FU_out.SQ_idx[i];
-      FU_CDB_out.FU_out[i].LQ_idx   = LQ_FU_out.LQ_idx[i];
     end
     for (int i = 0; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i++) begin
       FU_CDB_out.FU_out[i] = FU_out[i];
-    end
-  end
-
-  always_comb begin
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      FU_LQ_out.done[i]     = LD_out[i].done;
-      FU_LQ_out.result[i]   = LD_out[i].result;
-      FU_LQ_out.dest_idx[i] = LD_out[i].dest_idx;
-      FU_LQ_out.T_idx[i]    = LD_out[i].T_idx;
-      FU_LQ_out.ROB_idx[i]  = LD_out[i].ROB_idx;
     end
   end
 
