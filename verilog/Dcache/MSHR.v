@@ -21,12 +21,23 @@ module MSHR(
       
   output logic [1:0][63:0]                                       miss_data, //data returned
   output logic [1:0]                                             miss_data_valid, //if data returned is correct
-  output logic [2:0]                                             addr_hit, // if address search in the MSHR
+  output logic [2:0]                                             miss_addr_hit, // if address search in the MSHR
       
   output logic                                                   mem_wr,
   output logic                                                   mem_dirty,
   output logic [63:0]                                            mem_data,
   output SASS_ADDR                                               mem_addr,
+
+  output logic                                                   rd_wb_en,
+  output logic                                                   rd_wb_dirty,
+  output logic [63:0]                                            rd_wb_data,
+  output SASS_ADDR                                               rd_wb_addr,
+
+  output logic                                                   wr_wb_en,
+  output logic                                                   wr_wb_dirty,
+  output logic [63:0]                                            wr_wb_data,
+  output SASS_ADDR                                               wr_wb_addr,
+
       
   //mshr to cache      
   output logic                                                   mshr_valid,
@@ -59,6 +70,9 @@ module MSHR(
   parameter FIVE_LINE_ADD = 5*`NUM_BLOCK;
   parameter SIX_LINE_ADD = 6*`NUM_BLOCK;
   parameter SEVEN_LINE_ADD = 7*`NUM_BLOCK;
+  parameter EIGHT_LINE_ADD = 5*`NUM_BLOCK;
+  parameter NINE_LINE_ADD = 6*`NUM_BLOCK;
+  parameter TEN_LINE_ADD = 7*`NUM_BLOCK;
 
   //MSHR queue
   MSHR_ENTRY_t [MSHR_DEPTH-1:0] MSHR_queue, next_MSHR_queue;

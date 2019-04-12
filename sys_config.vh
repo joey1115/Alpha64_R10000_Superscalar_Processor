@@ -18,9 +18,9 @@
 //D cache parameters (not parameterizable)
 `define MEMORY_BLOCK_SIZE(8)
 `define CACHE_SIZE       (256) //cache size in bytes
-`define LINE_SIZE        (16) // multiple of 8 bytes (memory blocks)
+`define LINE_SIZE        (8) // multiple of 8 bytes (memory blocks)
 `define ADDRESS_BITS     (64) //size of an address in bits
-`define NUM_WAY          (2) //num of lines in a set (NEED MORE THAN 1 !!!!!)
+`define NUM_WAY          (4) //num of lines in a set (NEED MORE THAN 1 !!!!!)
 
 
 `define TOTAL_LINES      (`CACHE_SIZE/`LINE_SIZE) // fixed to 2!!!!!!!

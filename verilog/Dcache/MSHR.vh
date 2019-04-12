@@ -30,7 +30,7 @@ typedef enum logic {
 typedef enum logic {
   INPROGRESS      = 2'b00,
   WAITING         = 2'b01,
-  DONE            = 2'b01,
+  DONE            = 2'b10,
 } MSHR_STATE;
 
 `endif
