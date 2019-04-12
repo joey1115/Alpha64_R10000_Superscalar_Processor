@@ -61,7 +61,10 @@ module MSHR(
 //need fucntionality that either updates data of the load_bus cmmd from st or set as a new entry.
 //same mechanism for evicted BUS_STORE inst.
 
+
 //for BUS transactions, need to have it be size of cache lines. use BO to set the data
+
+//need logic to check priority
 
   parameter ONE_LINE_ADD = 1*`NUM_BLOCK;
   parameter TWO_LINE_ADD = 2*`NUM_BLOCK;
