@@ -130,8 +130,8 @@ typedef struct packed {
   logic [$clog2(`NUM_FL)-1:0]  FL_idx;
   logic [$clog2(`NUM_LSQ)-1:0] SQ_idx;
   logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
-  logic [63:0]                 target;      // 假
-  logic [63:0]                 target_PC;   // 真
+  logic [63:0]                 target;      // 假 (target predicted by BP)
+  logic [63:0]                 target_PC;   // 真 (target calculated by FU)
   logic                        take_branch;
   logic                        done;
 } BR_TARGET_t;
