@@ -126,7 +126,7 @@ module BP(
   // 4. Rollback Competition: Who is the oldest among two br and two ld instructions that request rollback
 
   assign diff_ROB    = ROB_idx[1] - ROB_rollback_idx;
-  assign rollback_en = predict_wrong[1] || predict_wrong[0] || LQ_violate[1] || LQ_violate[0];
+  assign rollback_en = predict_wrong[1] || predict_wrong[0] || LQ_BP_out.LQ_target.LQ_violate[1] || LQ_BP_out.LQ_target.LQ_violate[0];
 
   assign diff_ROB1 = ROB_idx[1] - FU.BP.out.BR_target[0].ROB_idx;
   assign diff_ROB2 = ROB_idx[1] - FU.BP.out.BR_target[1].ROB_idx;
