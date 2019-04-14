@@ -45,4 +45,8 @@
   {{($clog2(`NUM_PR)-5){1'b0}}, 5'h00}  \
 }
 
+typedef struct packed {
+  logic [31:0][$clog2(`NUM_PR)-1:0] arch_map;
+} ARCH_MAP_MAP_TABLE_OUT_t;
+
 `endif
