@@ -149,6 +149,7 @@ module pipeline (
   logic [63:0] Icache_data_out, proc2Icache_addr;
   logic        Icache_valid_out;
   logic [3:0]  Imem2proc_response;
+  logic [3:0]  Dmem2proc_response;
   BP_F_OUT_t   BP_F_out;
   logic [`NUM_SUPER-1:0][63:0] if_NPC_out, if_PC_out;
   logic [`NUM_SUPER-1:0][31:0] if_IR_out;
