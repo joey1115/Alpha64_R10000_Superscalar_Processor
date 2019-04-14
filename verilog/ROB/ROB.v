@@ -65,7 +65,7 @@ module ROB (
   assign ROB_rollback_idx_reg_plus_one = ROB_rollback_idx_reg + 1;
   
   assign ROB_valid = (ROB_MAP_Table_out.stall_dispatch | rollback_en) ? 0 :
-                     (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]) & (rob.entry[tail_minus_one].halt || rob.entry[tail_minus_two].halt || rob.entry[tail_minus_one].illegal || rob.entry[tail_minus_two].illegal);
+                     (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]) & !(rob.entry[tail_minus_one].halt || rob.entry[tail_minus_two].halt || rob.entry[tail_minus_one].illegal || rob.entry[tail_minus_two].illegal);
   
   //(tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
 
