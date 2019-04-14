@@ -231,6 +231,8 @@ module pipeline (
   assign Dmem2proc_response = 
     (proc2Dmem_command==BUS_NONE) ? 0 : mem2proc_response;
   assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
+
+  assign fetch_en_in = fetch_en & (proc2Dmem_command==BUS_NONE);
 `ifdef DEBUG
   always_comb begin
     if(write_back_stage)begin
@@ -453,7 +455,7 @@ module pipeline (
     // Inputs
     .clock             (clock),
     .reset             (reset),
-    .get_next_inst     (fetch_en), //only go to next insn when high
+    .get_next_inst     (fetch_en_in), //only go to next insn when high
     .Imem2proc_data    (Icache_data_out),
     .Imem_valid        (Icache_valid_out),
     .BP_F_out          (BP_F_out),
