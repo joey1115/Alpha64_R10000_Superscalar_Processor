@@ -33,6 +33,7 @@ module BP(
   logic  [$clog2(`NUM_FL)-1:0]                             FL_rollback_idx1, FL_rollback_idx2;
   logic  [$clog2(`NUM_LSQ)-1:0]                            SQ_rollback_idx1, SQ_rollback_idx2;
   logic  [$clog2(`NUM_LSQ)-1:0]                            LQ_rollback_idx1, LQ_rollback_idx2;
+  logic  [`NUM_SUPER-1:0]                                  take_branch_out;
   logic  [63:0]                                            take_branch_target, take_branch_target1, take_branch_target2;
   logic  [`NUM_BR-1:0]          [63:0]                     take_branch_target_out;
   logic  [`NUM_BR-1:0]                                     predict_wrong;
@@ -233,7 +234,7 @@ module BP(
   end
 
   always_comb begin
-    case('{rollback_en2, rollback_en1})
+    case({rollback_en2, rollback_en1})
       2'b00: begin
         rollback_en        = `FALSE;
         ROB_rollback_idx   = {`NUM_ROB{1'b0}};
