@@ -24,8 +24,6 @@ module MSHR(
 `ifdef DEBUG
   output MSHR_ENTRY_t [`MSHR_DEPTH-1:0]                          MSHR_queue,
 `endif
-  output logic [1:0][63:0]                                       miss_data, //data returned
-  output logic [1:0]                                             miss_data_valid, //if data returned is correct
   output logic [1:0]                                             miss_addr_hit, // if address search in the MSHR
       
   output logic                                                   mem_wr,
@@ -223,7 +221,6 @@ module MSHR(
     //search logic
     //if type of searcher is load
     miss_addr_hit = 0;
-    miss_data_valid = 0;
     rd_wb_en = 0;
     wr_wb_en = 0;
     for(int i = 0; i < `MSHR_DEPTH; i++) begin
