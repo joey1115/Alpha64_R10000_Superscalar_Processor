@@ -139,27 +139,27 @@ module ROB (
     end
 
     //rollback functionality
-    b_t = ROB_rollback_idx_minus_one >= rob.tail;
+    b_t = ROB_rollback_idx >= rob.tail;
 
-    mispredict = rollback_en && rob.entry[ROB_rollback_idx_minus_one].valid;
+    mispredict = rollback_en && rob.entry[ROB_rollback_idx].valid;
 
     if(mispredict) begin
         if(b_t) begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush only branch less than tail and greater than branch
-            if( i < rob.tail || i > ROB_rollback_idx_minus_one)
+            if( i < rob.tail || i >= ROB_rollback_idx)
               Nrob.entry[i].valid = 0;
           end
         end
         else begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush instructions between tail and branch
-            if( i < rob.tail && i > ROB_rollback_idx_minus_one)
+            if( i < rob.tail && i > ROB_rollback_idx)
               Nrob.entry[i].valid = 0;
           end
         end
         //move tail index to after branch
-        Nrob.tail = ROB_rollback_idx;
+        Nrob.tail = ROB_rollback_idx + 1;
     end
     
    
@@ -188,6 +188,8 @@ module ROB (
          rob.entry[i].T_idx <= `SD 0;
          rob.entry[i].Told_idx <= `SD 0;
          rob.entry[i].dest_idx <= `SD 0;
+         rob.entry[i].wr_mem <= `SD 0;
+         rob.entry[i].rd_mem <= `SD 0;
       end
     end // if (reset) else
     else if(en)begin

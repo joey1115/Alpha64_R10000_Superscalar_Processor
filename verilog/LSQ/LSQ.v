@@ -65,10 +65,11 @@ module SQ (
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      SQ_LQ_out.hit[i]   = st_hit[i];
-      SQ_LQ_out.value[i] = sq[sq_map_idx[st_idx[i]]].value;
-      SQ_LQ_out.done[i]  = FU_SQ_out.done[i];
-      SQ_LQ_out.addr[i]  = FU_SQ_out.result[i][63:3];
+      SQ_LQ_out.LQ_idx[i] = FU_SQ_out.LQ_idx[i];
+      SQ_LQ_out.hit[i]    = st_hit[i];
+      SQ_LQ_out.value[i]  = sq[sq_map_idx[st_idx[i]]].value;
+      SQ_LQ_out.done[i]   = FU_SQ_out.done[i];
+      SQ_LQ_out.addr[i]   = FU_SQ_out.result[i][63:3];
     end
   end
 
@@ -121,17 +122,37 @@ module SQ (
 
   always_comb begin
     case(ROB_SQ_out.wr_mem & retire_en)
-      2'b00: next_head = head;
-      2'b01: next_head = head_plus_one;
-      2'b10: next_head = head_plus_one;
-      2'b11: next_head = head_plus_one;
+      2'b00: begin
+        next_head            = head;
+        SQ_D_cache_out.wr_en = `FALSE;
+        SQ_D_cache_out.addr  = sq[head].addr;
+        SQ_D_cache_out.value = sq[head].value;
+      end
+      2'b01: begin
+        next_head            = head_plus_one;
+        SQ_D_cache_out.wr_en = `TRUE;
+        SQ_D_cache_out.addr  = sq[head].addr;
+        SQ_D_cache_out.value = sq[head].value;
+      end
+      2'b10: begin
+        next_head            = head_plus_one;
+        SQ_D_cache_out.wr_en = `TRUE;
+        SQ_D_cache_out.addr  = sq[head].addr;
+        SQ_D_cache_out.value = sq[head].value;
+      end
+      2'b11: begin
+        next_head            = head_plus_one;
+        SQ_D_cache_out.wr_en = `TRUE;
+        SQ_D_cache_out.addr  = sq[head].addr;
+        SQ_D_cache_out.value = sq[head].value;
+      end
     endcase
   end
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       diff[i]           = FU_SQ_out.ROB_idx[i] - ROB_rollback_idx;
-      rollback_valid[i] = rollback_en && diff_ROB >= diff[i];
+      rollback_valid[i] = rollback_en && diff_ROB >= diff[i] && diff[i] != {$clog2(`NUM_ROB){1'b0}};
     end
   end
 
@@ -242,7 +263,7 @@ module LQ (
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      LQ_BP_out.LQ_target[i].ROB_idx    = lq[lq_map_idx[ld_idx[i]]].ROB_idx;
+      LQ_BP_out.LQ_target[i].ROB_idx    = lq[lq_map_idx[ld_idx[i]]].ROB_idx - 1;
       LQ_BP_out.LQ_target[i].FL_idx     = lq[lq_map_idx[ld_idx[i]]].FL_idx - 1;
       LQ_BP_out.LQ_target[i].SQ_idx     = lq[lq_map_idx[ld_idx[i]]].SQ_idx;
       LQ_BP_out.LQ_target[i].LQ_idx     = lq_map_idx[ld_idx[i]];
@@ -359,7 +380,7 @@ module LQ (
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       diff[i]           = FU_LQ_out.ROB_idx[i] - ROB_rollback_idx;
-      rollback_valid[i] = rollback_en && diff_ROB >= diff[i];
+      rollback_valid[i] = rollback_en && diff_ROB >= diff[i] && diff[i] != {$clog2(`NUM_ROB){1'b0}};
     end
   end
 

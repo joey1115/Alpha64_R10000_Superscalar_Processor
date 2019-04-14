@@ -18,7 +18,7 @@ module alu (
   logic [$clog2(`NUM_ROB)-1:0] diff;
 
   assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff;
+  assign rollback_valid = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
   assign FU_valid       = CDB_valid || !FU_in.ready || rollback_valid;
 
   function signed_lt;
@@ -83,7 +83,7 @@ module mult_stage (
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
   // Output
-  output logic                        done,
+  output logic                        done, valid_out,
   output logic [63:0]                 product_out, mplier_out, mcand_out,
   output logic [4:0]                  dest_idx_out,
   output logic [$clog2(`NUM_PR)-1:0]  T_idx_out,
@@ -107,12 +107,12 @@ module mult_stage (
 `ifdef MULT_FORWARDING
   assign diff_out           = ROB_idx_out - ROB_rollback_idx;
   assign diff               = ROB_idx - ROB_rollback_idx;
-  assign rollback_valid_out = rollback_en && diff_ROB >= diff_out;
-  assign rollback_valid     = rollback_en && diff_ROB >= diff;
+  assign rollback_valid_out = rollback_en && diff_ROB >= diff_out && diff_out != {$clog2(`NUM_ROB){1'b0}};
+  assign rollback_valid     = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
   assign valid_out          = !ready || valid || rollback_valid_out;
 `else
   assign diff               = next_ROB_idx_out - ROB_rollback_idx;
-  assign rollback_valid     = rollback_en && diff_ROB >= diff;
+  assign rollback_valid     = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
   assign next_mplier_out    = valid ? next_mplier : mplier_out;
   assign next_mcand_out     = valid ? next_mcand : mcand_out;
   assign next_product_out   = valid ? next_product : product_out;
@@ -221,6 +221,9 @@ module mult (
   assign ROB_idx  = last_ROB_idx;
   assign FU_out   = '{done, result, dest_idx, T_idx, ROB_idx};
   assign regA     = FU_in.T1_value;
+`ifndef MULT_FORWARDING
+  assign FU_valid = CDB_valid || ~done;
+`endif
 
   always_comb begin
     regB = 64'hbaadbeefdeadbeef;
@@ -278,16 +281,17 @@ module br(
   output FU_OUT_t                        FU_out
 );
 
-  logic result;
+  logic result, rollback_valid, take_branch;
+  logic [$clog2(`NUM_ROB)-1:0] diff;
   logic [63:0] regA, regB, PC_result;
   assign FU_valid       = CDB_valid || !FU_in.ready;
   assign take_branch    = FU_in.uncond_branch || (FU_in.cond_branch && result);
   assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff;
+  assign rollback_valid = rollback_en && diff_ROB >= diff && ROB_rollback_idx != FU_in.ROB_idx;
 
   always_comb begin
     BR_target.NPC         = FU_in.NPC;
-    BR_target.ROB_idx     = FU_in.ROB_idx + 1;
+    BR_target.ROB_idx     = FU_in.ROB_idx;
     BR_target.FL_idx      = FU_in.FL_idx;
     BR_target.SQ_idx      = FU_in.SQ_idx;
     BR_target.LQ_idx      = FU_in.LQ_idx;
@@ -369,7 +373,7 @@ module st (
   logic    [63:0]                 regA, regB, result;
 
   assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff;
+  assign rollback_valid = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
   assign regA           = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
   assign regB           = FU_in.T2_value;
   assign result         = regA + regB;
@@ -419,7 +423,7 @@ module ld (
   logic    [63:0]                 regA, regB, result;
 
   assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff;
+  assign rollback_valid = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
   assign regA           = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
   assign regB           = FU_in.T2_value;
   assign result         = regA + regB;
@@ -434,6 +438,9 @@ module ld (
       next_LD_out.dest_idx = FU_in.dest_idx;
       next_LD_out.T_idx    = FU_in.T_idx;
       next_LD_out.ROB_idx  = FU_in.ROB_idx;
+      next_LD_out.FL_idx   = FU_in.FL_idx;
+      next_LD_out.SQ_idx   = FU_in.SQ_idx;
+      next_LD_out.LQ_idx   = FU_in.LQ_idx;
       next_LD_out.NPC      = FU_in.NPC;
     end
   end
@@ -507,6 +514,8 @@ module FU (
       FU_SQ_out.dest_idx[i] = ST_out[i].dest_idx;
       FU_SQ_out.T_idx[i]    = ST_out[i].T_idx;
       FU_SQ_out.ROB_idx[i]  = ST_out[i].ROB_idx;
+      FU_SQ_out.SQ_idx[i]   = ST_out[i].SQ_idx;
+      FU_SQ_out.LQ_idx[i]   = ST_out[i].LQ_idx;
       FU_SQ_out.T1_value[i] = ST_out[i].T1_value;
     end
   end
@@ -524,15 +533,15 @@ module FU (
   end
 
   always_comb begin
-    for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i < `NUM_FU; i++) begin
+    for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR; i < `NUM_FU; i++) begin
       FU_CDB_out.FU_out[i] = FU_out[i];
     end
     for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR; i++) begin
-      FU_CDB_out.FU_out[i].done     = SQ_FU_out.done[i];
-      FU_CDB_out.FU_out[i].result   = SQ_FU_out.result[i];
-      FU_CDB_out.FU_out[i].dest_idx = SQ_FU_out.dest_idx[i];
-      FU_CDB_out.FU_out[i].T_idx    = SQ_FU_out.T_idx[i];
-      FU_CDB_out.FU_out[i].ROB_idx  = SQ_FU_out.ROB_idx[i];
+      FU_CDB_out.FU_out[i].done     = SQ_FU_out.done[i-`NUM_LD];
+      FU_CDB_out.FU_out[i].result   = SQ_FU_out.result[i-`NUM_LD];
+      FU_CDB_out.FU_out[i].dest_idx = SQ_FU_out.dest_idx[i-`NUM_LD];
+      FU_CDB_out.FU_out[i].T_idx    = SQ_FU_out.T_idx[i-`NUM_LD];
+      FU_CDB_out.FU_out[i].ROB_idx  = SQ_FU_out.ROB_idx[i-`NUM_LD];
     end
     for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i++) begin
       FU_CDB_out.FU_out[i].done     = LQ_FU_out.done[i];
@@ -541,7 +550,7 @@ module FU (
       FU_CDB_out.FU_out[i].T_idx    = LQ_FU_out.T_idx[i];
       FU_CDB_out.FU_out[i].ROB_idx  = LQ_FU_out.ROB_idx[i];
     end
-    for (int i = 0; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i++) begin
+    for (int i = 0; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD; i++) begin
       FU_CDB_out.FU_out[i] = FU_out[i];
     end
   end

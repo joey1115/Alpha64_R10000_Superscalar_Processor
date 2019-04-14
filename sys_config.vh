@@ -33,6 +33,6 @@
 `define MSHR_DEPTH          (`NUM_BLOCK*16) // num of blocks need multiple of NUM_BLOCKS
 
 `define DEBUG
-// `define MULT_FORWARDING
+`define MULT_FORWARDING
 
 `endif
