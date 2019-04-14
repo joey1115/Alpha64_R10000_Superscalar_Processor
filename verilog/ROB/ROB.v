@@ -37,7 +37,7 @@ module ROB (
 
   logic writeTail, moveHead, mispredict, b_t;
   logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg, ROB_rollback_idx_reg_plus_one;
-  logic [1:0] state, Nstate;
+  logic [2:0] state, Nstate;
   logic [$clog2(`NUM_ROB)-1:0] tail_plus_one;
   logic [$clog2(`NUM_ROB)-1:0] tail_minus_one;
   logic [$clog2(`NUM_ROB)-1:0] head_plus_one;
@@ -63,7 +63,7 @@ module ROB (
   assign head_plus_one = rob.head + 1;
   assign ROB_rollback_idx_reg_plus_one = ROB_rollback_idx_reg + 1;
   
-  assign ROB_valid = (ROB_MAP_Table_out.stall_dispatch | rollback_en)? 0 :
+  assign ROB_valid = (ROB_MAP_Table_out.stall_dispatch | rollback_en | (state == 2))? 0 :
                      (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]);
   
   //(tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
@@ -171,7 +171,7 @@ module ROB (
 
   always_comb begin
     case(state)
-      0: Nstate = (mispredict) ? 1 : state;
+      0: Nstate = (mispredict) ? 1 : (halt_out[0] || halt_out[1]) ? 2 : state;
       1: Nstate = ((rob.head == ROB_rollback_idx_reg) || (rob.head == (ROB_rollback_idx_reg_plus_one))) ? 0 : state;
       default: Nstate = state;
     endcase 
