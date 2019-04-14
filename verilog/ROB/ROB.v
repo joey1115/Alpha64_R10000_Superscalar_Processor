@@ -192,6 +192,7 @@ module ROB (
          rob.entry[i].dest_idx <= `SD 0;
          rob.entry[i].wr_mem <= `SD 0;
          rob.entry[i].rd_mem <= `SD 0;
+         rob.entry[i].NPC <= `SD 0;
       end
     end // if (reset) else
     else if(en)begin

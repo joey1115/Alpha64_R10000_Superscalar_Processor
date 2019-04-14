@@ -2,7 +2,7 @@
 `define __SYS_CONFIG_VH__
 
 `define NUM_SUPER       (2)          //DO NOT CHANGE!!!!!
-`define NUM_ROB         (8)
+`define NUM_ROB         (32)
 `define NUM_PR          (`NUM_ROB + 32)
 `define NUM_FL          (`NUM_ROB)
 `define NUM_ALU         (1 * `NUM_SUPER)
@@ -15,7 +15,7 @@
 `define NUM_MULT_STAGE  (8)
 `define NUM_LSQ         (8)
 `define NUM_BH_IDX_BITS (4)
-`define NUM_FB          (8)
+`define NUM_FB          (32)
 
 //D cache parameters (not parameterizable)
 `define MEMORY_BLOCK_SIZE   (8)
