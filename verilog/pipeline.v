@@ -108,6 +108,7 @@ module pipeline (
   // To be modified
   D_CACHE_SQ_OUT_t                               D_cache_SQ_out;
   D_CACHE_LQ_OUT_t                               D_cache_LQ_out;
+  ARCH_MAP_MAP_TABLE_OUT_t                       ARCH_MAP_MAP_Table_out;
   // F_DECODER_OUT_t                                F_decoder_out;
   LQ_BP_OUT_t                                    LQ_BP_out;
   logic                   [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx;
@@ -271,11 +272,12 @@ module pipeline (
     .reset(reset),
     .retire_en(retire_en),
 `ifndef DEBUG
-    .ROB_Arch_Map_out(ROB_Arch_Map_out)
+    .ROB_Arch_Map_out(ROB_Arch_Map_out),
 `else
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
-    .next_arch_map(pipeline_ARCHMAP)
+    .next_arch_map(pipeline_ARCHMAP),
 `endif
+    .ARCH_MAP_MAP_Table_out(ARCH_MAP_MAP_Table_out)
   );
 
   BP BP_0 (
@@ -428,6 +430,7 @@ module pipeline (
     .decoder_Map_Table_out(decoder_Map_Table_out),
     .FL_Map_Table_out(FL_Map_Table_out),
     .CDB_Map_Table_out(CDB_Map_Table_out),
+    .ARCH_MAP_MAP_Table_out(ARCH_MAP_MAP_Table_out),
 `ifdef DEBUG
     .map_table_out(pipeline_MAPTABLE),
 `endif

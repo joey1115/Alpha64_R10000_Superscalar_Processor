@@ -30,6 +30,7 @@ module Map_Table (
   input  DECODER_MAP_TABLE_OUT_t                                        decoder_Map_Table_out,
   input  FL_MAP_TABLE_OUT_t                                             FL_Map_Table_out,
   input  CDB_MAP_TABLE_OUT_t                                            CDB_Map_Table_out,
+  input  ARCH_MAP_MAP_TABLE_OUT_t                                       ARCH_MAP_MAP_Table_out,  
 `ifdef DEBUG                
   output T_t                     [31:0]                                 map_table_out,
 `endif                
@@ -39,7 +40,6 @@ module Map_Table (
 
   T_t [`NUM_SUPER-1:0]                                                  T1, T2;
   T_t [31:0]                                                            map_table, next_map_table;
-  T_t [`NUM_ROB-1:0][31:0]                                              backup_map_table, next_backup_map_table;
   logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0]                           Told_idx;       // output Told to ROB
 
   assign Map_Table_ROB_out = '{Told_idx};
@@ -93,7 +93,7 @@ module Map_Table (
 
     // Rollback
     if (rollback_en) begin
-      next_map_table = backup_map_table[ROB_rollback_idx];
+      next_map_table = ARCH_MAP_MAP_Table_out.arch_map;
     end
     for(int i = 0; i < `NUM_SUPER; i++) begin
       // complete update ready bit
@@ -108,29 +108,11 @@ module Map_Table (
     next_map_table[`ZERO_REG].ready = `TRUE;                                // Force ZERO_REG to be ready
   end
 
-  always_comb begin
-    next_backup_map_table = backup_map_table;
-    if ( dispatch_en ) begin                                // no dispatch hazard
-      next_backup_map_table[ROB_idx[0]] = next_map_table; // backup the map with first inst dispatched only
-      next_backup_map_table[ROB_idx[0]][decoder_Map_Table_out.dest_idx[1]] = map_table[decoder_Map_Table_out.dest_idx[1]]; // return back the old entry of dispatch 1
-
-      next_backup_map_table[ROB_idx[1]] = next_map_table;
-      
-      for (int i=0; i<32;i++) begin
-        for(int j=0; j < `NUM_SUPER; j++) begin
-          next_backup_map_table[ROB_idx[j]][i].ready = `TRUE;   // ready all the bit
-        end
-      end
-    end
-  end
-
   always_ff @(posedge clock) begin
     if(reset) begin
       map_table        <= `SD `MAP_TABLE_RESET;
-      backup_map_table <= `SD `MAP_TABLE_STACK_RESET;
     end else if(en) begin
       map_table        <= `SD next_map_table;
-      backup_map_table <= `SD next_backup_map_table;
     end
   end
 endmodule
