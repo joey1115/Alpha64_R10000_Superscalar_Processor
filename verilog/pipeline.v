@@ -556,8 +556,8 @@ module pipeline (
     .decoder_FL_out        (decoder_FL_out),
     .decoder_Map_Table_out (decoder_Map_Table_out),
     .decoder_SQ_out        (decoder_SQ_out),
-    .decoder_LQ_out        (decoder_LQ_out),
-    .illegal               (illegal)
+    .decoder_LQ_out        (decoder_LQ_out)
+    // .illegal               (illegal)
   );
 
   FL fl_0 (

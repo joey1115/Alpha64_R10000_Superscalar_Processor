@@ -7,8 +7,8 @@ module decoder(
   output DECODER_FL_OUT_t        decoder_FL_out,
   output DECODER_MAP_TABLE_OUT_t decoder_Map_Table_out,
   output DECODER_SQ_OUT_t        decoder_SQ_out,
-  output DECODER_LQ_OUT_t        decoder_LQ_out,
-  output logic                   illegal
+  output DECODER_LQ_OUT_t        decoder_LQ_out
+  // output logic                   illegal
 );
 
   INST_t         [`NUM_SUPER-1:0]       inst;  // fetched instruction out

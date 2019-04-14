@@ -288,7 +288,7 @@ module MSHR(
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i = 0; i < `MSHR_DEPTH; i++) begin
-        MSHR_queue[i].valid <= `SD 0;
+        MSHR_queue <= `SD 0;
       end
       writeback_head <= `SD 0;
       head           <= `SD 0;
