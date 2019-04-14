@@ -23,6 +23,14 @@ typedef struct packed {
     logic [2:0] ignore;
 } SASS_ADDR;
 
+typedef struct packed {
+  logic valid;
+} D_CACHE_SQ_OUT_t;
+
+typedef struct packed {
+  logic        valid;
+  logic [63:0] value;
+} D_CACHE_LQ_OUT_t;
 
 `endif
 

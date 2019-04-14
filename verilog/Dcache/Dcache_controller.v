@@ -9,9 +9,8 @@ module Dcache_controller(
     input logic [63:0]                                                            wr_data,
 
     //cache to proc                                 
-    output logic [63:0]                                                           data,
-    output logic                                                                  valid_data,
-    output logic                                                                  valid_store, // tells if a store can be moved on.
+    output D_CACHE_LQ_OUT_t                                                       d_cache_lq_out,
+    output D_CACHE_SQ_OUT_t                                                       d_cache_sq_out, // tells if a store can be moved on.
 
     //Dcachemem to cache                                  
     input logic [63:0]                                                            rd1_data, 
@@ -79,34 +78,34 @@ SASS_ADDR write_back_addr;
 
 //read cache outputs
 
-//output data from mshr if exist otherwise from cache
-assign data = rd1_data; 
+//output d_cache_lq_out.value from mshr if exist otherwise from cache
+assign d_cache_lq_out.value = rd1_data; 
 
-//data is valid if it is read and if data is either in cache or mshr
-assign valid_data = rd1_hit;
+//d_cache_lq_out.value is valid if it is read and if d_cache_lq_out.value is either in cache or mshr
+assign d_cache_lq_out.valid = rd1_hit;
 
-assign valid_store = (stored_wr_wb || miss_en[1]);
+assign d_cache_sq_out.valid = (stored_wr_wb || miss_en[1]);
 
 
 //set MSHR CMMD
 
-//search mshr for rd1 data
+//search mshr for rd1 d_cache_lq_out.value
 assign search_addr[0] = rd1_addr;
 assign search_type[0] = LOAD;
 
-//search mshr for wr1 data
+//search mshr for wr1 d_cache_lq_out.value
 assign search_addr[1] = {wr_in_addr,3'b000};
 assign search_type[1] = STORE;
 assign search_wr_data = wr_data;
 
-//if not in cache, enable to push data to the MSHR
+//if not in cache, enable to push d_cache_lq_out.value to the MSHR
 assign miss_en[0] = (rd_en & !rd1_hit & !miss_addr_hit[0]);
 //Miss from stores
 assign miss_en[1] = (wr_en & !wr1_hit & !miss_addr_hit[1]);
 //Store inst from evicts
 assign miss_en[2] = (wr1_from_mem & evicted_dirty & evicted_valid);// when wr1 is from memory and it is dirty
 
-//data sent to MSHR search
+//d_cache_lq_out.value sent to MSHR search
 assign miss_addr[0] = rd1_addr;
 assign miss_data_in[0] = {64'hDEADBEEFDEADBEEF};
 assign inst_type[0] = LOAD;
@@ -122,7 +121,7 @@ assign miss_data_in[2] = evicted_data;
 assign inst_type[2] = EVICT;
 assign mshr_proc2mem_command[2] = BUS_STORE;
 
-//data to cache
+//d_cache_lq_out.value to cache
 //assign cachemem inputs
 assign rd1_addr = {rd_in_addr,3'b000};
 
