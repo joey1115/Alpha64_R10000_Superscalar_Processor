@@ -325,6 +325,26 @@ void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst)
   }
 }
 
+void print_Dcache_bank(int data_hi, int data_lo, int tag, int dirty, int valid){
+  if(ppfile != NULL){
+    fprintf(ppfile, "data: %x%x | tag: %x | dirty: %1d | valid: %1d |        ", data_hi, data_lo, tag, dirty, valid);
+  }
+}
+
+void print_MSHR_entry(int valid, int data_hi, int data_lo, int dirty, int addr, int inst_type, int proc2mem_command, int complete, int mem_tag, int state){
+
+}
+
+void print_Num(int i){
+  if(ppfile != NULL){
+    fprintf(ppfile, " %3d", i);
+  }
+}
+void print_enter(){
+  if(ppfile != NULL){
+    fprintf(ppfile, "\n");
+  }
+}
 
 void print_stage(char* div, int inst, int npc, int valid_inst)
 {

@@ -17,7 +17,9 @@ module Dcache(
   input logic [63:0]                                                wr1_data,
   input logic                                                       wr1_dirty,
   input logic                                                       wr1_valid,
-  
+`ifdef DEBUG
+  output D_CACHE_LINE_t [`NUM_WAY-1:0]][`NUM_IDX-1:0]              cache_bank,
+`endif
 
   output logic                                                      evicted_dirty_out, 
   output logic                                                      evicted_valid_out,
@@ -89,6 +91,9 @@ module Dcache(
       .wr1_data(wr1_data),  
       .wr1_dirty(wr1_dirty),
       .wr1_valid(wr1_valid),
+`ifdef DEBUG
+      .cache_bank(cache_bank),
+`endif
       .evicted_idx(wr1_addr.set_index),
       .evicted_addr(evicted_addr),
       .evicted_dirty(evicted_dirty),
@@ -141,6 +146,9 @@ module cache_bank(
   input logic                                                       wr1_dirty,
   input logic                                                       wr1_valid,
 
+`ifdef DEBUG
+  output D_CACHE_LINE_t [`NUM_IDX-1:0]                              cache_bank,
+`endif
   //evicted index to output the address(TAG of the evicted line)
   input logic [$clog2(`NUM_IDX)-1:0]                                evicted_idx,
   output SASS_ADDR                                                  evicted_addr,
@@ -148,8 +156,11 @@ module cache_bank(
   output logic                                                      evicted_valid,
   output logic [63:0]                                               evicted_data
 );
-    
-  D_CACHE_LINE_t [`NUM_IDX-1:0] cache_bank, next_cache_bank;
+
+`ifndef DEBUG
+  D_CACHE_LINE_t [`NUM_IDX-1:0] cache_bank;
+`endif  
+  D_CACHE_LINE_t [`NUM_IDX-1:0] next_cache_bank;
 
   //check read hit
   assign rd1_hit = cache_bank[rd1_addr.set_index].valid && (rd1_addr.tag == cache_bank[rd1_addr.set_index].tag);
