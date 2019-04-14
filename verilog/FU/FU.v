@@ -452,7 +452,6 @@ module FU (
   input  logic                                               clock,               // system clock
   input  logic                                               reset,               // system reset
   input  logic                                               en,               // system reset
-  input  logic        [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
   input  logic        [`NUM_FU-1:0]                          CDB_valid,
   input  logic        [`NUM_SUPER-1:0]                       LQ_valid,
   input  logic                                               rollback_en,

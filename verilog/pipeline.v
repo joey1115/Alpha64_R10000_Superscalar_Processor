@@ -134,7 +134,7 @@ module pipeline (
   logic        Icache_valid_out;
   logic [3:0]  Imem2proc_response;
   BP_F_OUT_t   BP_F_out;
-  logic [`NUM_SUPER-1:0][63:0] if_NPC_out;
+  logic [`NUM_SUPER-1:0][63:0] if_NPC_out, if_PC_out;
   logic [`NUM_SUPER-1:0][31:0] if_IR_out;
   logic [`NUM_SUPER-1:0][63:0] if_target_out;
   F_BP_OUT_t                   F_BP_out;
@@ -233,13 +233,12 @@ module pipeline (
     .clock (clock),
     .reset (reset),
     .get_next_inst(fetch_en), //only go to next insn when high
-    // .take_branch_out(take_branch_out),
-    // .take_branch_target(take_branch_target),
     .Imem2proc_data(Icache_data_out),
     .Imem_valid(Icache_valid_out),
     .BP_F_out(BP_F_out),
     // Outputs
     .proc2Imem_addr(proc2Icache_addr),
+    .if_PC_out(if_PC_out),
     .if_NPC_out(if_NPC_out), 
     .if_IR_out(if_IR_out),
     .if_target_out(if_target_out),
@@ -251,6 +250,7 @@ module pipeline (
     .en(en),
     .clock(clock),
     .reset(reset),
+    .if_PC_out(if_PC_out),
     .if_NPC_out(if_NPC_out),
     .if_IR_out(if_IR_out),
     .if_target_out(if_target_out),
@@ -350,6 +350,7 @@ module pipeline (
     .next_tail(next_tail),
 `endif
     .FL_valid(FL_valid),
+    .FL_idx(FL_idx),
     .FL_ROB_out(FL_ROB_out),
     .FL_RS_out(FL_RS_out),
     .FL_Map_Table_out(FL_Map_Table_out)
@@ -360,10 +361,11 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .en(en),
-    .dispatch_en(dispatch_en),
-    .ROB_idx(ROB_idx),
+    // .ROB_idx(ROB_idx),
+    .rollback_en(rollback_en),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
     .CDB_valid(CDB_valid),
-    .SQ_valid(SQ_valid),
     .LQ_valid(LQ_valid),
     .RS_FU_out(RS_FU_out),
     .PR_FU_out(PR_FU_out),
@@ -371,14 +373,6 @@ module pipeline (
     .LQ_FU_out(LQ_FU_out),
     // Output
     .FU_valid(FU_valid),
-    .rollback_en(rollback_en),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .FL_rollback_idx(FL_rollback_idx),
-    .SQ_rollback_idx(SQ_rollback_idx),
-    .LQ_rollback_idx(LQ_rollback_idx),
-    .diff_ROB(diff_ROB),
-    .take_branch_out(take_branch_out),
-    .take_branch_target(take_branch_target),
     .FU_CDB_out(FU_CDB_out),
     .FU_SQ_out(FU_SQ_out),
     .FU_LQ_out(FU_LQ_out),
@@ -393,6 +387,8 @@ module pipeline (
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .retire_en(retire_en),
+    .ROB_idx(ROB_idx),
+    .FL_idx(FL_idx),
     .CDB_SQ_valid(CDB_SQ_valid),        // TODO
     .CDB_LQ_valid(CDB_LQ_valid),        // TODO
     .SQ_rollback_idx(SQ_rollback_idx),
@@ -410,6 +406,8 @@ module pipeline (
     // Output
     .LSQ_valid(LSQ_valid),
     .LQ_valid(LQ_valid),                // TODO
+    .SQ_idx(SQ_idx),
+    .LQ_idx(LQ_idx),
     .SQ_ROB_out(SQ_ROB_out),            // TODO
     .SQ_FU_out(SQ_FU_out),              // TODO
     .LQ_FU_out(LQ_FU_out),              // TODO
