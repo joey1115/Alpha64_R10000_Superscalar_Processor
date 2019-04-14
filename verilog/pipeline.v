@@ -207,6 +207,7 @@ module pipeline (
   logic                 write_back;
   logic                 cache_valid;
   logic                 halt_pipeline;
+  logic                 write_back_stage;
 
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
@@ -231,11 +232,22 @@ module pipeline (
   assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
 `ifdef DEBUG
   always_comb begin
+    if(write_back_stage)begin
+      num_inst = 0;
+    end   
+    else if(write_back) begin
+      if(halt[0] & !halt[1])
+        num_inst = 1;
+      else if(!halt[0] & halt[1])
+        num_inst = 2;
+    end
+    else begin
       case(retire_en)
         2'b00: num_inst = 0;
         2'b01, 2'b10: num_inst = 1;
         2'b11: num_inst = 2;
       endcase
+    end
   end
   always_comb begin
     for(int i = 0; i < `NUM_SUPER; i++) begin
@@ -352,7 +364,8 @@ module pipeline (
     .stored_mem_wr(stored_mem_wr),
     .write_back(write_back),
     .cache_valid(cache_valid),
-    .halt_pipeline(halt_pipeline)
+    .halt_pipeline(halt_pipeline),
+    .write_back_stage(write_back_stage)
 );
 
   Dcache dcache_0 (
