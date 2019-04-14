@@ -40,6 +40,7 @@ ASSEMBLER = vs-asm
 
 HEADERS       = $(wildcard *.vh)
 HEADERS      += $(wildcard verilog/Arch_Map/Arch_Map.vh)
+HEADERS      += $(wildcard verilog/BP/BP.vh)
 HEADERS      += $(wildcard verilog/CDB/CDB.vh)
 HEADERS      += $(wildcard verilog/decoder/decoder.vh)
 HEADERS      += $(wildcard verilog/FETCH_BUFFER/FETCH_BUFFER.vh)
@@ -54,6 +55,7 @@ TESTBENCH     = $(wildcard testbench/*.v)
 TESTBENCH    += $(wildcard testbench/*.c)
 PIPEFILES     = $(wildcard verilog/*.v)
 ARCHMAPFILES  = $(wildcard verilog/Arch_Map/Arch_Map.v)
+BPFILES       = $(wildcard verilog/BP/BP.v)
 CACHEFILES    = $(wildcard verilog/cache/cachemem.v)
 CDBFILES      = $(wildcard verilog/CDB/CDB.v)
 DECODERFILES  = $(wildcard verilog/decoder/decoder.v)
@@ -86,7 +88,7 @@ CACHE     = $(SYNTH_DIR)/$(CACHE_NAME).vg
 # Passed through to .tcl scripts:
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD = 6.15	# TODO: You will want to make this more aggresive
+export CLOCK_PERIOD = 7.1	# TODO: You will want to make this more aggresive
 
 ################################################################################
 ## RULES

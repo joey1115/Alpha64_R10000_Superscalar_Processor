@@ -121,10 +121,13 @@ typedef struct packed {
   ALU_OPB_SELECT [`NUM_SUPER-1:0]       opb_select;
   logic          [`NUM_SUPER-1:0]       cond_branch;
   logic          [`NUM_SUPER-1:0]       uncond_branch;
+  logic          [`NUM_SUPER-1:0]       wr_mem;
+  logic          [`NUM_SUPER-1:0]       rd_mem;
+  logic          [`NUM_SUPER-1:0][63:0] target;
 } DECODER_RS_OUT_t;
 
 typedef struct packed {
-  logic          [`NUM_SUPER-1:0][4:0]  dest_idx;
+  logic [`NUM_SUPER-1:0][4:0] dest_idx;
 } DECODER_FL_OUT_t;
 
 typedef struct packed {
@@ -132,5 +135,14 @@ typedef struct packed {
   logic [`NUM_SUPER-1:0][4:0] rega_idx;
   logic [`NUM_SUPER-1:0][4:0] regb_idx;
 } DECODER_MAP_TABLE_OUT_t;
+
+typedef struct packed {
+  logic [`NUM_SUPER-1:0] wr_mem;
+} DECODER_SQ_OUT_t;
+
+typedef struct packed {
+  logic [`NUM_SUPER-1:0]       rd_mem;
+  logic [`NUM_SUPER-1:0][63:0] PC;
+} DECODER_LQ_OUT_t;
 
 `endif

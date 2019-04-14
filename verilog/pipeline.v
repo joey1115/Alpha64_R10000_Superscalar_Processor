@@ -65,6 +65,8 @@ module pipeline (
   DECODER_RS_OUT_t                               decoder_RS_out;
   DECODER_FL_OUT_t                               decoder_FL_out;
   DECODER_MAP_TABLE_OUT_t                        decoder_Map_Table_out;
+  DECODER_SQ_OUT_t                               decoder_SQ_out;
+  DECODER_LQ_OUT_t                               decoder_LQ_out;
 `ifndef DEBUG
   logic                                          FL_valid;
 `endif
@@ -78,9 +80,13 @@ module pipeline (
   logic                   [$clog2(`NUM_FL)-1:0]  FL_rollback_idx;
   logic                   [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx;
   logic                   [$clog2(`NUM_ROB)-1:0] diff_ROB;
-  logic                                          take_branch_out;
-  logic                   [63:0]                 take_branch_target;
+  // logic                                          take_branch_out;
+  // logic                   [63:0]                 take_branch_target;
   FU_CDB_OUT_t                                   FU_CDB_out;
+  FU_SQ_OUT_t                                    FU_SQ_out;
+  FU_LQ_OUT_t                                    FU_LQ_out;
+  logic                                          LSQ_valid;
+  FU_BP_OUT_t                                    FU_BP_out;
   MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;
   MAP_TABLE_RS_OUT_t                             Map_Table_RS_out;
   PR_FU_OUT_t                                    PR_FU_out;
@@ -98,6 +104,10 @@ module pipeline (
 `endif
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
+  F_DECODER_OUT_t                                F_decoder_out;
+  // To be modified
+  D_CACHE_SQ_OUT_t                               D_cache_SQ_out;
+  D_CACHE_LQ_OUT_t                               D_cache_LQ_out;
   // F_DECODER_OUT_t                                F_decoder_out;
 
   logic                   [`NUM_SUPER-1:0][63:0]retire_NPC;
@@ -117,8 +127,11 @@ module pipeline (
   logic [63:0] Icache_data_out, proc2Icache_addr;
   logic        Icache_valid_out;
   logic [3:0]  Imem2proc_response;
+  BP_F_OUT_t   BP_F_out;
   logic [`NUM_SUPER-1:0][63:0] if_NPC_out;
   logic [`NUM_SUPER-1:0][31:0] if_IR_out;
+  logic [`NUM_SUPER-1:0][63:0] if_target_out;
+  F_BP_OUT_t                   F_BP_out;
   logic fetch_en;
   logic inst_out_valid;
   logic get_fetch_buff;
@@ -129,21 +142,6 @@ module pipeline (
   logic       [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0]                          FL_table, next_FL_table;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_head;
   logic       [$clog2(`NUM_FL)-1:0]                                       next_tail;
-  // logic                                                                   last_done;
-  // logic       [63:0]                                                      product_out;
-  // logic       [4:0]                                                       last_dest_idx;
-  // logic       [$clog2(`NUM_PR)-1:0]                                       last_T_idx;
-  // logic       [$clog2(`NUM_ROB)-1:0]                                      last_ROB_idx;
-  // logic       [$clog2(`NUM_FL)-1:0]                                       last_FL_idx;
-  // logic       [63:0]                                                      T1_value;
-  // logic       [63:0]                                                      T2_value;
-  // logic       [((`NUM_MULT_STAGE-1)*64)-1:0]                              internal_T1_values, internal_T2_values;
-  // logic       [`NUM_MULT_STAGE-2:0]                                       internal_valids;
-  // logic       [`NUM_MULT_STAGE-2:0]                                       internal_dones;
-  // logic       [5*(`NUM_MULT_STAGE-1)-1:0]                                 internal_dest_idx;
-  // logic       [($clog2(`NUM_PR)*(`NUM_MULT_STAGE-1))-1:0]                 internal_T_idx;
-  // logic       [($clog2(`NUM_ROB)*(`NUM_MULT_STAGE-1))-1:0]                internal_ROB_idx;
-  // logic       [($clog2(`NUM_FL)*(`NUM_MULT_STAGE-1))-1:0]                 internal_FL_idx;
   logic       [`NUM_SUPER-1:0]                                            RS_match_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]                       RS_match_idx;
 `endif
@@ -229,15 +227,18 @@ module pipeline (
     .clock (clock),
     .reset (reset),
     .get_next_inst(fetch_en), //only go to next insn when high
-    .take_branch_out(take_branch_out),
-    .take_branch_target(take_branch_target),
+    // .take_branch_out(take_branch_out),
+    // .take_branch_target(take_branch_target),
     .Imem2proc_data(Icache_data_out),
     .Imem_valid(Icache_valid_out),
+    .BP_F_out(BP_F_out),
     // Outputs
+    .proc2Imem_addr(proc2Icache_addr),
     .if_NPC_out(if_NPC_out), 
     .if_IR_out(if_IR_out),
-    .proc2Imem_addr(proc2Icache_addr),
-    .if_valid_inst_out(if_valid_inst_out)
+    .if_target_out(if_target_out),
+    .if_valid_inst_out(if_valid_inst_out),
+    .F_BP_out(F_BP_out)
   );
 
   //////////////////////////////////////////////////
@@ -261,6 +262,7 @@ module pipeline (
     .reset(reset),
     .if_NPC_out(if_NPC_out),
     .if_IR_out(if_IR_out),
+    .if_target_out(if_target_out),
     .if_valid_inst_out(if_valid_inst_out),
     .get_next_inst(dispatch_en),
     .rollback_en(rollback_en),
@@ -285,6 +287,17 @@ module pipeline (
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
     .next_arch_map(pipeline_ARCHMAP)
 `endif
+  );
+
+  BP BP_0 (
+    .clock(clock),
+    .reset(reset),
+    .if_NPC_out(if_NPC_out),
+    .if_IR_out(if_IR_out),
+    .F_BP_out(F_BP_out),
+    .rollback_en(rollback_en),
+    .FU_BP_out(FU_BP_out),
+    .BP_F_out(BP_F_out)
   );
 
   CDB cdb_0 (
@@ -312,8 +325,10 @@ module pipeline (
     .decoder_ROB_out(decoder_ROB_out),
     .decoder_RS_out(decoder_RS_out),
     .decoder_FL_out(decoder_FL_out),
-    .decoder_Map_Table_out(decoder_Map_Table_out)
-    //.illegal(illegal)
+    .decoder_Map_Table_out(decoder_Map_Table_out),
+    .decoder_SQ_out(decoder_SQ_out),
+    .decoder_LQ_out(decoder_LQ_out),
+    .illegal(illegal)
   );
 
   FL fl_0 (
@@ -340,44 +355,77 @@ module pipeline (
   );
 
   FU fu_0 (
+    // Input
     .clock(clock),
     .reset(reset),
+    .en(en),
+    .dispatch_en(dispatch_en),
     .ROB_idx(ROB_idx),
     .CDB_valid(CDB_valid),
+    .SQ_valid(SQ_valid),
+    .LQ_valid(LQ_valid),
     .RS_FU_out(RS_FU_out),
     .PR_FU_out(PR_FU_out),
-// `ifdef DEBUG
-//     .last_done(last_done),
-//     .product_out(product_out),
-//     .last_dest_idx(last_dest_idx),
-//     .last_T_idx(last_T_idx),
-//     .last_ROB_idx(last_ROB_idx),
-//     .last_FL_idx(last_FL_idx),
-//     .T1_value(T1_value),
-//     .T2_value(T2_value),
-//     .internal_T1_values(internal_T1_values),
-//     .internal_T2_values(internal_T2_values),
-//     .internal_valids(internal_valids),
-//     .internal_dones(internal_dones),
-//     .internal_dest_idx(internal_dest_idx),
-//     .internal_T_idx(internal_T_idx),
-//     .internal_ROB_idx(internal_ROB_idx),
-//     .internal_FL_idx(internal_FL_idx),
-// `endif
+    .SQ_FU_out(SQ_FU_out),
+    .LQ_FU_out(LQ_FU_out),
+    // Output
     .FU_valid(FU_valid),
     .rollback_en(rollback_en),
     .ROB_rollback_idx(ROB_rollback_idx),
     .FL_rollback_idx(FL_rollback_idx),
+    .SQ_rollback_idx(SQ_rollback_idx),
+    .LQ_rollback_idx(LQ_rollback_idx),
     .diff_ROB(diff_ROB),
     .take_branch_out(take_branch_out),
     .take_branch_target(take_branch_target),
-    .FU_CDB_out(FU_CDB_out)
+    .FU_CDB_out(FU_CDB_out),
+    .FU_SQ_out(FU_SQ_out),
+    .FU_LQ_out(FU_LQ_out),
+    .FU_BP_out(FU_BP_out)
+  );
+
+  LSQ lsq_0 (
+    // Input
+    .clock(clock),
+    .reset(reset),
+    .en(en),
+    .dispatch_en(dispatch_en),
+    .rollback_en(rollback_en),
+    .retire_en(retire_en),
+    .CDB_SQ_valid(CDB_SQ_valid),        // TODO
+    .CDB_LQ_valid(CDB_LQ_valid),        // TODO
+    .SQ_rollback_idx(SQ_rollback_idx),
+    .LQ_rollback_idx(LQ_rollback_idx),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
+    .decoder_SQ_out(decoder_SQ_out),
+    .decoder_LQ_out(decoder_LQ_out),
+    .D_cache_SQ_out(D_cache_SQ_out),    // To be modified
+    .D_cache_LQ_out(D_cache_LQ_out),    // To be modified
+    .FU_SQ_out(FU_SQ_out),              // TODO
+    .FU_LQ_out(FU_LQ_out),              // TODO
+    .ROB_SQ_out(ROB_SQ_out),            // TODO
+    .ROB_LQ_out(ROB_LQ_out),            // TODO
+    // Output
+    .LSQ_valid(LSQ_valid),
+    .SQ_valid(SQ_valid),                // TODO
+    .LQ_valid(LQ_valid),                // TODO
+    .LQ_violate(LQ_violate),
+    .LQ_target_ROB_idx(LQ_target_ROB_idx),
+    .SQ_ROB_out(SQ_ROB_out),            // TODO
+    .SQ_FU_out(SQ_FU_out),              // TODO
+    .LQ_FU_out(LQ_FU_out),              // TODO
+    .SQ_RS_out(SQ_RS_out),
+    .LQ_RS_out(LQ_RS_out),
+    .SQ_D_cache_out(SQ_D_cache_out),
+    .LQ_D_cache_out(LQ_D_cache_out)
   );
 
   Map_Table map_table_0 (
-    .en(en),
+    // Input
     .clock(clock),
     .reset(reset),
+    .en(en),
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .complete_en(complete_en),
@@ -394,9 +442,9 @@ module pipeline (
   );
 
   PR pr_0 (
-    .en(en),
     .clock(clock),
     .reset(reset),
+    .en(en),
     .write_en(write_en),
     .CDB_PR_out(CDB_PR_out),
     .RS_PR_out(RS_PR_out),
@@ -407,9 +455,9 @@ module pipeline (
   );
 
   ROB rob_0 (
-    .en(en),
     .clock(clock),
     .reset(reset),
+    .en(en),
     .dispatch_en(dispatch_en),
     .complete_en(complete_en),
     .rollback_en(rollback_en),
@@ -418,6 +466,7 @@ module pipeline (
     .FL_ROB_out(FL_ROB_out),
     .Map_Table_ROB_out(Map_Table_ROB_out),
     .CDB_ROB_out(CDB_ROB_out),
+    .SQ_ROB_out(SQ_ROB_out),
 `ifdef DEBUG
     .rob(pipeline_ROB),
     .retire_NPC(retire_NPC),
@@ -428,7 +477,9 @@ module pipeline (
     .illegal_out(illegal_out),
     .ROB_idx(ROB_idx),
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
-    .ROB_FL_out(ROB_FL_out)
+    .ROB_FL_out(ROB_FL_out),
+    .ROB_SQ_out(ROB_SQ_out),
+    .ROB_LQ_out(ROB_LQ_out)
   );
 
   RS rs_0 (
@@ -446,6 +497,8 @@ module pipeline (
     .FL_RS_out(FL_RS_out),
     .Map_Table_RS_out(Map_Table_RS_out),
     .CDB_RS_out(CDB_RS_out),
+    .SQ_RS_out(SQ_RS_out),
+    .LQ_RS_out(LQ_RS_out),
 `ifdef DEBUG
     .RS_out(pipeline_RS),
     .RS_match_hit(RS_match_hit),   // If a RS entry is ready

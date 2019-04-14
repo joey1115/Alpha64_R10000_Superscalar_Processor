@@ -1,26 +1,3 @@
-/*****************CDB******************
-*   Fetch
-*   Dispatch
-*   Issue
-*   Execute
-*     Input: rollback_en (X/C)
-*     Input: ROB_rollback_idx (br module, LSQ)
-*     Input: diff_ROB (FU)    // diff_ROB = ROB_tail of the current cycle - ROB_rollback idx
-*   Complete
-*     Input: done   (X/C)  // taken signal from FU
-*     Input: T_idx     (X/C)  // tag from FU
-*     Input: ROB_idx   (X/C)
-*     Input: FU_out (X/C)  // result from FU
-*     Input: dest_idx  (X/C)
-*     Output: CDB_valid (FU)  // full entry means hazard(taken=0, entry is free)
-*     Output: complete_en (RS, ROB, Map table) 
-*     Output: write_en (PR)   // taken signal to PR
-*     Output: T_idx    (PR)   // tag to PR
-*     Output: T_value  (PR)   // result to PR
-*     Output: dest_idx (Map table)
-*   Retire
-***************************************/
-
 `timescale 1ns/100ps
 
 module CDB (
@@ -109,23 +86,17 @@ module CDB (
 
   always_comb begin
     complete_hit = {`NUM_SUPER{`FALSE}};
-    complete_idx = 0;
-    // broadcast one completed instruction (if one is found) for first half of FU
-    for (int i=0; i<`NUM_FU; i=i+2) begin
-      if (CDB[i].taken) begin
-        complete_hit[0] = `TRUE;
-        complete_idx[0] = i;
-        break;
-      end // if
-    end // for
-    // broadcast one completed instruction (if one is found) for second half of FU
-    for (int j=1; j<`NUM_FU; j=j+2) begin
-      if (CDB[j].taken) begin
-        complete_hit[1] = `TRUE;
-        complete_idx[1] = j;
-        break;
-      end // if
-    end // for
+    complete_idx = {`NUM_SUPER{($clog2(`NUM_FU){1'b0})}};
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      // broadcast one completed instruction (if one is found) for first half of FU
+      for (int j=i; j<`NUM_FU; j=j+2) begin
+        if (CDB[i].taken) begin
+          complete_hit[i] = `TRUE;
+          complete_idx[i] = j;
+          break;
+        end // if
+      end // for
+    end
   end // always_comb
 
   always_comb begin
