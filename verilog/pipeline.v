@@ -102,7 +102,7 @@ module pipeline (
 `endif
   logic                   [`NUM_SUPER-1:0]       retire_en;
   logic                   [`NUM_SUPER-1:0]       halt_out;
-  logic                                          illegal_out;
+  logic                   [`NUM_SUPER-1:0]       illegal_out;
   logic            [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
   ROB_MAP_TABLE_OUT_t                            ROB_MAP_Table_out;
@@ -209,6 +209,7 @@ module pipeline (
   logic                 cache_valid;
   logic                 halt_pipeline;
   logic                 write_back_stage;
+  logic                 illegal_out_pipeline;
 
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
@@ -219,8 +220,10 @@ module pipeline (
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = num_inst;
   assign pipeline_error_status    = halt_pipeline ? HALTED_ON_HALT :
-                                    illegal_out  ? HALTED_ON_ILLEGAL:
+                                    illegal_out_pipeline ? HALTED_ON_ILLEGAL:
                                                NO_ERROR;
+                                               
+  assign illegal_out_pipeline = illegal_out[0] || (halt[0] & illegal_out[1]);
   // assign proc2Dmem_command = BUS_NONE;
   // assign proc2Dmem_addr = 0;
   assign proc2mem_command =
