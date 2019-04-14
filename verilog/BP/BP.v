@@ -192,7 +192,7 @@ module BP(
   end
 
   always_comb begin
-    case(LQ_violate)
+    case(LQ_BP_out.LQ_target.LQ_violate)
       2'b00: begin
         rollback_en2        = `FALSE;
         ROB_rollback_idx2   = {`NUM_ROB{1'b0}};
