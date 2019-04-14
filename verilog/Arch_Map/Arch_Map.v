@@ -11,7 +11,7 @@ module Arch_Map (
   input  ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out,
   output logic              [31:0][$clog2(`NUM_PR)-1:0] next_arch_map,
 `endif
-  output ARCH_MAP_TABLE_OUT_t                           ARCH_MAP_MAP_Table_out
+  output ARCH_MAP_MAP_TABLE_OUT_t                           ARCH_MAP_MAP_Table_out
 );
 
   logic [31:0][$clog2(`NUM_PR)-1:0] arch_map;
