@@ -58,7 +58,7 @@ extern void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, in
 extern void print_num(int i);
 extern void print_enter();
 extern void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int dirty, int addr_hi, int addr_lo, int inst_type, int proc2mem_command, int complete, int mem_tag, int state);
-extern void print_Dcache_bank(int data_hi, int data_lo, int tag, int dirty, int valid);
+extern void print_Dcache_bank(int data_hi, int data_lo, int tag_hi,int tag_lo, int dirty, int valid);
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
                       int wb_reg_wr_idx_out_1, int wb_reg_wr_idx_out_2,
@@ -108,6 +108,10 @@ module testbench;
   logic [$clog2(`NUM_FB)-1:0]              FB_head, FB_tail;
   D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
   MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
+  logic [63:0]                                
+  logic [31:0]                                tag_hi;
+  logic [31:0]                                tag_lo;
+  
 
   // Instantiate the Pipeline
   `DUT(pipeline) pipeline_0 (// Inputs
@@ -286,11 +290,15 @@ module testbench;
       end
 `endif
 
+
+assign tag_hi;
+assign tag_lo;
+
 `ifdef PRINT_DCACHE_BANK
     for(int i=0; i < `NUM_IDX; i++) begin
       print_num(i);
       for(int j=0; j < `NUM_WAY; j++) begin
-        print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag},{{(31){1'b0}},Dcache_bank[j][i].dirty},{{(31){1'b0}},Dcache_bank[j][i].valid});
+        print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(64-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag[`NUM_TAG_BITS-1:32]},Dcache_bank[j][i].tag[31:0],{{(31){1'b0}},Dcache_bank[j][i].dirty},{{(31){1'b0}},Dcache_bank[j][i].valid});
       end
       print_enter();
     end
