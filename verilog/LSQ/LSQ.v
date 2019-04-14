@@ -44,6 +44,7 @@ module SQ (
   assign next_tail        = rollback_en ? SQ_rollback_idx :
                             dispatch_en ? virtual_tail    : tail;
   assign SQ_ROB_out       = '{retire_valid};
+  assign SQ_D_cache_out   = '{wr_en, sq[head].addr, sq[head].value};
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
@@ -103,18 +104,22 @@ module SQ (
       2'b00: begin
         retire_valid[0] = `TRUE;
         retire_valid[1] = `TRUE;
+        wr_en           = `FALSE;
       end
       2'b01: begin
         retire_valid[0] = D_cache_SQ_out.valid;
         retire_valid[1] = D_cache_SQ_out.valid;
+        wr_en           = `TRUE;
       end
       2'b10: begin
         retire_valid[0] = `TRUE;
         retire_valid[1] = D_cache_SQ_out.valid;
+        wr_en           = `TRUE;
       end
       2'b11: begin
         retire_valid[0] = D_cache_SQ_out.valid;
         retire_valid[1] = `FALSE;
+        wr_en           = `TRUE;
       end
     endcase
   end
