@@ -222,8 +222,8 @@ module pipeline (
   assign pipeline_error_status    = halt_pipeline ? HALTED_ON_HALT :
                                     illegal_out_pipeline ? HALTED_ON_ILLEGAL:
                                                NO_ERROR;
-                                               
-  assign illegal_out_pipeline = illegal_out[0] || (halt[0] & illegal_out[1]);
+
+  assign illegal_out_pipeline = illegal_out[0] || (halt_out[0] & illegal_out[1]);
   // assign proc2Dmem_command = BUS_NONE;
   // assign proc2Dmem_addr = 0;
   assign proc2mem_command =
