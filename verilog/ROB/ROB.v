@@ -45,6 +45,10 @@ module ROB (
   assign retire_NPC[0] = rob.entry[rob.head].NPC;
   assign retire_NPC[1] = rob.entry[head_plus_one].NPC; 
 `endif
+
+  assign ROB_SQ_out.wr_mem = `{rob[head].wr_mem,rob[head_plus_one].wr_mem};
+  assign ROB_LQ_out.wr_mem = `{rob[head].rd_mem,rob[head_plus_one].rd_mem};
+
   assign ROB_Arch_Map_out.T_idx = '{rob.entry[head_plus_one].T_idx, rob.entry[rob.head].T_idx};
   assign ROB_Arch_Map_out.dest_idx = '{rob.entry[head_plus_one].dest_idx, rob.entry[rob.head].dest_idx};
   assign ROB_FL_out.Told_idx = '{rob.entry[head_plus_one].Told_idx, rob.entry[rob.head].Told_idx};
@@ -70,8 +74,8 @@ module ROB (
   assign ROB_idx[1] = dispatch_en ? tail_plus_one : tail_minus_one;
 
   always_comb begin
-    retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid;
-    retire_en[1] = rob.entry[head_plus_one].complete & rob.entry[head_plus_one].valid & retire_en[0];
+    retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid & SQ_ROB_out.retire_valid[0];
+    retire_en[1] = rob.entry[head_plus_one].complete & rob.entry[head_plus_one].valid & retire_en[0] & SQ_ROB_out.retire_valid[1];
 
     // condition for Retire
     moveHead = retire_en[0];
@@ -106,6 +110,10 @@ module ROB (
     Nrob.entry[tail_plus_one].illegal = writeTail & decoder_ROB_out.illegal[1];
     Nrob.entry[rob.tail].NPC = (writeTail) ? decoder_ROB_out.NPC[0] : Nrob.entry[rob.tail].NPC;
     Nrob.entry[tail_plus_one].NPC = (writeTail) ? decoder_ROB_out.NPC[1] : Nrob.entry[tail_plus_one].NPC;
+    Nrob.entry[rob.tail].wr_mem = (writeTail) ? decoder_ROB_out.wr_mem[0] : Nrob.entry[rob.tail].wr_mem;
+    Nrob.entry[tail_plus_one].wr_mem = (writeTail) ? decoder_ROB_out.wr_mem[1] : Nrob.entry[tail_plus_one].wr_mem;
+    Nrob.entry[rob.tail].rd_mem = (writeTail) ? decoder_ROB_out.rd_mem[0] : Nrob.entry[rob.tail].rd_mem;
+    Nrob.entry[tail_plus_one].rd_mem = (writeTail) ? decoder_ROB_out.rd_mem[1] : Nrob.entry[tail_plus_one].rd_mem;
 
     
   

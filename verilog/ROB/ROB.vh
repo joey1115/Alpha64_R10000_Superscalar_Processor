@@ -18,6 +18,8 @@ typedef struct packed {
   logic halt;
   logic illegal;
   logic [63:0] NPC;
+  logic wr_mem;
+  logic rd_mem;
 } ROB_ENTRY_t;
 
 typedef struct packed {
@@ -37,7 +39,7 @@ typedef struct packed {
 
 typedef struct packed {
   logic [`NUM_SUPER-1:0]                       wr_mem;
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
+  // logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
 } ROB_SQ_OUT_t;
 
 typedef struct packed {

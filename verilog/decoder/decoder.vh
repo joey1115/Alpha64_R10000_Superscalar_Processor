@@ -109,6 +109,8 @@ typedef struct packed {
   logic [`NUM_SUPER-1:0][4:0]  dest_idx;
   logic [`NUM_SUPER-1:0]       illegal;
   logic [`NUM_SUPER-1:0][63:0] NPC;
+  logic [`NUM_SUPER-1:0]       wr_mem;
+  logic [`NUM_SUPER-1:0]       rd_mem;
 } DECODER_ROB_OUT_t;
 
 typedef struct packed {
