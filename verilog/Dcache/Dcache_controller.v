@@ -170,7 +170,7 @@ always_comb begin
 end
 
 assign halt_pipeline = (state == 2) && mshr_empty;
-assign write_back_stage = next_state == 1;
+assign write_back_stage = state == 1;
 assign write_back_addr = count & {{61{1'b1}},3'b000};
 
 always_ff @(posedge clock) begin
