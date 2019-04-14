@@ -327,7 +327,7 @@ void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst)
 
 void print_Dcache_bank(int data_hi, int data_lo, int tag_hi, int tag_lo, int dirty, int valid){
   if(ppfile != NULL){
-    fprintf(ppfile, "data: %x%x | tag: %x | dirty: %1d | valid: %1d |        ", data_hi, data_lo, tag, dirty, valid);
+    fprintf(ppfile, "data: %x%x | tag: %x%x | dirty: %1d | valid: %1d |        ", data_hi, data_lo, tag_hi, tag_lo, dirty, valid);
   }
 }
 
