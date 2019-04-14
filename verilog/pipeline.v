@@ -55,6 +55,8 @@ module pipeline (
   logic                   [`NUM_SUPER-1:0]       complete_en;
 `endif
   logic                   [`NUM_FU-1:0]          CDB_valid;
+  logic                   [`NUM_ST-1:0]          CDB_SQ_valid;
+  logic                   [`NUM_LD-1:0]          CDB_LQ_valid;
   CDB_ROB_OUT_t                                  CDB_ROB_out;
   CDB_RS_OUT_t                                   CDB_RS_out;
   CDB_MAP_TABLE_OUT_t                            CDB_Map_Table_out;
@@ -90,6 +92,8 @@ module pipeline (
   MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;
   MAP_TABLE_RS_OUT_t                             Map_Table_RS_out;
   PR_FU_OUT_t                                    PR_FU_out;
+  ROB_SQ_OUT_t                                   ROB_SQ_out;
+  ROB_LQ_OUT_t                                   ROB_LQ_out;
 `ifndef DEBUG
   logic                                          ROB_valid;
 `endif
@@ -114,6 +118,15 @@ module pipeline (
   LQ_BP_OUT_t                                    LQ_BP_out;
   logic                   [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx;
   logic                   [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx;
+  logic            [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0] FL_idx;
+  logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
+  logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
+  logic            [`NUM_SUPER-1:0]                      LQ_valid;
+  SQ_FU_OUT_t                                            SQ_FU_out;
+  LQ_FU_OUT_t                                            LQ_FU_out;
+  SQ_ROB_OUT_t                                           SQ_ROB_out;
+  SQ_D_CACHE_OUT_t                                       SQ_D_cache_out;
+  LQ_D_CACHE_OUT_t                                       LQ_D_cache_out;
 
 
   logic                   [`NUM_SUPER-1:0][63:0]retire_NPC;
@@ -315,6 +328,8 @@ module pipeline (
     .write_en(write_en),
     .complete_en(complete_en),
     .CDB_valid(CDB_valid),
+    .CDB_SQ_valid(CDB_SQ_valid),
+    .CDB_LQ_valid(CDB_LQ_valid),
     .CDB_ROB_out(CDB_ROB_out),
     .CDB_RS_out(CDB_RS_out),
     .CDB_Map_Table_out(CDB_Map_Table_out),

@@ -12,6 +12,8 @@ module CDB (
   output logic               [`NUM_SUPER-1:0]       write_en,
   output logic               [`NUM_SUPER-1:0]       complete_en,
   output logic               [`NUM_FU-1:0]          CDB_valid,
+  output logic               [`NUM_ST-1:0]          CDB_SQ_valid,
+  output logic               [`NUM_LD-1:0]          CDB_LQ_valid,
   output CDB_ROB_OUT_t                              CDB_ROB_out,
   output CDB_RS_OUT_t                               CDB_RS_out,
   output CDB_MAP_TABLE_OUT_t                        CDB_Map_Table_out,
@@ -43,6 +45,8 @@ module CDB (
   assign complete_en       = complete_hit;
   assign write_en          = complete_hit;
   assign CDB_valid         = CDB_empty;
+  assign CDB_SQ_valid      = CDB_empty[`NUM_LD+`NUM_ST-1:`NUM_LD];
+  assign CDB_LQ_valid      = CDB_empty[`NUM_LD-1:0];
 
   always_comb begin
     next_CDB = CDB;

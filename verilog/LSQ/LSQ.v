@@ -448,12 +448,25 @@ module LQ (
         end
       endcase
     end
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      if (FU_LQ_out.done[i]) begin
-        next_lq[FU_LQ_out.LQ_idx[i]].addr  = FU_LQ_out.result[i][63:3];
-        next_lq[FU_LQ_out.LQ_idx[i]].valid = SQ_LQ_out.hit[i] || D_cache_LQ_out.valid[i];
+    case(FU_LQ_out.done)
+      2'b00: begin
+        // Nothing
       end
-    end
+      2'b01: begin
+        next_lq[FU_LQ_out.LQ_idx[0]].addr  = FU_LQ_out.result[0][63:3];
+        next_lq[FU_LQ_out.LQ_idx[0]].valid = (SQ_LQ_out.hit[0] || D_cache_LQ_out.valid) & rollback_valid[0];
+      end
+      2'b10: begin
+        next_lq[FU_LQ_out.LQ_idx[1]].addr  = FU_LQ_out.result[1][63:3];
+        next_lq[FU_LQ_out.LQ_idx[1]].valid = (SQ_LQ_out.hit[1] || D_cache_LQ_out.valid) & rollback_valid[1];
+      end
+      2'b11: begin
+        next_lq[FU_LQ_out.LQ_idx[0]].addr  = FU_LQ_out.result[0][63:3];
+        next_lq[FU_LQ_out.LQ_idx[0]].valid = (SQ_LQ_out.hit[0] || D_cache_LQ_out.valid) & rollback_valid[0];
+        next_lq[FU_LQ_out.LQ_idx[1]].addr  = FU_LQ_out.result[1][63:3];
+        next_lq[FU_LQ_out.LQ_idx[1]].valid = SQ_LQ_out.hit[1] & rollback_valid[1];
+      end
+    endcase
   end
 
   always_ff @(posedge clock) begin
