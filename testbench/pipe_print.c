@@ -331,8 +331,10 @@ void print_Dcache_bank(int data_hi, int data_lo, int tag, int dirty, int valid){
   }
 }
 
-void print_MSHR_entry(int valid, int data_hi, int data_lo, int dirty, int addr, int inst_type, int proc2mem_command, int complete, int mem_tag, int state){
-
+void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int dirty, int addr_hi, int addr_lo, int inst_type, int proc2mem_command, int complete, int mem_tag, int state){
+  if(ppfile != NULL){
+    fprintf(ppfile, "depth: %d | valid %1d | data: %x%x | dirty: %x | addr: %x%x | inst_type: %d | proc2mem_command: %d | complete: %1d | mem_tag: %x | state: %d  |\n", MSHR_DEPTH, valid, data_hi, data_lo, dirty, addr_hi, addr_lo, inst_type, proc2mem_command, complete, mem_tag, state);
+  }
 }
 
 void print_Num(int i){
