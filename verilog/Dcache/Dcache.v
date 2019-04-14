@@ -8,14 +8,15 @@ module Dcache(
   //enable signals
   // input logic                                                    rd1_en, rd2_en, 
   input logic                                                       wr1_en,
-  input logic                                                       wr_from_mem,
+  input logic                                                       wr1_from_mem,
   //addr from proc
   input SASS_ADDR                                                   rd1_addr, wr1_addr,
   output logic [63:0]                                               rd1_data_out,
   output logic                                                      rd1_hit_out, wr1_hit_out,
 
   input logic [63:0]                                                wr1_data,
-  input logic                                                       wr_dirty,
+  input logic                                                       wr1_dirty,
+  input logic                                                       wr1_valid,
   
 
   output logic                                                      evicted_dirty_out, 
@@ -44,9 +45,9 @@ module Dcache(
   logic [`NUM_WAY-1:0][63:0]      evicted_data;
 
   //LRU decision
-  assign n_regA[wr1_addr.set_index] = (wr_from_mem & wr1_en)                             ? ~regA[wr1_addr.set_index] : regA[wr1_addr.set_index];
-  assign n_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr_from_mem & wr1_en) ? ~regB[wr1_addr.set_index] : regB[wr1_addr.set_index];
-  assign n_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr_from_mem & wr1_en)  ? ~regC[wr1_addr.set_index] : regC[wr1_addr.set_index];
+  assign n_regA[wr1_addr.set_index] = (wr1_from_mem & wr1_en)                             ? ~regA[wr1_addr.set_index] : regA[wr1_addr.set_index];
+  assign n_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr1_from_mem & wr1_en) ? ~regB[wr1_addr.set_index] : regB[wr1_addr.set_index];
+  assign n_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr1_from_mem & wr1_en)  ? ~regC[wr1_addr.set_index] : regC[wr1_addr.set_index];
 
  
   assign LRU_bank_sel[wr1_addr.set_index][0] = !regA[wr1_addr.set_index] & !regB[wr1_addr.set_index];
@@ -68,7 +69,7 @@ module Dcache(
   end
   
   assign wr1_en_sel = (wr1_en & wr1_hit_out)? wr1_hit : //if data to store in cache, write to where it is hit
-                      (wr1_en & wr_from_mem)? LRU_bank_sel[wr1_addr.set_index] : 0; //if data from mem and line not in cache, write to the LRU bank
+                      (wr1_en & wr1_from_mem & !wr1_hit_out)? LRU_bank_sel[wr1_addr.set_index] : 0; //if data from mem and line not in cache, write to the LRU bank
   ////////////////////////////////////////////////////////~~~~~~~~~~~~~~ need to think through the wr operations of the cache  wr1_hit | wr1_en in bank
   cache_bank bank [`NUM_WAY-1:0] (
       .clock(clock),
@@ -80,7 +81,8 @@ module Dcache(
       .rd1_hit(rd1_hit),
       .wr1_hit(wr1_hit), 
       .wr1_data(wr1_data),  
-      .wr_dirty(wr_dirty),
+      .wr1_dirty(wr1_dirty),
+      .wr1_valid(wr1_valid),
       .evicted_idx(wr1_addr.set_index),
       .evicted_addr(evicted_addr),
       .evicted_dirty(evicted_dirty),
@@ -129,8 +131,9 @@ module cache_bank(
   input SASS_ADDR                                                   rd1_addr, wr1_addr,
   output logic [63:0]                                               rd1_data,
   output logic                                                      rd1_hit, wr1_hit, 
-  input logic [63:0]                                                wr1_data,  
-  input logic                                                       wr_dirty,
+  input logic [63:0]                                                wr1_data,
+  input logic                                                       wr1_dirty,
+  input logic                                                       wr1_valid,
 
   //evicted index to output the address(TAG of the evicted line)
   input logic [$clog2(`NUM_IDX)-1:0]                                evicted_idx,
@@ -160,10 +163,10 @@ module cache_bank(
     next_cache_bank = cache_bank;
 
     if(wr1_en) begin
-      next_cache_bank[wr1_addr.set_index].valid = 1;
+      next_cache_bank[wr1_addr.set_index].valid = wr1_valid;
       next_cache_bank[wr1_addr.set_index].tag = wr1_addr.tag;
       next_cache_bank[wr1_addr.set_index].data = wr1_data;
-      next_cache_bank[wr1_addr.set_index_idx].dirty = wr_dirty;
+      next_cache_bank[wr1_addr.set_index_idx].dirty = wr1_dirty;
     end
   end
 

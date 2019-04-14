@@ -21,12 +21,13 @@ module Dcache_controller(
     input logic [63:0]                                                            evicted_data,
 
     // cache to Dcachemem                       
-    output logic                                                                  wr1_en, wr_dirty, wr_from_mem,
+    output logic                                                                  wr1_en, wr1_dirty, wr1_from_mem, wr1_valid,
     output SASS_ADDR                                                              rd1_addr, wr1_addr,
     output logic [63:0]                                                           wr1_data,
 
     //MSHR to cache                                 
     input logic                                                                   mshr_valid,
+    input logic                                                                   mshr_empty,
 
     // input logic [1:0][63:0]                                                       miss_data,
     // input logic [1:0]                                                             miss_data_valid,
@@ -63,9 +64,18 @@ module Dcache_controller(
     output logic                                                                  stored_mem_wr,
 
 
-
-    output logic                                                                  cache_valid
+    input  logic                                                                  write_back,
+    output logic                                                                  cache_valid,
+    output logic                                                                  halt_pipeline
 );
+//logics
+
+logic [1:0] state, next_state;
+logic [63:0] count, next_count;
+logic write_back_stage;
+SASS_ADDR write_back_addr;
+
+
 //read cache outputs
 logic next_search_addr_reg
 
@@ -94,7 +104,7 @@ assign miss_en[0] = (rd_en & !rd1_hit & !miss_addr_hit[0]);
 //Miss from stores
 assign miss_en[1] = (wr_en & !wr1_hit & !miss_addr_hit[1]);
 //Store inst from evicts
-assign miss_en[2] = (mem_wr & !wr1_hit & evicted_dirty & evicted_valid);// when wr1 is from memory and it is dirty
+assign miss_en[2] = (wr1_from_mem & evicted_dirty & evicted_valid);// when wr1 is from memory and it is dirty
 
 //data sent to MSHR search
 assign miss_addr[0] = rd1_addr;
@@ -118,9 +128,10 @@ assign rd1_addr = rd_in_addr;
 
 
 
-assign wr1_addr = (wr_en)                         ?  wr_in_addr :
-                  (!wr_en & rd_wb_en)             ?  rd_wb_addr :
-                  (!wr_en & !rd_wb_en & wr_wb_en) ?  wr_wb_addr : mem_addr;
+assign wr1_addr = (write_back_stage)              ?  write_back_addr :
+                  (wr_en)                         ?  wr_in_addr      :
+                  (!wr_en & rd_wb_en)             ?  rd_wb_addr      :
+                  (!wr_en & !rd_wb_en & wr_wb_en) ?  wr_wb_addr      : mem_addr;
 
 assign wr1_dirty = (wr_en)                         ?  1           :
                    (!wr_en & rd_wb_en)             ?  rd_wb_dirty :
@@ -130,7 +141,9 @@ assign wr1_data = (wr_en)                         ?  wr_data    :
                   (!wr_en & rd_wb_en)             ?  rd_wb_data :
                   (!wr_en & !rd_wb_en & wr_wb_en) ?  wr_wb_data : mem_data;
 
-assign wr1_from_mem = mem_wr | rd_wb_en | wr_wb_en;
+assign wr1_valid = (write_back_stage)             ? 0 : 1;
+
+assign wr1_from_mem = mem_wr | rd_wb_en | wr_wb_en | write_back_stage;
 
 assign wr1_en = (wr1_hit & wr_en) | wr1_from_mem;
 
@@ -142,12 +155,38 @@ assign stored_mem_wr = !wr_en & !rd_wb_en & !wr_wb_en & mem_wr;
 //set the cache id valid or not
 assign cache_valid = mshr_valid;
 
+// to clear cache after prog done
+
+always_comb begin
+  if (write_back_stage && mshr_valid)
+    next_count = count + 1;
+  else (state == 0)
+    next_count = count;
+end
+
+always_comb begin
+  if (state == 0 && write_back) 
+    next_state = 1;
+  else if((write_back_stage && count >= `TOTAL_LINES)
+    next_state = 2;
+  else
+    next_state = state;
+end
+
+assign halt_pipeline = (state == 2) && mshr_empty;
+assign write_back_stage = state == 1;
+assign write_back_addr = count & {{61{1'b1}},3'b000};
+
 always_ff @(posedge clock) begin
   if(reset) begin
     search_addr_reg <= `SD 0;
+    state           <= `SD 0;
+    count           <= `SD 0;
   end
   else begin
     search_addr_reg <= `SD next_search_addr_reg;
+    state           <= `SD next_state;
+    count           <= `SD next_count;
   end
 end
 

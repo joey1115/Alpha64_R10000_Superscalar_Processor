@@ -42,6 +42,7 @@ module MSHR(
 
   //mshr to cache      
   output logic                                                   mshr_valid,
+  output logic                                                   mshr_empty,
 
   //mem to mshr
   input logic [3:0]                                             mem2proc_response,
@@ -76,6 +77,7 @@ module MSHR(
   logic [2:0][1:0]               data_idx;
   logic [2:0]                    internal_miss_en1,internal_miss_en2;
   logic [2:0]                    internal_miss_en2_mask,internal_miss_en3_mask;
+  logic [`MSHR_DEPTH-1:0]        dummywire;
 
   logic [$clog2(MSHR_DEPTH)-1:0] tail_plus_one, tail_plus_two, tail_plus_three, head_plus_one;
   //how many entries to allocate
@@ -89,6 +91,14 @@ module MSHR(
   
   //mshr valid logic
   assign mshr_valid = MSHR_queue[tail].valid && MSHR_queue[tail_plus_one].valid && MSHR_queue[tail_plus_two].valid;
+
+  //mshr is empty
+  always_comb begin
+    for(int i = 0; i < `MSHR_DEPTH; i++) begin
+      assign dummywire[i] = MSHR_queue[i].valid;
+    end
+    mshr_empty = ~(|dummywire);
+  end
 
   //priority logic
   always_comb begin
