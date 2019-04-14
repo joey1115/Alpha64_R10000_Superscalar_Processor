@@ -98,6 +98,7 @@ module pipeline (
   logic                                          illegal_out;
   logic            [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
+  ROB_MAP_TABLE_OUT_t                            ROB_MAP_Table_out;
   ROB_FL_OUT_t                                   ROB_FL_out;
 `ifndef DEBUG
   logic                                          RS_valid;
@@ -429,6 +430,7 @@ module pipeline (
     .FL_Map_Table_out(FL_Map_Table_out),
     .CDB_Map_Table_out(CDB_Map_Table_out),
     .ARCH_MAP_MAP_Table_out(ARCH_MAP_MAP_Table_out),
+    .ROB_MAP_Table_out(ROB_MAP_Table_out),
 `ifdef DEBUG
     .map_table_out(pipeline_MAPTABLE),
 `endif
@@ -472,6 +474,7 @@ module pipeline (
     .illegal_out(illegal_out),
     .ROB_idx(ROB_idx),
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
+    .ROB_MAP_Table_out(ROB_MAP_Table_out),
     .ROB_FL_out(ROB_FL_out),
     .ROB_SQ_out(ROB_SQ_out),
     .ROB_LQ_out(ROB_LQ_out)
