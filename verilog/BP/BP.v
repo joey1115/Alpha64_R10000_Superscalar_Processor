@@ -126,10 +126,10 @@ module BP(
   // 4. Rollback Competition: Who is the oldest among two br and two ld instructions that request rollback
 
   assign diff_ROB    = ROB_idx[1] - ROB_rollback_idx;
-  assign rollback_en = predict_wrong[1] || predict_wrong[0] || LQ_BP_out.LQ_target.LQ_violate[1] || LQ_BP_out.LQ_target.LQ_violate[0];
+  assign rollback_en = predict_wrong[1] || predict_wrong[0] || LQ_BP_out.LQ_target[1].LQ_violate || LQ_BP_out.LQ_target[0].LQ_violate;
 
-  assign diff_ROB1 = ROB_idx[1] - FU.BP.out.BR_target[0].ROB_idx;
-  assign diff_ROB2 = ROB_idx[1] - FU.BP.out.BR_target[1].ROB_idx;
+  assign diff_ROB1 = ROB_idx[1] - FU_BP_out.BR_target[0].ROB_idx;
+  assign diff_ROB2 = ROB_idx[1] - FU_BP_out.BR_target[1].ROB_idx;
   assign diff_ROB3 = ROB_idx[1] - LQ_BP_out.LD_target[0].ROB_idx;
   assign diff_ROB4 = ROB_idx[1] - LQ_BP_out.LD_target[1].ROB_idx;
 
@@ -192,7 +192,7 @@ module BP(
   end
 
   always_comb begin
-    case(LQ_BP_out.LQ_target.LQ_violate)
+    case({LQ_BP_out.LQ_target[1].LQ_violate, LQ_BP_out.LQ_target[0].LQ_violate})
       2'b00: begin
         rollback_en2        = `FALSE;
         ROB_rollback_idx2   = {`NUM_ROB{1'b0}};
