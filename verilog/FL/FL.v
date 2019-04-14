@@ -31,7 +31,6 @@ module FL (
   logic [$clog2(`NUM_FL)-1:0]                 virtual_tail;
   logic [`NUM_SUPER-1:0]                      move_head;
   logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] T_idx;
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0] FL_idx;
   logic                                       head1, head2;
 
   assign FL_ROB_out       = '{T_idx};
