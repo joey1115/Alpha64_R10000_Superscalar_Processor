@@ -75,12 +75,14 @@ module MSHR(
   logic [$clog2(`MSHR_DEPTH)-1:0] writeback_head, head, tail, next_writeback_head, next_head, next_tail;
   logic [1:0]                    tail_move;
   logic [2:0][1:0]               data_idx;
-  logic [2:0]                    internal_miss_en1,internal_miss_en2;
-  logic [2:0]                    internal_miss_en1_mask, internal_miss_en2_mask, internal_miss_en3_mask;
+  logic [3:0]                    internal_miss_en1,internal_miss_en2;
+  logic [3:0]                    internal_miss_en1_mask, internal_miss_en2_mask, internal_miss_en3_mask;
   logic [`MSHR_DEPTH-1:0]        dummywire;
   logic                          request_accepted;
 
   logic [$clog2(`MSHR_DEPTH)-1:0] tail_plus_one, tail_plus_two, tail_plus_three, head_plus_one;
+  logic [$clog2(`MSHR_DEPTH)] index_rd_search, index_wr_search, index;
+
   //how many entries to allocate
   assign tail_move = miss_en[0] + miss_en[1] + miss_en[2];
 
@@ -96,24 +98,24 @@ module MSHR(
   //mshr is empty
   always_comb begin
     for(int i = 0; i < `MSHR_DEPTH; i++) begin
-      assign dummywire[i] = MSHR_queue[i].valid;
+      dummywire[i] = MSHR_queue[i].valid;
     end
     mshr_empty = ~(|dummywire);
   end
 
   //priority logic
   always_comb begin
-    internal_miss_en1 = miss_en & ~(internal_miss_en1_mask); //everything except the last bit
+    internal_miss_en1 = {1'b0,miss_en} & ~(internal_miss_en1_mask); //everything except the last bit
     internal_miss_en2 = internal_miss_en1 & ~(internal_miss_en2_mask); //everything except the 2 last bit
   end
 
-  ps priority1 (.req(miss_en), .en(1), .gnt(internal_miss_en1_mask));
-  ps priority2 (.req(internal_miss_en1), .en(1), .gnt(internal_miss_en2_mask));
-  ps priority3 (.req(internal_miss_en2), .en(1), .gnt(internal_miss_en3_mask));
+  ps priority1 (.req({1'b0,miss_en}), .en(1'b1), .gnt(internal_miss_en1_mask));
+  ps priority2 (.req(internal_miss_en1), .en(1'b1), .gnt(internal_miss_en2_mask));
+  ps priority3 (.req(internal_miss_en2), .en(1'b1), .gnt(internal_miss_en3_mask));
 
-  pe idx_select1 (miss_en, data_idx[0]);
-  pe idx_select2 (internal_miss_en1, data_idx[1]);
-  pe idx_select3 (internal_miss_en2, data_idx[2]);
+  pe_mshr idx_select1 ({1'b0,miss_en}, data_idx[0]);
+  pe_mshr idx_select2 (internal_miss_en1, data_idx[1]);
+  pe_mshr idx_select3 (internal_miss_en2, data_idx[2]);
 
   //allocation logic
   always_comb begin
@@ -187,7 +189,6 @@ module MSHR(
         next_MSHR_queue[tail_plus_two].state = WAITING;
         next_MSHR_queue[tail_plus_two].dirty = 0;
       end
-      default: pass;
     endcase
 
     //send to mem nextqueue logic
@@ -213,31 +214,7 @@ module MSHR(
     //retire logic
     next_MSHR_queue[writeback_head].valid = (stored_mem_wr) ? 0 : MSHR_queue[head].valid;
 
-  end
-
-  //send data to mem
-
-  //send to mem logic
-  assign proc2mem_command = (MSHR_queue[head].valid & !MSHR_queue[head].complete) ? MSHR_queue[head].proc2mem_command : BUS_NONE;
-  assign proc2mem_addr = MSHR_queue[head].addr;
-  assign proc2mem_data = MSHR_queue[head].data;
-  
-  assign request_accepted = (mem2proc_response != 0);
-
-  assign next_head = (request_accepted) ? head_plus_one : head;
-
-  //logic to move the writeback head.
-  assign mem_wr = MSHR_queue[writeback_head].valid & MSHR_queue[writeback_head].complete & MSHR_queue[writeback_head].proc2mem_command == BUS_LOAD;
-  assign mem_dirty = MSHR_queue[writeback_head].dirty;
-  assign mem_data = MSHR_queue[writeback_head].data;
-  assign mem_addr = MSHR_queue[writeback_head].addr;
-
-  //retire logic
-  assign next_writeback_head = (stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command != BUS_LOAD) ? writeback_head_plus_one : writeback_head;
- 
-logic [$clog2(`MSHR_DEPTH)] index_rd_search, index_wr_search, index;
-  //search logic
-  always_comb begin
+    //search logic
     //if type of searcher is load
     miss_addr_hit = 0;
     miss_data_valid = 0;
@@ -285,6 +262,26 @@ logic [$clog2(`MSHR_DEPTH)] index_rd_search, index_wr_search, index;
     end
   end
 
+  //send data to mem
+
+  //send to mem logic
+  assign proc2mem_command = (MSHR_queue[head].valid & !MSHR_queue[head].complete) ? MSHR_queue[head].proc2mem_command : BUS_NONE;
+  assign proc2mem_addr = MSHR_queue[head].addr;
+  assign proc2mem_data = MSHR_queue[head].data;
+  
+  assign request_accepted = (mem2proc_response != 0);
+
+  assign next_head = (request_accepted) ? head_plus_one : head;
+
+  //logic to move the writeback head.
+  assign mem_wr = MSHR_queue[writeback_head].valid & MSHR_queue[writeback_head].complete & MSHR_queue[writeback_head].proc2mem_command == BUS_LOAD;
+  assign mem_dirty = MSHR_queue[writeback_head].dirty;
+  assign mem_data = MSHR_queue[writeback_head].data;
+  assign mem_addr = MSHR_queue[writeback_head].addr;
+
+  //retire logic
+  assign next_writeback_head = (stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command != BUS_LOAD) ? writeback_head_plus_one : writeback_head;
+ 
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i = 0; i < `MSHR_DEPTH; i++) begin
@@ -303,10 +300,32 @@ logic [$clog2(`MSHR_DEPTH)] index_rd_search, index_wr_search, index;
   end
 endmodule
 
+module pe_mshr(gnt,enc);
+  //synopsys template
+  parameter OUT_WIDTH=2;
+  parameter IN_WIDTH=1<<OUT_WIDTH;
+
+  input   [IN_WIDTH-1:0] gnt;
+
+  output [OUT_WIDTH-1:0] enc;
+  wor    [OUT_WIDTH-1:0] enc;
+  
+  genvar i,j;
+  generate
+    for(i=0;i<OUT_WIDTH;i=i+1)
+    begin : foo
+      for(j=1;j<IN_WIDTH;j=j+1)
+      begin : bar
+        if (j[i])
+          assign enc[i] = gnt[j];
+      end
+    end
+  endgenerate
+endmodule
 
 module ps (req, en, gnt, req_up);
   //synopsys template
-  parameter NUM_BITS = 8;
+  parameter NUM_BITS = 4;
   
     input  [NUM_BITS-1:0] req;
     input                 en;

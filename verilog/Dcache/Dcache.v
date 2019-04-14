@@ -45,16 +45,22 @@ module Dcache(
   logic [`NUM_WAY-1:0][63:0]      evicted_data;
 
   //LRU decision
-  assign next_regA[wr1_addr.set_index] = (wr1_from_mem & wr1_en)                             ? ~regA[wr1_addr.set_index] : regA[wr1_addr.set_index];
-  assign next_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr1_from_mem & wr1_en) ? ~regB[wr1_addr.set_index] : regB[wr1_addr.set_index];
-  assign next_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr1_from_mem & wr1_en)  ? ~regC[wr1_addr.set_index] : regC[wr1_addr.set_index];
+  always_comb begin
+    next_regA = regA;
+    next_regB = regB;
+    next_regC = regC;
+    LRU_bank_sel = 0;
 
- 
-  assign LRU_bank_sel[wr1_addr.set_index][0] = !regA[wr1_addr.set_index] & !regB[wr1_addr.set_index];
-  assign LRU_bank_sel[wr1_addr.set_index][1] = !regA[wr1_addr.set_index] & regB[wr1_addr.set_index];
-  assign LRU_bank_sel[wr1_addr.set_index][2] = regA[wr1_addr.set_index] & !regC[wr1_addr.set_index];
-  assign LRU_bank_sel[wr1_addr.set_index][3] = regA[wr1_addr.set_index] & regC[wr1_addr.set_index];
-  
+    
+    next_regA[wr1_addr.set_index] = (wr1_from_mem & wr1_en)? (~regA[wr1_addr.set_index]) : regA[wr1_addr.set_index];
+    next_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr1_from_mem & wr1_en) ? (~regB[wr1_addr.set_index]) : regB[wr1_addr.set_index];
+    next_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr1_from_mem & wr1_en)  ? (~regC[wr1_addr.set_index]) : regC[wr1_addr.set_index];
+
+    LRU_bank_sel[wr1_addr.set_index][0] = !regA[wr1_addr.set_index] & !regB[wr1_addr.set_index];
+    LRU_bank_sel[wr1_addr.set_index][1] = !regA[wr1_addr.set_index] & regB[wr1_addr.set_index];
+    LRU_bank_sel[wr1_addr.set_index][2] = regA[wr1_addr.set_index] & !regC[wr1_addr.set_index];
+    LRU_bank_sel[wr1_addr.set_index][3] = regA[wr1_addr.set_index] & regC[wr1_addr.set_index];
+  end
   always_ff @(posedge clock) begin
     if(reset) begin
       regA <= 'SD 0;
@@ -94,7 +100,7 @@ module Dcache(
     rd1_hit_out = 0;
     for(int i = 0 ; i <`NUM_WAY; i++) begin
       if(rd1_hit[i]) begin
-        rd1_data_out = rd1_data[(64*i)+63:64*i];
+        rd1_data_out = rd1_data[i];
         rd1_hit_out = 1;
       end
     end
@@ -114,9 +120,9 @@ module Dcache(
   assign evicted_addr_out = evicted_addr[LRU_bank_idx];
   assign evicted_data_out = evicted_data[LRU_bank_idx];
 
-  pe rd1_bank_sel (.gnt(rd1_hit),.enc(rd1_hit_idx));
-  pe wr1_bank_sel (.gnt(wr1_hit),.enc(wr1_hit_idx));
-  pe LRU_bank_sel_mod (.gnt(LRU_bank_sel[wr1_addr.set_index]),.enc(LRU_bank_idx));
+  // pe_Dcache rd1_bank_sel (.gnt(rd1_hit),.enc(rd1_hit_idx));
+  // pe_Dcache wr1_bank_sel (.gnt(wr1_hit),.enc(wr1_hit_idx));
+  pe_Dcache LRU_bank_sel_mod (.gnt(LRU_bank_sel[wr1_addr.set_index]),.enc(LRU_bank_idx));
 
 endmodule
 
@@ -166,7 +172,7 @@ module cache_bank(
       next_cache_bank[wr1_addr.set_index].valid = wr1_valid;
       next_cache_bank[wr1_addr.set_index].tag = wr1_addr.tag;
       next_cache_bank[wr1_addr.set_index].data = wr1_data;
-      next_cache_bank[wr1_addr.set_index_idx].dirty = wr1_dirty;
+      next_cache_bank[wr1_addr.set_index].dirty = wr1_dirty;
     end
   end
 
@@ -183,7 +189,7 @@ module cache_bank(
   end
 endmodule
 
-module pe(gnt,enc);
+module pe_Dcache(gnt,enc);
   //synopsys template
   parameter OUT_WIDTH=$clog2(`NUM_WAY);
   parameter IN_WIDTH=1<<OUT_WIDTH;

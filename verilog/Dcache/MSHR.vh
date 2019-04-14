@@ -24,15 +24,15 @@ typedef enum logic [1:0] {
 } MSHR_STATE;
 
 typedef struct packed {
-  logic                             valid;
-  logic [(`MEMORY_BLOCK_SIZE*8-1):0] data;
-  logic                             dirty;
-  SASS_ADDR                         addr;
-  MSHR_INST_TYPE                    inst_type;
-  logic [1:0]                       proc2mem_command;
-  logic                             complete;
-  logic [3:0]                       mem_tag;
-  MSHR_STATE                        state;
+  logic                               valid;
+  logic [(`MEMORY_BLOCK_SIZE*8-1):0]  data;
+  logic                               dirty;
+  SASS_ADDR                           addr;
+  MSHR_INST_TYPE                      inst_type;
+  logic [1:0]                         proc2mem_command;
+  logic                               complete;
+  logic [3:0]                         mem_tag;
+  MSHR_STATE                          state;
 } MSHR_ENTRY_t;
 
 `endif
