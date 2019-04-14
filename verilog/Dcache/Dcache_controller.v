@@ -2,11 +2,8 @@
 module Dcache_controller(
     input logic                                                                   clock, reset,
     //proc to cache            
-    input logic [60:0]                                                            rd_in_addr,
-    input logic [60:0]                                                            wr_in_addr,
-    input logic                                                                   rd_en,
-    input logic                                                                   wr_en,
-    input logic [63:0]                                                            wr_data,
+    input SQ_D_CACHE_OUT_t                                                        sq_d_cache_out,
+    input LQ_D_CACHE_OUT_t                                                        lq_d_cache_out,
 
     //cache to proc                                 
     output D_CACHE_LQ_OUT_t                                                       d_cache_lq_out,
@@ -94,14 +91,14 @@ assign search_addr[0] = rd1_addr;
 assign search_type[0] = LOAD;
 
 //search mshr for wr1 d_cache_lq_out.value
-assign search_addr[1] = {wr_in_addr,3'b000};
+assign search_addr[1] = {sq_d_cache_out.addr,3'b000};
 assign search_type[1] = STORE;
-assign search_wr_data = wr_data;
+assign search_wr_data = sq_d_cache_out.value;
 
 //if not in cache, enable to push d_cache_lq_out.value to the MSHR
-assign miss_en[0] = (rd_en & !rd1_hit & !miss_addr_hit[0]);
+assign miss_en[0] = (lq_d_cache_out.rd_en & !rd1_hit & !miss_addr_hit[0]);
 //Miss from stores
-assign miss_en[1] = (wr_en & !wr1_hit & !miss_addr_hit[1]);
+assign miss_en[1] = (sq_d_cache_out.wr_en & !wr1_hit & !miss_addr_hit[1]);
 //Store inst from evicts
 assign miss_en[2] = (wr1_from_mem & evicted_dirty & evicted_valid);// when wr1 is from memory and it is dirty
 
@@ -112,7 +109,7 @@ assign inst_type[0] = LOAD;
 assign mshr_proc2mem_command[0] = BUS_LOAD;
 
 assign miss_addr[1] = wr1_addr;
-assign miss_data_in[1]= wr_data;
+assign miss_data_in[1]= sq_d_cache_out.value;
 assign inst_type[1] = STORE;
 assign mshr_proc2mem_command[1] = BUS_LOAD;
 
@@ -123,20 +120,20 @@ assign mshr_proc2mem_command[2] = BUS_STORE;
 
 //d_cache_lq_out.value to cache
 //assign cachemem inputs
-assign rd1_addr = {rd_in_addr,3'b000};
+assign rd1_addr = {lq_d_cache_out.addr,3'b000};
 
 
 
 assign wr1_addr = (write_back_stage)              ?  write_back_addr :
-                  (wr_en & wr1_hit)               ?  wr_in_addr      :
+                  (sq_d_cache_out.wr_en & wr1_hit)               ?  sq_d_cache_out.addr      :
                   (wr_wb_en)                      ?  wr_wb_addr      :
                   (!wr_wb_en & rd_wb_en)          ?  rd_wb_addr      : mem_addr;
 
-assign wr1_dirty = (wr_en & wr1_hit)               ?  1           :
+assign wr1_dirty = (sq_d_cache_out.wr_en & wr1_hit)               ?  1           :
                    (wr_wb_en)                      ?  wr_wb_dirty :
                    (!wr_wb_en & rd_wb_en)          ?  rd_wb_dirty : mem_dirty;
 
-assign wr1_data = (wr_en & wr1_hit)               ?  wr_data    :
+assign wr1_data = (sq_d_cache_out.wr_en & wr1_hit)               ?  sq_d_cache_out.value    :
                   (wr_wb_en)                      ?  wr_wb_data :
                   (!wr_wb_en & rd_wb_en)          ?  rd_wb_data : mem_data;
 
@@ -144,12 +141,12 @@ assign wr1_valid = (write_back_stage)             ? 0 : 1;
 
 assign wr1_from_mem = mem_wr | rd_wb_en | wr_wb_en | write_back_stage;
 
-assign wr1_en = (wr1_hit & wr_en) | wr1_from_mem;
+assign wr1_en = (wr1_hit & sq_d_cache_out.wr_en) | wr1_from_mem;
 
 //inform MSHR that it is written
-assign stored_rd_wb = !wr_en & rd_wb_en;
-assign stored_wr_wb = !wr_en & !rd_wb_en & wr_wb_en;
-assign stored_mem_wr = !wr_en & !rd_wb_en & !wr_wb_en & mem_wr;
+assign stored_rd_wb = !sq_d_cache_out.wr_en & rd_wb_en;
+assign stored_wr_wb = !sq_d_cache_out.wr_en & !rd_wb_en & wr_wb_en;
+assign stored_mem_wr = !sq_d_cache_out.wr_en & !rd_wb_en & !wr_wb_en & mem_wr;
 
 //set the cache id valid or not
 assign cache_valid = mshr_valid;
