@@ -398,39 +398,39 @@ module pipeline (
 
   LSQ lsq_0 (
     // Input
-    .clock(clock),
-    .reset(reset),
-    .en(en),
-    .dispatch_en(dispatch_en),
-    .rollback_en(rollback_en),
-    .retire_en(retire_en),
-    .ROB_idx(ROB_idx),
-    .FL_idx(FL_idx),
-    .CDB_SQ_valid(CDB_SQ_valid),        // TODO
-    .CDB_LQ_valid(CDB_LQ_valid),        // TODO
-    .SQ_rollback_idx(SQ_rollback_idx),
-    .LQ_rollback_idx(LQ_rollback_idx),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .diff_ROB(diff_ROB),
-    .decoder_SQ_out(decoder_SQ_out),
-    .decoder_LQ_out(decoder_LQ_out),
-    .D_cache_SQ_out(D_cache_SQ_out),    // To be modified
-    .D_cache_LQ_out(D_cache_LQ_out),    // To be modified
-    .FU_SQ_out(FU_SQ_out),              // TODO
-    .FU_LQ_out(FU_LQ_out),              // TODO
-    .ROB_SQ_out(ROB_SQ_out),            // TODO
-    .ROB_LQ_out(ROB_LQ_out),            // TODO
+    .clock            (clock),
+    .reset            (reset),
+    .en               (en),
+    .dispatch_en      (dispatch_en),
+    .rollback_en      (rollback_en),
+    .retire_en        (retire_en),
+    .ROB_idx          (ROB_idx),
+    .FL_idx           (FL_idx),
+    .CDB_SQ_valid     (CDB_SQ_valid),        // TODO
+    .CDB_LQ_valid     (CDB_LQ_valid),        // TODO
+    .SQ_rollback_idx  (SQ_rollback_idx),
+    .LQ_rollback_idx  (LQ_rollback_idx),
+    .ROB_rollback_idx (ROB_rollback_idx),
+    .diff_ROB         (diff_ROB),
+    .decoder_SQ_out   (decoder_SQ_out),
+    .decoder_LQ_out   (decoder_LQ_out),
+    .D_cache_SQ_out   (D_cache_SQ_out),    // To be modified
+    .D_cache_LQ_out   (D_cache_LQ_out),    // To be modified
+    .FU_SQ_out        (FU_SQ_out),              // TODO
+    .FU_LQ_out        (FU_LQ_out),              // TODO
+    .ROB_SQ_out       (ROB_SQ_out),            // TODO
+    .ROB_LQ_out       (ROB_LQ_out),            // TODO
     // Output
-    .LSQ_valid(LSQ_valid),
-    .LQ_valid(LQ_valid),                // TODO
-    .SQ_idx(SQ_idx),
-    .LQ_idx(LQ_idx),
-    .SQ_ROB_out(SQ_ROB_out),            // TODO
-    .SQ_FU_out(SQ_FU_out),              // TODO
-    .LQ_FU_out(LQ_FU_out),              // TODO
-    .SQ_D_cache_out(SQ_D_cache_out),
-    .LQ_D_cache_out(LQ_D_cache_out),
-    .LQ_BP_out(LQ_BP_out)
+    .LSQ_valid        (LSQ_valid),
+    .LQ_valid         (LQ_valid),                // TODO
+    .SQ_idx           (SQ_idx),
+    .LQ_idx           (LQ_idx),
+    .SQ_ROB_out       (SQ_ROB_out),            // TODO
+    .SQ_FU_out        (SQ_FU_out),              // TODO
+    .LQ_FU_out        (LQ_FU_out),              // TODO
+    .SQ_D_cache_out   (SQ_D_cache_out),
+    .LQ_D_cache_out   (LQ_D_cache_out),
+    .LQ_BP_out        (LQ_BP_out)
   );
 
   Map_Table map_table_0 (
@@ -469,61 +469,61 @@ module pipeline (
   );
 
   ROB rob_0 (
-    .clock(clock),
-    .reset(reset),
-    .en(en),
-    .dispatch_en(dispatch_en),
-    .complete_en(complete_en),
-    .rollback_en(rollback_en),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .decoder_ROB_out(decoder_ROB_out),
-    .FL_ROB_out(FL_ROB_out),
-    .Map_Table_ROB_out(Map_Table_ROB_out),
-    .CDB_ROB_out(CDB_ROB_out),
-    .SQ_ROB_out(SQ_ROB_out),
+    .clock             (clock),
+    .reset             (reset),
+    .en                (en),
+    .dispatch_en       (dispatch_en),
+    .complete_en       (complete_en),
+    .rollback_en       (rollback_en),
+    .ROB_rollback_idx  (ROB_rollback_idx),
+    .decoder_ROB_out   (decoder_ROB_out),
+    .FL_ROB_out        (FL_ROB_out),
+    .Map_Table_ROB_out (Map_Table_ROB_out),
+    .CDB_ROB_out       (CDB_ROB_out),
+    .SQ_ROB_out        (SQ_ROB_out),
 `ifdef DEBUG
-    .rob(pipeline_ROB),
-    .retire_NPC(retire_NPC),
+    .rob               (pipeline_ROB),
+    .retire_NPC        (retire_NPC),
 `endif
-    .ROB_valid(ROB_valid),
-    .retire_en(retire_en),
-    .halt_out(halt_out),
-    .illegal_out(illegal_out),
-    .ROB_idx(ROB_idx),
-    .ROB_Arch_Map_out(ROB_Arch_Map_out),
-    .ROB_MAP_Table_out(ROB_MAP_Table_out),
-    .ROB_FL_out(ROB_FL_out),
-    .ROB_SQ_out(ROB_SQ_out),
-    .ROB_LQ_out(ROB_LQ_out)
+    .ROB_valid         (ROB_valid),
+    .retire_en         (retire_en),
+    .halt_out          (halt_out),
+    .illegal_out       (illegal_out),
+    .ROB_idx           (ROB_idx),
+    .ROB_Arch_Map_out  (ROB_Arch_Map_out),
+    .ROB_MAP_Table_out (ROB_MAP_Table_out),
+    .ROB_FL_out        (ROB_FL_out),
+    .ROB_SQ_out        (ROB_SQ_out),
+    .ROB_LQ_out        (ROB_LQ_out)
   );
 
   RS rs_0 (
     // Input
-    .clock(clock),
-    .reset(reset),
-    .en(en),
-    .dispatch_en(dispatch_en),
-    .rollback_en(rollback_en),
-    .complete_en(complete_en),
-    .FU_valid(FU_valid),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .diff_ROB(diff_ROB),
-    .ROB_idx(ROB_idx),
-    .FL_idx(FL_idx),
-    .SQ_idx(SQ_idx),
-    .LQ_idx(LQ_idx),
-    .decoder_RS_out(decoder_RS_out),
-    .FL_RS_out(FL_RS_out),
-    .Map_Table_RS_out(Map_Table_RS_out),
-    .CDB_RS_out(CDB_RS_out),
+    .clock            (clock),
+    .reset            (reset),
+    .en               (en),
+    .dispatch_en      (dispatch_en),
+    .rollback_en      (rollback_en),
+    .complete_en      (complete_en),
+    .FU_valid         (FU_valid),
+    .ROB_rollback_idx (ROB_rollback_idx),
+    .diff_ROB         (diff_ROB),
+    .ROB_idx          (ROB_idx),
+    .FL_idx           (FL_idx),
+    .SQ_idx           (SQ_idx),
+    .LQ_idx           (LQ_idx),
+    .decoder_RS_out   (decoder_RS_out),
+    .FL_RS_out        (FL_RS_out),
+    .Map_Table_RS_out (Map_Table_RS_out),
+    .CDB_RS_out       (CDB_RS_out),
     // Output
 `ifdef DEBUG
-    .RS_out(pipeline_RS),
-    .RS_match_hit(RS_match_hit),   // If a RS entry is ready
-    .RS_match_idx(RS_match_idx),
+    .RS_out           (pipeline_RS),
+    .RS_match_hit     (RS_match_hit),   // If a RS entry is ready
+    .RS_match_idx     (RS_match_idx),
 `endif
-    .RS_valid(RS_valid),
-    .RS_FU_out(RS_FU_out),
-    .RS_PR_out(RS_PR_out)
+    .RS_valid         (RS_valid),
+    .RS_FU_out        (RS_FU_out),
+    .RS_PR_out        (RS_PR_out)
   );
 endmodule  // module verisimple
