@@ -213,7 +213,7 @@ module pipeline (
 
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
-  assign dispatch_en  = get_fetch_buff && inst_out_valid;
+  assign dispatch_en  = get_fetch_buff && inst_out_valid && !write_back_stage;
   
   assign write_back = halt_out[0] | halt_out[1];
   //assign F_decoder_en = fetch_en;
