@@ -205,8 +205,9 @@ module pe_Dcache(gnt,enc);
     begin : foo
       for(j=1;j<IN_WIDTH;j=j+1)
       begin : bar
-        if (j[i])
+        if (j[i]) begin :if1
           assign enc[i] = gnt[j];
+        end
       end
     end
   endgenerate
