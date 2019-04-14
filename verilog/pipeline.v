@@ -101,7 +101,7 @@ module pipeline (
   logic                                          ROB_valid;
 `endif
   logic                   [`NUM_SUPER-1:0]       retire_en;
-  logic                                          halt_out;
+  logic                   [`NUM_SUPER-1:0]       halt_out;
   logic                                          illegal_out;
   logic            [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
@@ -212,10 +212,11 @@ module pipeline (
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
   assign dispatch_en  = get_fetch_buff && inst_out_valid;
   
+  assign write_back = halt_out[0] | halt_out[1];
   //assign F_decoder_en = fetch_en;
   //assign when an instruction retires/completed
   assign pipeline_completed_insts = num_inst;
-  assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
+  assign pipeline_error_status    = halt_pipeline ? HALTED_ON_HALT :
                                     illegal_out  ? HALTED_ON_ILLEGAL:
                                                NO_ERROR;
   // assign proc2Dmem_command = BUS_NONE;
@@ -230,11 +231,11 @@ module pipeline (
   assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
 `ifdef DEBUG
   always_comb begin
-    case(retire_en)
-      2'b00: num_inst = 0;
-      2'b01, 2'b10: num_inst = 1;
-      2'b11: num_inst = 2;
-    endcase
+      case(retire_en)
+        2'b00: num_inst = 0;
+        2'b01, 2'b10: num_inst = 1;
+        2'b11: num_inst = 2;
+      endcase
   end
   always_comb begin
     for(int i = 0; i < `NUM_SUPER; i++) begin
@@ -293,8 +294,8 @@ module pipeline (
     .lq_d_cache_out(LQ_D_cache_out),
 
     //cache to proc                                 
-    .d_cache_lq_out(decoder_LQ_out),
-    .d_cache_sq_out(decoder_SQ_out), // tells if a store can be moved on.
+    .d_cache_lq_out(D_cache_LQ_out),
+    .d_cache_sq_out(D_cache_SQ_out), // tells if a store can be moved on.
 
     //Dcachemem to cache                                  
     .rd1_data(rd1_data),

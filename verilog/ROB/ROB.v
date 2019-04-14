@@ -19,7 +19,7 @@ module ROB (
 `endif                
   output logic                                                      ROB_valid,
   output logic               [`NUM_SUPER-1:0]                       retire_en,
-  output logic                                                      halt_out,
+  output logic               [`NUM_SUPER-1:0]                       halt_out,
   output logic                                                      illegal_out,
   output logic               [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
   output ROB_ARCH_MAP_OUT_t                                         ROB_Arch_Map_out,
@@ -69,7 +69,8 @@ module ROB (
 
   //assign ROB_valid = tail_plus_one!=rob.head;
   //assign halt out
-  assign halt_out =  (retire_en[0] && rob.entry[rob.head].halt) || (retire_en[1] && rob.entry[head_plus_one].halt);
+  assign halt_out[0] =  (retire_en[0] && rob.entry[rob.head].halt);
+  assign halt_out[1] =  (retire_en[1] && rob.entry[head_plus_one].halt);
   assign illegal_out =  (retire_en[0] && rob.entry[rob.head].illegal) || (retire_en[1] && rob.entry[head_plus_one].illegal);
   assign ROB_idx[0] = dispatch_en ? rob.tail : (tail_minus_one - 1);
   assign ROB_idx[1] = dispatch_en ? tail_plus_one : tail_minus_one;
