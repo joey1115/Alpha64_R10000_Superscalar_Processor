@@ -78,8 +78,8 @@ module ROB (
   assign ROB_idx[1] = dispatch_en ? tail_plus_one : tail_minus_one;
 
   always_comb begin
-    retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid & SQ_ROB_out.retire_valid[0] & !rollback_en;
-    retire_en[1] = rob.entry[head_plus_one].complete & rob.entry[head_plus_one].valid & retire_en[0] & SQ_ROB_out.retire_valid[1] & !rollback_en;
+    retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid & SQ_ROB_out.retire_valid[0] & !rollback_en && (state == 2);
+    retire_en[1] = rob.entry[head_plus_one].complete & rob.entry[head_plus_one].valid & retire_en[0] & SQ_ROB_out.retire_valid[1] & !rollback_en && (state == 2);
 
     // condition for Retire
     moveHead = retire_en[0];
