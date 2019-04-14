@@ -85,8 +85,8 @@ module CDB (
   end
 
   always_comb begin
-    complete_hit = {`NUM_SUPER{`FALSE}};
-    complete_idx = {`NUM_SUPER{($clog2(`NUM_FU){1'b0})}};
+    complete_hit = '{`NUM_SUPER{`FALSE}};
+    complete_idx = '{`NUM_SUPER{{$clog2(`NUM_FU){{1'b0}}}}};
     for (int i = 0; i < `NUM_SUPER; i++) begin
       // broadcast one completed instruction (if one is found) for first half of FU
       for (int j=i; j<`NUM_FU; j=j+2) begin

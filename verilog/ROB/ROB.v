@@ -47,8 +47,8 @@ module ROB (
   assign retire_NPC[1] = rob.entry[head_plus_one].NPC; 
 `endif
 
-  assign ROB_SQ_out.wr_mem = `{rob[head].wr_mem,rob[head_plus_one].wr_mem};
-  assign ROB_LQ_out.wr_mem = `{rob[head].rd_mem,rob[head_plus_one].rd_mem};
+  assign ROB_SQ_out.wr_mem = '{rob[rob.head].wr_mem,rob[head_plus_one].wr_mem};
+  assign ROB_LQ_out.wr_mem = '{rob[rob.head].rd_mem,rob[head_plus_one].rd_mem};
 
   assign ROB_Arch_Map_out.T_idx = '{rob.entry[head_plus_one].T_idx, rob.entry[rob.head].T_idx};
   assign ROB_Arch_Map_out.dest_idx = '{rob.entry[head_plus_one].dest_idx, rob.entry[rob.head].dest_idx};

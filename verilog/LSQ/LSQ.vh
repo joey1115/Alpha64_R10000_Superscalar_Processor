@@ -112,14 +112,4 @@ typedef struct packed {
 `define LQ_ENTRY_RESET {61'h0, `FALSE, {`NUM_ROB{1'b0}}, {`NUM_FL{1'b0}}, {`NUM_LSQ{1'b0}}}
 `define LQ_RESET '{`NUM_LSQ{`LQ_ENTRY_RESET}}
 
-// To be removed
-typedef struct packed {
-  logic valid;
-} D_CACHE_SQ_OUT_t;
-
-typedef struct packed {
-  logic [`NUM_SUPER-1:0]       valid;
-  logic [`NUM_SUPER-1:0][63:0] value;
-} D_CACHE_LQ_OUT_t;
-
 `endif
