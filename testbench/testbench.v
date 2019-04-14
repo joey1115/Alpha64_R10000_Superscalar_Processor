@@ -55,6 +55,10 @@ extern void print_freelist_entry(int i, int freePR);
 extern void print_fetchbuffer_head(int FB_head, int FB_tail);
 extern void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst);
 
+extern void print_num(int i);
+extern void print_enter();
+extern void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int dirty, int addr_hi, int addr_lo, int inst_type, int proc2mem_command, int complete, int mem_tag, int state);
+extern void print_Dcache_bank(int data_hi, int data_lo, int tag, int dirty, int valid);
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
                       int wb_reg_wr_idx_out_1, int wb_reg_wr_idx_out_2,
@@ -102,8 +106,8 @@ module testbench;
   logic [$clog2(`NUM_FL)-1:0]              FL_head, FL_tail;
   INST_ENTRY_t [`NUM_FB-1:0]               pipeline_FB;
   logic [$clog2(`NUM_FB)-1:0]              FB_head, FB_tail;
-  logic D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
-  logic MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
+  D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
+  MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
 
   // Instantiate the Pipeline
   `DUT(pipeline) pipeline_0 (// Inputs
@@ -284,9 +288,9 @@ module testbench;
 
 `ifdef PRINT_DCACHE_BANK
     for(int i=0; i < `NUM_IDX; i++) begin
-      print_num(int i);
+      print_num(i);
       for(int j=0; j < `NUM_WAY; j++) begin
-        print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(31){1'b0}},Dcache_bank[j[i].dirty]},{{(31){1'b0}},Dcache_bank[j[i].valid]});
+        print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag},{{(31){1'b0}},Dcache_bank[j][i].dirty},{{(31){1'b0}},Dcache_bank[j][i].valid});
       end
       print_enter();
     end

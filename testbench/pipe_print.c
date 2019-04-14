@@ -337,7 +337,7 @@ void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int d
   }
 }
 
-void print_Num(int i){
+void print_num(int i){
   if(ppfile != NULL){
     fprintf(ppfile, " %3d", i);
   }
