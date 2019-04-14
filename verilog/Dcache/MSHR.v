@@ -76,7 +76,7 @@ module MSHR(
   MSHR_ENTRY_t [`MSHR_DEPTH-1:0] next_MSHR_queue;
 
   //head and tail pointer
-  logic [$clog2(`MSHR_DEPTH)-1:0] writeback_head, head, tail, next_writeback_head, next_head, next_tail;
+  logic [$clog2(`MSHR_DEPTH)-1:0] writeback_head, head, tail, next_writeback_head, next_head, next_tail, writeback_head_plus_one;
   logic [1:0]                    tail_move;
   logic [2:0][1:0]               data_idx;
   logic [3:0]                    internal_miss_en1,internal_miss_en2;
@@ -97,7 +97,9 @@ module MSHR(
   assign writeback_head_plus_one = writeback_head + 1;
   
   //mshr valid logic
-  assign mshr_valid = MSHR_queue[tail].valid && MSHR_queue[tail_plus_one].valid && MSHR_queue[tail_plus_two].valid;
+  // assign mshr_valid = MSHR_queue[tail].valid && MSHR_queue[tail_plus_one].valid && MSHR_queue[tail_plus_two].valid;
+  assign mshr_valid = (tail != head) || (tail_plus_one != head) || (tail_plus_two != head);
+
 
   //mshr is empty
   always_comb begin
