@@ -208,193 +208,192 @@ module pipeline (
    // Actual cache (data and tag RAMs)
   cache cachememory (
     // inputs
-    .clock(clock),
-    .reset(reset),
-    .wr1_en(Icache_wr_en),
-    .wr1_idx(Icache_wr_idx),
-    .wr1_tag(Icache_wr_tag),
-    .wr1_data(mem2proc_data),
-    .rd1_idx(Icache_rd_idx),
-    .rd1_tag(Icache_rd_tag),
+    .clock     (clock),
+    .reset     (reset),
+    .wr1_en    (Icache_wr_en),
+    .wr1_idx   (Icache_wr_idx),
+    .wr1_tag   (Icache_wr_tag),
+    .wr1_data  (mem2proc_data),
+    .rd1_idx   (Icache_rd_idx),
+    .rd1_tag   (Icache_rd_tag),
     // outputs
-    .rd1_data(cachemem_data),
-    .rd1_valid(cachemem_valid)
+    .rd1_data  (cachemem_data),
+    .rd1_valid (cachemem_valid)
   );
 
   // Cache controller
   icache icache_0(
     // inputs 
-    .clock(clock),
-    .reset(reset),
-    .Imem2proc_response(Imem2proc_response),
-    .Imem2proc_data(mem2proc_data),
-    .Imem2proc_tag(mem2proc_tag),
-    .proc2Icache_addr(proc2Icache_addr),
-    .cachemem_data(cachemem_data),
-    .cachemem_valid(cachemem_valid),
+    .clock              (clock),
+    .reset              (reset),
+    .Imem2proc_response (Imem2proc_response),
+    .Imem2proc_data     (mem2proc_data),
+    .Imem2proc_tag      (mem2proc_tag),
+    .proc2Icache_addr   (proc2Icache_addr),
+    .cachemem_data      (cachemem_data),
+    .cachemem_valid     (cachemem_valid),
     // outputs
-    .proc2Imem_command(proc2Imem_command),
-    .proc2Imem_addr(proc2Imem_addr),
-    .Icache_data_out(Icache_data_out),
-    .Icache_valid_out(Icache_valid_out),
-    .current_index(Icache_rd_idx),
-    .current_tag(Icache_rd_tag),
-    .last_index(Icache_wr_idx),
-    .last_tag(Icache_wr_tag),
-    .data_write_enable(Icache_wr_en)
+    .proc2Imem_command  (proc2Imem_command),
+    .proc2Imem_addr     (proc2Imem_addr),
+    .Icache_data_out    (Icache_data_out),
+    .Icache_valid_out   (Icache_valid_out),
+    .current_index      (Icache_rd_idx),
+    .current_tag        (Icache_rd_tag),
+    .last_index         (Icache_wr_idx),
+    .last_tag           (Icache_wr_tag),
+    .data_write_enable  (Icache_wr_en)
   );
 
   F_stage F_stage_0 (
     // Inputs
-    .clock (clock),
-    .reset (reset),
-    .get_next_inst(fetch_en), //only go to next insn when high
-    .Imem2proc_data(Icache_data_out),
-    .Imem_valid(Icache_valid_out),
-    .BP_F_out(BP_F_out),
+    .clock             (clock),
+    .reset             (reset),
+    .get_next_inst     (fetch_en), //only go to next insn when high
+    .Imem2proc_data    (Icache_data_out),
+    .Imem_valid        (Icache_valid_out),
+    .BP_F_out          (BP_F_out),
     // Outputs
-    .proc2Imem_addr(proc2Icache_addr),
-    .if_PC_out(if_PC_out),
-    .if_NPC_out(if_NPC_out), 
-    .if_IR_out(if_IR_out),
-    .if_target_out(if_target_out),
-    .if_valid_inst_out(if_valid_inst_out),
-    .F_BP_out(F_BP_out)
+    .proc2Imem_addr    (proc2Icache_addr),
+    .if_PC_out         (if_PC_out),
+    .if_NPC_out        (if_NPC_out), 
+    .if_IR_out         (if_IR_out),
+    .if_target_out     (if_target_out),
+    .if_valid_inst_out (if_valid_inst_out),
+    .F_BP_out          (F_BP_out)
   );
 
   FETCH_BUFFER FETCH_BUFFER_0 (
-    .en(en),
-    .clock(clock),
-    .reset(reset),
-    .if_PC_out(if_PC_out),
-    .if_NPC_out(if_NPC_out),
-    .if_IR_out(if_IR_out),
-    .if_target_out(if_target_out),
-    .if_valid_inst_out(if_valid_inst_out),
-    .get_next_inst(dispatch_en),
-    .rollback_en(rollback_en),
+    .clock             (clock),
+    .reset             (reset),
+    .en                (en),
+    .if_PC_out         (if_PC_out),
+    .if_NPC_out        (if_NPC_out),
+    .if_IR_out         (if_IR_out),
+    .if_target_out     (if_target_out),
+    .if_valid_inst_out (if_valid_inst_out),
+    .get_next_inst     (dispatch_en),
+    .rollback_en       (rollback_en),
 `ifdef DEBUG
-    .FB(pipeline_FB),
-    .head(FB_head),
-    .tail(FB_tail),
+    .FB                (pipeline_FB),
+    .head              (FB_head),
+    .tail              (FB_tail),
 `endif
-    .FB_decoder_out(FB_decoder_out),
-    .inst_out_valid(inst_out_valid),
-    .fetch_en(fetch_en)
+    .FB_decoder_out    (FB_decoder_out),
+    .inst_out_valid    (inst_out_valid),
+    .fetch_en          (fetch_en)
   );
 
   Arch_Map arch_map_0 (
-    .en(en),
-    .clock(clock),
-    .reset(reset),
-    .retire_en(retire_en),
+    .clock                  (clock),
+    .reset                  (reset),
+    .en                     (en),
+    .retire_en              (retire_en),
 `ifndef DEBUG
-    .ROB_Arch_Map_out(ROB_Arch_Map_out),
+    .ROB_Arch_Map_out       (ROB_Arch_Map_out),
 `else
-    .ROB_Arch_Map_out(ROB_Arch_Map_out),
-    .next_arch_map(pipeline_ARCHMAP),
+    .ROB_Arch_Map_out       (ROB_Arch_Map_out),
+    .next_arch_map          (pipeline_ARCHMAP),
 `endif
-    .ARCH_MAP_MAP_Table_out(ARCH_MAP_MAP_Table_out)
+    .ARCH_MAP_MAP_Table_out (ARCH_MAP_MAP_Table_out)
   );
 
   BP BP_0 (
     // inputs
-    .clock(clock),
-    .reset(reset),
-    .if_NPC_out(if_NPC_out),
-    .if_IR_out(if_IR_out),
-    .F_BP_out(F_BP_out),
-    .FU_BP_out(FU_BP_out),
-    .ROB_idx(ROB_idx),
-    .LQ_BP_out(LQ_BP_out),
+    .clock            (clock),
+    .reset            (reset),
+    .if_NPC_out       (if_NPC_out),
+    .if_IR_out        (if_IR_out),
+    .F_BP_out         (F_BP_out),
+    .FU_BP_out        (FU_BP_out),
+    .ROB_idx          (ROB_idx),
+    .LQ_BP_out        (LQ_BP_out),
     // outputs
-    .rollback_en(rollback_en),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .FL_rollback_idx(FL_rollback_idx),
-    .SQ_rollback_idx(SQ_rollback_idx),
-    .LQ_rollback_idx(LQ_rollback_idx),
-    .diff_ROB(diff_ROB),
-    .BP_F_out(BP_F_out)
+    .rollback_en      (rollback_en),
+    .ROB_rollback_idx (ROB_rollback_idx),
+    .FL_rollback_idx  (FL_rollback_idx),
+    .SQ_rollback_idx  (SQ_rollback_idx),
+    .LQ_rollback_idx  (LQ_rollback_idx),
+    .diff_ROB         (diff_ROB),
+    .BP_F_out         (BP_F_out)
   );
 
   CDB cdb_0 (
-    .en(en),
-    .clock(clock),
-    .reset(reset),
-    .rollback_en(rollback_en),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .diff_ROB(diff_ROB),
-    .FU_CDB_out(FU_CDB_out),
+    .clock             (clock),
+    .reset             (reset),
+    .en                (en),
+    .rollback_en       (rollback_en),
+    .ROB_rollback_idx  (ROB_rollback_idx),
+    .diff_ROB          (diff_ROB),
+    .FU_CDB_out        (FU_CDB_out),
 `ifdef DEBUG
-    .CDB(pipeline_CDB),
+    .CDB               (pipeline_CDB),
 `endif
-    .write_en(write_en),
-    .complete_en(complete_en),
-    .CDB_valid(CDB_valid),
-    .CDB_SQ_valid(CDB_SQ_valid),
-    .CDB_LQ_valid(CDB_LQ_valid),
-    .CDB_ROB_out(CDB_ROB_out),
-    .CDB_RS_out(CDB_RS_out),
-    .CDB_Map_Table_out(CDB_Map_Table_out),
-    .CDB_PR_out(CDB_PR_out)
+    .write_en          (write_en),
+    .complete_en       (complete_en),
+    .CDB_valid         (CDB_valid),
+    .CDB_SQ_valid      (CDB_SQ_valid),
+    .CDB_LQ_valid      (CDB_LQ_valid),
+    .CDB_ROB_out       (CDB_ROB_out),
+    .CDB_RS_out        (CDB_RS_out),
+    .CDB_Map_Table_out (CDB_Map_Table_out),
+    .CDB_PR_out        (CDB_PR_out)
   );
 
   decoder decoder_0 (
-    .FB_decoder_out(FB_decoder_out),
-    .decoder_ROB_out(decoder_ROB_out),
-    .decoder_RS_out(decoder_RS_out),
-    .decoder_FL_out(decoder_FL_out),
-    .decoder_Map_Table_out(decoder_Map_Table_out),
-    .decoder_SQ_out(decoder_SQ_out),
-    .decoder_LQ_out(decoder_LQ_out),
-    .illegal(illegal)
+    .FB_decoder_out        (FB_decoder_out),
+    .decoder_ROB_out       (decoder_ROB_out),
+    .decoder_RS_out        (decoder_RS_out),
+    .decoder_FL_out        (decoder_FL_out),
+    .decoder_Map_Table_out (decoder_Map_Table_out),
+    .decoder_SQ_out        (decoder_SQ_out),
+    .decoder_LQ_out        (decoder_LQ_out),
+    .illegal               (illegal)
   );
 
   FL fl_0 (
-    .clock(clock),
-    .reset(reset),
-    .dispatch_en(dispatch_en),
-    .rollback_en(rollback_en),
-    .retire_en(retire_en),
-    .FL_rollback_idx(FL_rollback_idx),
-    .decoder_FL_out(decoder_FL_out),
-    .ROB_FL_out(ROB_FL_out),
+    .clock            (clock),
+    .reset            (reset),
+    .dispatch_en      (dispatch_en),
+    .rollback_en      (rollback_en),
+    .retire_en        (retire_en),
+    .FL_rollback_idx  (FL_rollback_idx),
+    .decoder_FL_out   (decoder_FL_out),
+    .ROB_FL_out       (ROB_FL_out),
 `ifdef DEBUG
-    .FL_table(pipeline_FL),
-    .next_FL_table(next_FL_table),
-    .head(FL_head),
-    .next_head(next_head),
-    .tail(FL_tail),
-    .next_tail(next_tail),
+    .FL_table         (pipeline_FL),
+    .next_FL_table    (next_FL_table),
+    .head             (FL_head),
+    .next_head        (next_head),
+    .tail             (FL_tail),
+    .next_tail        (next_tail),
 `endif
-    .FL_valid(FL_valid),
-    .FL_idx(FL_idx),
-    .FL_ROB_out(FL_ROB_out),
-    .FL_RS_out(FL_RS_out),
-    .FL_Map_Table_out(FL_Map_Table_out)
+    .FL_valid         (FL_valid),
+    .FL_idx           (FL_idx),
+    .FL_ROB_out       (FL_ROB_out),
+    .FL_RS_out        (FL_RS_out),
+    .FL_Map_Table_out (FL_Map_Table_out)
   );
 
   FU fu_0 (
     // Input
-    .clock(clock),
-    .reset(reset),
-    .en(en),
-    // .ROB_idx(ROB_idx),
-    .rollback_en(rollback_en),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .diff_ROB(diff_ROB),
-    .CDB_valid(CDB_valid),
-    .LQ_valid(LQ_valid),
-    .RS_FU_out(RS_FU_out),
-    .PR_FU_out(PR_FU_out),
-    .SQ_FU_out(SQ_FU_out),
-    .LQ_FU_out(LQ_FU_out),
+    .clock            (clock),
+    .reset            (reset),
+    .en               (en),
+    .rollback_en      (rollback_en),
+    .ROB_rollback_idx (ROB_rollback_idx),
+    .diff_ROB         (diff_ROB),
+    .CDB_valid        (CDB_valid),
+    .LQ_valid         (LQ_valid),
+    .RS_FU_out        (RS_FU_out),
+    .PR_FU_out        (PR_FU_out),
+    .SQ_FU_out        (SQ_FU_out),
+    .LQ_FU_out        (LQ_FU_out),
     // Output
-    .FU_valid(FU_valid),
-    .FU_CDB_out(FU_CDB_out),
-    .FU_SQ_out(FU_SQ_out),
-    .FU_LQ_out(FU_LQ_out),
-    .FU_BP_out(FU_BP_out)
+    .FU_valid         (FU_valid),
+    .FU_CDB_out       (FU_CDB_out),
+    .FU_SQ_out        (FU_SQ_out),
+    .FU_LQ_out        (FU_LQ_out),
+    .FU_BP_out        (FU_BP_out)
   );
 
   LSQ lsq_0 (
@@ -436,37 +435,37 @@ module pipeline (
 
   Map_Table map_table_0 (
     // Input
-    .clock(clock),
-    .reset(reset),
-    .en(en),
-    .dispatch_en(dispatch_en),
-    .rollback_en(rollback_en),
-    .complete_en(complete_en),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .ROB_idx(ROB_idx),
-    .decoder_Map_Table_out(decoder_Map_Table_out),
-    .FL_Map_Table_out(FL_Map_Table_out),
-    .CDB_Map_Table_out(CDB_Map_Table_out),
-    .ARCH_MAP_MAP_Table_out(ARCH_MAP_MAP_Table_out),
-    .ROB_MAP_Table_out(ROB_MAP_Table_out),
+    .clock                  (clock),
+    .reset                  (reset),
+    .en                     (en),
+    .dispatch_en            (dispatch_en),
+    .rollback_en            (rollback_en),
+    .complete_en            (complete_en),
+    .ROB_rollback_idx       (ROB_rollback_idx),
+    .ROB_idx                (ROB_idx),
+    .decoder_Map_Table_out  (decoder_Map_Table_out),
+    .FL_Map_Table_out       (FL_Map_Table_out),
+    .CDB_Map_Table_out      (CDB_Map_Table_out),
+    .ARCH_MAP_MAP_Table_out (ARCH_MAP_MAP_Table_out),
+    .ROB_MAP_Table_out      (ROB_MAP_Table_out),
 `ifdef DEBUG
-    .map_table_out(pipeline_MAPTABLE),
+    .map_table_out          (pipeline_MAPTABLE),
 `endif
-    .Map_Table_ROB_out(Map_Table_ROB_out),
-    .Map_Table_RS_out(Map_Table_RS_out)
+    .Map_Table_ROB_out      (Map_Table_ROB_out),
+    .Map_Table_RS_out       (Map_Table_RS_out)
   );
 
   PR pr_0 (
-    .clock(clock),
-    .reset(reset),
-    .en(en),
-    .write_en(write_en),
-    .CDB_PR_out(CDB_PR_out),
-    .RS_PR_out(RS_PR_out),
+    .clock      (clock),
+    .reset      (reset),
+    .en         (en),
+    .write_en   (write_en),
+    .CDB_PR_out (CDB_PR_out),
+    .RS_PR_out  (RS_PR_out),
 `ifdef DEBUG
-    .pr_data(pipeline_PR),
+    .pr_data    (pipeline_PR),
 `endif
-    .PR_FU_out(PR_FU_out)
+    .PR_FU_out  (PR_FU_out)
   );
 
   ROB rob_0 (
