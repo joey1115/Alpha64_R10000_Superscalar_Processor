@@ -108,9 +108,6 @@ module testbench;
   logic [$clog2(`NUM_FB)-1:0]              FB_head, FB_tail;
   D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
   MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
-  logic [63:0]                                
-  logic [31:0]                                tag_hi;
-  logic [31:0]                                tag_lo;
   
 
   // Instantiate the Pipeline
@@ -291,8 +288,7 @@ module testbench;
 `endif
 
 
-assign tag_hi;
-assign tag_lo;
+
 
 `ifdef PRINT_DCACHE_BANK
     for(int i=0; i < `NUM_IDX; i++) begin
