@@ -67,10 +67,12 @@ MAPTABLEFILES = $(wildcard verilog/Map_Table/Map_Table.v)
 PRFILES       = $(wildcard verilog/PR/PR.v)
 ROBFILES      = $(wildcard verilog/ROB/ROB.v)
 RSFILES       = $(wildcard verilog/RS/RS.v)
-DCACHEFILES   = $(wildcard verilog/Dcache/*.v)
-LSQFILES      = $(wildcard verilog/LSQ/*.v)
+DCACHEFILES   = $(wildcard verilog/Dcache/Dcache.v)
+MSHRFILES     = $(wildcard verilog/Dcache/MSHR.v)
+DCACHECFILES  = $(wildcard verilog/Dcache/Dcache_controller.v)
+LSQFILES      = $(wildcard verilog/LSQ/LSQ.v)
 
-SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FBFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES) $(FBFILES) $(DCACHEFILES) $(LSQFILES)
+SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FBFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES) $(FBFILES) $(DCACHEFILES) $(LSQFILES) $(MSHRFILES) $(DCACHECFILES)
 
 # SYNTHESIS CONFIG
 
