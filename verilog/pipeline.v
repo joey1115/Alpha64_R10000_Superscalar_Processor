@@ -34,10 +34,10 @@ module pipeline (
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
   output logic        [`NUM_SUPER-1:0]                   pipeline_commit_wr_en,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_NPC,
-  output logic        [1:0]                               proc2mem_command,    // command sent to memory
-  output logic        [63:0]                              proc2mem_addr,      // Address sent to memory
-  output logic        [63:0]                              proc2mem_data,      // Data sent to memory
-  output logic        [3:0]                               pipeline_completed_insts,
+  output logic        [1:0]                              proc2mem_command,    // command sent to memory
+  output logic        [63:0]                             proc2mem_addr,      // Address sent to memory
+  output logic        [63:0]                             proc2mem_data,      // Data sent to memory
+  output logic        [3:0]                              pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
 );
 
@@ -218,15 +218,15 @@ module pipeline (
   assign pipeline_error_status    = halt_out ? HALTED_ON_HALT :
                                     illegal_out  ? HALTED_ON_ILLEGAL:
                                                NO_ERROR;
-  assign proc2Dmem_command = BUS_NONE;
-  assign proc2Dmem_addr = 0;
+  // assign proc2Dmem_command = BUS_NONE;
+  // assign proc2Dmem_addr = 0;
   assign proc2mem_command =
     (proc2Dmem_command==BUS_NONE) ? proc2Imem_command:proc2Dmem_command;
   assign proc2mem_addr =
     (proc2Dmem_command==BUS_NONE) ? proc2Imem_addr:proc2Dmem_addr;
   //TODO: Uncomment and pass for mem stage in the pipeline
-  // assign Dmem2proc_response = 
-  //   (proc2Dmem_command==`BUS_NONE) ? 0 : mem2proc_response;
+  assign Dmem2proc_response = 
+    (proc2Dmem_command==`BUS_NONE) ? 0 : mem2proc_response;
   assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
 `ifdef DEBUG
   always_comb begin
@@ -370,7 +370,7 @@ module pipeline (
     .wr1_dirty(wr1_dirty),
     .wr1_valid(wr1_valid),
   `ifdef DEBUG
-    .cache_bank(),
+    .cache_bank(Dcache_bank),
   `endif
     .evicted_dirty_out(evicted_dirty), 
     .evicted_valid_out(evicted_valid),
@@ -400,7 +400,7 @@ module pipeline (
     .search_wr_data(search_wr_data),
         
 `ifdef DEBUG
-    .MSHR_queue(),
+    .MSHR_queue(MSHR_queue),
 `endif
     .miss_addr_hit(miss_addr_hit), // if address search in the MSHR
         
@@ -424,14 +424,14 @@ module pipeline (
     .mshr_empty(mshr_empty),
   
     //mem to mshr
-    .mem2proc_response(),
-    .mem2proc_data(),     // data resulting from a load
-    .mem2proc_tag(),       // 0 = no value, other=tag of transaction
+    .mem2proc_response(Dmem2proc_response),
+    .mem2proc_data(mem2proc_data),     // data resulting from a load
+    .mem2proc_tag(mem2proc_tag),       // 0 = no value, other=tag of transaction
   
     //cache to mshr
-    .proc2mem_addr(),
-    .proc2mem_data(),
-    .proc2mem_command()
+    .proc2mem_addr(proc2Dmem_addr),
+    .proc2mem_data(proc2mem_data),
+    .proc2mem_command(proc2Dmem_command)
   );
 
   F_stage F_stage_0 (
