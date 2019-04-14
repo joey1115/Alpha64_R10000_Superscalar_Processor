@@ -110,6 +110,10 @@ module pipeline (
   D_CACHE_LQ_OUT_t                               D_cache_LQ_out;
   ARCH_MAP_MAP_TABLE_OUT_t                       ARCH_MAP_MAP_Table_out;
   // F_DECODER_OUT_t                                F_decoder_out;
+  LQ_BP_OUT_t                                    LQ_BP_out;
+  logic                   [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx;
+  logic                   [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx;
+
 
   logic                   [`NUM_SUPER-1:0][63:0]retire_NPC;
   // memory registers
@@ -277,13 +281,22 @@ module pipeline (
   );
 
   BP BP_0 (
+    // inputs
     .clock(clock),
     .reset(reset),
     .if_NPC_out(if_NPC_out),
     .if_IR_out(if_IR_out),
     .F_BP_out(F_BP_out),
-    .rollback_en(rollback_en),
     .FU_BP_out(FU_BP_out),
+    .ROB_idx(ROB_idx),
+    .LQ_BP_out(LQ_BP_out),
+    // outputs
+    .rollback_en(rollback_en),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .FL_rollback_idx(FL_rollback_idx),
+    .SQ_rollback_idx(SQ_rollback_idx),
+    .LQ_rollback_idx(LQ_rollback_idx),
+    .diff_ROB(diff_ROB),
     .BP_F_out(BP_F_out)
   );
 
