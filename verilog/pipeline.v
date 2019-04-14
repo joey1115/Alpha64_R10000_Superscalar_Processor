@@ -237,9 +237,9 @@ module pipeline (
       num_inst = 0;
     end   
     else if(write_back) begin
-      if(halt[0] & !halt[1])
+      if(halt_out[0] & !halt_out[1])
         num_inst = 1;
-      else if(!halt[0] & halt[1])
+      else if(!halt_out[0] & halt_out[1])
         num_inst = 2;
     end
     else begin
