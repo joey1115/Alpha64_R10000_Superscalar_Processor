@@ -109,6 +109,10 @@ module pipeline (
   D_CACHE_SQ_OUT_t                               D_cache_SQ_out;
   D_CACHE_LQ_OUT_t                               D_cache_LQ_out;
   // F_DECODER_OUT_t                                F_decoder_out;
+  LQ_BP_OUT_t                                    LQ_BP_out;
+  logic                   [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx;
+  logic                   [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx;
+
 
   logic                   [`NUM_SUPER-1:0][63:0]retire_NPC;
   // memory registers
@@ -241,21 +245,6 @@ module pipeline (
     .F_BP_out(F_BP_out)
   );
 
-  //////////////////////////////////////////////////
-  //                                              //
-  //            IF/ID Pipeline Register           //
-  //                                              //
-  //////////////////////////////////////////////////
-  // always_ff @(posedge clock) begin
-  //   if (reset) begin
-  //     F_decoder_out <= `SD `F_DECODER_OUT_RESET;
-  //   end else if (F_decoder_en) begin
-  //     F_decoder_out.inst   <= `SD if_IR_out;
-  //     F_decoder_out.NPC    <= `SD if_NPC_out;
-  //     F_decoder_out.valid  <= `SD if_valid_inst_out;
-  //   end // if (F_decoder_en)
-  // end // always
-
   FETCH_BUFFER FETCH_BUFFER_0 (
     .en(en),
     .clock(clock),
@@ -290,13 +279,22 @@ module pipeline (
   );
 
   BP BP_0 (
+    // inputs
     .clock(clock),
     .reset(reset),
     .if_NPC_out(if_NPC_out),
     .if_IR_out(if_IR_out),
     .F_BP_out(F_BP_out),
-    .rollback_en(rollback_en),
     .FU_BP_out(FU_BP_out),
+    .ROB_idx(ROB_idx),
+    .LQ_BP_out(LQ_BP_out),
+    // outputs
+    .rollback_en(rollback_en),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .FL_rollback_idx(FL_rollback_idx),
+    .SQ_rollback_idx(SQ_rollback_idx),
+    .LQ_rollback_idx(LQ_rollback_idx),
+    .diff_ROB(diff_ROB),
     .BP_F_out(BP_F_out)
   );
 
