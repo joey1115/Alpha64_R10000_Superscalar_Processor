@@ -55,7 +55,7 @@ extern void print_freelist_entry(int i, int freePR);
 extern void print_fetchbuffer_head(int FB_head, int FB_tail);
 extern void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst);
 
-extern void print_Num(int i);
+extern void print_num(int i);
 extern void print_enter();
 extern void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int dirty, int addr_hi, int addr_lo, int inst_type, int proc2mem_command, int complete, int mem_tag, int state);
 extern void print_Dcache_bank(int data_hi, int data_lo, int tag, int dirty, int valid);
@@ -290,7 +290,7 @@ module testbench;
     for(int i=0; i < `NUM_IDX; i++) begin
       print_num(int i);
       for(int j=0; j < `NUM_WAY; j++) begin
-        print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(31){1'b0}},Dcache_bank[j[i].dirty]},{{(31){1'b0}},Dcache_bank[j[i].valid]});
+        print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag]},{{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag]},{{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag]},{{(31){1'b0}},Dcache_bank[j][i].dirty]},{{(31){1'b0}},Dcache_bank[j][i].valid]});
       end
       print_enter();
     end
