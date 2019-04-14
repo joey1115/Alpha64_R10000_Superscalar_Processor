@@ -213,11 +213,11 @@ module BP(
       end
       2'b10: begin
         rollback_en2        = `TRUE;
-        ROB_rollback_idx2   = LQ_BP_out.LQ_BP_out.LQ_target[1].ROB_idx;
-        FL_rollback_idx2    = LQ_BP_out.LQ_BP_out.LQ_target[1].FL_idx;
-        SQ_rollback_idx2    = LQ_BP_out.LQ_BP_out.LQ_target[1].SQ_idx;
-        LQ_rollback_idx2    = LQ_BP_out.LQ_BP_out.LQ_target[1].LQ_idx;
-        take_branch_target2 = LQ_BP_out.LQ_BP_out.LQ_target[1].target_PC;
+        ROB_rollback_idx2   = LQ_BP_out.LQ_target[1].ROB_idx;
+        FL_rollback_idx2    = LQ_BP_out.LQ_target[1].FL_idx;
+        SQ_rollback_idx2    = LQ_BP_out.LQ_target[1].SQ_idx;
+        LQ_rollback_idx2    = LQ_BP_out.LQ_target[1].LQ_idx;
+        take_branch_target2 = LQ_BP_out.LQ_target[1].target_PC;
         diff_ROB6           = diff_ROB4;
       end
       2'b11: begin
