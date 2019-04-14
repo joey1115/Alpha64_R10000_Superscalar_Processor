@@ -58,6 +58,8 @@ extern void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, in
 extern void print_num(int i);
 extern void print_enter();
 extern void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int dirty, int addr_hi, int addr_lo, int inst_type, int proc2mem_command, int complete, int mem_tag, int state);
+extern void print_Dcache_head();
+extern void print_MSHR_head();    
 extern void print_Dcache_bank(int data_hi, int data_lo, int tag_hi,int tag_lo, int dirty, int valid);
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
@@ -291,6 +293,7 @@ module testbench;
 
 
 `ifdef PRINT_DCACHE_BANK
+    print_Dcache_head();
     for(int i=0; i < `NUM_IDX; i++) begin
       print_num(i);
       for(int j=0; j < `NUM_WAY; j++) begin
@@ -301,6 +304,7 @@ module testbench;
 `endif
 
 `ifdef PRINT_MSHR_ENTRY
+    print_MSHR_head();
     for(int i = 0; i < `MSHR_DEPTH; i++) begin
       print_MSHR_entry(i,{{(31){1'b0}},MSHR_queue[i].valid}, MSHR_queue[i].data[63:32],MSHR_queue[i].data[31:0],{{(31){1'b0}},MSHR_queue[i].dirty}, MSHR_queue[i].addr[63:32], MSHR_queue[i].addr[31:0], {{(30){1'b0}},MSHR_queue[i].inst_type}, {{(30){1'b0}},MSHR_queue[i].proc2mem_command}, {{(31){1'b0}},MSHR_queue[i].complete}, {{(28){1'b0}},MSHR_queue[i].mem_tag}, {{(30){1'b0}},MSHR_queue[i].state} );
     end
