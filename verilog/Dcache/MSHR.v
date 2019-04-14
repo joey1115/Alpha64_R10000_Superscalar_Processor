@@ -69,17 +69,18 @@ module MSHR(
 //need logic to check priority
 
   //MSHR queue
-  MSHR_ENTRY_t [MSHR_DEPTH-1:0] MSHR_queue, next_MSHR_queue;
+  MSHR_ENTRY_t [`MSHR_DEPTH-1:0] MSHR_queue, next_MSHR_queue;
 
   //head and tail pointer
-  logic [$clog2(MSHR_DEPTH)-1:0] writeback_head, head, tail, next_writeback_head, next_head, next_tail;
+  logic [$clog2(`MSHR_DEPTH)-1:0] writeback_head, head, tail, next_writeback_head, next_head, next_tail;
   logic [1:0]                    tail_move;
   logic [2:0][1:0]               data_idx;
   logic [2:0]                    internal_miss_en1,internal_miss_en2;
-  logic [2:0]                    internal_miss_en2_mask,internal_miss_en3_mask;
+  logic [2:0]                    internal_miss_en1_mask, internal_miss_en2_mask, internal_miss_en3_mask;
   logic [`MSHR_DEPTH-1:0]        dummywire;
+  logic                          request_accepted;
 
-  logic [$clog2(MSHR_DEPTH)-1:0] tail_plus_one, tail_plus_two, tail_plus_three, head_plus_one;
+  logic [$clog2(`MSHR_DEPTH)-1:0] tail_plus_one, tail_plus_two, tail_plus_three, head_plus_one;
   //how many entries to allocate
   assign tail_move = miss_en[0] + miss_en[1] + miss_en[2];
 
@@ -106,9 +107,9 @@ module MSHR(
     internal_miss_en2 = internal_miss_en1 & ~(internal_miss_en2_mask); //everything except the 2 last bit
   end
 
-  ps priority1 (.req(miss_en), 1, .gnt(internal_miss_en1_mask));
-  ps priority2 (.req(internal_miss_en1), 1, .gnt(internal_miss_en2_mask));
-  ps priority3 (.req(internal_miss_en2), 1, .gnt(internal_miss_en3_mask));
+  ps priority1 (.req(miss_en), .en(1), .gnt(internal_miss_en1_mask));
+  ps priority2 (.req(internal_miss_en1), .en(1), .gnt(internal_miss_en2_mask));
+  ps priority3 (.req(internal_miss_en2), .en(1), .gnt(internal_miss_en3_mask));
 
   pe idx_select1 (miss_en, data_idx[0]);
   pe idx_select2 (internal_miss_en1, data_idx[1]);
@@ -200,7 +201,7 @@ module MSHR(
 
 
     //mem complete request
-    for (int = i; i < `MSHR_DEPTH;i++) begin
+    for (int i = 0; i < `MSHR_DEPTH;i++) begin
       if(MSHR_queue[i].state == INPROGRESS && mem2proc_tag == MSHR_queue[i].mem_tag && MSHR_queue[i].valid) begin
         next_MSHR_queue[i].complete = 1;
         next_MSHR_queue[i].state    = DONE;
@@ -246,7 +247,7 @@ logic [$clog2(`MSHR_DEPTH)] index_rd_search, index_wr_search, index;
       index = head + i;
       if((search_addr[0] == MSHR_queue[index].addr) && (search_type[0] == LOAD) && MSHR_queue[index].valid) begin
         index_rd_search = index;
-        miss_addr_hit[0] = 1
+        miss_addr_hit[0] = 1;
       end
 
       if((search_addr[1] == MSHR_queue[i].addr) && (search_type[1] == STORE) && MSHR_queue[index].valid) begin
@@ -286,7 +287,7 @@ logic [$clog2(`MSHR_DEPTH)] index_rd_search, index_wr_search, index;
 
   always_ff @(posedge clock) begin
     if(reset) begin
-      for(int i = 0; i < MSHR_DEPTH; i++) begin
+      for(int i = 0; i < `MSHR_DEPTH; i++) begin
         MSHR_queue[i].valid <= `SD 0;
       end
       writeback_head <= `SD 0;
@@ -302,28 +303,6 @@ logic [$clog2(`MSHR_DEPTH)] index_rd_search, index_wr_search, index;
   end
 endmodule
 
-module pe(gnt,enc);
-  //synopsys template
-  parameter OUT_WIDTH=2;
-  parameter IN_WIDTH=1<<OUT_WIDTH;
-
-  input   [IN_WIDTH-1:0] gnt;
-
-  output [OUT_WIDTH-1:0] enc;
-  wor    [OUT_WIDTH-1:0] enc;
-  
-  genvar i,j;
-  generate
-    for(i=0;i<OUT_WIDTH;i=i+1)
-    begin : foo
-      for(j=1;j<IN_WIDTH;j=j+1)
-      begin : bar
-        if (j[i])
-          assign enc[i] = gnt[j];
-      end
-    end
-  endgenerate
-endmodule
 
 module ps (req, en, gnt, req_up);
   //synopsys template

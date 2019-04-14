@@ -26,7 +26,7 @@ module Dcache(
 );
  
   //LRU logic
-  logic [`NUM_IDX-1:0]               regA, regB, regC, n_regA, n_regB, n_regC;
+  logic [`NUM_IDX-1:0]               regA, regB, regC, next_regA, next_regB, next_regC;
   logic [`NUM_IDX-1:0][`NUM_WAY-1:0] LRU_bank_sel;
   logic [$clog2(`NUM_WAY)-1:0]       LRU_bank_idx;
   
@@ -39,15 +39,15 @@ module Dcache(
 
 
   //evict logic
-  logic SASS_ADDR [`NUM_WAY-1:0]  evicted_addr;
+  SASS_ADDR [`NUM_WAY-1:0]  evicted_addr;
   logic [`NUM_WAY-1:0]            evicted_dirty;
   logic [`NUM_WAY-1:0]            evicted_valid;
   logic [`NUM_WAY-1:0][63:0]      evicted_data;
 
   //LRU decision
-  assign n_regA[wr1_addr.set_index] = (wr1_from_mem & wr1_en)                             ? ~regA[wr1_addr.set_index] : regA[wr1_addr.set_index];
-  assign n_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr1_from_mem & wr1_en) ? ~regB[wr1_addr.set_index] : regB[wr1_addr.set_index];
-  assign n_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr1_from_mem & wr1_en)  ? ~regC[wr1_addr.set_index] : regC[wr1_addr.set_index];
+  assign next_regA[wr1_addr.set_index] = (wr1_from_mem & wr1_en)                             ? ~regA[wr1_addr.set_index] : regA[wr1_addr.set_index];
+  assign next_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr1_from_mem & wr1_en) ? ~regB[wr1_addr.set_index] : regB[wr1_addr.set_index];
+  assign next_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr1_from_mem & wr1_en)  ? ~regC[wr1_addr.set_index] : regC[wr1_addr.set_index];
 
  
   assign LRU_bank_sel[wr1_addr.set_index][0] = !regA[wr1_addr.set_index] & !regB[wr1_addr.set_index];
@@ -62,9 +62,9 @@ module Dcache(
       regC <= 'SD 0;
     end
     else begin
-      regA <= 'SD n_regA;
-      regB <= 'SD n_regB;
-      regC <= 'SD n_regC;
+      regA <= `SD next_regA;
+      regB <= `SD next_regB;
+      regC <= `SD next_regC;
     end
   end
   
@@ -87,7 +87,7 @@ module Dcache(
       .evicted_addr(evicted_addr),
       .evicted_dirty(evicted_dirty),
       .evicted_valid(evicted_valid),
-      .evicted_data(evicted_data),
+      .evicted_data(evicted_data)
       );
 
   always_comb begin
@@ -116,7 +116,7 @@ module Dcache(
 
   pe rd1_bank_sel (.gnt(rd1_hit),.enc(rd1_hit_idx));
   pe wr1_bank_sel (.gnt(wr1_hit),.enc(wr1_hit_idx));
-  pe LRU_bank_sel (.gnt(LRU_bank_sel[wr1_addr.set_index]),.enc(LRU_bank_idx));
+  pe LRU_bank_sel_mod (.gnt(LRU_bank_sel[wr1_addr.set_index]),.enc(LRU_bank_idx));
 
 endmodule
 
@@ -140,7 +140,7 @@ module cache_bank(
   output SASS_ADDR                                                  evicted_addr,
   output logic                                                      evicted_dirty,
   output logic                                                      evicted_valid,
-  output logic [63:0]                                               evicted_data,
+  output logic [63:0]                                               evicted_data
 );
     
   D_CACHE_LINE_t [`NUM_IDX-1:0] cache_bank, next_cache_bank;

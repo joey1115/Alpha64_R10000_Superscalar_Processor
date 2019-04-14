@@ -77,7 +77,6 @@ SASS_ADDR write_back_addr;
 
 
 //read cache outputs
-logic next_search_addr_reg
 
 //output data from mshr if exist otherwise from cache
 assign data = rd1_data; 
@@ -95,7 +94,7 @@ assign search_addr[0] = rd1_addr;
 assign search_type[0] = LOAD;
 
 //search mshr for wr1 data
-assign search_addr[1] = wr_in_addr;
+assign search_addr[1] = {wr_in_addr,3'b000};
 assign search_type[1] = STORE;
 assign search_wr_data = wr_data;
 
@@ -124,22 +123,22 @@ assign mshr_proc2mem_command[2] = BUS_STORE;
 
 //data to cache
 //assign cachemem inputs
-assign rd1_addr = rd_in_addr;
+assign rd1_addr = {rd_in_addr,3'b000};
 
 
 
 assign wr1_addr = (write_back_stage)              ?  write_back_addr :
-                  (wr_en)                         ?  wr_in_addr      :
-                  (!wr_en & rd_wb_en)             ?  rd_wb_addr      :
-                  (!wr_en & !rd_wb_en & wr_wb_en) ?  wr_wb_addr      : mem_addr;
+                  (wr_en & wr1_hit)               ?  wr_in_addr      :
+                  (wr_wb_en)                      ?  wr_wb_addr      :
+                  (!wr_wb_en & rd_wb_en)          ?  rd_wb_addr      : mem_addr;
 
-assign wr1_dirty = (wr_en)                         ?  1           :
-                   (!wr_en & rd_wb_en)             ?  rd_wb_dirty :
-                   (!wr_en & !rd_wb_en & wr_wb_en) ?  wr_wb_dirty : mem_dirty;
+assign wr1_dirty = (wr_en & wr1_hit)               ?  1           :
+                   (wr_wb_en)                      ?  wr_wb_dirty :
+                   (!wr_wb_en & rd_wb_en)          ?  rd_wb_dirty : mem_dirty;
 
-assign wr1_data = (wr_en)                         ?  wr_data    :
-                  (!wr_en & rd_wb_en)             ?  rd_wb_data :
-                  (!wr_en & !rd_wb_en & wr_wb_en) ?  wr_wb_data : mem_data;
+assign wr1_data = (wr_en & wr1_hit)               ?  wr_data    :
+                  (wr_wb_en)                      ?  wr_wb_data :
+                  (!wr_wb_en & rd_wb_en)          ?  rd_wb_data : mem_data;
 
 assign wr1_valid = (write_back_stage)             ? 0 : 1;
 
@@ -160,7 +159,7 @@ assign cache_valid = mshr_valid;
 always_comb begin
   if (write_back_stage && mshr_valid)
     next_count = count + 1;
-  else (state == 0)
+  else
     next_count = count;
 end
 
@@ -179,12 +178,10 @@ assign write_back_addr = count & {{61{1'b1}},3'b000};
 
 always_ff @(posedge clock) begin
   if(reset) begin
-    search_addr_reg <= `SD 0;
     state           <= `SD 0;
     count           <= `SD 0;
   end
   else begin
-    search_addr_reg <= `SD next_search_addr_reg;
     state           <= `SD next_state;
     count           <= `SD next_count;
   end
