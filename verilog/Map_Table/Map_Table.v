@@ -94,7 +94,10 @@ module Map_Table (
 
     // Rollback
     if (ROB_MAP_Table_out.stall_dispatch) begin
-      next_map_table = ARCH_MAP_MAP_Table_out.arch_map;
+      for(int i = 0; i < 32; i++) begin
+        next_map_table[i].idx = ARCH_MAP_MAP_Table_out.arch_map[i];
+        next_map_table[i].ready = `TRUE;
+      end
     end
     for(int i = 0; i < `NUM_SUPER; i++) begin
       // complete update ready bit
