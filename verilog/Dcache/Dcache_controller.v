@@ -63,7 +63,8 @@ module Dcache_controller(
 
     input  logic                                                                  write_back,
     output logic                                                                  cache_valid,
-    output logic                                                                  halt_pipeline
+    output logic                                                                  halt_pipeline,
+    output logic                                                                  write_back_stage
 );
 //logics
 
