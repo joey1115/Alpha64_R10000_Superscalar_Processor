@@ -63,7 +63,8 @@ module ROB (
   assign head_plus_one = rob.head + 1;
   assign ROB_rollback_idx_reg_plus_one = ROB_rollback_idx_reg + 1;
   
-  assign ROB_valid = (ROB_MAP_Table_out.stall_dispatch | rollback_en)? 0 : (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]);
+  assign ROB_valid = (ROB_MAP_Table_out.stall_dispatch | rollback_en)? 0 :
+                     (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]);
   
   //(tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
 
@@ -165,7 +166,7 @@ module ROB (
    
   end
 
-  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx_minus_one : ROB_rollback_idx_reg;
+  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx : ROB_rollback_idx_reg;
 
   always_comb begin
     case(state)
