@@ -1,0 +1,14 @@
+@@@ Unified Memory contents hex on left, decimal on right:
+@@@
+@@@ mem[    0] = 0000000000000555 : 1365
+@@@
+@@@
+@@                  1420 : System halted
+@@
+@@@ System halted on HALT instruction
+@@@
+@@
+@@  11 cycles / 0 instrs = inf CPI
+@@
+@@  300.00 ns total time to execute
+@@
