@@ -17,21 +17,21 @@
 // unless you know the pipeline will never reach the halt instruction and run forever
 `define HALT_ON_TIMEOUT
 // After runing for TIMEOUT_CYCLES cycles, halt!
-`define TIMEOUT_CYCLES 6000
+`define TIMEOUT_CYCLES 2000
 
 
 `define PRINT_DISPATCH_EN
 `define PRINT_FETCHBUFFER
 `define PRINT_ROB
 `define PRINT_RS
-// `define PRINT_MAP_TABLE
+`define PRINT_MAP_TABLE
 // `define PRINT_FREELIST
 `define PRINT_CDB
-// `define PRINT_ARCHMAP
+`define PRINT_ARCHMAP
 // `define PRINT_REG
 // `define PRINT_MEMBUS
-`define PRINT_DCACHE_BANK
-`define PRINT_MSHR_ENTRY
+// `define PRINT_DCACHE_BANK
+// `define PRINT_MSHR_ENTRY
 
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
@@ -289,27 +289,6 @@ module testbench;
       end
 `endif
 
-
-
-
-`ifdef PRINT_DCACHE_BANK
-    print_Dcache_head();
-    for(int i=0; i < `NUM_IDX; i++) begin
-      print_num(i);
-      for(int j=0; j < `NUM_WAY; j++) begin
-        print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(64-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag[`NUM_TAG_BITS-1:32]},Dcache_bank[j][i].tag[31:0],{{(31){1'b0}},Dcache_bank[j][i].dirty},{{(31){1'b0}},Dcache_bank[j][i].valid});
-      end
-      print_enter();
-    end
-`endif
-
-`ifdef PRINT_MSHR_ENTRY
-    print_MSHR_head();
-    for(int i = 0; i < `MSHR_DEPTH; i++) begin
-      print_MSHR_entry(i,{{(31){1'b0}},MSHR_queue[i].valid}, MSHR_queue[i].data[63:32],MSHR_queue[i].data[31:0],{{(31){1'b0}},MSHR_queue[i].dirty}, MSHR_queue[i].addr[63:32], MSHR_queue[i].addr[31:0], {{(30){1'b0}},MSHR_queue[i].inst_type}, {{(30){1'b0}},MSHR_queue[i].proc2mem_command}, {{(31){1'b0}},MSHR_queue[i].complete}, {{(28){1'b0}},MSHR_queue[i].mem_tag}, {{(30){1'b0}},MSHR_queue[i].state} );
-    end
-`endif
-
       //print RS
 `ifdef PRINT_RS
       print_RS_head();
@@ -437,7 +416,23 @@ module testbench;
       end
 `endif
 
+`ifdef PRINT_DCACHE_BANK
+    print_Dcache_head();
+    for(int i=0; i < `NUM_IDX; i++) begin
+      print_num(i);
+      for(int j=0; j < `NUM_WAY; j++) begin
+        print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(64-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag[`NUM_TAG_BITS-1:32]},Dcache_bank[j][i].tag[31:0],{{(31){1'b0}},Dcache_bank[j][i].dirty},{{(31){1'b0}},Dcache_bank[j][i].valid});
+      end
+      print_enter();
+    end
+`endif
 
+`ifdef PRINT_MSHR_ENTRY
+    print_MSHR_head();
+    for(int i = 0; i < `MSHR_DEPTH; i++) begin
+      print_MSHR_entry(i,{{(31){1'b0}},MSHR_queue[i].valid}, MSHR_queue[i].data[63:32],MSHR_queue[i].data[31:0],{{(31){1'b0}},MSHR_queue[i].dirty}, MSHR_queue[i].addr[63:32], MSHR_queue[i].addr[31:0], {{(30){1'b0}},MSHR_queue[i].inst_type}, {{(30){1'b0}},MSHR_queue[i].proc2mem_command}, {{(31){1'b0}},MSHR_queue[i].complete}, {{(28){1'b0}},MSHR_queue[i].mem_tag}, {{(30){1'b0}},MSHR_queue[i].state} );
+    end
+`endif
 
       //print reg
 `ifdef PRINT_REG
