@@ -263,7 +263,7 @@ module testbench;
 `ifdef PRINT_FETCHBUFFER
       print_fetchbuffer_head({{(32-$clog2(`NUM_FB)){1'b0}},FB_head}, {{(32-$clog2(`NUM_FB)){1'b0}},FB_tail});
       for(int i=0; i < `NUM_FB; i++) begin
-        print_fetchbuffer_entry(i, pipeline_FB[i].valid, pipeline_FB[i].NPC[63:32], pipeline_FB[i].NPC[31:0], pipeline_FB[i].inst);
+        print_fetchbuffer_entry(i, {31'h0, pipeline_FB[i].valid}, pipeline_FB[i].NPC[63:32], pipeline_FB[i].NPC[31:0], pipeline_FB[i].inst);
       end
 `endif
 
