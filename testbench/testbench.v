@@ -298,7 +298,7 @@ module testbench;
 
 `ifdef PRINT_MSHR_ENTRY
     for(int i = 0; i < `MSHR_DEPTH; i++) begin
-      print_MSHR_entry(i,MSHR_queue[i].valid, MSHR_queue[i].data[63:32],MSHR_queue[i].data[31:0],MSHR_queue[i].dirty, MSHR_queue[i].addr[63:32], MSHR_queue[i].addr[31:0], MSHR_queue[i].inst_type, MSHR_queue[i].proc2mem_command, MSHR_queue[i].complete, MSHR_queue[i].mem_tag, MSHR_queue[i].state );
+      print_MSHR_entry(i,{{(31){1'b0}},MSHR_queue[i].valid}, MSHR_queue[i].data[63:32],MSHR_queue[i].data[31:0],{{(31){1'b0}},MSHR_queue[i].dirty}, MSHR_queue[i].addr[63:32], MSHR_queue[i].addr[31:0], {{(30){1'b0}},MSHR_queue[i].inst_type}, {{(30){1'b0}},MSHR_queue[i].proc2mem_command}, {{(31){1'b0}},MSHR_queue[i].complete}, {{(28){1'b0}},MSHR_queue[i].mem_tag}, {{(30){1'b0}},MSHR_queue[i].state} );
     end
 `endif
 

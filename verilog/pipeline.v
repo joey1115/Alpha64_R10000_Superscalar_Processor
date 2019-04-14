@@ -207,6 +207,7 @@ module pipeline (
   logic                 write_back;
   logic                 cache_valid;
   logic                 halt_pipeline;
+  logic [3:0]           Dmem2proc_response;
 
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
