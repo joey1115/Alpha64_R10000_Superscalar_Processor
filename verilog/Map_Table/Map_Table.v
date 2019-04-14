@@ -31,6 +31,7 @@ module Map_Table (
   input  FL_MAP_TABLE_OUT_t                                             FL_Map_Table_out,
   input  CDB_MAP_TABLE_OUT_t                                            CDB_Map_Table_out,
   input  ARCH_MAP_MAP_TABLE_OUT_t                                       ARCH_MAP_MAP_Table_out,  
+  input  ROB_MAP_TABLE_OUT_t                                            ROB_MAP_Table_out,
 `ifdef DEBUG                
   output T_t                     [31:0]                                 map_table_out,
 `endif                
@@ -92,7 +93,7 @@ module Map_Table (
 
 
     // Rollback
-    if (rollback_en) begin
+    if (ROB_MAP_Table_out.stall_dispatch) begin
       next_map_table = ARCH_MAP_MAP_Table_out.arch_map;
     end
     for(int i = 0; i < `NUM_SUPER; i++) begin

@@ -322,14 +322,15 @@ module pe_mshr(gnt,enc);
     begin : foo
       for(j=1;j<IN_WIDTH;j=j+1)
       begin : bar
-        if (j[i])
+        if (j[i]) begin : if1
           assign enc[i] = gnt[j];
+        end
       end
     end
   endgenerate
 endmodule
 
-module ps (req, en, gnt, req_up);
+module ps (req, en, gnt);
   //synopsys template
   parameter NUM_BITS = 4;
   
@@ -337,7 +338,7 @@ module ps (req, en, gnt, req_up);
     input                 en;
   
     output [NUM_BITS-1:0] gnt;
-    output                req_up;
+    logic                req_up;
           
     wire   [NUM_BITS-2:0] req_ups;
     wire   [NUM_BITS-2:0] enables;
@@ -348,11 +349,11 @@ module ps (req, en, gnt, req_up);
     genvar i,j;
     generate
       if ( NUM_BITS == 2 )
-      begin
+      begin : gen1
         ps2 single (.req(req),.en(en),.gnt(gnt),.req_up(req_up));
       end
       else
-      begin
+      begin : gen2
         for(i=0;i<NUM_BITS/2;i=i+1)
         begin : foo
           ps2 base ( .req(req[2*i+1:2*i]),

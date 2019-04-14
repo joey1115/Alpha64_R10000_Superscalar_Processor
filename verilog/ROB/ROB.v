@@ -23,6 +23,7 @@ module ROB (
   output logic                                                      illegal_out,
   output logic               [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
   output ROB_ARCH_MAP_OUT_t                                         ROB_Arch_Map_out,
+  output ROB_MAP_TABLE_OUT_t                                        ROB_MAP_Table_out,
   output ROB_FL_OUT_t                                               ROB_FL_out,
   output ROB_SQ_OUT_t                                               ROB_SQ_out,
   output ROB_LQ_OUT_t                                               ROB_LQ_out
@@ -34,7 +35,7 @@ module ROB (
 
   ROB_t Nrob;
 
-  logic writeTail, moveHead, mispredict, b_t, stall_dispatch;
+  logic writeTail, moveHead, mispredict, b_t;
   logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg, ROB_rollback_idx_reg_plus_one;
   logic [1:0] state, Nstate;
   logic [$clog2(`NUM_ROB)-1:0] tail_plus_one;
@@ -46,15 +47,15 @@ module ROB (
   assign retire_NPC[1] = rob.entry[head_plus_one].NPC; 
 `endif
 
-  assign ROB_SQ_out.wr_mem = '{rob[rob.head].wr_mem,rob[head_plus_one].wr_mem};
-  assign ROB_LQ_out.wr_mem = '{rob[rob.head].rd_mem,rob[head_plus_one].rd_mem};
+  assign ROB_SQ_out.wr_mem = '{rob.entry[rob.head].wr_mem,rob.entry[head_plus_one].wr_mem};
+  assign ROB_LQ_out.rd_mem = '{rob.entry[rob.head].rd_mem,rob.entry[head_plus_one].rd_mem};
 
   assign ROB_Arch_Map_out.T_idx = '{rob.entry[head_plus_one].T_idx, rob.entry[rob.head].T_idx};
   assign ROB_Arch_Map_out.dest_idx = '{rob.entry[head_plus_one].dest_idx, rob.entry[rob.head].dest_idx};
   assign ROB_FL_out.Told_idx = '{rob.entry[head_plus_one].Told_idx, rob.entry[rob.head].Told_idx};
 
   //assign ROB_valid
-  assign stall_dispatch = (state == 1);
+  assign ROB_MAP_Table_out.stall_dispatch = (state == 1);
   //!Nrob.entry[Nrob.tail].valid
   assign ROB_rollback_idx_minus_one = ROB_rollback_idx - 1;
   assign tail_plus_one = rob.tail + 1;
@@ -62,7 +63,7 @@ module ROB (
   assign head_plus_one = rob.head + 1;
   assign ROB_rollback_idx_reg_plus_one = ROB_rollback_idx_reg + 1;
   
-  assign ROB_valid = (stall_dispatch | rollback_en)? 0 : (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]);
+  assign ROB_valid = (ROB_MAP_Table_out.stall_dispatch | rollback_en)? 0 : (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]);
   
   //(tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
 

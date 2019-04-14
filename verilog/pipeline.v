@@ -58,6 +58,8 @@ module pipeline (
   logic                   [`NUM_SUPER-1:0]       complete_en;
 `endif
   logic                   [`NUM_FU-1:0]          CDB_valid;
+  logic                   [`NUM_ST-1:0]          CDB_SQ_valid;
+  logic                   [`NUM_LD-1:0]          CDB_LQ_valid;
   CDB_ROB_OUT_t                                  CDB_ROB_out;
   CDB_RS_OUT_t                                   CDB_RS_out;
   CDB_MAP_TABLE_OUT_t                            CDB_Map_Table_out;
@@ -93,6 +95,8 @@ module pipeline (
   MAP_TABLE_ROB_OUT_t                            Map_Table_ROB_out;
   MAP_TABLE_RS_OUT_t                             Map_Table_RS_out;
   PR_FU_OUT_t                                    PR_FU_out;
+  ROB_SQ_OUT_t                                   ROB_SQ_out;
+  ROB_LQ_OUT_t                                   ROB_LQ_out;
 `ifndef DEBUG
   logic                                          ROB_valid;
 `endif
@@ -101,6 +105,7 @@ module pipeline (
   logic                                          illegal_out;
   logic            [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
   ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out;
+  ROB_MAP_TABLE_OUT_t                            ROB_MAP_Table_out;
   ROB_FL_OUT_t                                   ROB_FL_out;
 `ifndef DEBUG
   logic                                          RS_valid;
@@ -116,6 +121,15 @@ module pipeline (
   LQ_BP_OUT_t                                    LQ_BP_out;
   logic                   [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx;
   logic                   [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx;
+  logic            [`NUM_SUPER-1:0][$clog2(`NUM_FL)-1:0] FL_idx;
+  logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
+  logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
+  logic            [`NUM_SUPER-1:0]                      LQ_valid;
+  SQ_FU_OUT_t                                            SQ_FU_out;
+  LQ_FU_OUT_t                                            LQ_FU_out;
+  SQ_ROB_OUT_t                                           SQ_ROB_out;
+  SQ_D_CACHE_OUT_t                                       SQ_D_cache_out;
+  LQ_D_CACHE_OUT_t                                       LQ_D_cache_out;
 
 
   logic                   [`NUM_SUPER-1:0][63:0]retire_NPC;
@@ -136,7 +150,7 @@ module pipeline (
   logic        Icache_valid_out;
   logic [3:0]  Imem2proc_response;
   BP_F_OUT_t   BP_F_out;
-  logic [`NUM_SUPER-1:0][63:0] if_NPC_out;
+  logic [`NUM_SUPER-1:0][63:0] if_NPC_out, if_PC_out;
   logic [`NUM_SUPER-1:0][31:0] if_IR_out;
   logic [`NUM_SUPER-1:0][63:0] if_target_out;
   F_BP_OUT_t                   F_BP_out;
@@ -235,13 +249,12 @@ module pipeline (
     .clock (clock),
     .reset (reset),
     .get_next_inst(fetch_en), //only go to next insn when high
-    // .take_branch_out(take_branch_out),
-    // .take_branch_target(take_branch_target),
     .Imem2proc_data(Icache_data_out),
     .Imem_valid(Icache_valid_out),
     .BP_F_out(BP_F_out),
     // Outputs
     .proc2Imem_addr(proc2Icache_addr),
+    .if_PC_out(if_PC_out),
     .if_NPC_out(if_NPC_out), 
     .if_IR_out(if_IR_out),
     .if_target_out(if_target_out),
@@ -253,6 +266,7 @@ module pipeline (
     .en(en),
     .clock(clock),
     .reset(reset),
+    .if_PC_out(if_PC_out),
     .if_NPC_out(if_NPC_out),
     .if_IR_out(if_IR_out),
     .if_target_out(if_target_out),
@@ -317,6 +331,8 @@ module pipeline (
     .write_en(write_en),
     .complete_en(complete_en),
     .CDB_valid(CDB_valid),
+    .CDB_SQ_valid(CDB_SQ_valid),
+    .CDB_LQ_valid(CDB_LQ_valid),
     .CDB_ROB_out(CDB_ROB_out),
     .CDB_RS_out(CDB_RS_out),
     .CDB_Map_Table_out(CDB_Map_Table_out),
@@ -352,6 +368,7 @@ module pipeline (
     .next_tail(next_tail),
 `endif
     .FL_valid(FL_valid),
+    .FL_idx(FL_idx),
     .FL_ROB_out(FL_ROB_out),
     .FL_RS_out(FL_RS_out),
     .FL_Map_Table_out(FL_Map_Table_out)
@@ -362,10 +379,11 @@ module pipeline (
     .clock(clock),
     .reset(reset),
     .en(en),
-    .dispatch_en(dispatch_en),
-    .ROB_idx(ROB_idx),
+    // .ROB_idx(ROB_idx),
+    .rollback_en(rollback_en),
+    .ROB_rollback_idx(ROB_rollback_idx),
+    .diff_ROB(diff_ROB),
     .CDB_valid(CDB_valid),
-    .SQ_valid(SQ_valid),
     .LQ_valid(LQ_valid),
     .RS_FU_out(RS_FU_out),
     .PR_FU_out(PR_FU_out),
@@ -373,14 +391,6 @@ module pipeline (
     .LQ_FU_out(LQ_FU_out),
     // Output
     .FU_valid(FU_valid),
-    .rollback_en(rollback_en),
-    .ROB_rollback_idx(ROB_rollback_idx),
-    .FL_rollback_idx(FL_rollback_idx),
-    .SQ_rollback_idx(SQ_rollback_idx),
-    .LQ_rollback_idx(LQ_rollback_idx),
-    .diff_ROB(diff_ROB),
-    .take_branch_out(take_branch_out),
-    .take_branch_target(take_branch_target),
     .FU_CDB_out(FU_CDB_out),
     .FU_SQ_out(FU_SQ_out),
     .FU_LQ_out(FU_LQ_out),
@@ -395,6 +405,8 @@ module pipeline (
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
     .retire_en(retire_en),
+    .ROB_idx(ROB_idx),
+    .FL_idx(FL_idx),
     .CDB_SQ_valid(CDB_SQ_valid),        // TODO
     .CDB_LQ_valid(CDB_LQ_valid),        // TODO
     .SQ_rollback_idx(SQ_rollback_idx),
@@ -412,6 +424,8 @@ module pipeline (
     // Output
     .LSQ_valid(LSQ_valid),
     .LQ_valid(LQ_valid),                // TODO
+    .SQ_idx(SQ_idx),
+    .LQ_idx(LQ_idx),
     .SQ_ROB_out(SQ_ROB_out),            // TODO
     .SQ_FU_out(SQ_FU_out),              // TODO
     .LQ_FU_out(LQ_FU_out),              // TODO
@@ -434,6 +448,7 @@ module pipeline (
     .FL_Map_Table_out(FL_Map_Table_out),
     .CDB_Map_Table_out(CDB_Map_Table_out),
     .ARCH_MAP_MAP_Table_out(ARCH_MAP_MAP_Table_out),
+    .ROB_MAP_Table_out(ROB_MAP_Table_out),
 `ifdef DEBUG
     .map_table_out(pipeline_MAPTABLE),
 `endif
@@ -477,6 +492,7 @@ module pipeline (
     .illegal_out(illegal_out),
     .ROB_idx(ROB_idx),
     .ROB_Arch_Map_out(ROB_Arch_Map_out),
+    .ROB_MAP_Table_out(ROB_MAP_Table_out),
     .ROB_FL_out(ROB_FL_out),
     .ROB_SQ_out(ROB_SQ_out),
     .ROB_LQ_out(ROB_LQ_out)

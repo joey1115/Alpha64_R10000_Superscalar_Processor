@@ -33,6 +33,7 @@ module BP(
   logic  [$clog2(`NUM_FL)-1:0]                             FL_rollback_idx1, FL_rollback_idx2;
   logic  [$clog2(`NUM_LSQ)-1:0]                            SQ_rollback_idx1, SQ_rollback_idx2;
   logic  [$clog2(`NUM_LSQ)-1:0]                            LQ_rollback_idx1, LQ_rollback_idx2;
+  logic  [`NUM_SUPER-1:0]                                  take_branch_out;
   logic  [63:0]                                            take_branch_target, take_branch_target1, take_branch_target2;
   logic  [`NUM_BR-1:0]          [63:0]                     take_branch_target_out;
   logic  [`NUM_BR-1:0]                                     predict_wrong;
@@ -126,12 +127,12 @@ module BP(
   // 4. Rollback Competition: Who is the oldest among two br and two ld instructions that request rollback
 
   assign diff_ROB    = ROB_idx[1] - ROB_rollback_idx;
-  assign rollback_en = predict_wrong[1] || predict_wrong[0] || LQ_violate[1] || LQ_violate[0];
+  // assign rollback_en = predict_wrong[1] || predict_wrong[0] || LQ_BP_out.LQ_target[1].LQ_violate || LQ_BP_out.LQ_target[0].LQ_violate;
 
-  assign diff_ROB1 = ROB_idx[1] - FU.BP.out.BR_target[0].ROB_idx;
-  assign diff_ROB2 = ROB_idx[1] - FU.BP.out.BR_target[1].ROB_idx;
-  assign diff_ROB3 = ROB_idx[1] - LQ_BP_out.LD_target[0].ROB_idx;
-  assign diff_ROB4 = ROB_idx[1] - LQ_BP_out.LD_target[1].ROB_idx;
+  assign diff_ROB1 = ROB_idx[1] - FU_BP_out.BR_target[0].ROB_idx;
+  assign diff_ROB2 = ROB_idx[1] - FU_BP_out.BR_target[1].ROB_idx;
+  assign diff_ROB3 = ROB_idx[1] - LQ_BP_out.LQ_target[0].ROB_idx;
+  assign diff_ROB4 = ROB_idx[1] - LQ_BP_out.LQ_target[1].ROB_idx;
 
   assign diff_ROB12 = diff_ROB1 >= diff_ROB2;
   assign diff_ROB34 = diff_ROB3 >= diff_ROB4;
@@ -192,7 +193,7 @@ module BP(
   end
 
   always_comb begin
-    case(LQ_violate)
+    case({LQ_BP_out.LQ_target[1].LQ_violate, LQ_BP_out.LQ_target[0].LQ_violate})
       2'b00: begin
         rollback_en2        = `FALSE;
         ROB_rollback_idx2   = {`NUM_ROB{1'b0}};
@@ -204,36 +205,36 @@ module BP(
       end
       2'b01: begin
         rollback_en2        = `TRUE;
-        ROB_rollback_idx2   = LQ_BP_out.LD_target.ROB_idx[0];
-        FL_rollback_idx2    = LQ_BP_out.LD_target.FL_idx[0];
-        SQ_rollback_idx2    = LQ_BP_out.LD_target.SQ_idx[0];
-        LQ_rollback_idx2    = LQ_BP_out.LD_target.LQ_idx[0];
-        take_branch_target2 = LQ_BP_out.LD_target.target_PC[0];
+        ROB_rollback_idx2   = LQ_BP_out.LQ_target[0].ROB_idx;
+        FL_rollback_idx2    = LQ_BP_out.LQ_target[0].FL_idx;
+        SQ_rollback_idx2    = LQ_BP_out.LQ_target[0].SQ_idx;
+        LQ_rollback_idx2    = LQ_BP_out.LQ_target[0].LQ_idx;
+        take_branch_target2 = LQ_BP_out.LQ_target[0].target_PC;
         diff_ROB6           = diff_ROB3;
       end
       2'b10: begin
         rollback_en2        = `TRUE;
-        ROB_rollback_idx2   = LQ_BP_out.LQ_BP_out.LD_target.ROB_idx[1];
-        FL_rollback_idx2    = LQ_BP_out.LQ_BP_out.LD_target.FL_idx[1];
-        SQ_rollback_idx2    = LQ_BP_out.LQ_BP_out.LD_target.SQ_idx[1];
-        LQ_rollback_idx2    = LQ_BP_out.LQ_BP_out.LD_target.LQ_idx[1];
-        take_branch_target2 = LQ_BP_out.LQ_BP_out.LD_target.target_PC[1];
+        ROB_rollback_idx2   = LQ_BP_out.LQ_target[1].ROB_idx;
+        FL_rollback_idx2    = LQ_BP_out.LQ_target[1].FL_idx;
+        SQ_rollback_idx2    = LQ_BP_out.LQ_target[1].SQ_idx;
+        LQ_rollback_idx2    = LQ_BP_out.LQ_target[1].LQ_idx;
+        take_branch_target2 = LQ_BP_out.LQ_target[1].target_PC;
         diff_ROB6           = diff_ROB4;
       end
       2'b11: begin
         rollback_en2        = `TRUE;
-        ROB_rollback_idx2   = (diff_ROB34) ? LQ_BP_out.LD_target.ROB_idx[0]   : LQ_BP_out.LD_target.ROB_idx[1];
-        FL_rollback_idx2    = (diff_ROB34) ? LQ_BP_out.LD_target.FL_idx[0]    : LQ_BP_out.LD_target.FL_idx[1];
-        SQ_rollback_idx2    = (diff_ROB34) ? LQ_BP_out.LD_target.SQ_idx[0]    : LQ_BP_out.LD_target.SQ_idx[1];
-        LQ_rollback_idx2    = (diff_ROB34) ? LQ_BP_out.LD_target.LQ_idx[0]    : LQ_BP_out.LD_target.LQ_idx[1];
-        take_branch_target2 = (diff_ROB34) ? LQ_BP_out.LD_target.target_PC[0] : LQ_BP_out.LD_target.target_PC[1];
+        ROB_rollback_idx2   = (diff_ROB34) ? LQ_BP_out.LQ_target[0].ROB_idx   : LQ_BP_out.LQ_target[1].ROB_idx;
+        FL_rollback_idx2    = (diff_ROB34) ? LQ_BP_out.LQ_target[0].FL_idx    : LQ_BP_out.LQ_target[1].FL_idx;
+        SQ_rollback_idx2    = (diff_ROB34) ? LQ_BP_out.LQ_target[0].SQ_idx    : LQ_BP_out.LQ_target[1].SQ_idx;
+        LQ_rollback_idx2    = (diff_ROB34) ? LQ_BP_out.LQ_target[0].LQ_idx    : LQ_BP_out.LQ_target[1].LQ_idx;
+        take_branch_target2 = (diff_ROB34) ? LQ_BP_out.LQ_target[0].target_PC : LQ_BP_out.LQ_target[1].target_PC;
         diff_ROB6           = (diff_ROB34) ? diff_ROB3 : diff_ROB4;
       end
     endcase
   end
 
   always_comb begin
-    case('{rollback_en2, rollback_en1})
+    case({rollback_en2, rollback_en1})
       2'b00: begin
         rollback_en        = `FALSE;
         ROB_rollback_idx   = {`NUM_ROB{1'b0}};
