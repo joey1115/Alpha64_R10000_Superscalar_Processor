@@ -406,17 +406,13 @@ module pipeline (
     .ROB_LQ_out(ROB_LQ_out),            // TODO
     // Output
     .LSQ_valid(LSQ_valid),
-    .SQ_valid(SQ_valid),                // TODO
     .LQ_valid(LQ_valid),                // TODO
-    .LQ_violate(LQ_violate),
-    .LQ_target_ROB_idx(LQ_target_ROB_idx),
     .SQ_ROB_out(SQ_ROB_out),            // TODO
     .SQ_FU_out(SQ_FU_out),              // TODO
     .LQ_FU_out(LQ_FU_out),              // TODO
-    .SQ_RS_out(SQ_RS_out),
-    .LQ_RS_out(LQ_RS_out),
     .SQ_D_cache_out(SQ_D_cache_out),
-    .LQ_D_cache_out(LQ_D_cache_out)
+    .LQ_D_cache_out(LQ_D_cache_out),
+    .LQ_BP_out(LQ_BP_out)
   );
 
   Map_Table map_table_0 (
@@ -481,22 +477,25 @@ module pipeline (
   );
 
   RS rs_0 (
+    // Input
     .clock(clock),
     .reset(reset),
     .en(en),
-    .complete_en(complete_en),
     .dispatch_en(dispatch_en),
     .rollback_en(rollback_en),
+    .complete_en(complete_en),
     .FU_valid(FU_valid),
     .ROB_rollback_idx(ROB_rollback_idx),
     .diff_ROB(diff_ROB),
     .ROB_idx(ROB_idx),
+    .FL_idx(FL_idx),
+    .SQ_idx(SQ_idx),
+    .LQ_idx(LQ_idx),
     .decoder_RS_out(decoder_RS_out),
     .FL_RS_out(FL_RS_out),
     .Map_Table_RS_out(Map_Table_RS_out),
     .CDB_RS_out(CDB_RS_out),
-    .SQ_RS_out(SQ_RS_out),
-    .LQ_RS_out(LQ_RS_out),
+    // Output
 `ifdef DEBUG
     .RS_out(pipeline_RS),
     .RS_match_hit(RS_match_hit),   // If a RS entry is ready
