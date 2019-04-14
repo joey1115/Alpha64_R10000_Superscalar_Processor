@@ -70,7 +70,6 @@ module Dcache_controller(
 
 logic [1:0] state, next_state;
 logic [63:0] count, next_count;
-logic write_back_stage;
 SASS_ADDR write_back_addr;
 
 

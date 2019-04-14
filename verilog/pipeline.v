@@ -208,7 +208,7 @@ module pipeline (
   logic                 write_back;
   logic                 cache_valid;
   logic                 halt_pipeline;
-  logic [3:0]           Dmem2proc_response;
+  logic                 write_back_stage;
 
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
@@ -237,9 +237,9 @@ module pipeline (
       num_inst = 0;
     end   
     else if(write_back) begin
-      if(halt[0] & !halt[1])
+      if(halt_out[0] & !halt_out[1])
         num_inst = 1;
-      else if(!halt[0] & halt[1])
+      else if(!halt_out[0] & halt_out[1])
         num_inst = 2;
     end
     else begin
