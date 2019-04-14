@@ -1,5 +1,6 @@
 
 module Dcache_controller(
+    input logic                                                                   clock, reset,
     //proc to cache            
     input logic [60:0]                                                            rd_in_addr,
     input logic [60:0]                                                            wr_in_addr,
@@ -166,7 +167,7 @@ end
 always_comb begin
   if (state == 0 && write_back) 
     next_state = 1;
-  else if((write_back_stage && count >= `TOTAL_LINES)
+  else if(write_back_stage && count >= `TOTAL_LINES)
     next_state = 2;
   else
     next_state = state;
