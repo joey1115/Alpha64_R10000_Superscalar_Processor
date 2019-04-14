@@ -155,7 +155,7 @@ module RS (
     end
   end // always_comb begin
 
-  assign FU_list = `FU_LIST;
+assign FU_list = {{(`NUM_ALU){FU_ALU}}, {(`NUM_MULT){FU_MULT}}, {(`NUM_BR){FU_BR}}, {(`NUM_ST){FU_ST}}, {(`NUM_LD){FU_LD}}};
 
   always_ff @(posedge clock) begin
     if(reset) begin
