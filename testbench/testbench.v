@@ -102,8 +102,8 @@ module testbench;
   logic [$clog2(`NUM_FL)-1:0]              FL_head, FL_tail;
   INST_ENTRY_t [`NUM_FB-1:0]               pipeline_FB;
   logic [$clog2(`NUM_FB)-1:0]              FB_head, FB_tail;
-  logic D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
-  logic MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
+  D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
+  MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
 
   // Instantiate the Pipeline
   `DUT(pipeline) pipeline_0 (// Inputs
@@ -284,7 +284,7 @@ module testbench;
 
 `ifdef PRINT_DCACHE_BANK
     for(int i=0; i < `NUM_IDX; i++) begin
-      print_num(int i);
+      print_num(i);
       for(int j=0; j < `NUM_WAY; j++) begin
         print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(31){1'b0}},Dcache_bank[j[i].dirty]},{{(31){1'b0}},Dcache_bank[j[i].valid]});
       end

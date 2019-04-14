@@ -200,7 +200,7 @@ module pipeline (
   logic [2:0][1:0]      mshr_proc2mem_command;
   SASS_ADDR [1:0]       search_addr;
   MSHR_INST_TYPE [1:0]  search_type;
-  [63:0]                search_wr_data;
+  logic  [63:0]         search_wr_data;
   logic                 stored_rd_wb;
   logic                 stored_wr_wb;
   logic                 stored_mem_wr;
@@ -226,7 +226,7 @@ module pipeline (
     (proc2Dmem_command==BUS_NONE) ? proc2Imem_addr:proc2Dmem_addr;
   //TODO: Uncomment and pass for mem stage in the pipeline
   assign Dmem2proc_response = 
-    (proc2Dmem_command==`BUS_NONE) ? 0 : mem2proc_response;
+    (proc2Dmem_command==BUS_NONE) ? 0 : mem2proc_response;
   assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
 `ifdef DEBUG
   always_comb begin
@@ -285,7 +285,7 @@ module pipeline (
   );
 
   //D cache modules
-  module Dcache_controller(
+  Dcache_controller dcache_controller (
     .clock(clock),
     .reset(reset),
     //proc to cache            
@@ -354,7 +354,7 @@ module pipeline (
     .halt_pipeline(halt_pipeline)
 );
 
-  module Dcache(
+  Dcache dcache_0 (
     .clock(clock),
     .reset(reset),
     //enable signals 
@@ -378,7 +378,7 @@ module pipeline (
     .evicted_data_out(evicted_data)
   );
 
-  module MSHR(
+  MSHR mshr_0 (
     .clock(clock),
     .reset(reset),
         
