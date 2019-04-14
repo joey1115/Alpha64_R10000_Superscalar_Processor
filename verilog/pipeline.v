@@ -26,11 +26,14 @@ module pipeline (
   output logic        [$clog2(`NUM_FB)-1:0]              FB_head,
   output logic        [$clog2(`NUM_FB)-1:0]              FB_tail,
   output logic        [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL,
+// 
+  output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]     Dcache_bank,
+  output MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]                MSHR_queue,
+`endif
   output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
   output logic        [`NUM_SUPER-1:0]                   pipeline_commit_wr_en,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_NPC,
-`endif
   output logic        [1:0]                               proc2mem_command,    // command sent to memory
   output logic        [63:0]                              proc2mem_addr,      // Address sent to memory
   output logic        [63:0]                              proc2mem_data,      // Data sent to memory

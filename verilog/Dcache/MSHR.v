@@ -21,6 +21,9 @@ module MSHR(
   input MSHR_INST_TYPE [1:0]                                     search_type, //address search type (might not need)
   input [63:0]                                                   search_wr_data,
       
+`ifdef DEBUG
+  output MSHR_ENTRY_t [`MSHR_DEPTH-1:0]                          MSHR_queue,
+`endif
   output logic [1:0][63:0]                                       miss_data, //data returned
   output logic [1:0]                                             miss_data_valid, //if data returned is correct
   output logic [1:0]                                             miss_addr_hit, // if address search in the MSHR
@@ -69,7 +72,10 @@ module MSHR(
 //need logic to check priority
 
   //MSHR queue
-  MSHR_ENTRY_t [`MSHR_DEPTH-1:0] MSHR_queue, next_MSHR_queue;
+`ifndef DEBUG
+  MSHR_ENTRY_t [`MSHR_DEPTH-1:0] MSHR_queue;
+`endif
+  MSHR_ENTRY_t [`MSHR_DEPTH-1:0] next_MSHR_queue;
 
   //head and tail pointer
   logic [$clog2(`MSHR_DEPTH)-1:0] writeback_head, head, tail, next_writeback_head, next_head, next_tail;

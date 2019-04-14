@@ -30,6 +30,8 @@
 // `define PRINT_ARCHMAP
 // `define PRINT_REG
 // `define PRINT_MEMBUS
+`define PRINT_DCACHE_BANK
+`define PRINT_MSHR_ENTRY
 
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
@@ -86,6 +88,7 @@ module testbench;
   logic [`NUM_SUPER-1:0]       pipeline_commit_wr_en;
   logic [`NUM_SUPER-1:0][63:0] pipeline_commit_NPC;
 
+
   ROB_t pipeline_ROB;
   RS_ENTRY_t [`NUM_FU-1:0]  pipeline_RS;
   logic [31:0][$clog2(`NUM_PR)-1:0] pipeline_ARCHMAP;
@@ -99,6 +102,8 @@ module testbench;
   logic [$clog2(`NUM_FL)-1:0]              FL_head, FL_tail;
   INST_ENTRY_t [`NUM_FB-1:0]               pipeline_FB;
   logic [$clog2(`NUM_FB)-1:0]              FB_head, FB_tail;
+  logic D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
+  logic MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
 
   // Instantiate the Pipeline
   `DUT(pipeline) pipeline_0 (// Inputs
@@ -128,6 +133,8 @@ module testbench;
     .FL_tail(FL_tail),
     .FB_head(FB_head),
     .FB_tail(FB_tail),
+    .Dcache_bank(Dcache_bank),
+    .MSHR_queue(MSHR_queue),
 `endif
     // Outputs
     .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
@@ -273,6 +280,20 @@ module testbench;
       for(int i = 0; i < `NUM_ROB; i++) begin
         print_ROB_entry(i,{{(32-1){1'b0}},pipeline_ROB.entry[i].valid}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].T_idx}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].Told_idx},{{(32-5){1'b0}},pipeline_ROB.entry[i].dest_idx},{{(32-1){1'b0}},pipeline_ROB.entry[i].complete},{{(32-1){1'b0}},pipeline_ROB.entry[i].halt},{{(32-1){1'b0}},pipeline_ROB.entry[i].illegal}, pipeline_ROB.entry[i].NPC[63:32], pipeline_ROB.entry[i].NPC[31:0]);
       end
+`endif
+
+`ifdef PRINT_DCACHE_BANK
+    for(int i=0; i < `NUM_IDX; i++) begin
+      print_num(int i);
+      for(int j=0; j < `NUM_WAY; j++) begin
+        print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(32-`NUM_TAG_BITS){1'b0}},Dcache_bank[j[i].tag]},{{(31){1'b0}},Dcache_bank[j[i].dirty]},{{(31){1'b0}},Dcache_bank[j[i].valid]});
+      end
+      print_enter();
+    end
+`endif
+
+`ifdef PRINT_MSHR_ENTRY
+
 `endif
 
       //print RS
