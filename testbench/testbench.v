@@ -17,7 +17,7 @@
 // unless you know the pipeline will never reach the halt instruction and run forever
 `define HALT_ON_TIMEOUT
 // After runing for TIMEOUT_CYCLES cycles, halt!
-`define TIMEOUT_CYCLES 6000
+`define TIMEOUT_CYCLES 10000
 
 
 `define PRINT_DISPATCH_EN
