@@ -243,8 +243,8 @@ module testbench;
                 pipeline_commit_NPC-4,
                 pipeline_commit_wr_idx,
                 pipeline_commit_wr_data);
-      else
-        $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC-4);
+        else
+          $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC-4);
       end
 
       // deal with any halting conditions
