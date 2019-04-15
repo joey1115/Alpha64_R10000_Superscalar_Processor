@@ -467,33 +467,20 @@ module testbench;
             proc2mem_data[63:32], proc2mem_data[31:0]);
 `endif
 
-      // for(int i=0; i < pipeline_completed_insts; i++) begin
-      //   if(pipeline_completed_insts>0) begin
-      //     if(pipeline_commit_wr_en[i]) begin
-      //       $fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
-      //           pipeline_commit_NPC[i]-4,
-      //           pipeline_commit_wr_idx[i],
-      //           pipeline_commit_wr_data[i]);
-      //     end
-      //   end
-      //   else begin
-      //     $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[i]-4);
-      //   end
-      // end
-
-            if(pipeline_completed_insts>0) begin
-              for(int i=0; i < pipeline_completed_insts; i++) begin
-                if(pipeline_commit_wr_en[i]) begin
-                  $fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
-                      pipeline_commit_NPC[i]-4,
-                      pipeline_commit_wr_idx[i],
-                      pipeline_commit_wr_data[i]);
-                end
-                else begin
-                  $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[i]-4);
-                end
-              end
-            end
+            
+      if(pipeline_completed_insts>0) begin
+        for(int i=0; i < pipeline_completed_insts; i++) begin
+          if(pipeline_commit_wr_en[i]) begin
+            $fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
+                pipeline_commit_NPC[i]-4,
+                pipeline_commit_wr_idx[i],
+                pipeline_commit_wr_data[i]);
+          end
+          else begin
+            $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[i]-4);
+          end
+        end
+      end
             
 
 
