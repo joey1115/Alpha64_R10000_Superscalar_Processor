@@ -467,22 +467,34 @@ module testbench;
             proc2mem_data[63:32], proc2mem_data[31:0]);
 `endif
 
-      if(pipeline_completed_insts>0) begin
-        for(int i=0; i < pipeline_completed_insts; i++) begin
-          if(pipeline_commit_wr_en[i]) begin
-            $fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
-                pipeline_commit_NPC[i]-4,
-                pipeline_commit_wr_idx[i],
-                pipeline_commit_wr_data[i]);
-          end
-          // else begin
-          //   $fdisplay(wb_fileno, "lol PC=%x, ---",pipeline_commit_NPC[i]-4);
-          // end
-        end
-      end
-      else begin
-        $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[0]-4);
-      end
+      // for(int i=0; i < pipeline_completed_insts; i++) begin
+      //   if(pipeline_completed_insts>0) begin
+      //     if(pipeline_commit_wr_en[i]) begin
+      //       $fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
+      //           pipeline_commit_NPC[i]-4,
+      //           pipeline_commit_wr_idx[i],
+      //           pipeline_commit_wr_data[i]);
+      //     end
+      //   end
+      //   else begin
+      //     $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[i]-4);
+      //   end
+      // end
+
+            if(pipeline_completed_insts>0) begin
+              for(int i=0; i < pipeline_completed_insts; i++) begin
+                if(pipeline_commit_wr_en[i]) begin
+                  $fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
+                      pipeline_commit_NPC[i]-4,
+                      pipeline_commit_wr_idx[i],
+                      pipeline_commit_wr_data[i]);
+                end
+              end
+            end
+            else begin
+               $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[i]-4);
+            end
+
 
       // deal with any halting conditions
 `ifdef HALT_ON_TIMEOUT
