@@ -481,7 +481,7 @@ module testbench;
         end
       end
       else begin
-        $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[i]-4);
+        $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[0]-4);
       end
 
       // deal with any halting conditions
