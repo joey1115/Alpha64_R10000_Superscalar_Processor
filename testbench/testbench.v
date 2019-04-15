@@ -30,8 +30,8 @@
 // `define PRINT_ARCHMAP
 // `define PRINT_REG
 // `define PRINT_MEMBUS
-// `define PRINT_DCACHE_BANK
-// `define PRINT_MSHR_ENTRY
+`define PRINT_DCACHE_BANK
+`define PRINT_MSHR_ENTRY
 
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
@@ -59,7 +59,7 @@ extern void print_num(int i);
 extern void print_enter();
 extern void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int dirty, int addr_hi, int addr_lo, int inst_type, int proc2mem_command, int complete, int mem_tag, int state);
 extern void print_Dcache_head();
-extern void print_MSHR_head();    
+extern void print_MSHR_head(int writeback_head, int head, int tail, int mem_bus);
 extern void print_Dcache_bank(int data_hi, int data_lo, int tag_hi,int tag_lo, int dirty, int valid);
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
@@ -114,6 +114,9 @@ module testbench;
   logic [$clog2(`NUM_FB)-1:0]              FB_head, FB_tail;
   D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
   MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
+  logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head;
+  logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
+  logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
   
 
   // Instantiate the Pipeline
@@ -146,6 +149,9 @@ module testbench;
     .FB_tail(FB_tail),
     .Dcache_bank(Dcache_bank),
     .MSHR_queue(MSHR_queue),
+    .MSHR_writeback_head(MSHR_writeback_head),
+    .MSHR_head(MSHR_head),
+    .MSHR_tail(MSHR_tail),
 `endif
     // Outputs
     .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
@@ -446,7 +452,7 @@ module testbench;
 `endif
 
 `ifdef PRINT_MSHR_ENTRY
-    print_MSHR_head();
+    print_MSHR_head({{(32-$clog2(`MSHR_DEPTH)){1'b0}},MSHR_writeback_head},{{(32-$clog2(`MSHR_DEPTH)){1'b0}},MSHR_head},{{(32-$clog2(`MSHR_DEPTH)){1'b0}},MSHR_tail}, {{(32-2){1'b0}},proc2mem_command});
     for(int i = 0; i < `MSHR_DEPTH; i++) begin
       print_MSHR_entry(i,{{(31){1'b0}},MSHR_queue[i].valid}, MSHR_queue[i].data[63:32],MSHR_queue[i].data[31:0],{{(31){1'b0}},MSHR_queue[i].dirty}, MSHR_queue[i].addr[63:32], MSHR_queue[i].addr[31:0], {{(30){1'b0}},MSHR_queue[i].inst_type}, {{(30){1'b0}},MSHR_queue[i].proc2mem_command}, {{(31){1'b0}},MSHR_queue[i].complete}, {{(28){1'b0}},MSHR_queue[i].mem_tag}, {{(30){1'b0}},MSHR_queue[i].state} );
     end

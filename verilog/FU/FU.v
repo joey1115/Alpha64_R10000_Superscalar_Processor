@@ -368,21 +368,23 @@ module st (
 );
 
   ST_OUT_t                        next_ST_out;
-  logic                           rollback_valid;
-  logic    [$clog2(`NUM_ROB)-1:0] diff;
+  logic                           rollback_valid, rollback_valid_out;
+  logic    [$clog2(`NUM_ROB)-1:0] diff, diff_out;
   logic    [63:0]                 regA, regB, result;
 
-  assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
-  assign regA           = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
-  assign regB           = FU_in.T2_value;
-  assign result         = regA + regB;
-  assign FU_valid       = !FU_in.ready || CDB_valid || rollback_valid;
+  assign diff               = FU_in.ROB_idx - ROB_rollback_idx;
+  assign diff_out           = ST_out.ROB_idx - ROB_rollback_idx;
+  assign rollback_valid     = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
+  assign rollback_valid_out = rollback_en && diff_ROB >= diff && diff_out != {$clog2(`NUM_ROB){1'b0}};
+  assign regA               = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
+  assign regB               = FU_in.T2_value;
+  assign result             = regA + regB;
+  assign FU_valid           = !FU_in.ready || CDB_valid || rollback_valid;
 
   always_comb begin
-    if ( rollback_valid ) begin
-      next_ST_out = `ST_OUT_RESET;
-    end else begin
+    if ( !CDB_valid && !rollback_valid_out ) begin
+      next_ST_out = ST_out;
+    end else if ( CDB_valid && !rollback_valid ) begin
       next_ST_out.done     = FU_in.ready;
       next_ST_out.result   = result;
       next_ST_out.dest_idx = FU_in.dest_idx;
@@ -392,6 +394,8 @@ module st (
       next_ST_out.SQ_idx   = FU_in.SQ_idx;
       next_ST_out.LQ_idx   = FU_in.LQ_idx;
       next_ST_out.T1_value = FU_in.T1_value;
+    end else begin
+      next_ST_out = `ST_OUT_RESET;
     end
   end
 
@@ -418,21 +422,23 @@ module ld (
 );
 
   LD_OUT_t                        next_LD_out;
-  logic                           rollback_valid;
-  logic    [$clog2(`NUM_ROB)-1:0] diff;
+  logic                           rollback_valid, rollback_valid_out;
+  logic    [$clog2(`NUM_ROB)-1:0] diff, diff_out;
   logic    [63:0]                 regA, regB, result;
 
-  assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
-  assign regA           = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
-  assign regB           = FU_in.T2_value;
-  assign result         = regA + regB;
-  assign FU_valid       = !FU_in.ready || LQ_valid || rollback_valid;
+  assign diff               = FU_in.ROB_idx - ROB_rollback_idx;
+  assign diff_out           = LD_out.ROB_idx - ROB_rollback_idx;
+  assign rollback_valid     = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
+  assign rollback_valid_out = rollback_en && diff_ROB >= diff_out && diff_out != {$clog2(`NUM_ROB){1'b0}};
+  assign regA               = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
+  assign regB               = FU_in.T2_value;
+  assign result             = regA + regB;
+  assign FU_valid           = !FU_in.ready || LQ_valid || rollback_valid;
 
   always_comb begin
-    if ( rollback_valid ) begin
-      next_LD_out = `LD_OUT_RESET;
-    end else begin
+    if ( !LQ_valid && !rollback_valid_out ) begin
+      next_LD_out = LD_out;
+    end else if ( LQ_valid && !rollback_valid ) begin
       next_LD_out.done     = FU_in.ready;
       next_LD_out.result   = result;
       next_LD_out.dest_idx = FU_in.dest_idx;
@@ -442,6 +448,8 @@ module ld (
       next_LD_out.SQ_idx   = FU_in.SQ_idx;
       next_LD_out.LQ_idx   = FU_in.LQ_idx;
       next_LD_out.NPC      = FU_in.NPC;
+    end else begin
+      next_LD_out = `LD_OUT_RESET;
     end
   end
 

@@ -23,6 +23,7 @@ module MSHR(
       
 `ifdef DEBUG
   output MSHR_ENTRY_t [`MSHR_DEPTH-1:0]                          MSHR_queue,
+  output logic [$clog2(`MSHR_DEPTH)-1:0]                         writeback_head, head, tail,
 `endif
   output logic [1:0]                                             miss_addr_hit, // if address search in the MSHR
       
@@ -76,7 +77,10 @@ module MSHR(
   MSHR_ENTRY_t [`MSHR_DEPTH-1:0] next_MSHR_queue;
 
   //head and tail pointer
-  logic [$clog2(`MSHR_DEPTH)-1:0] writeback_head, head, tail, next_writeback_head, next_head, next_tail, writeback_head_plus_one;
+`ifndef DEBUG
+  logic [$clog2(`MSHR_DEPTH)-1:0] writeback_head, head, tail;
+`endif
+  logic [$clog2(`MSHR_DEPTH)-1:0] next_writeback_head, next_head, next_tail, writeback_head_plus_one;
   logic [1:0]                    tail_move;
   logic [2:0][1:0]               data_idx;
   logic [3:0]                    internal_miss_en1,internal_miss_en2;
@@ -127,98 +131,6 @@ module MSHR(
   always_comb begin
     next_MSHR_queue = MSHR_queue;
     next_tail = tail;
-    case(tail_move)
-      1: begin
-        next_tail = tail_plus_one;
-        next_MSHR_queue[tail].valid = 1;
-        next_MSHR_queue[tail].data = miss_data_in[data_idx[0]];
-        next_MSHR_queue[tail].addr = miss_addr[data_idx[0]];
-        next_MSHR_queue[tail].inst_type = inst_type[data_idx[0]];
-        next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
-        next_MSHR_queue[tail].complete = 0;
-        next_MSHR_queue[tail].mem_tag = 0;
-        next_MSHR_queue[tail].state = WAITING;
-        next_MSHR_queue[tail].dirty = 0;
-      end
-      2: begin
-        next_tail = tail_plus_two;
-        next_MSHR_queue[tail].valid = 1;
-        next_MSHR_queue[tail].data = miss_data_in[data_idx[1]];
-        next_MSHR_queue[tail].addr = miss_addr[data_idx[1]];
-        next_MSHR_queue[tail].inst_type = inst_type[data_idx[1]];
-        next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[1]];
-        next_MSHR_queue[tail].complete = 0;
-        next_MSHR_queue[tail].mem_tag = 0;
-        next_MSHR_queue[tail].state = WAITING;
-        next_MSHR_queue[tail].dirty = 0;
-
-  
-        next_MSHR_queue[tail_plus_one].valid = 1;
-        next_MSHR_queue[tail_plus_one].data = miss_data_in[data_idx[0]];
-        next_MSHR_queue[tail_plus_one].addr = miss_addr[data_idx[0]];
-        next_MSHR_queue[tail_plus_one].inst_type = inst_type[data_idx[0]];
-        next_MSHR_queue[tail_plus_one].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
-        next_MSHR_queue[tail_plus_one].complete = 0;
-        next_MSHR_queue[tail_plus_one].mem_tag = 0;
-        next_MSHR_queue[tail_plus_one].state = WAITING;
-        next_MSHR_queue[tail_plus_one].dirty = 0;
-      end
-      3: begin
-        next_tail = tail_plus_three;
-        next_MSHR_queue[tail].valid = 1;
-        next_MSHR_queue[tail].data = miss_data_in[data_idx[2]];
-        next_MSHR_queue[tail].addr = miss_addr[data_idx[2]];
-        next_MSHR_queue[tail].inst_type = inst_type[data_idx[2]];
-        next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[2]];
-        next_MSHR_queue[tail].complete = 0;
-        next_MSHR_queue[tail].mem_tag = 0;
-        next_MSHR_queue[tail].state = WAITING;
-        next_MSHR_queue[tail].dirty = 0;
-
-        next_MSHR_queue[tail_plus_one].valid = 1;
-        next_MSHR_queue[tail_plus_one].data = miss_data_in[data_idx[1]];
-        next_MSHR_queue[tail_plus_one].addr = miss_addr[data_idx[1]];
-        next_MSHR_queue[tail_plus_one].inst_type = inst_type[data_idx[1]];
-        next_MSHR_queue[tail_plus_one].proc2mem_command = mshr_proc2mem_command[data_idx[1]];
-        next_MSHR_queue[tail_plus_one].complete = 0;
-        next_MSHR_queue[tail_plus_one].mem_tag = 0;
-        next_MSHR_queue[tail_plus_one].state = WAITING;
-        next_MSHR_queue[tail_plus_one].dirty = 0;
-
-        next_MSHR_queue[tail_plus_two].valid = 1;
-        next_MSHR_queue[tail_plus_two].data = miss_data_in[data_idx[0]];
-        next_MSHR_queue[tail_plus_two].addr = miss_addr[data_idx[0]];
-        next_MSHR_queue[tail_plus_two].inst_type = inst_type[data_idx[0]];
-        next_MSHR_queue[tail_plus_two].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
-        next_MSHR_queue[tail_plus_two].complete = 0;
-        next_MSHR_queue[tail_plus_two].mem_tag = 0;
-        next_MSHR_queue[tail_plus_two].state = WAITING;
-        next_MSHR_queue[tail_plus_two].dirty = 0;
-      end
-    endcase
-
-    //send to mem nextqueue logic
-
-    next_MSHR_queue[head].mem_tag = mem2proc_response;
-
-    //if data is a store command and handled, invalidate as it is handled
-    next_MSHR_queue[head].complete = (MSHR_queue[head].proc2mem_command == BUS_STORE) ? request_accepted : MSHR_queue[head].complete;
-
-    next_MSHR_queue[head].state    = (request_accepted) ? INPROGRESS : MSHR_queue[head].state;
-
-
-    //mem complete request
-    for (int i = 0; i < `MSHR_DEPTH;i++) begin
-      if(MSHR_queue[i].state == INPROGRESS && mem2proc_tag == MSHR_queue[i].mem_tag && MSHR_queue[i].valid) begin
-        next_MSHR_queue[i].complete = 1;
-        next_MSHR_queue[i].state    = DONE;
-        next_MSHR_queue[i].data     = mem2proc_data;
-        next_MSHR_queue[i].dirty    = 0;
-      end
-    end
-
-    //retire logic
-    next_MSHR_queue[writeback_head].valid = (stored_mem_wr) ? 0 : MSHR_queue[head].valid;
 
     //search logic
     //if type of searcher is load
@@ -265,6 +177,99 @@ module MSHR(
         next_MSHR_queue[index_wr_search].dirty = 1;
       end
     end
+
+    //retire logic
+    next_MSHR_queue[writeback_head].valid = (stored_mem_wr) ? 0 : next_MSHR_queue[writeback_head].valid;
+
+    //mem complete request
+    for (int i = 0; i < `MSHR_DEPTH;i++) begin
+      if(MSHR_queue[i].state == INPROGRESS && mem2proc_tag == MSHR_queue[i].mem_tag && MSHR_queue[i].valid) begin
+        next_MSHR_queue[i].complete = 1;
+        next_MSHR_queue[i].state    = DONE;
+        next_MSHR_queue[i].data     = mem2proc_data;
+        next_MSHR_queue[i].dirty    = 0;
+      end
+    end
+
+    //if data is a store command and handled, invalidate as it is handled
+    next_MSHR_queue[head].complete = (MSHR_queue[head].proc2mem_command == BUS_STORE) ? request_accepted : MSHR_queue[head].complete;
+
+    next_MSHR_queue[head].state    = (request_accepted) ? INPROGRESS : MSHR_queue[head].state;
+
+    //send to mem nextqueue logic
+
+    next_MSHR_queue[head].mem_tag = mem2proc_response;
+
+    case(tail_move)
+      2'b01: begin
+        next_tail = tail_plus_one;
+        next_MSHR_queue[tail].valid = 1;
+        next_MSHR_queue[tail].data = miss_data_in[data_idx[0]];
+        next_MSHR_queue[tail].addr = miss_addr[data_idx[0]];
+        next_MSHR_queue[tail].inst_type = inst_type[data_idx[0]];
+        next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
+        next_MSHR_queue[tail].complete = 0;
+        next_MSHR_queue[tail].mem_tag = 0;
+        next_MSHR_queue[tail].state = WAITING;
+        next_MSHR_queue[tail].dirty = 0;
+      end
+      2'b10: begin
+        next_tail = tail_plus_two;
+        next_MSHR_queue[tail].valid = 1;
+        next_MSHR_queue[tail].data = miss_data_in[data_idx[1]];
+        next_MSHR_queue[tail].addr = miss_addr[data_idx[1]];
+        next_MSHR_queue[tail].inst_type = inst_type[data_idx[1]];
+        next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[1]];
+        next_MSHR_queue[tail].complete = 0;
+        next_MSHR_queue[tail].mem_tag = 0;
+        next_MSHR_queue[tail].state = WAITING;
+        next_MSHR_queue[tail].dirty = 0;
+
+  
+        next_MSHR_queue[tail_plus_one].valid = 1;
+        next_MSHR_queue[tail_plus_one].data = miss_data_in[data_idx[0]];
+        next_MSHR_queue[tail_plus_one].addr = miss_addr[data_idx[0]];
+        next_MSHR_queue[tail_plus_one].inst_type = inst_type[data_idx[0]];
+        next_MSHR_queue[tail_plus_one].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
+        next_MSHR_queue[tail_plus_one].complete = 0;
+        next_MSHR_queue[tail_plus_one].mem_tag = 0;
+        next_MSHR_queue[tail_plus_one].state = WAITING;
+        next_MSHR_queue[tail_plus_one].dirty = 0;
+      end
+
+      2'b11: begin
+        next_tail = tail_plus_three;
+        next_MSHR_queue[tail].valid = 1;
+        next_MSHR_queue[tail].data = miss_data_in[data_idx[2]];
+        next_MSHR_queue[tail].addr = miss_addr[data_idx[2]];
+        next_MSHR_queue[tail].inst_type = inst_type[data_idx[2]];
+        next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[2]];
+        next_MSHR_queue[tail].complete = 0;
+        next_MSHR_queue[tail].mem_tag = 0;
+        next_MSHR_queue[tail].state = WAITING;
+        next_MSHR_queue[tail].dirty = 0;
+
+        next_MSHR_queue[tail_plus_one].valid = 1;
+        next_MSHR_queue[tail_plus_one].data = miss_data_in[data_idx[1]];
+        next_MSHR_queue[tail_plus_one].addr = miss_addr[data_idx[1]];
+        next_MSHR_queue[tail_plus_one].inst_type = inst_type[data_idx[1]];
+        next_MSHR_queue[tail_plus_one].proc2mem_command = mshr_proc2mem_command[data_idx[1]];
+        next_MSHR_queue[tail_plus_one].complete = 0;
+        next_MSHR_queue[tail_plus_one].mem_tag = 0;
+        next_MSHR_queue[tail_plus_one].state = WAITING;
+        next_MSHR_queue[tail_plus_one].dirty = 0;
+
+        next_MSHR_queue[tail_plus_two].valid = 1;
+        next_MSHR_queue[tail_plus_two].data = miss_data_in[data_idx[0]];
+        next_MSHR_queue[tail_plus_two].addr = miss_addr[data_idx[0]];
+        next_MSHR_queue[tail_plus_two].inst_type = inst_type[data_idx[0]];
+        next_MSHR_queue[tail_plus_two].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
+        next_MSHR_queue[tail_plus_two].complete = 0;
+        next_MSHR_queue[tail_plus_two].mem_tag = 0;
+        next_MSHR_queue[tail_plus_two].state = WAITING;
+        next_MSHR_queue[tail_plus_two].dirty = 0;
+      end
+    endcase
   end
 
   //send data to mem
@@ -285,12 +290,20 @@ module MSHR(
   assign mem_addr = MSHR_queue[writeback_head].addr;
 
   //retire logic
-  assign next_writeback_head = (stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command != BUS_LOAD) ? writeback_head_plus_one : writeback_head;
+  assign next_writeback_head = ((stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command != BUS_LOAD) && MSHR_queue[writeback_head].valid) ? writeback_head_plus_one : writeback_head;
  
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i = 0; i < `MSHR_DEPTH; i++) begin
-        MSHR_queue <= `SD 0;
+        MSHR_queue[i].valid <= `SD 0;
+        MSHR_queue[i].data <= `SD 0;
+        MSHR_queue[i].dirty <= `SD 0;
+        MSHR_queue[i].addr <= `SD 0;
+        MSHR_queue[i].inst_type <= `SD LOAD;
+        MSHR_queue[i].proc2mem_command <= `SD BUS_NONE;
+        MSHR_queue[i].complete <= `SD 0;
+        MSHR_queue[i].mem_tag <= `SD 0;
+        MSHR_queue[i].state <= `SD WAITING;
       end
       writeback_head <= `SD 0;
       head           <= `SD 0;

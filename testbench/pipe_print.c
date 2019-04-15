@@ -335,9 +335,23 @@ void print_Dcache_bank(int data_hi, int data_lo, int tag_hi, int tag_lo, int dir
   }
 }
 
-void print_MSHR_head()
+void print_MSHR_head(int writeback_head, int head, int tail, int mem_bus)
 {
-    fprintf(ppfile, "---------------------------------------MSHR----------------------------------- \n");   
+  char *mem_bus_char;
+  if(mem_bus == 0) {
+    mem_bus_char = "BUS_NONE";
+  }
+  else if(mem_bus == 1) {
+    mem_bus_char = "BUS_LOAD";
+  }
+  else if(mem_bus == 2){
+    mem_bus_char = "BUS_STORE";
+  }
+  else {
+    mem_bus_char = "ERROR";
+  }
+  fprintf(ppfile, "---------------------------------------MSHR----------------------------------- \n");
+  fprintf(ppfile, "writeback_head: %3d, head: %3d, tail: %3d, MEM_BUS: %s\n", writeback_head, head, tail, mem_bus_char);
 }
 void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int dirty, int addr_hi, int addr_lo, int inst_type, int proc2mem_command, int complete, int mem_tag, int state){
   if(ppfile != NULL){

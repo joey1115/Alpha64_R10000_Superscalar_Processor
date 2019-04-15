@@ -246,7 +246,7 @@ module LQ (
 );
 
   LQ_FU_OUT_t                                        next_LQ_FU_out;
-  logic       [$clog2(`NUM_LSQ)-1:0]                 head, next_head, tail, next_tail, virtual_tail;
+  logic       [$clog2(`NUM_LSQ)-1:0]                 head, next_head, tail, next_tail, virtual_tail, head_plus_one, head_plus_two, tail_plus_one, tail_plus_two;
   LQ_ENTRY_t  [`NUM_LSQ-1:0]                         lq, next_lq;
   logic       [`NUM_SUPER-1:0]                       ld_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] ld_idx, tail_map_idx;

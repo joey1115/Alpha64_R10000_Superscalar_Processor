@@ -29,6 +29,9 @@ module pipeline (
 // 
   output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]     Dcache_bank,
   output MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]                MSHR_queue,
+  output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head,
+  output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
+  output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail,
 `endif
   output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
@@ -424,6 +427,9 @@ module pipeline (
         
 `ifdef DEBUG
     .MSHR_queue(MSHR_queue),
+    .writeback_head(MSHR_writeback_head),
+    .head(MSHR_head),
+    .tail(MSHR_tail),
 `endif
     .miss_addr_hit(miss_addr_hit), // if address search in the MSHR
         
