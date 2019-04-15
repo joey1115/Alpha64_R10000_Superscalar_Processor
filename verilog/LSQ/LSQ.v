@@ -34,15 +34,12 @@ module SQ (
   logic       [$clog2(`NUM_LSQ)-1:0]                 head;
   logic       [$clog2(`NUM_LSQ)-1:0]                 tail;
 `endif
-  logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, diff_tail, virtual_tail;
+  logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, virtual_tail;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] head_map_idx;
   SQ_ENTRY_t  [`NUM_LSQ-1:0]                         next_sq;
-  logic                                              wr_en;
-  logic       [60:0]                                 addr;
   logic       [63:0]                                 value;
   logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx;
   logic       [`NUM_SUPER-1:0]                       retire_valid;
-  logic                                              valid1, valid2;
   logic       [`NUM_SUPER-1:0]                       st_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] st_idx, SQ_idx_minus_one;
   logic       [`NUM_SUPER-1:0]                       rollback_valid;
@@ -133,31 +130,23 @@ module SQ (
     endcase
   end
 
+  assign SQ_D_cache_out.wr_en = (ROB_SQ_out.wr_mem[0] & ROB_SQ_out.retire[0]) | (ROB_SQ_out.wr_mem[1] & (ROB_SQ_out.retire == 2'b11));
+  assign SQ_D_cache_out.addr  = sq[head].addr;
+  assign SQ_D_cache_out.value = sq[head].value;
+
   always_comb begin
     case(ROB_SQ_out.wr_mem & retire_en)
       2'b00: begin
         next_head            = head;
-        SQ_D_cache_out.wr_en = `FALSE;
-        SQ_D_cache_out.addr  = sq[head].addr;
-        SQ_D_cache_out.value = sq[head].value;
       end
       2'b01: begin
         next_head            = head_plus_one;
-        SQ_D_cache_out.wr_en = `TRUE;
-        SQ_D_cache_out.addr  = sq[head].addr;
-        SQ_D_cache_out.value = sq[head].value;
       end
       2'b10: begin
         next_head            = head_plus_one;
-        SQ_D_cache_out.wr_en = `TRUE;
-        SQ_D_cache_out.addr  = sq[head].addr;
-        SQ_D_cache_out.value = sq[head].value;
       end
       2'b11: begin
         next_head            = head_plus_one;
-        SQ_D_cache_out.wr_en = `TRUE;
-        SQ_D_cache_out.addr  = sq[head].addr;
-        SQ_D_cache_out.value = sq[head].value;
       end
     endcase
   end
