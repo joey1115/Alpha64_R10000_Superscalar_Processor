@@ -32,6 +32,8 @@
 // `define PRINT_MEMBUS
 // `define PRINT_DCACHE_BANK
 // `define PRINT_MSHR_ENTRY
+`define PRINT_SQ
+`define PRINT_LQ
 
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
@@ -44,11 +46,11 @@ extern void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, in
 extern void print_RS_head();
 extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int opa_select, int opb_select);
 extern void print_maptable_head();
-extern void print_maptable_entries(int reg_idx, int T, int ready, int PR_data_hi, int PR_data_lo);
+extern void print_maptable_entry(int reg_idx, int T, int ready, int PR_data_hi, int PR_data_lo);
 extern void print_CDB_head();
-extern void print_CDB_entries(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO);
+extern void print_CDB_entry(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO);
 extern void print_archmap_head();
-extern void print_archmap_entries(int reg_idx, int pr);
+extern void print_archmap_entry(int reg_idx, int pr);
 extern void print_dispatch_en(int dispatch_en, int ROB_valid, int RS_valid, int FL_valid, int rollback_en);
 extern void print_freelist_head(int FL_head, int FL_tail);
 extern void print_freelist_entry(int i, int freePR);
@@ -57,6 +59,10 @@ extern void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, in
 
 extern void print_num(int i);
 extern void print_enter();
+extern void print_sq_head(int head, int tail);
+extern void print_sq_entry(int idx, int valid, int addr_hi, int addr_lo, int value_hi, int value_lo);
+extern void print_lq_head(int head, int tail);
+extern void print_lq_entry(int idx, int valid, int addr_hi, int addr_lo, int ROB_idx, int FL_idx, int SQ_idx, int PC_hi, int PC_lo);
 extern void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int dirty, int addr_hi, int addr_lo, int inst_type, int proc2mem_command, int complete, int mem_tag, int state);
 extern void print_Dcache_head();
 extern void print_MSHR_head();    
@@ -112,6 +118,10 @@ module testbench;
   logic [$clog2(`NUM_FL)-1:0]              FL_head, FL_tail;
   INST_ENTRY_t [`NUM_FB-1:0]               pipeline_FB;
   logic [$clog2(`NUM_FB)-1:0]              FB_head, FB_tail;
+  SQ_ENTRY_t     [`NUM_LSQ-1:0]            pipeline_SQ,
+  logic          [$clog2(`NUM_LSQ)-1:0]    SQ_head, SQ_tail,
+  LQ_ENTRY_t     [`NUM_LSQ-1:0]            pipeline_LQ,
+  logic          [$clog2(`NUM_LSQ)-1:0]    LQ_head, LQ_tail,
   D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
   MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
   
@@ -144,6 +154,12 @@ module testbench;
     .FL_tail(FL_tail),
     .FB_head(FB_head),
     .FB_tail(FB_tail),
+    .pipeline_SQ(pipeline_SQ),
+    .SQ_head(SQ_head),
+    .SQ_tail(SQ_tail),
+    .pipeline_LQ(pipeline_LQ),
+    .LQ_head(LQ_head),
+    .LQ_tail(LQ_tail),
     .Dcache_bank(Dcache_bank),
     .MSHR_queue(MSHR_queue),
 `endif
@@ -406,7 +422,7 @@ module testbench;
 `ifdef PRINT_MAP_TABLE
       print_maptable_head();
       for(int i = 0; i < 32; i++) begin
-        print_maptable_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_MAPTABLE[i].idx},{{(32-1){1'b0}},pipeline_MAPTABLE[i].ready}, pipeline_PR[pipeline_MAPTABLE[i].idx][63:32], pipeline_PR[pipeline_MAPTABLE[i].idx][31:0]);
+        print_maptable_entry(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_MAPTABLE[i].idx},{{(32-1){1'b0}},pipeline_MAPTABLE[i].ready}, pipeline_PR[pipeline_MAPTABLE[i].idx][63:32], pipeline_PR[pipeline_MAPTABLE[i].idx][31:0]);
       end
 `endif
 
@@ -422,7 +438,7 @@ module testbench;
 `ifdef PRINT_CDB
       print_CDB_head();
       for(int i = 0; i < `NUM_FU; i++) begin
-        print_CDB_entries({{(32-1){1'b0}},pipeline_CDB[i].taken}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_CDB[i].T_idx}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_CDB[i].ROB_idx}, {{(32-5){1'b0}},pipeline_CDB[i].dest_idx}, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
+        print_CDB_entry({{(32-1){1'b0}},pipeline_CDB[i].taken}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_CDB[i].T_idx}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_CDB[i].ROB_idx}, {{(32-5){1'b0}},pipeline_CDB[i].dest_idx}, pipeline_CDB[i].T_value[63:32], pipeline_CDB[i].T_value[31:0]);
       end
 `endif
 
@@ -430,7 +446,21 @@ module testbench;
 `ifdef PRINT_ARCHMAP
       print_archmap_head();
       for(int i = 0; i < 32; i++) begin
-        print_archmap_entries(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ARCHMAP[i]});
+        print_archmap_entry(i,{{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ARCHMAP[i]});
+      end
+`endif
+
+`ifdef PRINT_SQ
+      print_sq_head(SQ_head, SQ_tail);
+      for(int i = 0; i < `NUM_LSQ; i++) begin
+        print_sq_entry(i, pipeline_SQ[i].valid, {3'b0, pipeline_SQ[i].addr[60:32]}, pipeline_SQ[i].addr[31:0], pipeline_SQ[i].value[63:32], pipeline_SQ[i].value[31:0]);
+      end
+`endif
+
+`ifdef PRINT_LQ
+      print_lq_head(LQ_head, LQ_tail);
+      for(int i = 0; i < `NUM_LSQ; i++) begin
+        print_lq_entry(i, pipeline_LQ[i].valid, {3'b0, pipeline_LQ[i].addr[60:32]}, pipeline_LQ[i].addr[31:0], pipeline_LQ[i].ROB_idx, pipeline_LQ[i].FL_idx, pipeline_LQ[i].SQ_idx, pipeline_LQ[i].PC[63:32], pipeline_LQ[i].PC[31:0]);
       end
 `endif
 

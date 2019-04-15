@@ -14,6 +14,12 @@ module SQ (
   input  D_CACHE_SQ_OUT_t                                    D_cache_SQ_out,
   // Output
   output logic                                               dispatch_valid,
+`ifdef DEBUG
+  output SQ_ENTRY_t  [`NUM_LSQ-1:0]                          sq,
+  output logic       [$clog2(`NUM_LSQ)-1:0]                  head,
+  output logic       [$clog2(`NUM_LSQ)-1:0]                  tail,
+`endif
+
   // output logic            [`NUM_SUPER-1:0]                   SQ_valid,
   output logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)] SQ_idx,
   output SQ_ROB_OUT_t                                        SQ_ROB_out,
@@ -23,9 +29,14 @@ module SQ (
 );
 
   // SQ_FU_OUT_t                                        next_SQ_FU_out;
-  logic       [$clog2(`NUM_LSQ)-1:0]                 head, next_head, tail, next_tail, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, diff_tail, virtual_tail;
+`ifndef DEBUG
+  SQ_ENTRY_t  [`NUM_LSQ-1:0]                         sq;
+  logic       [$clog2(`NUM_LSQ)-1:0]                 head;
+  logic       [$clog2(`NUM_LSQ)-1:0]                 tail;
+`endif
+  logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, diff_tail, virtual_tail;
   logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   head_map_idx;
-  SQ_ENTRY_t  [`NUM_LSQ-1:0]                         sq, next_sq;
+  SQ_ENTRY_t  [`NUM_LSQ-1:0]                         next_sq;
   logic                                              wr_en;
   logic       [60:0]                                 addr;
   logic       [63:0]                                 value;
@@ -237,6 +248,11 @@ module LQ (
   input  SQ_LQ_OUT_t                                             SQ_LQ_out,
   // Output
   output logic                                                   dispatch_valid,
+`ifdef DEBUG
+  output LQ_ENTRY_t       [`NUM_LSQ-1:0]                         lq,
+  output logic            [$clog2(`NUM_LSQ)-1:0]                 head,
+  output logic            [$clog2(`NUM_LSQ)-1:0]                 tail,
+`endif
   output logic            [`NUM_SUPER-1:0]                       LQ_valid,
   output logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx,
   output LQ_SQ_OUT_t                                             LQ_SQ_out,
@@ -245,9 +261,14 @@ module LQ (
   output LQ_BP_OUT_t                                             LQ_BP_out
 );
 
+`ifndef DEBUG
+  LQ_ENTRY_t  [`NUM_LSQ-1:0]                         lq;
+  logic       [$clog2(`NUM_LSQ)-1:0]                 head;
+  logic       [$clog2(`NUM_LSQ)-1:0]                 tail;
+`endif
+  LQ_ENTRY_t  [`NUM_LSQ-1:0]                         next_lq;
   LQ_FU_OUT_t                                        next_LQ_FU_out;
-  logic       [$clog2(`NUM_LSQ)-1:0]                 head, next_head, tail, next_tail, virtual_tail;
-  LQ_ENTRY_t  [`NUM_LSQ-1:0]                         lq, next_lq;
+  logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, virtual_tail;
   logic       [`NUM_SUPER-1:0]                       ld_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] ld_idx, tail_map_idx;
   logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   lq_map_idx;
@@ -524,6 +545,14 @@ module LSQ (
   input  ROB_SQ_OUT_t                                            ROB_SQ_out,
   input  ROB_LQ_OUT_t                                            ROB_LQ_out,
   // Output
+`ifdef DEBUG
+  output SQ_ENTRY_t       [`NUM_LSQ-1:0]                         SQ_table,
+  output logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_head,
+  output logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_tail,
+  output LQ_ENTRY_t       [`NUM_LSQ-1:0]                         LQ_table,
+  output logic            [$clog2(`NUM_LSQ)-1:0]                 LQ_head,
+  output logic            [$clog2(`NUM_LSQ)-1:0]                 LQ_tail,
+`endif
   output logic                                                   LSQ_valid,
   // output logic            [`NUM_SUPER-1:0]                       SQ_valid,
   output logic            [`NUM_SUPER-1:0]                       LQ_valid,
@@ -562,6 +591,11 @@ module LSQ (
     .D_cache_SQ_out   (D_cache_SQ_out),
     // Output
     .dispatch_valid   (SQ_dispatch_valid),
+  `ifdef DEBUG
+    .sq               (SQ_table),
+    .head             (SQ_head),
+    .tail             (SQ_tail),
+  `endif
     // .SQ_valid         (SQ_valid),
     .SQ_idx           (SQ_idx),
     .SQ_ROB_out       (SQ_ROB_out),
@@ -592,6 +626,11 @@ module LSQ (
     .SQ_LQ_out        (SQ_LQ_out),
     // Output
     .dispatch_valid   (LQ_dispatch_valid),
+`ifdef DEBUG
+    .lq               (LQ_table),
+    .head             (LQ_head),
+    .tail             (LQ_tail),
+`endif
     .LQ_valid         (LQ_valid),
     .LQ_idx           (LQ_idx),
     .LQ_SQ_out        (LQ_SQ_out),

@@ -26,6 +26,12 @@ module pipeline (
   output logic        [$clog2(`NUM_FB)-1:0]              FB_head,
   output logic        [$clog2(`NUM_FB)-1:0]              FB_tail,
   output logic        [`NUM_FL-1:0][$clog2(`NUM_PR)-1:0] pipeline_FL,
+  output SQ_ENTRY_t       [`NUM_LSQ-1:0]                 pipeline_SQ,
+  output logic            [$clog2(`NUM_LSQ)-1:0]         SQ_head,
+  output logic            [$clog2(`NUM_LSQ)-1:0]         SQ_tail,
+  output LQ_ENTRY_t       [`NUM_LSQ-1:0]                 pipeline_LQ,
+  output logic            [$clog2(`NUM_LSQ)-1:0]         LQ_head,
+  output logic            [$clog2(`NUM_LSQ)-1:0]         LQ_tail,
 // 
   output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]     Dcache_bank,
   output MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]                MSHR_queue,
@@ -119,6 +125,14 @@ module pipeline (
   D_CACHE_LQ_OUT_t                               D_cache_LQ_out;
   ARCH_MAP_MAP_TABLE_OUT_t                       ARCH_MAP_MAP_Table_out;
   // F_DECODER_OUT_t                                F_decoder_out;
+`ifdef DEBUG
+  SQ_ENTRY_t       [`NUM_LSQ-1:0]                         SQ_table,
+  logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_head,
+  logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_tail,
+  LQ_ENTRY_t                                              LQ_table,
+  logic            [$clog2(`NUM_LSQ)-1:0]                 LQ_head,
+  logic            [$clog2(`NUM_LSQ)-1:0]                 LQ_tail,
+`endif
   LQ_BP_OUT_t                                    LQ_BP_out;
   logic                   [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx;
   logic                   [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx;
@@ -634,6 +648,14 @@ module pipeline (
     .ROB_SQ_out       (ROB_SQ_out),            // TODO
     .ROB_LQ_out       (ROB_LQ_out),            // TODO
     // Output
+`ifdef DEBUG
+    .SQ_table         (pipeline_SQ),
+    .SQ_head          (SQ_head),
+    .SQ_tail          (SQ_tail),
+    .LQ_table         (pipeline_LQ),
+    .LQ_head          (LQ_head),
+    .LQ_tail          (LQ_tail),
+`endif
     .LSQ_valid        (LSQ_valid),
     .LQ_valid         (LQ_valid),                // TODO
     .SQ_idx           (SQ_idx),

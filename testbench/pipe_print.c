@@ -256,7 +256,7 @@ void print_maptable_head(){
     fprintf(ppfile, " reg |  T      | PR data\n");
   }
 }
-void print_maptable_entries(int reg_idx, int T, int ready, int PR_data_hi, int PR_data_lo){
+void print_maptable_entry(int reg_idx, int T, int ready, int PR_data_hi, int PR_data_lo){
   char *ready_bit;
   if(ready){
     ready_bit = "+";
@@ -275,7 +275,7 @@ void print_CDB_head(){
   }
 }
 
-void print_CDB_entries(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO){
+void print_CDB_entry(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO){
   if (ppfile != NULL){
     fprintf(ppfile, "taken: %1d | T_idx: %3d | ROB_idx: %3d | dest_idx: %3d | T_value: %x%x |\n" , taken, T_idx, ROB_idx, dest_idx, T_value_HI, T_value_LO);
   }
@@ -288,7 +288,7 @@ void print_archmap_head(){
   }
 }
 
-void print_archmap_entries(int reg_idx, int pr){
+void print_archmap_entry(int reg_idx, int pr){
   if(ppfile != NULL){
     fprintf(ppfile, " %3d | %3d \n", reg_idx, pr);
   }
@@ -344,6 +344,34 @@ void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int d
     fprintf(ppfile, "depth: %d | valid %1d | data: %x%x | dirty: %x | addr: %x%x | inst_type: %d | proc2mem_command: %d | complete: %1d | mem_tag: %x | state: %d  |\n", MSHR_DEPTH, valid, data_hi, data_lo, dirty, addr_hi, addr_lo, inst_type, proc2mem_command, complete, mem_tag, state);
   }
 }
+
+void print_sq_head(int head, int tail)
+{
+  fprintf(ppfile, "---------------------------------------SQ----------------------------------- \n");
+  if(ppfile != NULL){
+    fprintf(ppfile, "head:%2d   tail:%2d\n", head, tail);
+  }
+}
+void print_sq_entry(int idx, int valid, int addr_hi, int addr_lo, int value_hi, int value_lo){
+  if(ppfile != NULL){
+    fprintf(ppfile, " %2d | valid: %1d | addr: %x%x | value: %x%x | \n", valid, addr_hi, addr_lo, value_hi, value_lo);
+  }
+}
+
+void print_lq_head(int head, int tail)
+{
+  fprintf(ppfile, "---------------------------------------LQ----------------------------------- \n");
+  if(ppfile != NULL){
+    fprintf(ppfile, "head:%2d   tail:%2d\n", head, tail);
+  }
+}
+void print_lq_entry(int idx, int valid, int addr_hi, int addr_lo, int ROB_idx, int FL_idx, int SQ_idx, int PC_hi, int PC_lo)
+{
+  if(ppfile != NULL){
+    fprintf(ppfile, " %2d | valid: %1d | addr: %x%x | ROB_idx %d | FL_idx %d | SQ_idx %d | PC: %x%x | \n", valid, addr_hi, addr_lo, ROB_idx, FL_idx, SQ_idx, PC_hi, PC_lo);
+  }
+}
+
 void print_num(int i){
   if(ppfile != NULL){
     fprintf(ppfile, " %3d", i);
