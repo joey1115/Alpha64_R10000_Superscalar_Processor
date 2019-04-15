@@ -28,4 +28,7 @@ DVEfiles
 *.ddc
 program.mem
 *.sv
+*.output
+*.out
+!test_progs_solution/*.out
 !P4_example/*.out
