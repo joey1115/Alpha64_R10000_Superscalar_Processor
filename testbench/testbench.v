@@ -46,7 +46,7 @@ extern void print_cycles();
 extern void print_ROB_ht(int head, int tail);
 extern void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, int complete, int halt, int illegal, int NPC_hi, int NPC_lo);
 extern void print_RS_head();
-extern void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select, int SQ_idx, int LQ_idx, int uncond_branch, int cond_branch, int wr_mem, int rd_mem, int target_hi, int target_lo);
+extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select, int SQ_idx, int LQ_idx, int uncond_branch, int cond_branch, int wr_mem, int rd_mem, int target_hi, int target_lo);
 extern void print_maptable_head();
 extern void print_maptable_entry(int reg_idx, int T, int ready, int PR_data_hi, int PR_data_lo);
 extern void print_CDB_head();
