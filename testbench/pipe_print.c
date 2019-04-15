@@ -368,7 +368,7 @@ void print_sq_head(int head, int tail)
 }
 void print_sq_entry(int idx, int valid, int addr_hi, int addr_lo, int value_hi, int value_lo){
   if(ppfile != NULL){
-    fprintf(ppfile, " %2d | valid: %1d | addr: %x%x | value: %x%x | \n", valid, addr_hi, addr_lo, value_hi, value_lo);
+    fprintf(ppfile, " %2d | valid: %1d | addr: %8x%8x | value: %8x%8x | \n", valid, addr_hi, addr_lo, value_hi, value_lo);
   }
 }
 
@@ -382,7 +382,7 @@ void print_lq_head(int head, int tail)
 void print_lq_entry(int idx, int valid, int addr_hi, int addr_lo, int ROB_idx, int FL_idx, int SQ_idx, int PC_hi, int PC_lo)
 {
   if(ppfile != NULL){
-    fprintf(ppfile, " %2d | valid: %1d | addr: %x%x | ROB_idx %d | FL_idx %d | SQ_idx %d | PC: %x%x | \n", valid, addr_hi, addr_lo, ROB_idx, FL_idx, SQ_idx, PC_hi, PC_lo);
+    fprintf(ppfile, " %2d | valid: %1d | addr: %8x%8x | ROB_idx:%3d | FL_idx:%3d | SQ_idx:%3d | PC: %8x%8x | \n", valid, addr_hi, addr_lo, ROB_idx, FL_idx, SQ_idx, PC_hi, PC_lo);
   }
 }
 
