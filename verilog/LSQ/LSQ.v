@@ -270,7 +270,7 @@ module LQ (
   LQ_FU_OUT_t                                        next_LQ_FU_out;
   logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, virtual_tail, head_plus_one, head_plus_two, tail_plus_one, tail_plus_two;
   logic       [`NUM_SUPER-1:0]                       ld_hit;
-  logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] ld_idx, tail_map_idx;
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] ld_idx, tail_map_idx, LQ_idx_minus_one;
   logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   lq_map_idx;
   logic       [`NUM_SUPER-1:0]                       rollback_valid;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] diff;
@@ -281,6 +281,8 @@ module LQ (
   assign tail_plus_two = tail + 2;
   assign head_plus_one = head + 1;
   assign head_plus_two = head + 2;
+  assign LQ_idx_minus_one[0] = FU_LQ_out.LQ_idx[0] - 1;
+  assign LQ_idx_minus_one[1] = FU_LQ_out.LQ_idx[1] - 1;
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
@@ -495,18 +497,18 @@ module LQ (
         // Nothing
       end
       2'b01: begin
-        next_lq[FU_LQ_out.LQ_idx[0]].addr  = FU_LQ_out.result[0][63:3];
-        next_lq[FU_LQ_out.LQ_idx[0]].valid = (SQ_LQ_out.hit[0] || D_cache_LQ_out.valid) & rollback_valid[0];
+        next_lq[LQ_idx_minus_one[0]].addr  = FU_LQ_out.result[0][63:3];
+        next_lq[LQ_idx_minus_one[0]].valid = (SQ_LQ_out.hit[0] || D_cache_LQ_out.valid) & rollback_valid[0];
       end
       2'b10: begin
-        next_lq[FU_LQ_out.LQ_idx[1]].addr  = FU_LQ_out.result[1][63:3];
-        next_lq[FU_LQ_out.LQ_idx[1]].valid = (SQ_LQ_out.hit[1] || D_cache_LQ_out.valid) & rollback_valid[1];
+        next_lq[LQ_idx_minus_one[1]].addr  = FU_LQ_out.result[1][63:3];
+        next_lq[LQ_idx_minus_one[1]].valid = (SQ_LQ_out.hit[1] || D_cache_LQ_out.valid) & rollback_valid[1];
       end
       2'b11: begin
-        next_lq[FU_LQ_out.LQ_idx[0]].addr  = FU_LQ_out.result[0][63:3];
-        next_lq[FU_LQ_out.LQ_idx[0]].valid = (SQ_LQ_out.hit[0] || D_cache_LQ_out.valid) & rollback_valid[0];
-        next_lq[FU_LQ_out.LQ_idx[1]].addr  = FU_LQ_out.result[1][63:3];
-        next_lq[FU_LQ_out.LQ_idx[1]].valid = SQ_LQ_out.hit[1] & rollback_valid[1];
+        next_lq[LQ_idx_minus_one[0]].addr  = FU_LQ_out.result[0][63:3];
+        next_lq[LQ_idx_minus_one[0]].valid = (SQ_LQ_out.hit[0] || D_cache_LQ_out.valid) & rollback_valid[0];
+        next_lq[LQ_idx_minus_one[1]].addr  = FU_LQ_out.result[1][63:3];
+        next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1] & rollback_valid[1];
       end
     endcase
   end

@@ -146,6 +146,7 @@ module inst_decoder(
     regb_idx      = `ZERO_REG;
     if(valid_in) begin
       inst          = inst_in;
+      PC            = PC_in;
       NPC           = NPC_in;
       valid = `TRUE;
       case(inst_in.m.opcode)
