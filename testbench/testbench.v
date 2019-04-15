@@ -476,7 +476,7 @@ module testbench;
                 pipeline_commit_wr_data[i]);
           end
           else begin
-            $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[i]-4);
+            $fdisplay(wb_fileno, "lol PC=%x, ---",pipeline_commit_NPC[i]-4);
           end
         end
       end
