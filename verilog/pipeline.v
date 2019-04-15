@@ -246,9 +246,9 @@ module pipeline (
     end   
     else if(write_back) begin
       if(halt_out[0] & !halt_out[1])
-        num_inst = 1;
+        num_inst = 0;
       else if(!halt_out[0] & halt_out[1])
-        num_inst = 2;
+        num_inst = 1;
     end
     else begin
       case(retire_en)
