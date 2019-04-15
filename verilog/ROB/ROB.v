@@ -48,6 +48,9 @@ module ROB (
 `endif
 
   assign ROB_SQ_out.wr_mem = '{rob.entry[head_plus_one].wr_mem,rob.entry[rob.head].wr_mem};
+  assign ROB_SQ_out.retire[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid;
+  assign ROB_SQ_out.retire[1] = rob.entry[head_plus_one].complete & rob.entry[head_plus_one].valid;
+
   assign ROB_LQ_out.rd_mem = '{rob.entry[head_plus_one].rd_mem,rob.entry[rob.head].rd_mem};
 
   assign ROB_Arch_Map_out.T_idx = '{rob.entry[head_plus_one].T_idx, rob.entry[rob.head].T_idx};

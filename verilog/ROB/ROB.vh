@@ -43,6 +43,7 @@ typedef struct packed {
 
 typedef struct packed {
   logic [`NUM_SUPER-1:0]                       wr_mem;
+  logic [`NUM_SUPER-1:0]                       retire;
   // logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
 } ROB_SQ_OUT_t;
 
