@@ -15,8 +15,8 @@
   the correct numbers.
 */
         data = 0x1000
-	lda	$r0,data                        #0
-        br	$r1,start                       #4
+	lda	$r0,data                        #4
+        br	$r1,start                       #8
 	.quad 	2862933555777941757             
 	.quad 	3037000493                      
 start:  ldq     $r2,0($r1)                      #1c

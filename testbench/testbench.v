@@ -44,7 +44,7 @@ extern void print_open();
 extern void print_cycles();
 // extern void print_stage(string div, int inst, int npc, int valid_inst);
 extern void print_ROB_ht(int head, int tail);
-extern void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, int complete, int halt, int illegal, int NPC_hi, int NPC_lo);
+extern void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, int complete, int halt, int illegal, int NPC_hi, int NPC_lo, int wr_mem, int rd_mem);
 extern void print_RS_head();
 extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select, int SQ_idx, int LQ_idx, int uncond_branch, int cond_branch, int wr_mem, int rd_mem, int target_hi, int target_lo);
 extern void print_maptable_head();
@@ -327,7 +327,7 @@ module testbench;
 `ifdef PRINT_ROB
       print_ROB_ht({{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.head}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_ROB.tail});
       for(int i = 0; i < `NUM_ROB; i++) begin
-        print_ROB_entry(i,{{(32-1){1'b0}},pipeline_ROB.entry[i].valid}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].T_idx}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].Told_idx},{{(32-5){1'b0}},pipeline_ROB.entry[i].dest_idx},{{(32-1){1'b0}},pipeline_ROB.entry[i].complete},{{(32-1){1'b0}},pipeline_ROB.entry[i].halt},{{(32-1){1'b0}},pipeline_ROB.entry[i].illegal}, pipeline_ROB.entry[i].NPC[63:32], pipeline_ROB.entry[i].NPC[31:0]);
+        print_ROB_entry(i,{{(32-1){1'b0}},pipeline_ROB.entry[i].valid}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].T_idx}, {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_ROB.entry[i].Told_idx},{{(32-5){1'b0}},pipeline_ROB.entry[i].dest_idx},{{(32-1){1'b0}},pipeline_ROB.entry[i].complete},{{(32-1){1'b0}},pipeline_ROB.entry[i].halt},{{(32-1){1'b0}},pipeline_ROB.entry[i].illegal}, pipeline_ROB.entry[i].NPC[63:32], pipeline_ROB.entry[i].NPC[31:0], {{(31){1'b0}},pipeline_ROB.entry[i].wr_mem}, {{(31){1'b0}},pipeline_ROB.entry[i].rd_mem});
       end
 `endif
 
