@@ -501,14 +501,14 @@ module testbench;
 `ifdef PRINT_SQ
       print_sq_head({{(32-$clog2(`NUM_LSQ)){1'b0}},SQ_head}, {{(32-$clog2(`NUM_LSQ)){1'b0}},SQ_tail});
       for(int i = 0; i < `NUM_LSQ; i++) begin
-        print_sq_entry(i, {31'h0, pipeline_SQ[i].valid}, {3'b0, pipeline_SQ[i].addr[60:32]}, pipeline_SQ[i].addr[31:0], pipeline_SQ[i].value[63:32], pipeline_SQ[i].value[31:0]);
+        print_sq_entry(i, {31'h0, pipeline_SQ[i].valid}, pipeline_SQ[i].addr[60:29], {pipeline_SQ[i].addr[28:0],3'b0}, pipeline_SQ[i].value[63:32], pipeline_SQ[i].value[31:0]);
       end
 `endif
 
 `ifdef PRINT_LQ
       print_lq_head({{(32-$clog2(`NUM_LSQ)){1'b0}},LQ_head}, {{(32-$clog2(`NUM_LSQ)){1'b0}},LQ_tail});
       for(int i = 0; i < `NUM_LSQ; i++) begin
-        print_lq_entry(i, {31'h0, pipeline_LQ[i].valid}, {3'b0, pipeline_LQ[i].addr[60:32]}, pipeline_LQ[i].addr[31:0], {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_LQ[i].ROB_idx}, {{(32-$clog2(`NUM_FL)){1'b0}},pipeline_LQ[i].FL_idx}, {{(32-$clog2(`NUM_LSQ)){1'b0}},pipeline_LQ[i].SQ_idx}, pipeline_LQ[i].PC[63:32], pipeline_LQ[i].PC[31:0]);
+        print_lq_entry(i, {31'h0, pipeline_LQ[i].valid}, pipeline_LQ[i].addr[60:29], {pipeline_LQ[i].addr[28:0],3'b0}, {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_LQ[i].ROB_idx}, {{(32-$clog2(`NUM_FL)){1'b0}},pipeline_LQ[i].FL_idx}, {{(32-$clog2(`NUM_LSQ)){1'b0}},pipeline_LQ[i].SQ_idx}, pipeline_LQ[i].PC[63:32], pipeline_LQ[i].PC[31:0]);
       end
 `endif
 
