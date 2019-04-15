@@ -120,10 +120,10 @@ module testbench;
   logic [$clog2(`NUM_FL)-1:0]              FL_head, FL_tail;
   INST_ENTRY_t [`NUM_FB-1:0]               pipeline_FB;
   logic [$clog2(`NUM_FB)-1:0]              FB_head, FB_tail;
-  SQ_ENTRY_t     [`NUM_LSQ-1:0]            pipeline_SQ,
-  logic          [$clog2(`NUM_LSQ)-1:0]    SQ_head, SQ_tail,
-  LQ_ENTRY_t     [`NUM_LSQ-1:0]            pipeline_LQ,
-  logic          [$clog2(`NUM_LSQ)-1:0]    LQ_head, LQ_tail,
+  SQ_ENTRY_t     [`NUM_LSQ-1:0]            pipeline_SQ;
+  logic          [$clog2(`NUM_LSQ)-1:0]    SQ_head, SQ_tail;
+  LQ_ENTRY_t     [`NUM_LSQ-1:0]            pipeline_LQ;
+  logic          [$clog2(`NUM_LSQ)-1:0]    LQ_head, LQ_tail;
   D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
   MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head;
@@ -459,16 +459,16 @@ module testbench;
 `endif
 
 `ifdef PRINT_SQ
-      print_sq_head(SQ_head, SQ_tail);
+      print_sq_head({{(32-$clog2(`NUM_LSQ)){1'b0}},SQ_head}, {{(32-$clog2(`NUM_LSQ)){1'b0}},SQ_tail});
       for(int i = 0; i < `NUM_LSQ; i++) begin
-        print_sq_entry(i, pipeline_SQ[i].valid, {3'b0, pipeline_SQ[i].addr[60:32]}, pipeline_SQ[i].addr[31:0], pipeline_SQ[i].value[63:32], pipeline_SQ[i].value[31:0]);
+        print_sq_entry(i, {31'h0, pipeline_SQ[i].valid}, {3'b0, pipeline_SQ[i].addr[60:32]}, pipeline_SQ[i].addr[31:0], pipeline_SQ[i].value[63:32], pipeline_SQ[i].value[31:0]);
       end
 `endif
 
 `ifdef PRINT_LQ
-      print_lq_head(LQ_head, LQ_tail);
+      print_lq_head({{(32-$clog2(`NUM_LSQ)){1'b0}},LQ_head}, {{(32-$clog2(`NUM_LSQ)){1'b0}},LQ_tail});
       for(int i = 0; i < `NUM_LSQ; i++) begin
-        print_lq_entry(i, pipeline_LQ[i].valid, {3'b0, pipeline_LQ[i].addr[60:32]}, pipeline_LQ[i].addr[31:0], pipeline_LQ[i].ROB_idx, pipeline_LQ[i].FL_idx, pipeline_LQ[i].SQ_idx, pipeline_LQ[i].PC[63:32], pipeline_LQ[i].PC[31:0]);
+        print_lq_entry(i, {31'h0, pipeline_LQ[i].valid}, {3'b0, pipeline_LQ[i].addr[60:32]}, pipeline_LQ[i].addr[31:0], {{(32-$clog2(`NUM_ROB)){1'b0}},pipeline_LQ[i].ROB_idx}, {{(32-$clog2(`NUM_FL)){1'b0}},pipeline_LQ[i].FL_idx}, {{(32-$clog2(`NUM_LSQ)){1'b0}},pipeline_LQ[i].SQ_idx}, pipeline_LQ[i].PC[63:32], pipeline_LQ[i].PC[31:0]);
       end
 `endif
 

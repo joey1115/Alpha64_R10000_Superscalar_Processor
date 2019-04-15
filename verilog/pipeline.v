@@ -128,14 +128,14 @@ module pipeline (
   D_CACHE_LQ_OUT_t                               D_cache_LQ_out;
   ARCH_MAP_MAP_TABLE_OUT_t                       ARCH_MAP_MAP_Table_out;
   // F_DECODER_OUT_t                                F_decoder_out;
-`ifdef DEBUG
-  SQ_ENTRY_t       [`NUM_LSQ-1:0]                         SQ_table,
-  logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_head,
-  logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_tail,
-  LQ_ENTRY_t                                              LQ_table,
-  logic            [$clog2(`NUM_LSQ)-1:0]                 LQ_head,
-  logic            [$clog2(`NUM_LSQ)-1:0]                 LQ_tail,
-`endif
+// `ifdef DEBUG
+//   SQ_ENTRY_t       [`NUM_LSQ-1:0]                         SQ_table;
+//   logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_head;
+//   logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_tail;
+//   LQ_ENTRY_t                                              LQ_table;
+//   logic            [$clog2(`NUM_LSQ)-1:0]                 LQ_head;
+//   logic            [$clog2(`NUM_LSQ)-1:0]                 LQ_tail;
+// `endif
   LQ_BP_OUT_t                                    LQ_BP_out;
   logic                   [$clog2(`NUM_LSQ)-1:0] SQ_rollback_idx;
   logic                   [$clog2(`NUM_LSQ)-1:0] LQ_rollback_idx;
