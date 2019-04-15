@@ -96,6 +96,7 @@ module testbench;
 
 
   logic state_count, next_state_count;
+  logic stop_cycle;
 
 
   ROB_t pipeline_ROB;

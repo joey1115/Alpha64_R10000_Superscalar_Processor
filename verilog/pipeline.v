@@ -38,7 +38,7 @@ module pipeline (
   output logic        [63:0]                             proc2mem_addr,      // Address sent to memory
   output logic        [63:0]                             proc2mem_data,      // Data sent to memory
   output logic        [3:0]                              pipeline_completed_insts,
-  output ERROR_CODE   pipeline_error_status
+  output ERROR_CODE                                      pipeline_error_status,
   output logic                                           stop_cycle,
 );
 
