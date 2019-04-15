@@ -35,7 +35,7 @@ module SQ (
   logic       [$clog2(`NUM_LSQ)-1:0]                 tail;
 `endif
   logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, diff_tail, virtual_tail;
-  logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   head_map_idx;
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] head_map_idx;
   SQ_ENTRY_t  [`NUM_LSQ-1:0]                         next_sq;
   logic                                              wr_en;
   logic       [60:0]                                 addr;
@@ -44,7 +44,7 @@ module SQ (
   logic       [`NUM_SUPER-1:0]                       retire_valid;
   logic                                              valid1, valid2;
   logic       [`NUM_SUPER-1:0]                       st_hit;
-  logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] st_idx;
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] st_idx, SQ_idx_minus_one;
   logic       [`NUM_SUPER-1:0]                       rollback_valid;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] diff;
 
@@ -55,6 +55,8 @@ module SQ (
   assign next_tail        = rollback_en ? SQ_rollback_idx :
                             dispatch_en ? virtual_tail    : tail;
   assign SQ_ROB_out       = '{retire_valid};
+  assign SQ_idx_minus_one[0] =  FU_SQ_out.SQ_idx[0] - 1;
+  assign SQ_idx_minus_one[1] =  FU_SQ_out.SQ_idx[1] - 1;
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
@@ -182,7 +184,7 @@ module SQ (
     // Execute
     for (int i = 0; i < `NUM_SUPER; i++) begin
       if (FU_SQ_out.done[i] & !rollback_valid[0]) begin
-        next_sq[FU_SQ_out.SQ_idx[i]] = '{FU_SQ_out.result[i][63:3], `TRUE, FU_SQ_out.T1_value[i]};
+        next_sq[SQ_idx_minus_one[i]] = '{FU_SQ_out.result[i][63:3], `TRUE, FU_SQ_out.T1_value[i]};
       end
     end
   end
@@ -459,7 +461,7 @@ module LQ (
   always_comb begin
     next_lq = lq;
     if (dispatch_en) begin
-      case(ROB_LQ_out.rd_mem)
+      case(decoder_LQ_out.rd_mem)
         2'b01: begin
           next_lq[tail].addr    = 61'h0;
           next_lq[tail].valid   = `FALSE;
