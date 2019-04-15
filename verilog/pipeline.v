@@ -241,22 +241,11 @@ module pipeline (
   assign fetch_en_in = fetch_en & (proc2Dmem_command==BUS_NONE);
 `ifdef DEBUG
   always_comb begin
-    if(write_back_stage)begin
-      num_inst = 0;
-    end   
-    else if(write_back) begin
-      if(halt_out[0] & !halt_out[1])
-        num_inst = 1;
-      else if(!halt_out[0] & halt_out[1])
-        num_inst = 2;
-    end
-    else begin
-      case(retire_en)
-        2'b00: num_inst = 0;
-        2'b01, 2'b10: num_inst = 1;
-        2'b11: num_inst = 2;
-      endcase
-    end
+    case(retire_en)
+      2'b00: num_inst = 0;
+      2'b01, 2'b10: num_inst = 1;
+      2'b11: num_inst = 2;
+    endcase
   end
   always_comb begin
     for(int i = 0; i < `NUM_SUPER; i++) begin
@@ -373,8 +362,7 @@ module pipeline (
     .stored_mem_wr(stored_mem_wr),
     .write_back(write_back),
     .cache_valid(cache_valid),
-    .halt_pipeline(halt_pipeline),
-    .write_back_stage(write_back_stage)
+    .halt_pipeline(halt_pipeline)
 );
 
   Dcache dcache_0 (
