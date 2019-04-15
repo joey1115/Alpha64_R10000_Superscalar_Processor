@@ -12,7 +12,6 @@ vis_simv
 */vis_simv.daidir/
 syn_simv
 */syn_simv.daidir/
-*.out
 synsimv
 */synsimv.daidir/
 vcdplus.vpd
