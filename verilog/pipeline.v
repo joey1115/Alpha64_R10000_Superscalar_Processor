@@ -209,7 +209,6 @@ module pipeline (
   logic                 write_back;
   logic                 cache_valid;
   logic                 halt_pipeline;
-  logic                 write_back_stage;
   logic                 illegal_out_pipeline;
 
   assign en           = `TRUE;
