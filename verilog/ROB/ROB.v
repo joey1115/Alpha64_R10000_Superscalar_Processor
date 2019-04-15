@@ -150,7 +150,7 @@ module ROB (
         if(b_t) begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush only branch less than tail and greater than branch
-            if( i < rob.tail || i >= ROB_rollback_idx)
+            if( i < rob.tail || i > ROB_rollback_idx)
               Nrob.entry[i].valid = 0;
           end
         end
