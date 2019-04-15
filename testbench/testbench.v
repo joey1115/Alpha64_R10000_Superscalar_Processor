@@ -76,8 +76,8 @@ module testbench;
   // Registers and wires used in the testbench
   logic        clock;
   logic        reset;
-  logic [31:0] clock_count;
-  logic [31:0] instr_count;
+  logic [31:0] clock_count, next_clock_count;
+  logic [31:0] instr_count, next_instr_count;
   int          wb_fileno;
 
   logic  [1:0] proc2mem_command;
@@ -257,14 +257,16 @@ module testbench;
     if(reset) begin
       clock_count <= `SD 0;
       instr_count <= `SD 0;
-    end else if(next_state_count == 0) begin
-      clock_count <= `SD (clock_count + 1);
-      instr_count <= `SD (instr_count + pipeline_completed_insts);
+    end else begin
+      clock_count <= `SD next_clock_count;
+      instr_count <= `SD next_instr_count;
     end
   end
 
   always_comb begin
     next_state_count = (stop_cycle) ? 1 : state_count;
+    next_clock_count = (next_state_count == 0) ? clock_count + 1 : clock_count;
+    next_instr_count = (instr_count + pipeline_completed_insts);
   end
 
   always_ff @(posedge clock) begin

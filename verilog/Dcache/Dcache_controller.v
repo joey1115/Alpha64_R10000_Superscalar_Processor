@@ -63,14 +63,15 @@ module Dcache_controller(
 
     input  logic                                                                  write_back,
     output logic                                                                  cache_valid,
-    output logic                                                                  halt_pipeline
+    output logic                                                                  halt_pipeline,
+    output logic                                                                  write_back_stage
 );
 //logics
 
 logic [1:0] state, next_state;
 logic [63:0] count, next_count;
 SASS_ADDR write_back_addr;
-logic write_back_stage;
+// logic write_back_stage;
 
 
 //read cache outputs
