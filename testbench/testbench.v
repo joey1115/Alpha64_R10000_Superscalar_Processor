@@ -95,6 +95,9 @@ module testbench;
   logic [`NUM_SUPER-1:0][63:0] pipeline_commit_NPC;
 
 
+  logic state_count, next_state_count;
+
+
   ROB_t pipeline_ROB;
   RS_ENTRY_t [`NUM_FU-1:0]  pipeline_RS;
   logic [31:0][$clog2(`NUM_PR)-1:0] pipeline_ARCHMAP;
@@ -152,7 +155,8 @@ module testbench;
     .pipeline_error_status(pipeline_error_status),
     .proc2mem_command  (proc2mem_command),
     .proc2mem_addr     (proc2mem_addr),
-    .proc2mem_data     (proc2mem_data)
+    .proc2mem_data     (proc2mem_data),
+    .stop_cycle       (stop_cycle)
   );
 
   // Instantiate the Data Memory
@@ -252,10 +256,21 @@ module testbench;
     if(reset) begin
       clock_count <= `SD 0;
       instr_count <= `SD 0;
-    end else begin
+    end else if(next_state_count == 0) begin
       clock_count <= `SD (clock_count + 1);
       instr_count <= `SD (instr_count + pipeline_completed_insts);
     end
+  end
+
+  always_comb begin
+    next_state_count = (stop_cycle) ? 1 : state_count;
+  end
+
+  always_ff @(posedge clock) begin
+    if(reset)
+      state_count <= `SD 0;
+    else
+      state_count <= `SD next_state_count;
   end
 
 

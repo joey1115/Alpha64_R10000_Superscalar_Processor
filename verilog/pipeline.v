@@ -39,6 +39,7 @@ module pipeline (
   output logic        [63:0]                             proc2mem_data,      // Data sent to memory
   output logic        [3:0]                              pipeline_completed_insts,
   output ERROR_CODE   pipeline_error_status
+  output logic                                           stop_cycle,
 );
 
   logic                                          en;
@@ -214,6 +215,8 @@ module pipeline (
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
   assign dispatch_en  = get_fetch_buff && inst_out_valid;
+
+  assign stop_cycle = halt_out[0] | halt_out[1];
   
   assign write_back = halt_out[0] | halt_out[1];
   //assign F_decoder_en = fetch_en;
