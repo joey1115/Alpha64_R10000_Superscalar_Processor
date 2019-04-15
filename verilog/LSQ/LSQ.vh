@@ -98,7 +98,6 @@ typedef struct packed {
   logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
   logic [63:0]                 target_PC;   // 真
   logic                        LQ_violate;
-  logic                        done;
 } LQ_TARGET_t;
 
 typedef struct packed {
