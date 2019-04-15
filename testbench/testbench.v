@@ -46,7 +46,7 @@ extern void print_cycles();
 extern void print_ROB_ht(int head, int tail);
 extern void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, int complete, int halt, int illegal, int NPC_hi, int NPC_lo);
 extern void print_RS_head();
-extern void print_RS_entry(string funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int opa_select, int opb_select);
+extern void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select, int SQ_idx, int LQ_idx, int uncond_branch, int cond_branch, int wr_mem, int rd_mem, int target_hi, int target_lo);
 extern void print_maptable_head();
 extern void print_maptable_entry(int reg_idx, int T, int ready, int PR_data_hi, int PR_data_lo);
 extern void print_CDB_head();
@@ -350,12 +350,20 @@ module testbench;
                       {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
                       {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
                       {{(32-2){1'b0}},pipeline_RS[i].opa_select},
-                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
+                      {{(32-2){1'b0}},pipeline_RS[i].opb_select},
+                      {{(32-`NUM_LSQ){1'b0}},pipeline_RS[i].SQ_idx},
+                      {{(32-`NUM_LSQ){1'b0}},pipeline_RS[i].LQ_idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].uncond_branch},
+                      {{(32-1){1'b0}},pipeline_RS[i].cond_branch},
+                      {{(32-1){1'b0}},pipeline_RS[i].wr_mem},
+                      {{(32-1){1'b0}},pipeline_RS[i].rd_mem},
+                      pipeline_RS[i].target[63:32],
+                      pipeline_RS[i].target[31:0]);
       end
       for(int i =`NUM_LD; i < (`NUM_LD + `NUM_ST); i++) begin
         print_RS_entry("ST  ",
                       {{(32-1){1'b0}},pipeline_RS[i].busy},
-                      pipeline_RS[i].inst,
+                      pipeline_RS[i].inst.I,
                       {{(32-5){1'b0}},pipeline_RS[i].func},
                       pipeline_RS[i].NPC[63:32],
                       pipeline_RS[i].NPC[31:0],
@@ -368,7 +376,15 @@ module testbench;
                       {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
                       {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
                       {{(32-2){1'b0}},pipeline_RS[i].opa_select},
-                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
+                      {{(32-2){1'b0}},pipeline_RS[i].opb_select},
+                      {{(32-`NUM_LSQ){1'b0}},pipeline_RS[i].SQ_idx},
+                      {{(32-`NUM_LSQ){1'b0}},pipeline_RS[i].LQ_idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].uncond_branch},
+                      {{(32-1){1'b0}},pipeline_RS[i].cond_branch},
+                      {{(32-1){1'b0}},pipeline_RS[i].wr_mem},
+                      {{(32-1){1'b0}},pipeline_RS[i].rd_mem},
+                      pipeline_RS[i].target[63:32],
+                      pipeline_RS[i].target[31:0]);
       end
       for(int i = ( `NUM_LD + `NUM_ST); i < ( `NUM_LD + `NUM_ST + `NUM_BR); i++) begin
         print_RS_entry("BR  ",
@@ -386,7 +402,15 @@ module testbench;
                       {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
                       {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
                       {{(32-2){1'b0}},pipeline_RS[i].opa_select},
-                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
+                      {{(32-2){1'b0}},pipeline_RS[i].opb_select},
+                      {{(32-`NUM_LSQ){1'b0}},pipeline_RS[i].SQ_idx},
+                      {{(32-`NUM_LSQ){1'b0}},pipeline_RS[i].LQ_idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].uncond_branch},
+                      {{(32-1){1'b0}},pipeline_RS[i].cond_branch},
+                      {{(32-1){1'b0}},pipeline_RS[i].wr_mem},
+                      {{(32-1){1'b0}},pipeline_RS[i].rd_mem},
+                      pipeline_RS[i].target[63:32],
+                      pipeline_RS[i].target[31:0]);
       end
       for(int i = ( `NUM_LD + `NUM_ST + `NUM_BR); i < ( `NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i++) begin
         print_RS_entry("MULT",
@@ -404,7 +428,15 @@ module testbench;
                       {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
                       {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
                       {{(32-2){1'b0}},pipeline_RS[i].opa_select},
-                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
+                      {{(32-2){1'b0}},pipeline_RS[i].opb_select},
+                      {{(32-`NUM_LSQ){1'b0}},pipeline_RS[i].SQ_idx},
+                      {{(32-`NUM_LSQ){1'b0}},pipeline_RS[i].LQ_idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].uncond_branch},
+                      {{(32-1){1'b0}},pipeline_RS[i].cond_branch},
+                      {{(32-1){1'b0}},pipeline_RS[i].wr_mem},
+                      {{(32-1){1'b0}},pipeline_RS[i].rd_mem},
+                      pipeline_RS[i].target[63:32],
+                      pipeline_RS[i].target[31:0]);
       end
       for(int i = ( `NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT); i < ( `NUM_LD + `NUM_ST + `NUM_BR + `NUM_MULT + `NUM_ALU); i++) begin
         print_RS_entry("ALU ",
@@ -422,7 +454,15 @@ module testbench;
                       {{(32-$clog2(`NUM_PR)){1'b0}},pipeline_RS[i].T2.idx},
                       {{(32-1){1'b0}},pipeline_RS[i].T2.ready},
                       {{(32-2){1'b0}},pipeline_RS[i].opa_select},
-                      {{(32-2){1'b0}},pipeline_RS[i].opb_select});
+                      {{(32-2){1'b0}},pipeline_RS[i].opb_select},
+                      {{(32-`NUM_LSQ){1'b0}},pipeline_RS[i].SQ_idx},
+                      {{(32-`NUM_LSQ){1'b0}},pipeline_RS[i].LQ_idx},
+                      {{(32-1){1'b0}},pipeline_RS[i].uncond_branch},
+                      {{(32-1){1'b0}},pipeline_RS[i].cond_branch},
+                      {{(32-1){1'b0}},pipeline_RS[i].wr_mem},
+                      {{(32-1){1'b0}},pipeline_RS[i].rd_mem},
+                      pipeline_RS[i].target[63:32],
+                      pipeline_RS[i].target[31:0]);
       end
 `endif
 
