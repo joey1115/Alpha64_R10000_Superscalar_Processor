@@ -349,7 +349,7 @@ module br(
       FU_out.T_idx    = FU_in.T_idx;
       FU_out.ROB_idx  = FU_in.ROB_idx;
       FU_out.done     = FU_in.ready;
-      FU_out.result   = PC_result;
+      FU_out.result   = FU_in.NPC;
     end
   end
 endmodule // brcond

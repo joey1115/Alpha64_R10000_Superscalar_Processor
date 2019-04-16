@@ -257,7 +257,7 @@ module pipeline (
     (proc2Dmem_command==BUS_NONE) ? 0 : mem2proc_response;
   assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
 
-  assign fetch_en_in = fetch_en & (proc2Dmem_command==BUS_NONE);
+  assign fetch_en_in = fetch_en;
 `ifdef DEBUG
   always_comb begin
     if(write_back_stage)begin
