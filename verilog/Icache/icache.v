@@ -63,6 +63,10 @@ module icache(
   always_comb begin
     if (valid & match) begin
       next_head = head;
+    end else if (valid & ~match ) begin
+      next_head = idx;
+    end else if (~valid & match ) begin
+      next_head = head;
     end else begin
       next_head = idx;
     end
@@ -70,6 +74,16 @@ module icache(
 
   always_comb begin
     if (valid & match) begin
+      if (Imem2proc_response == 0) begin
+        next_tail = tail;
+      end else if (tail_plus_one == head) begin
+        next_tail = tail;
+      end else begin
+        next_tail = tail + 1;
+      end
+    end else if (valid & ~match) begin
+      next_tail = idx;
+    end else if (~valid & match ) begin
       if (Imem2proc_response == 0) begin
         next_tail = tail;
       end else if (tail_plus_one == head) begin
