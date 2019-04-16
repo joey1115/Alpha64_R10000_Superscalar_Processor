@@ -26,7 +26,7 @@ void print_cycles()
 {
   /* we'll enforce the printing of a header */
   if (ppfile != NULL)
-    fprintf(ppfile, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ncycle: %5d\n", cycle_count++);
+    fprintf(ppfile, "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ncycle: %5d\n", cycle_count++);
 }
 
 void print_ROB_ht(int head, int tail)
