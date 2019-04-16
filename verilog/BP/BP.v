@@ -146,7 +146,7 @@ module BP(
     for (int i = 0; i < `NUM_BR; i++) begin
       predict_wrong[i] = `FALSE;
       if (FU_BP_out.BR_target[i].done) begin
-        if (FU_BP_out.BR_target[1].take_branch) begin
+        if (FU_BP_out.BR_target[i].take_branch) begin
           predict_wrong[i] = FU_BP_out.BR_target[i].target != FU_BP_out.BR_target[i].target_PC;
         end else begin
           predict_wrong[i] = FU_BP_out.BR_target[i].target != FU_BP_out.BR_target[i].NPC;
