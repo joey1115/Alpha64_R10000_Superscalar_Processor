@@ -21,14 +21,14 @@ module icache(
   // logic [127:0] [63:0] data, next_data;
   // logic [127:0]  [5:0] tags, next_tags;
   // logic [127:0]        valids, next_valids;
-  I_CACHE_ENTRY_t [127:0] i_cache, next_i_cache;
-  logic [6:0]          head, tail, next_head, next_tail, diff1, diff2, idx, tail_plus_one;
-  logic [5:0]          tag;
-  MEM_TAG_TABLE_t [15:0]   mem_tag_table, next_mem_tag_table;
+  I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  i_cache, next_i_cache;
+  logic [$clog2(`NUM_ICACHE_LINES)-1:0]    head, tail, next_head, next_tail, diff1, diff2, idx, tail_plus_one;
+  logic [16-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
+  MEM_TAG_TABLE_t [15:0]                   mem_tag_table, next_mem_tag_table;
   // logic [3:0][63:0]    mem_tag_table, next_mem_tag_table;
 
-  assign idx = proc2Icache_addr[9:3];
-  assign tag = proc2Icache_addr[15:10];
+  assign idx = proc2Icache_addr[3+$clog2(`NUM_ICACHE_LINES)-1:3];
+  assign tag = proc2Icache_addr[15:3+$clog2(`NUM_ICACHE_LINES)];
   assign tail_plus_one = tail + 1;
   assign diff1 = idx - head;
   assign diff2 = tail - head;
