@@ -228,6 +228,7 @@ module pipeline (
   logic                 cache_valid;
   logic                 halt_pipeline;
   logic                 illegal_out_pipeline;
+  logic                 fetch_en_in;
 
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
@@ -521,10 +522,8 @@ module pipeline (
     .reset                  (reset),
     .en                     (en),
     .retire_en              (retire_en),
-`ifndef DEBUG
     .ROB_Arch_Map_out       (ROB_Arch_Map_out),
-`else
-    .ROB_Arch_Map_out       (ROB_Arch_Map_out),
+`ifdef DEBUG
     .next_arch_map          (pipeline_ARCHMAP),
 `endif
     .ARCH_MAP_MAP_Table_out (ARCH_MAP_MAP_Table_out)

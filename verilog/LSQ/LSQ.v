@@ -21,7 +21,7 @@ module SQ (
 `endif
 
   // output logic            [`NUM_SUPER-1:0]                   SQ_valid,
-  output logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)] SQ_idx,
+  output logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx,
   output SQ_ROB_OUT_t                                        SQ_ROB_out,
   output SQ_FU_OUT_t                                         SQ_FU_out,
   output SQ_LQ_OUT_t                                         SQ_LQ_out,
@@ -548,8 +548,8 @@ module LSQ (
   output logic                                                   LSQ_valid,
   // output logic            [`NUM_SUPER-1:0]                       SQ_valid,
   output logic            [`NUM_SUPER-1:0]                       LQ_valid,
-  output logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)]     SQ_idx,
-  output logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)]     LQ_idx,
+  output logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0]     SQ_idx,
+  output logic            [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0]     LQ_idx,
   output SQ_ROB_OUT_t                                            SQ_ROB_out,
   output SQ_FU_OUT_t                                             SQ_FU_out,
   output LQ_FU_OUT_t                                             LQ_FU_out,

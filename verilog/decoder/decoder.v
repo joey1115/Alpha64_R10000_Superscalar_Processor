@@ -25,6 +25,7 @@ module decoder(
   ALU_FUNC       [`NUM_SUPER-1:0]       func;
   logic          [`NUM_SUPER-1:0][4:0]  rega_idx;
   logic          [`NUM_SUPER-1:0][4:0]  regb_idx;
+  logic                                 illegal;
 
   assign decoder_ROB_out       = '{halt, dest_idx, internal_illegal, NPC, wr_mem, rd_mem};
   assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch, wr_mem, rd_mem, target};

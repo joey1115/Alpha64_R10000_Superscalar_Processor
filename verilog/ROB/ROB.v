@@ -40,7 +40,7 @@ module ROB (
   logic [1:0] state, Nstate;
   logic [$clog2(`NUM_ROB)-1:0] tail_plus_one;
   logic [$clog2(`NUM_ROB)-1:0] tail_minus_one, tail_minus_two;
-  logic [$clog2(`NUM_ROB)-1:0] head_plus_one;
+  logic [$clog2(`NUM_ROB)-1:0] head_plus_one, ROB_rollback_idx_minus_one;
 
 `ifdef DEBUG
   assign retire_NPC[0] = rob.entry[rob.head].NPC;

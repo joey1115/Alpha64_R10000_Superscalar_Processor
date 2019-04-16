@@ -89,7 +89,7 @@ module MSHR(
   logic                          request_accepted;
 
   logic [$clog2(`MSHR_DEPTH)-1:0] tail_plus_one, tail_plus_two, tail_plus_three, head_plus_one;
-  logic [$clog2(`MSHR_DEPTH)] index_rd_search, index_wr_search, index;
+  logic [$clog2(`MSHR_DEPTH)-1:0] index_rd_search, index_wr_search, index;
 
   //how many entries to allocate
   assign tail_move = miss_en[0] + miss_en[1] + miss_en[2];
