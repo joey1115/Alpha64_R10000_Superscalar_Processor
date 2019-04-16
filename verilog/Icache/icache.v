@@ -13,11 +13,6 @@ module icache(
         output logic  [1:0] proc2Imem_command,
         output logic [63:0] proc2Imem_addr,
 
-`ifdef DEBUG
-        output I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  i_cache,
-        output MEM_TAG_TABLE_t [15:0]                   mem_tag_table,
-`endif
-
         output logic [63:0] Icache_data_out,     // value is memory[proc2Icache_addr]
         output logic        Icache_valid_out    // when this is high
              );
@@ -26,14 +21,10 @@ module icache(
   // logic [127:0] [63:0] data, next_data;
   // logic [127:0]  [5:0] tags, next_tags;
   // logic [127:0]        valids, next_valids;
-`ifndef DEBUG
-  I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  i_cache;
-  MEM_TAG_TABLE_t [15:0]                   mem_tag_table;
-`endif
-  I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  next_i_cache;
+  I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  i_cache, next_i_cache;
   logic [$clog2(`NUM_ICACHE_LINES)-1:0]    head, tail, next_head, next_tail, diff1, diff2, idx, tail_plus_one;
   logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
-  MEM_TAG_TABLE_t [15:0]                   next_mem_tag_table;
+  MEM_TAG_TABLE_t [15:0]                   mem_tag_table, next_mem_tag_table;
   logic  [1:0] next_proc2Imem_command;
   // logic [3:0][63:0]    mem_tag_table, next_mem_tag_table;
 
@@ -84,7 +75,7 @@ module icache(
     if (valid & ~match) begin
       next_i_cache[idx].valid = `FALSE;
     end
-    if (Imem2proc_tag != 0 && mem_tag_table[Imem2proc_tag].tag == i_cache[mem_tag_table[Imem2proc_tag].idx].tag) begin
+    if (Imem2proc_tag != 0 && mem_tag_table[Imem2proc_tag].tag == i_cache[mem_tag_table[Imem2proc_tag].idx].tag && mem_tag_table[Imem2proc_tag].valid) begin
       next_i_cache[mem_tag_table[Imem2proc_tag].idx].valid = `TRUE;
       next_i_cache[mem_tag_table[Imem2proc_tag].idx].data  = Imem2proc_data;
     end
@@ -94,14 +85,19 @@ module icache(
     next_mem_tag_table = mem_tag_table;
     if (valid & match) begin
       if (Imem2proc_response != 0) begin
+        next_mem_tag_table[Imem2proc_response].idx = `TRUE;
         next_mem_tag_table[Imem2proc_response].idx = tail;
         next_mem_tag_table[Imem2proc_response].tag = tag;
       end
     end else begin
       if (Imem2proc_response != 0) begin
-        next_mem_tag_table[Imem2proc_response].idx   = idx;
-        next_mem_tag_table[Imem2proc_response].tag   = tag;
+        next_mem_tag_table[Imem2proc_response].idx = `TRUE;
+        next_mem_tag_table[Imem2proc_response].idx = idx;
+        next_mem_tag_table[Imem2proc_response].tag = tag;
       end
+    end
+    if (Imem2proc_tag != 0 && mem_tag_table[Imem2proc_tag].tag == i_cache[mem_tag_table[Imem2proc_tag].idx].tag && mem_tag_table[Imem2proc_tag].valid) begin
+        next_mem_tag_table[Imem2proc_response].idx = `FALSE;
     end
   end
 
