@@ -230,6 +230,7 @@ module pipeline (
   logic                 halt_pipeline;
   logic                 illegal_out_pipeline;
   logic                 fetch_en_in;
+  logic                 bus_select;
 
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
@@ -248,14 +249,12 @@ module pipeline (
   assign illegal_out_pipeline = illegal_out[0] || (~halt_out[0] & illegal_out[1]);
   // assign proc2Dmem_command = BUS_NONE;
   // assign proc2Dmem_addr = 0;
-  assign proc2mem_command =
-    (proc2Dmem_command==BUS_NONE) ? proc2Imem_command:proc2Dmem_command;
-  assign proc2mem_addr =
-    (proc2Dmem_command==BUS_NONE) ? proc2Imem_addr:proc2Dmem_addr;
+  assign bus_select = proc2Dmem_command==BUS_NONE;
+  assign proc2mem_command = bus_select ? proc2Imem_command:proc2Dmem_command;
+  assign proc2mem_addr = bus_select ? proc2Imem_addr:proc2Dmem_addr;
   //TODO: Uncomment and pass for mem stage in the pipeline
-  assign Dmem2proc_response = 
-    (proc2Dmem_command==BUS_NONE) ? 0 : mem2proc_response;
-  assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
+  assign Dmem2proc_response = bus_select ? 0 : mem2proc_response;
+  assign Imem2proc_response = bus_select ? mem2proc_response : 0;
 
   assign fetch_en_in = fetch_en;
 `ifdef DEBUG
@@ -287,21 +286,6 @@ module pipeline (
     end
   end
 `endif
-   // Actual cache (data and tag RAMs)
-  cache cachememory (
-    // inputs
-    .clock     (clock),
-    .reset     (reset),
-    .wr1_en    (Icache_wr_en),
-    .wr1_idx   (Icache_wr_idx),
-    .wr1_tag   (Icache_wr_tag),
-    .wr1_data  (mem2proc_data),
-    .rd1_idx   (Icache_rd_idx),
-    .rd1_tag   (Icache_rd_tag),
-    // outputs
-    .rd1_data  (cachemem_data),
-    .rd1_valid (cachemem_valid)
-  );
 
   // Cache controller
   icache icache_0(
@@ -312,18 +296,11 @@ module pipeline (
     .Imem2proc_data     (mem2proc_data),
     .Imem2proc_tag      (mem2proc_tag),
     .proc2Icache_addr   (proc2Icache_addr),
-    .cachemem_data      (cachemem_data),
-    .cachemem_valid     (cachemem_valid),
     // outputs
     .proc2Imem_command  (proc2Imem_command),
     .proc2Imem_addr     (proc2Imem_addr),
     .Icache_data_out    (Icache_data_out),
-    .Icache_valid_out   (Icache_valid_out),
-    .current_index      (Icache_rd_idx),
-    .current_tag        (Icache_rd_tag),
-    .last_index         (Icache_wr_idx),
-    .last_tag           (Icache_wr_tag),
-    .data_write_enable  (Icache_wr_en)
+    .Icache_valid_out   (Icache_valid_out)
   );
 
   //D cache modules

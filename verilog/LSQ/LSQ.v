@@ -113,22 +113,18 @@ module SQ (
       2'b00: begin
         retire_valid[0] = `TRUE;
         retire_valid[1] = `TRUE;
-        wr_en           = `FALSE;
       end
       2'b01: begin
         retire_valid[0] = D_cache_SQ_out.valid;
         retire_valid[1] = D_cache_SQ_out.valid;
-        wr_en           = `TRUE;
       end
       2'b10: begin
         retire_valid[0] = `TRUE;
         retire_valid[1] = D_cache_SQ_out.valid;
-        wr_en           = `TRUE;
       end
       2'b11: begin
         retire_valid[0] = D_cache_SQ_out.valid;
         retire_valid[1] = `FALSE;
-        wr_en           = `TRUE;
       end
     endcase
   end
