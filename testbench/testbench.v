@@ -566,7 +566,7 @@ module testbench;
 
       // deal with any halting conditions
 `ifdef HALT_ON_TIMEOUT
-      if (clock_cycle > `TIMEOUT_CYCLES)
+      if (clock_count > `TIMEOUT_CYCLES)
       begin
         $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
         show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);

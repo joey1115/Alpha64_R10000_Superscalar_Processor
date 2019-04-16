@@ -60,13 +60,13 @@ module Dcache_controller(
     output logic [63:0]                                                           search_wr_data,
     output logic [1:0]                                                            search_en,
     //cache to MSHR (Written back)                      
-    output logic                                                                  stored_rd_wb,
-    output logic                                                                  stored_wr_wb,
+    // output logic                                                                  stored_rd_wb,
+    // output logic                                                                  stored_wr_wb,
     output logic                                                                  stored_mem_wr,
 
 
     input  logic                                                                  write_back,
-    output logic                                                                  cache_valid,
+    // output logic                                                                  cache_valid,
     output logic                                                                  halt_pipeline,
     output logic                                                                  write_back_stage
 );
@@ -86,7 +86,7 @@ assign d_cache_lq_out.value = rd1_data;
 //d_cache_lq_out.value is valid if it is read and if d_cache_lq_out.value is either in cache or mshr
 assign d_cache_lq_out.valid = rd1_hit;
 
-assign d_cache_sq_out.valid = (stored_wr_wb || miss_en[1]);
+assign d_cache_sq_out.valid = ((wr1_hit & sq_d_cache_out.wr_en) || wr_wb_en || miss_en[1]); // We think it is always 1
 
 
 //set MSHR CMMD
@@ -103,11 +103,11 @@ assign search_wr_data = sq_d_cache_out.value;
 assign search_en[1]   = sq_d_cache_out.wr_en;
 
 //if not in cache, enable to push d_cache_lq_out.value to the MSHR
-assign miss_en[0] = (lq_d_cache_out.rd_en & !rd1_hit & !miss_addr_hit[0]);
+assign miss_en[0] = (lq_d_cache_out.rd_en & !rd1_hit & !miss_addr_hit[0]) & mshr_valid;
 //Miss from stores
-assign miss_en[1] = (sq_d_cache_out.wr_en & !wr1_hit & !miss_addr_hit[1]);
+assign miss_en[1] = (sq_d_cache_out.wr_en & !wr1_hit & !miss_addr_hit[1]) & mshr_valid;
 //Store inst from evicts
-assign miss_en[2] = (wr1_from_mem & evicted_dirty & evicted_valid);// when wr1 is from memory and it is dirty
+assign miss_en[2] = (wr1_from_mem & evicted_dirty & evicted_valid) & mshr_valid;// when wr1 is from memory and it is dirty
 
 //d_cache_lq_out.value sent to MSHR search
 assign miss_addr[0] = rd1_addr;
@@ -134,16 +134,16 @@ assign rd1_search = lq_d_cache_out.rd_en;
 
 
 assign wr1_addr = (write_back_stage)              ?  write_back_addr :
-                  (sq_d_cache_out.wr_en)          ?  {sq_d_cache_out.addr,3'b000}      :
                   (wr_wb_en)                      ?  wr_wb_addr      :
+                  (sq_d_cache_out.wr_en)          ?  {sq_d_cache_out.addr,3'b000}:
                   (!wr_wb_en & rd_wb_en)          ?  rd_wb_addr      : mem_addr;
 
-assign wr1_dirty = (sq_d_cache_out.wr_en)          ?  1           :
-                   (wr_wb_en)                      ?  wr_wb_dirty :
+assign wr1_dirty = (wr_wb_en)                      ?  wr_wb_dirty :
+                   (sq_d_cache_out.wr_en)          ?  1           :
                    (!wr_wb_en & rd_wb_en)          ?  rd_wb_dirty : mem_dirty;
 
-assign wr1_data = (sq_d_cache_out.wr_en)          ?  sq_d_cache_out.value    :
-                  (wr_wb_en)                      ?  wr_wb_data :
+assign wr1_data = (wr_wb_en)                      ?  wr_wb_data :
+                  (sq_d_cache_out.wr_en)          ?  sq_d_cache_out.value:
                   (!wr_wb_en & rd_wb_en)          ?  rd_wb_data : mem_data;
 
 assign wr1_valid = (write_back_stage)             ? 0 : 1;
@@ -155,12 +155,12 @@ assign wr1_search = wr1_from_mem | sq_d_cache_out.wr_en;
 assign wr1_en = (wr1_hit & sq_d_cache_out.wr_en) | wr1_from_mem;
 
 //inform MSHR that it is written
-assign stored_rd_wb = !sq_d_cache_out.wr_en & rd_wb_en;
-assign stored_wr_wb = !sq_d_cache_out.wr_en & !rd_wb_en & wr_wb_en; //wr_wb_enable is always zero
+// assign stored_rd_wb = !sq_d_cache_out.wr_en & !wr_wb_en & rd_wb_en;
+// assign stored_wr_wb = wr_wb_en; //wr_wb_enable is always zero
 assign stored_mem_wr = !sq_d_cache_out.wr_en & !rd_wb_en & !wr_wb_en & mem_wr;
 
 //set the cache id valid or not
-assign cache_valid = mshr_valid;
+// assign cache_valid = mshr_valid;
 
 // to clear cache after prog done
 

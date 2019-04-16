@@ -226,7 +226,7 @@ module pipeline (
   logic                 stored_mem_wr;
   logic                 write_back;
   logic                 write_back_stage;
-  logic                 cache_valid;
+  // logic                 cache_valid;
   logic                 halt_pipeline;
   logic                 illegal_out_pipeline;
   logic                 fetch_en_in;
@@ -394,11 +394,11 @@ module pipeline (
     .search_wr_data(search_wr_data),
     .search_en(search_en),
     //cache to MSHR (Written back)                      
-    .stored_rd_wb(stored_rd_wb),
-    .stored_wr_wb(stored_wr_wb),
+    // .stored_rd_wb(stored_rd_wb),
+    // .stored_wr_wb(stored_wr_wb),
     .stored_mem_wr(stored_mem_wr),
     .write_back(write_back),
-    .cache_valid(cache_valid),
+    // .cache_valid(cache_valid),
     .halt_pipeline(halt_pipeline),
     .write_back_stage(write_back_stage)
 );
@@ -434,8 +434,8 @@ module pipeline (
     .reset(reset),
         
     //stored to cache input      
-    .stored_rd_wb(stored_rd_wb),
-    .stored_wr_wb(stored_wr_wb),
+    // .stored_rd_wb(stored_rd_wb),
+    // .stored_wr_wb(stored_wr_wb),
     .stored_mem_wr(stored_mem_wr),
         
     //storing to the MSHR      

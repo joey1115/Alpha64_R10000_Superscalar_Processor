@@ -5,8 +5,8 @@ module MSHR(
   input logic                                                    reset,
       
   //stored to cache input      
-  input logic                                                    stored_rd_wb,
-  input logic                                                    stored_wr_wb,
+  // input logic                                                    stored_rd_wb,
+  // input logic                                                    stored_wr_wb,
   input logic                                                    stored_mem_wr,
       
   //storing to the MSHR      
@@ -105,9 +105,7 @@ module MSHR(
   assign writeback_head_plus_one = writeback_head + 1;
   
   //mshr valid logic
-  // assign mshr_valid = MSHR_queue[tail].valid && MSHR_queue[tail_plus_one].valid && MSHR_queue[tail_plus_two].valid;
-  assign mshr_valid = (tail != head) || (tail_plus_one != head) || (tail_plus_two != head);
-
+  assign mshr_valid = !MSHR_queue[tail].valid && !MSHR_queue[tail_plus_one].valid && !MSHR_queue[tail_plus_two].valid;
 
   //mshr is empty
   always_comb begin
@@ -233,7 +231,7 @@ module MSHR(
         next_MSHR_queue[index[index_wr_search]].data = search_wr_data;
       end
       else begin
-        if(MSHR_queue[index[index_wr_search]].inst_type != LOAD) begin
+        if(MSHR_queue[index[index_wr_search]].inst_type == STORE) begin
           next_MSHR_queue[index[index_wr_search]].data = search_wr_data;
           next_MSHR_queue[index[index_wr_search]].dirty = 1;
         end
@@ -249,7 +247,7 @@ module MSHR(
         next_MSHR_queue[i].complete = 1;
         next_MSHR_queue[i].state    = DONE;
         next_MSHR_queue[i].data     = (MSHR_queue[i].inst_type == LOAD) ? mem2proc_data : next_MSHR_queue[i].data;
-        next_MSHR_queue[i].dirty    = 0;
+        next_MSHR_queue[i].dirty    = (MSHR_queue[i].inst_type == LOAD) ? 0 : MSHR_queue[i].dirty;
       end
     end
 
