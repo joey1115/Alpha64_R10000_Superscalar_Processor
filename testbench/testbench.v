@@ -34,6 +34,8 @@
 // `define PRINT_LQ
 // `define PRINT_DCACHE_BANK
 // `define PRINT_MSHR_ENTRY
+`define PRINT_ICACHE
+`define PRINT_MEM_TAG_TABLE
 
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
@@ -56,7 +58,10 @@ extern void print_freelist_head(int FL_head, int FL_tail);
 extern void print_freelist_entry(int i, int freePR);
 extern void print_fetchbuffer_head(int FB_head, int FB_tail);
 extern void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst);
-
+extern void print_icache_head();
+extern void print_icache_entry(int i, int valid, int tag, int data_hi, int data_lo);
+extern void print_mem_tag_table_head();
+extern void print_mem_tag_table_entry(int i, int idx, int tag);
 extern void print_num(int i);
 extern void print_enter();
 extern void print_sq_head(int head, int tail);
@@ -67,6 +72,7 @@ extern void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo
 extern void print_Dcache_head();
 extern void print_MSHR_head(int writeback_head, int head, int tail, int mem_bus);
 extern void print_Dcache_bank(int data_hi, int data_lo, int tag_hi,int tag_lo, int dirty, int valid);
+
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
                       int wb_reg_wr_idx_out_1, int wb_reg_wr_idx_out_2,
@@ -129,6 +135,8 @@ module testbench;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
+  I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]         i_cache;
+  MEM_TAG_TABLE_t [15:0]                          mem_tag_table;
   
 
   // Instantiate the Pipeline
@@ -170,6 +178,8 @@ module testbench;
     .MSHR_writeback_head(MSHR_writeback_head),
     .MSHR_head(MSHR_head),
     .MSHR_tail(MSHR_tail),
+    .i_cache(i_cache),
+    .mem_tag_table(mem_tag_table),
 `endif
     // Outputs
     .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
@@ -529,6 +539,20 @@ module testbench;
     print_MSHR_head({{(32-$clog2(`MSHR_DEPTH)){1'b0}},MSHR_writeback_head},{{(32-$clog2(`MSHR_DEPTH)){1'b0}},MSHR_head},{{(32-$clog2(`MSHR_DEPTH)){1'b0}},MSHR_tail}, {{(32-2){1'b0}},proc2mem_command});
     for(int i = 0; i < `MSHR_DEPTH; i++) begin
       print_MSHR_entry(i,{{(31){1'b0}},MSHR_queue[i].valid}, MSHR_queue[i].data[63:32],MSHR_queue[i].data[31:0],{{(31){1'b0}},MSHR_queue[i].dirty}, MSHR_queue[i].addr[63:32], MSHR_queue[i].addr[31:0], {{(30){1'b0}},MSHR_queue[i].inst_type}, {{(30){1'b0}},MSHR_queue[i].proc2mem_command}, {{(31){1'b0}},MSHR_queue[i].complete}, {{(28){1'b0}},MSHR_queue[i].mem_tag}, {{(30){1'b0}},MSHR_queue[i].state} );
+    end
+`endif
+
+`ifdef PRINT_ICACHE
+    print_icache_head();
+    for(int i = 0; i < `NUM_ICACHE_LINES; i++) begin
+      print_icache_entry(i, {31'b0, i_cache[i].valid}, {{(32-(16-$clog2(`NUM_ICACHE_LINES)-3)){1'b0}}, i_cache[i].tag}, i_cache[i].data[63:32], i_cache[i].data[31:0]);
+    end
+`endif
+
+`ifdef PRINT_MEM_TAG_TABLE
+    print_mem_tag_table_head();
+    for(int i = 0; i < 16; i++) begin
+      print_mem_tag_table_entry(i, {{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}}, mem_tag_table[i].idx}, {{(32-(16-$clog2(`NUM_ICACHE_LINES)-3)){1'b0}}, mem_tag_table[i].tag});
     end
 `endif
 

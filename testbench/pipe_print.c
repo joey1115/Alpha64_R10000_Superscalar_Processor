@@ -386,6 +386,31 @@ void print_lq_entry(int idx, int valid, int addr_hi, int addr_lo, int ROB_idx, i
   }
 }
 
+void print_icache_head()
+{
+  fprintf(ppfile, "---------------------------------------iCache----------------------------------- \n");
+}
+
+void print_icache_entry(int i, int valid, int tag, int data_hi, int data_lo)
+{
+  if(ppfile != NULL){
+    fprintf(ppfile, " %2d | valid: %1d | tag: %d | data: %x%x\n", i, valid, tag, data_hi, data_lo);
+  }
+}
+
+void print_mem_tag_table_head()
+{
+  fprintf(ppfile, "---------------------------------------Mem_Tag_Table----------------------------------- \n");
+}
+
+void print_mem_tag_table_entry(int i, int idx, int tag)
+{
+  if(ppfile != NULL){
+    fprintf(ppfile, " %2d | idx: %d | tag: %d\n", i, idx, tag);
+  }
+}
+
+
 void print_num(int i){
   if(ppfile != NULL){
     fprintf(ppfile, " %3d", i);

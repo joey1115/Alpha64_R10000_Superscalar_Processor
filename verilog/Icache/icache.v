@@ -13,6 +13,11 @@ module icache(
         output logic  [1:0] proc2Imem_command,
         output logic [63:0] proc2Imem_addr,
 
+`ifdef DEBUG
+        output I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  i_cache,
+        output MEM_TAG_TABLE_t [15:0]                   mem_tag_table,
+`endif
+
         output logic [63:0] Icache_data_out,     // value is memory[proc2Icache_addr]
         output logic        Icache_valid_out    // when this is high
              );
@@ -21,10 +26,14 @@ module icache(
   // logic [127:0] [63:0] data, next_data;
   // logic [127:0]  [5:0] tags, next_tags;
   // logic [127:0]        valids, next_valids;
-  I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  i_cache, next_i_cache;
+`ifndef DEBUG
+  I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  i_cache;
+  MEM_TAG_TABLE_t [15:0]                   mem_tag_table;
+`endif
+  I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  next_i_cache;
   logic [$clog2(`NUM_ICACHE_LINES)-1:0]    head, tail, next_head, next_tail, diff1, diff2, idx, tail_plus_one;
   logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
-  MEM_TAG_TABLE_t [15:0]                   mem_tag_table, next_mem_tag_table;
+  MEM_TAG_TABLE_t [15:0]                   next_mem_tag_table;
   // logic [3:0][63:0]    mem_tag_table, next_mem_tag_table;
 
   assign idx = proc2Icache_addr[3+$clog2(`NUM_ICACHE_LINES)-1:3];

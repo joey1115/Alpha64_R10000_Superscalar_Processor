@@ -38,6 +38,8 @@ module pipeline (
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head,
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail,
+  output I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]         i_cache,
+  output MEM_TAG_TABLE_t [15:0]                          mem_tag_table,
 `endif
   output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
@@ -299,6 +301,10 @@ module pipeline (
     // outputs
     .proc2Imem_command  (proc2Imem_command),
     .proc2Imem_addr     (proc2Imem_addr),
+`ifdef DEBUG
+    .i_cache(i_cache),
+    .mem_tag_table(mem_tag_table),
+`endif
     .Icache_data_out    (Icache_data_out),
     .Icache_valid_out   (Icache_valid_out)
   );
