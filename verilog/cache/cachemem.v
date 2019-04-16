@@ -13,10 +13,8 @@ module cache(
         
       );
 
-
-
   logic [31:0] [63:0] data;
-  logic [31:0]  [7:0] tags; 
+  logic [31:0]  [7:0] tags;
   logic [31:0]        valids;
 
   assign rd1_data = data[rd1_idx];

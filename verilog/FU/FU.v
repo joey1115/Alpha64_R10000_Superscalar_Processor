@@ -303,17 +303,15 @@ module br(
 
   always_comb begin
     result = `FALSE;
-    if(FU_in.ready == `TRUE) begin
-      case (FU_in.inst.r.br_func[1:0])                                      // 'full-case'  All cases covered, no need for a default
-        2'b00: result = (FU_in.T1_value[0] == 0);                           // LBC: (lsb(opa) == 0) ?
-        2'b01: result = (FU_in.T1_value == 0);                              // EQ: (opa == 0) ?
-        2'b10: result = (FU_in.T1_value[63] == 1);                          // LT: (signed(opa) < 0) : check sign bit
-        2'b11: result = (FU_in.T1_value[63] == 1) || (FU_in.T1_value == 0); // LE: (signed(opa) <= 0)
-      endcase
-      // negate cond if func[2] is set
-      if (FU_in.inst.r.br_func[2]) begin
-        result = ~result;
-      end
+    case (FU_in.inst.r.br_func[1:0])                                      // 'full-case'  All cases covered, no need for a default
+      2'b00: result = (FU_in.T1_value[0] == 0);                           // LBC: (lsb(opa) == 0) ?
+      2'b01: result = (FU_in.T1_value == 0);                              // EQ: (opa == 0) ?
+      2'b10: result = (FU_in.T1_value[63] == 1);                          // LT: (signed(opa) < 0) : check sign bit
+      2'b11: result = (FU_in.T1_value[63] == 1) || (FU_in.T1_value == 0); // LE: (signed(opa) <= 0)
+    endcase
+    // negate cond if func[2] is set
+    if (FU_in.inst.r.br_func[2]) begin
+      result = ~result;
     end
   end
 
@@ -349,7 +347,7 @@ module br(
       FU_out.T_idx    = FU_in.T_idx;
       FU_out.ROB_idx  = FU_in.ROB_idx;
       FU_out.done     = FU_in.ready;
-      FU_out.result   = PC_result;
+      FU_out.result   = FU_in.NPC;
     end
   end
 endmodule // brcond

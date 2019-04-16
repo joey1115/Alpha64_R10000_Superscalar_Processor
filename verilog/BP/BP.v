@@ -141,11 +141,19 @@ module BP(
   assign take_branch_out           = {FU_BP_out.BR_target[1].take_branch, FU_BP_out.BR_target[0].take_branch};
   assign take_branch_target_out[1] = (take_branch_out[1]) ? FU_BP_out.BR_target[1].target_PC : FU_BP_out.BR_target[1].NPC;
   assign take_branch_target_out[0] = (take_branch_out[0]) ? FU_BP_out.BR_target[0].target_PC : FU_BP_out.BR_target[0].NPC;
- 
-  assign predict_wrong[1] = FU_BP_out.BR_target[1].done
-                          && (FU_BP_out.BR_target[1].target != FU_BP_out.BR_target[1].target_PC);
-  assign predict_wrong[0] = FU_BP_out.BR_target[0].done
-                          && (FU_BP_out.BR_target[0].target != FU_BP_out.BR_target[0].target_PC);
+
+  always_comb begin
+    for (int i = 0; i < `NUM_BR; i++) begin
+      predict_wrong[i] = `FALSE;
+      if (FU_BP_out.BR_target[i].done) begin
+        if (FU_BP_out.BR_target[i].take_branch) begin
+          predict_wrong[i] = FU_BP_out.BR_target[i].target != FU_BP_out.BR_target[i].target_PC;
+        end else begin
+          predict_wrong[i] = FU_BP_out.BR_target[i].target != FU_BP_out.BR_target[i].NPC;
+        end
+      end
+    end
+  end
 
   always_comb begin
     case(predict_wrong)
