@@ -59,7 +59,7 @@ extern void print_freelist_entry(int i, int freePR);
 extern void print_fetchbuffer_head(int FB_head, int FB_tail);
 extern void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst);
 extern void print_icache_head(int head, int tail);
-extern void print_icache_entry(int i, int valid, int tag, int data_hi, int data_lo);
+extern void print_icache_entry(int i, int addr, int valid, int tag, int data_hi, int data_lo);
 extern void print_mem_tag_table_head();
 extern void print_mem_tag_table_entry(int i, int idx, int tag);
 extern void print_num(int i);
@@ -547,9 +547,11 @@ module testbench;
 `endif
 
 `ifdef PRINT_ICACHE
+    bit [2:0] temp;
     print_icache_head({{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}},i_cache_head}, {{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}},i_cache_tail});
     for(int i = 0; i < `NUM_ICACHE_LINES; i++) begin
-      print_icache_entry(i, {31'b0, i_cache[i].valid}, {{(32-(16-$clog2(`NUM_ICACHE_LINES)-3)){1'b0}}, i_cache[i].tag}, i_cache[i].data[63:32], i_cache[i].data[31:0]);
+      temp = i;
+      print_icache_entry(i, {16'h0, i_cache[i].tag, temp, 3'h0}, {31'b0, i_cache[i].valid}, {{(32-(16-$clog2(`NUM_ICACHE_LINES)-3)){1'b0}}, i_cache[i].tag}, i_cache[i].data[63:32], i_cache[i].data[31:0]);
     end
 `endif
 

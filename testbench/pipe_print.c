@@ -394,10 +394,10 @@ void print_icache_head(int head, int tail)
   }
 }
 
-void print_icache_entry(int i, int valid, int tag, int data_hi, int data_lo)
+void print_icache_entry(int i, int addr, int valid, int tag, int data_hi, int data_lo)
 {
   if(ppfile != NULL){
-    fprintf(ppfile, " %2d | valid: %1d | tag: %d | data: %x%x\n", i, valid, tag, data_hi, data_lo);
+    fprintf(ppfile, " %2d | addr: %d | valid: %1d | tag: %d | data: %x %x\n", i, addr, valid, tag, data_hi, data_lo);
   }
 }
 
