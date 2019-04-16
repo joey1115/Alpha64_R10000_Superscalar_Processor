@@ -37,7 +37,7 @@ module icache(
   I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  next_i_cache;
   logic [$clog2(`NUM_ICACHE_LINES)-1:0]    next_head, next_tail, diff1, diff2, idx, tail_plus_one;
   logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
-  MEM_TAG_TABLE_t [15:0]                   mem_tag_table, next_mem_tag_table;
+  MEM_TAG_TABLE_t [15:0]                   next_mem_tag_table;
   logic  [1:0] next_proc2Imem_command;
   // logic [3:0][63:0]    mem_tag_table, next_mem_tag_table;
 
@@ -96,21 +96,21 @@ module icache(
 
   always_comb begin
     next_mem_tag_table = mem_tag_table;
+    if (Imem2proc_tag != 0 && mem_tag_table[Imem2proc_tag].tag == i_cache[mem_tag_table[Imem2proc_tag].idx].tag && mem_tag_table[Imem2proc_tag].valid) begin
+        next_mem_tag_table[Imem2proc_tag].valid = `FALSE;
+    end
     if (valid & match) begin
       if (Imem2proc_response != 0) begin
-        next_mem_tag_table[Imem2proc_response].idx = `TRUE;
+        next_mem_tag_table[Imem2proc_response].valid = `TRUE;
         next_mem_tag_table[Imem2proc_response].idx = tail;
         next_mem_tag_table[Imem2proc_response].tag = tag;
       end
     end else begin
       if (Imem2proc_response != 0) begin
-        next_mem_tag_table[Imem2proc_response].idx = `TRUE;
+        next_mem_tag_table[Imem2proc_response].valid = `TRUE;
         next_mem_tag_table[Imem2proc_response].idx = idx;
         next_mem_tag_table[Imem2proc_response].tag = tag;
       end
-    end
-    if (Imem2proc_tag != 0 && mem_tag_table[Imem2proc_tag].tag == i_cache[mem_tag_table[Imem2proc_tag].idx].tag && mem_tag_table[Imem2proc_tag].valid) begin
-        next_mem_tag_table[Imem2proc_response].idx = `FALSE;
     end
   end
 
