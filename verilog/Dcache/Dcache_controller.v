@@ -21,6 +21,9 @@ module Dcache_controller(
     output logic                                                                  wr1_en, wr1_dirty, wr1_from_mem, wr1_valid,
     output SASS_ADDR                                                              rd1_addr, wr1_addr,
     output logic [63:0]                                                           wr1_data,
+    output logic                                                                  rd1_search,
+    output logic                                                                  wr1_search,
+
 
     //MSHR to cache                                 
     input logic                                                                   mshr_valid,
@@ -126,24 +129,28 @@ assign mshr_proc2mem_command[2] = BUS_STORE;
 //assign cachemem inputs
 assign rd1_addr = {lq_d_cache_out.addr,3'b000};
 
+assign rd1_search = lq_d_cache_out.rd_en;
+
 
 
 assign wr1_addr = (write_back_stage)              ?  write_back_addr :
-                  (sq_d_cache_out.wr_en & wr1_hit)               ?  {sq_d_cache_out.addr,3'b000}      :
+                  (sq_d_cache_out.wr_en)          ?  {sq_d_cache_out.addr,3'b000}      :
                   (wr_wb_en)                      ?  wr_wb_addr      :
                   (!wr_wb_en & rd_wb_en)          ?  rd_wb_addr      : mem_addr;
 
-assign wr1_dirty = (sq_d_cache_out.wr_en & wr1_hit)               ?  1           :
+assign wr1_dirty = (sq_d_cache_out.wr_en)          ?  1           :
                    (wr_wb_en)                      ?  wr_wb_dirty :
                    (!wr_wb_en & rd_wb_en)          ?  rd_wb_dirty : mem_dirty;
 
-assign wr1_data = (sq_d_cache_out.wr_en & wr1_hit)               ?  sq_d_cache_out.value    :
+assign wr1_data = (sq_d_cache_out.wr_en)          ?  sq_d_cache_out.value    :
                   (wr_wb_en)                      ?  wr_wb_data :
                   (!wr_wb_en & rd_wb_en)          ?  rd_wb_data : mem_data;
 
 assign wr1_valid = (write_back_stage)             ? 0 : 1;
 
 assign wr1_from_mem = mem_wr | rd_wb_en | wr_wb_en | write_back_stage;
+
+assign wr1_search = wr1_from_mem | sq_d_cache_out.wr_en;
 
 assign wr1_en = (wr1_hit & sq_d_cache_out.wr_en) | wr1_from_mem;
 

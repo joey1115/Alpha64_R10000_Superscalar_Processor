@@ -169,7 +169,7 @@ module MSHR(
     rd_wb_dirty = 0;
     rd_wb_data = 0;
     rd_wb_addr = 0;
-    if(MSHR_queue[index[index_rd_search]].proc2mem_command == BUS_STORE && search_en[0]) begin
+    if(MSHR_queue[index[index_rd_search]].proc2mem_command == BUS_STORE && search_en[0] && MSHR_queue[index[index_rd_search]].valid) begin
       rd_wb_en = 1;
       rd_wb_dirty = 0;
       rd_wb_data = MSHR_queue[index[index_rd_search]].data;
@@ -183,7 +183,7 @@ module MSHR(
     wr_wb_dirty = 0;
     wr_wb_addr = 0;
     //store
-    if(search_en[1]) begin
+    if(search_en[1] && MSHR_queue[index[index_wr_search]].valid) begin
       if(MSHR_queue[index[index_wr_search]].proc2mem_command == BUS_STORE) begin
         wr_wb_en = 1;
         wr_wb_addr = MSHR_queue[index[index_wr_search]].addr;
@@ -196,7 +196,7 @@ module MSHR(
   always_comb begin
     miss_addr_hit = 0;
     miss_addr_hit[0] = rd_search_hit;
-    if(search_en[1]) begin
+    if(search_en[1] && MSHR_queue[index[index_wr_search]].valid) begin
       if(MSHR_queue[index[index_wr_search]].proc2mem_command == BUS_STORE) begin
         miss_addr_hit[1] = 1;
       end
@@ -227,15 +227,13 @@ module MSHR(
   always_comb begin
     next_MSHR_queue = MSHR_queue;
     //store
-    if(search_en[1]) begin
+    if(search_en[1] & MSHR_queue[index[index_wr_search]].valid) begin
       if(MSHR_queue[index[index_wr_search]].proc2mem_command == BUS_STORE) begin
         next_MSHR_queue[index[index_wr_search]].dirty = 0;
         next_MSHR_queue[index[index_wr_search]].data = search_wr_data;
       end
       else begin
-        if(MSHR_queue[index[index_wr_search]].inst_type == LOAD) begin
-        end
-        else begin
+        if(MSHR_queue[index[index_wr_search]].inst_type != LOAD) begin
           next_MSHR_queue[index[index_wr_search]].data = search_wr_data;
           next_MSHR_queue[index[index_wr_search]].dirty = 1;
         end
