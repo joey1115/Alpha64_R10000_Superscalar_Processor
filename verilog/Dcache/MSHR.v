@@ -201,14 +201,14 @@ module MSHR(
         miss_addr_hit[1] = 1;
       end
       else if (MSHR_queue[index[index_wr_search]].inst_type == LOAD) begin
-          miss_addr_hit[1] = 0; //make the store send to mshr
+        miss_addr_hit[1] = 0; //make the store send to mshr
       end
     end
   end
 
   always_comb begin
     case(tail_move)
-      2'b01: begin
+      2'b00: begin
         next_tail = tail;
       end
       2'b01: begin

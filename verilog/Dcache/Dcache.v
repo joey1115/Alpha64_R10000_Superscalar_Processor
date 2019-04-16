@@ -105,6 +105,7 @@ module Dcache(
       );
 
   always_comb begin
+    rd1_data_out = 0;
     rd1_hit_out = 0;
     for(int i = 0 ; i <`NUM_WAY; i++) begin
       if(rd1_hit[i]) begin

@@ -260,6 +260,7 @@ module pipeline (
   assign fetch_en_in = fetch_en;
 `ifdef DEBUG
   always_comb begin
+    num_inst = 0;
     if(write_back_stage)begin
       num_inst = 0;
     end   
