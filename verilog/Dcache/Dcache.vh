@@ -10,23 +10,27 @@
 `endif
 
 typedef struct packed {
-  logic [`NUM_BLOCK-1:0][(MEMORY_BLOCK_SIZE*8-1):0] data;
+  logic [63:0] data;
   logic [`NUM_TAG_BITS-1:0] tag;
   logic dirty;
-  logic [`NUM_BLOCK-1:0] valid;
+  logic valid;
 } D_CACHE_LINE_t;
 
 typedef struct packed {
     logic [`NUM_TAG_BITS-1:0] tag;
     logic [$clog2(`NUM_IDX)-1:0] set_index;
-    logic [$clog2(`NUM_BLOCK)-1:0] BO;
+    // logic [$clog2(`NUM_BLOCK)-1:0] BO;
+    logic [2:0] ignore;
 } SASS_ADDR;
 
-typedef enum logic {
-  STORE        = 2'b00,
-  LOAD         = 2'b01,
-  EVICT        = 2'b10,
-} MSHR_INST_TYPE;
+typedef struct packed {
+  logic valid;
+} D_CACHE_SQ_OUT_t;
+
+typedef struct packed {
+  logic        valid;
+  logic [63:0] value;
+} D_CACHE_LQ_OUT_t;
 
 `endif
 

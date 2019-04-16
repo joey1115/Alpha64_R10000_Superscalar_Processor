@@ -18,7 +18,7 @@ module alu (
   logic [$clog2(`NUM_ROB)-1:0] diff;
 
   assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff;
+  assign rollback_valid = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
   assign FU_valid       = CDB_valid || !FU_in.ready || rollback_valid;
 
   function signed_lt;
@@ -83,7 +83,7 @@ module mult_stage (
   input  logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx,
   input  logic [$clog2(`NUM_ROB)-1:0] diff_ROB,
   // Output
-  output logic                        done,
+  output logic                        done, valid_out,
   output logic [63:0]                 product_out, mplier_out, mcand_out,
   output logic [4:0]                  dest_idx_out,
   output logic [$clog2(`NUM_PR)-1:0]  T_idx_out,
@@ -107,12 +107,12 @@ module mult_stage (
 `ifdef MULT_FORWARDING
   assign diff_out           = ROB_idx_out - ROB_rollback_idx;
   assign diff               = ROB_idx - ROB_rollback_idx;
-  assign rollback_valid_out = rollback_en && diff_ROB >= diff_out;
-  assign rollback_valid     = rollback_en && diff_ROB >= diff;
+  assign rollback_valid_out = rollback_en && diff_ROB >= diff_out && diff_out != {$clog2(`NUM_ROB){1'b0}};
+  assign rollback_valid     = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
   assign valid_out          = !ready || valid || rollback_valid_out;
 `else
   assign diff               = next_ROB_idx_out - ROB_rollback_idx;
-  assign rollback_valid     = rollback_en && diff_ROB >= diff;
+  assign rollback_valid     = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
   assign next_mplier_out    = valid ? next_mplier : mplier_out;
   assign next_mcand_out     = valid ? next_mcand : mcand_out;
   assign next_product_out   = valid ? next_product : product_out;
@@ -221,6 +221,9 @@ module mult (
   assign ROB_idx  = last_ROB_idx;
   assign FU_out   = '{done, result, dest_idx, T_idx, ROB_idx};
   assign regA     = FU_in.T1_value;
+`ifndef MULT_FORWARDING
+  assign FU_valid = CDB_valid || ~done;
+`endif
 
   always_comb begin
     regB = 64'hbaadbeefdeadbeef;
@@ -278,16 +281,17 @@ module br(
   output FU_OUT_t                        FU_out
 );
 
-  logic result;
+  logic result, rollback_valid, take_branch;
+  logic [$clog2(`NUM_ROB)-1:0] diff;
   logic [63:0] regA, regB, PC_result;
   assign FU_valid       = CDB_valid || !FU_in.ready;
   assign take_branch    = FU_in.uncond_branch || (FU_in.cond_branch && result);
   assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff;
+  assign rollback_valid = rollback_en && diff_ROB >= diff && ROB_rollback_idx != FU_in.ROB_idx;
 
   always_comb begin
     BR_target.NPC         = FU_in.NPC;
-    BR_target.ROB_idx     = FU_in.ROB_idx + 1;
+    BR_target.ROB_idx     = FU_in.ROB_idx;
     BR_target.FL_idx      = FU_in.FL_idx;
     BR_target.SQ_idx      = FU_in.SQ_idx;
     BR_target.LQ_idx      = FU_in.LQ_idx;
@@ -299,17 +303,15 @@ module br(
 
   always_comb begin
     result = `FALSE;
-    if(FU_in.ready == `TRUE) begin
-      case (FU_in.inst.r.br_func[1:0])                                      // 'full-case'  All cases covered, no need for a default
-        2'b00: result = (FU_in.T1_value[0] == 0);                           // LBC: (lsb(opa) == 0) ?
-        2'b01: result = (FU_in.T1_value == 0);                              // EQ: (opa == 0) ?
-        2'b10: result = (FU_in.T1_value[63] == 1);                          // LT: (signed(opa) < 0) : check sign bit
-        2'b11: result = (FU_in.T1_value[63] == 1) || (FU_in.T1_value == 0); // LE: (signed(opa) <= 0)
-      endcase
-      // negate cond if func[2] is set
-      if (FU_in.inst.r.br_func[2]) begin
-        result = ~result;
-      end
+    case (FU_in.inst.r.br_func[1:0])                                      // 'full-case'  All cases covered, no need for a default
+      2'b00: result = (FU_in.T1_value[0] == 0);                           // LBC: (lsb(opa) == 0) ?
+      2'b01: result = (FU_in.T1_value == 0);                              // EQ: (opa == 0) ?
+      2'b10: result = (FU_in.T1_value[63] == 1);                          // LT: (signed(opa) < 0) : check sign bit
+      2'b11: result = (FU_in.T1_value[63] == 1) || (FU_in.T1_value == 0); // LE: (signed(opa) <= 0)
+    endcase
+    // negate cond if func[2] is set
+    if (FU_in.inst.r.br_func[2]) begin
+      result = ~result;
     end
   end
 
@@ -345,7 +347,7 @@ module br(
       FU_out.T_idx    = FU_in.T_idx;
       FU_out.ROB_idx  = FU_in.ROB_idx;
       FU_out.done     = FU_in.ready;
-      FU_out.result   = PC_result;
+      FU_out.result   = FU_in.NPC;
     end
   end
 endmodule // brcond
@@ -364,21 +366,23 @@ module st (
 );
 
   ST_OUT_t                        next_ST_out;
-  logic                           rollback_valid;
-  logic    [$clog2(`NUM_ROB)-1:0] diff;
+  logic                           rollback_valid, rollback_valid_out;
+  logic    [$clog2(`NUM_ROB)-1:0] diff, diff_out;
   logic    [63:0]                 regA, regB, result;
 
-  assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff;
-  assign regA           = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
-  assign regB           = FU_in.T2_value;
-  assign result         = regA + regB;
-  assign FU_valid       = !FU_in.ready || CDB_valid || rollback_valid;
+  assign diff               = FU_in.ROB_idx - ROB_rollback_idx;
+  assign diff_out           = ST_out.ROB_idx - ROB_rollback_idx;
+  assign rollback_valid     = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
+  assign rollback_valid_out = rollback_en && diff_ROB >= diff && diff_out != {$clog2(`NUM_ROB){1'b0}};
+  assign regA               = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
+  assign regB               = FU_in.T2_value;
+  assign result             = regA + regB;
+  assign FU_valid           = !FU_in.ready || CDB_valid || rollback_valid;
 
   always_comb begin
-    if ( rollback_valid ) begin
-      next_ST_out = `ST_OUT_RESET;
-    end else begin
+    if ( !CDB_valid && !rollback_valid_out ) begin
+      next_ST_out = ST_out;
+    end else if ( CDB_valid && !rollback_valid ) begin
       next_ST_out.done     = FU_in.ready;
       next_ST_out.result   = result;
       next_ST_out.dest_idx = FU_in.dest_idx;
@@ -388,6 +392,8 @@ module st (
       next_ST_out.SQ_idx   = FU_in.SQ_idx;
       next_ST_out.LQ_idx   = FU_in.LQ_idx;
       next_ST_out.T1_value = FU_in.T1_value;
+    end else begin
+      next_ST_out = `ST_OUT_RESET;
     end
   end
 
@@ -414,27 +420,34 @@ module ld (
 );
 
   LD_OUT_t                        next_LD_out;
-  logic                           rollback_valid;
-  logic    [$clog2(`NUM_ROB)-1:0] diff;
+  logic                           rollback_valid, rollback_valid_out;
+  logic    [$clog2(`NUM_ROB)-1:0] diff, diff_out;
   logic    [63:0]                 regA, regB, result;
 
-  assign diff           = FU_in.ROB_idx - ROB_rollback_idx;
-  assign rollback_valid = rollback_en && diff_ROB >= diff;
-  assign regA           = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
-  assign regB           = FU_in.T2_value;
-  assign result         = regA + regB;
-  assign FU_valid       = !FU_in.ready || LQ_valid || rollback_valid;
+  assign diff               = FU_in.ROB_idx - ROB_rollback_idx;
+  assign diff_out           = LD_out.ROB_idx - ROB_rollback_idx;
+  assign rollback_valid     = rollback_en && diff_ROB >= diff && diff != {$clog2(`NUM_ROB){1'b0}};
+  assign rollback_valid_out = rollback_en && diff_ROB >= diff_out && diff_out != {$clog2(`NUM_ROB){1'b0}};
+  assign regA               = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
+  assign regB               = FU_in.T2_value;
+  assign result             = regA + regB;
+  assign FU_valid           = !FU_in.ready || LQ_valid || rollback_valid;
 
   always_comb begin
-    if ( rollback_valid ) begin
-      next_LD_out = `LD_OUT_RESET;
-    end else begin
+    if ( !LQ_valid && !rollback_valid_out ) begin
+      next_LD_out = LD_out;
+    end else if ( LQ_valid && !rollback_valid ) begin
       next_LD_out.done     = FU_in.ready;
       next_LD_out.result   = result;
       next_LD_out.dest_idx = FU_in.dest_idx;
       next_LD_out.T_idx    = FU_in.T_idx;
       next_LD_out.ROB_idx  = FU_in.ROB_idx;
+      next_LD_out.FL_idx   = FU_in.FL_idx;
+      next_LD_out.SQ_idx   = FU_in.SQ_idx;
+      next_LD_out.LQ_idx   = FU_in.LQ_idx;
       next_LD_out.NPC      = FU_in.NPC;
+    end else begin
+      next_LD_out = `LD_OUT_RESET;
     end
   end
 
@@ -452,7 +465,6 @@ module FU (
   input  logic                                               clock,               // system clock
   input  logic                                               reset,               // system reset
   input  logic                                               en,               // system reset
-  input  logic        [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
   input  logic        [`NUM_FU-1:0]                          CDB_valid,
   input  logic        [`NUM_SUPER-1:0]                       LQ_valid,
   input  logic                                               rollback_en,
@@ -508,6 +520,8 @@ module FU (
       FU_SQ_out.dest_idx[i] = ST_out[i].dest_idx;
       FU_SQ_out.T_idx[i]    = ST_out[i].T_idx;
       FU_SQ_out.ROB_idx[i]  = ST_out[i].ROB_idx;
+      FU_SQ_out.SQ_idx[i]   = ST_out[i].SQ_idx;
+      FU_SQ_out.LQ_idx[i]   = ST_out[i].LQ_idx;
       FU_SQ_out.T1_value[i] = ST_out[i].T1_value;
     end
   end
@@ -525,15 +539,15 @@ module FU (
   end
 
   always_comb begin
-    for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i < `NUM_FU; i++) begin
+    for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR; i < `NUM_FU; i++) begin
       FU_CDB_out.FU_out[i] = FU_out[i];
     end
     for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR; i++) begin
-      FU_CDB_out.FU_out[i].done     = SQ_FU_out.done[i];
-      FU_CDB_out.FU_out[i].result   = SQ_FU_out.result[i];
-      FU_CDB_out.FU_out[i].dest_idx = SQ_FU_out.dest_idx[i];
-      FU_CDB_out.FU_out[i].T_idx    = SQ_FU_out.T_idx[i];
-      FU_CDB_out.FU_out[i].ROB_idx  = SQ_FU_out.ROB_idx[i];
+      FU_CDB_out.FU_out[i].done     = SQ_FU_out.done[i-`NUM_LD];
+      FU_CDB_out.FU_out[i].result   = SQ_FU_out.result[i-`NUM_LD];
+      FU_CDB_out.FU_out[i].dest_idx = SQ_FU_out.dest_idx[i-`NUM_LD];
+      FU_CDB_out.FU_out[i].T_idx    = SQ_FU_out.T_idx[i-`NUM_LD];
+      FU_CDB_out.FU_out[i].ROB_idx  = SQ_FU_out.ROB_idx[i-`NUM_LD];
     end
     for (int i = `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i++) begin
       FU_CDB_out.FU_out[i].done     = LQ_FU_out.done[i];
@@ -542,7 +556,7 @@ module FU (
       FU_CDB_out.FU_out[i].T_idx    = LQ_FU_out.T_idx[i];
       FU_CDB_out.FU_out[i].ROB_idx  = LQ_FU_out.ROB_idx[i];
     end
-    for (int i = 0; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST; i++) begin
+    for (int i = 0; i < `NUM_FU-`NUM_ALU-`NUM_MULT-`NUM_BR-`NUM_ST-`NUM_LD; i++) begin
       FU_CDB_out.FU_out[i] = FU_out[i];
     end
   end

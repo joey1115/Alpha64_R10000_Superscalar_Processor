@@ -14,8 +14,6 @@ module RS (
   input  FL_RS_OUT_t                                               FL_RS_out,
   input  MAP_TABLE_RS_OUT_t                                        Map_Table_RS_out,
   input  CDB_RS_OUT_t                                              CDB_RS_out,
-  input  SQ_RS_OUT_t                                               SQ_RS_out,
-  input  LQ_RS_OUT_t                                               LQ_RS_out,
 `ifdef DEBUG
   output RS_ENTRY_t         [`NUM_FU-1:0]                          RS_out,
   output logic              [`NUM_SUPER-1:0]                       RS_match_hit,   // If a RS entry is ready
@@ -36,7 +34,7 @@ module RS (
   logic          [`NUM_FU-1:0]                         T2_ready;       // If T2 is ready
   logic          [`NUM_FU-1:0]                         RS_entry_ready; // If T2 is ready
   logic          [`NUM_FU-1:0]                         RS_rollback;    // If a RS entry is ready
-  logic          [`NUM_SUPER-1:0][`NUM_FU-1:0]         FU_entry_match;
+  logic          [`NUM_FU-1:0]                         FU_entry_match;
   logic          [`NUM_FU-1:0][$clog2(`NUM_ROB)-1:0]   diff;
 `ifndef DEBUG
   logic          [`NUM_SUPER-1:0]                      RS_match_hit;   // If a RS entry is ready
@@ -55,7 +53,7 @@ module RS (
       RS_match_hit[i] =  `FALSE;
       RS_match_idx[i] = {$clog2(`NUM_FU){1'b0}};
       for (int j = i; j < `NUM_FU; j = j + `NUM_SUPER) begin
-        if ( RS[j].busy == `FALSE && FU_entry_match[i][j] ) begin
+        if ( RS[j].busy == `FALSE && FU_entry_match[j] ) begin
           RS_match_hit[i] = `TRUE; // RS entry match
           RS_match_idx[i] = j;
           break;
@@ -87,7 +85,7 @@ module RS (
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       for (int j = i; j < `NUM_FU; j = j + 2) begin
-        FU_entry_match[i][j] = FU_list[j] == decoder_RS_out.FU[i];
+        FU_entry_match[j] = FU_list[j] == decoder_RS_out.FU[i];
       end // for (int i = 0; i < `NUM_FU; i++) begin
     end
   end
@@ -95,7 +93,7 @@ module RS (
   always_comb begin
     for (int j = 0; j < `NUM_FU; j++) begin
       diff[j]        = RS[j].ROB_idx - ROB_rollback_idx;       // diff
-      RS_rollback[j] = ( diff_ROB >= diff[j] ) && rollback_en; // Rollback
+      RS_rollback[j] = diff_ROB >= diff[j] && diff[j] != {$clog2(`NUM_ROB){1'b0}} && rollback_en; // Rollback
     end // for (int i = 0; i < `NUM_FU; i++) begin
   end // always_comb begin
 
@@ -157,7 +155,7 @@ module RS (
     end
   end // always_comb begin
 
-  assign FU_list = `FU_LIST;
+assign FU_list = {{(`NUM_ALU){FU_ALU}}, {(`NUM_MULT){FU_MULT}}, {(`NUM_BR){FU_BR}}, {(`NUM_ST){FU_ST}}, {(`NUM_LD){FU_LD}}};
 
   always_ff @(posedge clock) begin
     if(reset) begin

@@ -18,6 +18,8 @@ typedef struct packed {
   logic halt;
   logic illegal;
   logic [63:0] NPC;
+  logic wr_mem;
+  logic rd_mem;
 } ROB_ENTRY_t;
 
 typedef struct packed {
@@ -27,8 +29,12 @@ typedef struct packed {
 } ROB_t;
 
 typedef struct packed {
+  logic stall_dispatch;
+} ROB_MAP_TABLE_OUT_t;
+
+typedef struct packed {
   logic [`NUM_SUPER-1:0] [$clog2(`NUM_PR)-1:0] T_idx;            // T_idx at head to retire to archmap
-  logic [`NUM_SUPER-1:0] [4:0]                 dest_idx;         // T_idx at head to retire to archmap
+  logic [`NUM_SUPER-1:0] [4:0]                 dest_idx;// T_idx at head to retire to archmap
 } ROB_ARCH_MAP_OUT_t;
 
 typedef struct packed {
@@ -37,12 +43,15 @@ typedef struct packed {
 
 typedef struct packed {
   logic [`NUM_SUPER-1:0]                       wr_mem;
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
+  logic [`NUM_SUPER-1:0]                       retire;
+  // logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
 } ROB_SQ_OUT_t;
 
 typedef struct packed {
   logic [`NUM_SUPER-1:0] rd_mem;
 } ROB_LQ_OUT_t;
+
+
 
 `endif
 

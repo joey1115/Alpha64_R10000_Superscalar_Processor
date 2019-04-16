@@ -103,6 +103,10 @@ module FETCH_BUFFER (
       head <= `SD 0;
       tail <= `SD 0;
       for(int i=0; i < `NUM_FB; i++) begin
+        FB[i].PC <= `SD 0;
+        FB[i].NPC <= `SD 0;
+        FB[i].inst <= `SD 0;
+        FB[i].target <= `SD 0;
         FB[i].valid <= `SD 0;
       end
     end 

@@ -12,7 +12,6 @@ vis_simv
 */vis_simv.daidir/
 syn_simv
 */syn_simv.daidir/
-*.out
 synsimv
 */synsimv.daidir/
 vcdplus.vpd
@@ -29,4 +28,7 @@ DVEfiles
 *.ddc
 program.mem
 *.sv
+*.output
+*.out
+!test_progs_solution/*.out
 !P4_example/*.out

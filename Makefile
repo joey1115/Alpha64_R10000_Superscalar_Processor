@@ -27,7 +27,7 @@
 ## CONFIGURATION
 ################################################################################
 
-VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD) +define+PIPELINE +lint=PCWM +lint=TFIPC-L +lint=ERASM-L +error+20
+VCS = vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD) +define+PIPELINE +lint=PCWM +lint=TFIPC-L +lint=ERASM-L +error+20
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 SYNTH_DIR = ./synth
@@ -50,6 +50,8 @@ HEADERS      += $(wildcard verilog/Map_Table/Map_Table.vh)
 HEADERS      += $(wildcard verilog/PR/PR.vh)
 HEADERS      += $(wildcard verilog/ROB/ROB.vh)
 HEADERS      += $(wildcard verilog/RS/RS.vh)
+HEADERS      += $(wildcard verilog/Dcache/*.vh)
+HEADERS      += $(wildcard verilog/LSQ/*.vh)
 TESTBENCH     = $(wildcard testbench/*.v)
 TESTBENCH    += $(wildcard testbench/*.c)
 PIPEFILES     = $(wildcard verilog/*.v)
@@ -65,8 +67,12 @@ MAPTABLEFILES = $(wildcard verilog/Map_Table/Map_Table.v)
 PRFILES       = $(wildcard verilog/PR/PR.v)
 ROBFILES      = $(wildcard verilog/ROB/ROB.v)
 RSFILES       = $(wildcard verilog/RS/RS.v)
+DCACHEFILES   = $(wildcard verilog/Dcache/Dcache.v)
+MSHRFILES     = $(wildcard verilog/Dcache/MSHR.v)
+DCACHECFILES  = $(wildcard verilog/Dcache/Dcache_controller.v)
+LSQFILES      = $(wildcard verilog/LSQ/LSQ.v)
 
-SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(BPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FBFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES)
+SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FBFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES) $(DCACHEFILES) $(LSQFILES) $(MSHRFILES) $(DCACHECFILES) $(BPFILES)
 
 # SYNTHESIS CONFIG
 

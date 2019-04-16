@@ -19,10 +19,11 @@ module ROB (
 `endif                
   output logic                                                      ROB_valid,
   output logic               [`NUM_SUPER-1:0]                       retire_en,
-  output logic                                                      halt_out,
-  output logic                                                      illegal_out,
+  output logic               [`NUM_SUPER-1:0]                       halt_out,
+  output logic               [`NUM_SUPER-1:0]                       illegal_out,
   output logic               [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx,
   output ROB_ARCH_MAP_OUT_t                                         ROB_Arch_Map_out,
+  output ROB_MAP_TABLE_OUT_t                                        ROB_MAP_Table_out,
   output ROB_FL_OUT_t                                               ROB_FL_out,
   output ROB_SQ_OUT_t                                               ROB_SQ_out,
   output ROB_LQ_OUT_t                                               ROB_LQ_out
@@ -34,44 +35,55 @@ module ROB (
 
   ROB_t Nrob;
 
-  logic writeTail, moveHead, mispredict, b_t, stall_dispatch;
+  logic writeTail, moveHead, mispredict, b_t;
   logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg, ROB_rollback_idx_reg_plus_one;
   logic [1:0] state, Nstate;
   logic [$clog2(`NUM_ROB)-1:0] tail_plus_one;
-  logic [$clog2(`NUM_ROB)-1:0] tail_minus_one;
-  logic [$clog2(`NUM_ROB)-1:0] head_plus_one;
+  logic [$clog2(`NUM_ROB)-1:0] tail_minus_one, tail_minus_two;
+  logic [$clog2(`NUM_ROB)-1:0] head_plus_one, ROB_rollback_idx_minus_one;
 
 `ifdef DEBUG
   assign retire_NPC[0] = rob.entry[rob.head].NPC;
   assign retire_NPC[1] = rob.entry[head_plus_one].NPC; 
 `endif
+
+  assign ROB_SQ_out.wr_mem = '{rob.entry[head_plus_one].wr_mem,rob.entry[rob.head].wr_mem};
+  assign ROB_SQ_out.retire[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid;
+  assign ROB_SQ_out.retire[1] = rob.entry[head_plus_one].complete & rob.entry[head_plus_one].valid;
+
+  assign ROB_LQ_out.rd_mem = '{rob.entry[head_plus_one].rd_mem,rob.entry[rob.head].rd_mem};
+
   assign ROB_Arch_Map_out.T_idx = '{rob.entry[head_plus_one].T_idx, rob.entry[rob.head].T_idx};
   assign ROB_Arch_Map_out.dest_idx = '{rob.entry[head_plus_one].dest_idx, rob.entry[rob.head].dest_idx};
   assign ROB_FL_out.Told_idx = '{rob.entry[head_plus_one].Told_idx, rob.entry[rob.head].Told_idx};
 
   //assign ROB_valid
-  assign stall_dispatch = (state == 1);
+  assign ROB_MAP_Table_out.stall_dispatch = (state == 1);
   //!Nrob.entry[Nrob.tail].valid
   assign ROB_rollback_idx_minus_one = ROB_rollback_idx - 1;
   assign tail_plus_one = rob.tail + 1;
   assign tail_minus_one = rob.tail - 1;
+  assign tail_minus_two = rob.tail - 2;
   assign head_plus_one = rob.head + 1;
   assign ROB_rollback_idx_reg_plus_one = ROB_rollback_idx_reg + 1;
   
-  assign ROB_valid = (stall_dispatch | rollback_en)? 0 : (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]);
+  assign ROB_valid = (ROB_MAP_Table_out.stall_dispatch | rollback_en) ? 0 :
+                     (!rob.entry[rob.tail].valid || retire_en[0]) & (!rob.entry[tail_plus_one].valid || retire_en[1]) & !(rob.entry[tail_minus_one].halt || rob.entry[tail_minus_two].halt || rob.entry[tail_minus_one].illegal || rob.entry[tail_minus_two].illegal);
   
   //(tail_plus_one!=rob.head)) && !(rob.entry[tail_minus_one].halt && rob.entry[tail_minus_one].valid);
 
   //assign ROB_valid = tail_plus_one!=rob.head;
   //assign halt out
-  assign halt_out =  (retire_en[0] && rob.entry[rob.head].halt) || (retire_en[1] && rob.entry[head_plus_one].halt);
-  assign illegal_out =  (retire_en[0] && rob.entry[rob.head].illegal) || (retire_en[1] && rob.entry[head_plus_one].illegal);
-  assign ROB_idx[0] = dispatch_en ? rob.tail : (tail_minus_one - 1);
+  assign halt_out[0] =  (retire_en[0] && rob.entry[rob.head].halt);
+  assign halt_out[1] =  (retire_en[1] && rob.entry[head_plus_one].halt);
+  assign illegal_out[0] =  (retire_en[0] && rob.entry[rob.head].illegal);
+  assign illegal_out[1] =  (retire_en[1] && rob.entry[head_plus_one].illegal);
+  assign ROB_idx[0] = dispatch_en ? rob.tail : tail_minus_two;
   assign ROB_idx[1] = dispatch_en ? tail_plus_one : tail_minus_one;
 
   always_comb begin
-    retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid;
-    retire_en[1] = rob.entry[head_plus_one].complete & rob.entry[head_plus_one].valid & retire_en[0];
+    retire_en[0] = rob.entry[rob.head].complete & rob.entry[rob.head].valid & SQ_ROB_out.retire_valid[0] & !rollback_en;
+    retire_en[1] = rob.entry[head_plus_one].complete & rob.entry[head_plus_one].valid & retire_en[0] & SQ_ROB_out.retire_valid[1] & !rollback_en;
 
     // condition for Retire
     moveHead = retire_en[0];
@@ -106,6 +118,10 @@ module ROB (
     Nrob.entry[tail_plus_one].illegal = writeTail & decoder_ROB_out.illegal[1];
     Nrob.entry[rob.tail].NPC = (writeTail) ? decoder_ROB_out.NPC[0] : Nrob.entry[rob.tail].NPC;
     Nrob.entry[tail_plus_one].NPC = (writeTail) ? decoder_ROB_out.NPC[1] : Nrob.entry[tail_plus_one].NPC;
+    Nrob.entry[rob.tail].wr_mem = (writeTail) ? decoder_ROB_out.wr_mem[0] : Nrob.entry[rob.tail].wr_mem;
+    Nrob.entry[tail_plus_one].wr_mem = (writeTail) ? decoder_ROB_out.wr_mem[1] : Nrob.entry[tail_plus_one].wr_mem;
+    Nrob.entry[rob.tail].rd_mem = (writeTail) ? decoder_ROB_out.rd_mem[0] : Nrob.entry[rob.tail].rd_mem;
+    Nrob.entry[tail_plus_one].rd_mem = (writeTail) ? decoder_ROB_out.rd_mem[1] : Nrob.entry[tail_plus_one].rd_mem;
 
     
   
@@ -129,33 +145,33 @@ module ROB (
     end
 
     //rollback functionality
-    b_t = ROB_rollback_idx_minus_one >= rob.tail;
+    b_t = ROB_rollback_idx >= rob.tail;
 
-    mispredict = rollback_en && rob.entry[ROB_rollback_idx_minus_one].valid;
+    mispredict = rollback_en && rob.entry[ROB_rollback_idx].valid;
 
     if(mispredict) begin
         if(b_t) begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush only branch less than tail and greater than branch
-            if( i < rob.tail || i > ROB_rollback_idx_minus_one)
+            if( i < rob.tail || i > ROB_rollback_idx)
               Nrob.entry[i].valid = 0;
           end
         end
         else begin
           for(int i=0; i < `NUM_ROB; i++) begin
             //flush instructions between tail and branch
-            if( i < rob.tail && i > ROB_rollback_idx_minus_one)
+            if( i < rob.tail && i > ROB_rollback_idx)
               Nrob.entry[i].valid = 0;
           end
         end
         //move tail index to after branch
-        Nrob.tail = ROB_rollback_idx;
+        Nrob.tail = ROB_rollback_idx + 1;
     end
     
    
   end
 
-  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx_minus_one : ROB_rollback_idx_reg;
+  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx : ROB_rollback_idx_reg;
 
   always_comb begin
     case(state)
@@ -178,6 +194,9 @@ module ROB (
          rob.entry[i].T_idx <= `SD 0;
          rob.entry[i].Told_idx <= `SD 0;
          rob.entry[i].dest_idx <= `SD 0;
+         rob.entry[i].wr_mem <= `SD 0;
+         rob.entry[i].rd_mem <= `SD 0;
+         rob.entry[i].NPC <= `SD 0;
       end
     end // if (reset) else
     else if(en)begin

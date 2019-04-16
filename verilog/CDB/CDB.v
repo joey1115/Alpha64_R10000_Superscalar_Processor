@@ -12,6 +12,8 @@ module CDB (
   output logic               [`NUM_SUPER-1:0]       write_en,
   output logic               [`NUM_SUPER-1:0]       complete_en,
   output logic               [`NUM_FU-1:0]          CDB_valid,
+  output logic               [`NUM_ST-1:0]          CDB_SQ_valid,
+  output logic               [`NUM_LD-1:0]          CDB_LQ_valid,
   output CDB_ROB_OUT_t                              CDB_ROB_out,
   output CDB_RS_OUT_t                               CDB_RS_out,
   output CDB_MAP_TABLE_OUT_t                        CDB_Map_Table_out,
@@ -32,10 +34,6 @@ module CDB (
   logic       [`NUM_SUPER-1:0][63:0]                 T_value;       // result to PR
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] ROB_idx;
 
-  logic                       [$clog2(`NUM_FU)-1:0]  CDB_index;
-  logic                       [`NUM_FU-1:0]          CDB_taken;
-
-
   assign CDB_ROB_out       = '{ROB_idx};
   assign CDB_RS_out        = '{T_idx};
   assign CDB_Map_Table_out = '{T_idx, dest_idx};
@@ -43,6 +41,8 @@ module CDB (
   assign complete_en       = complete_hit;
   assign write_en          = complete_hit;
   assign CDB_valid         = CDB_empty;
+  assign CDB_SQ_valid      = CDB_empty[`NUM_LD+`NUM_ST-1:`NUM_LD];
+  assign CDB_LQ_valid      = CDB_empty[`NUM_LD-1:0];
 
   always_comb begin
     next_CDB = CDB;
@@ -68,7 +68,7 @@ module CDB (
     if (rollback_en) begin
       for (int i=0; i<`NUM_FU; i++)begin
         diff[i] = CDB[i].ROB_idx - ROB_rollback_idx;
-        rollback_valid[i] = diff_ROB >= diff[i];
+        rollback_valid[i] = diff_ROB >= diff[i] && diff[i] != {$clog2(`NUM_ROB){1'b0}};
       end
     end
   end
@@ -85,12 +85,12 @@ module CDB (
   end
 
   always_comb begin
-    complete_hit = {`NUM_SUPER{`FALSE}};
-    complete_idx = {`NUM_SUPER{($clog2(`NUM_FU){1'b0})}};
+    complete_hit = '{`NUM_SUPER{`FALSE}};
+    complete_idx = '{`NUM_SUPER{{$clog2(`NUM_FU){{1'b0}}}}};
     for (int i = 0; i < `NUM_SUPER; i++) begin
       // broadcast one completed instruction (if one is found) for first half of FU
       for (int j=i; j<`NUM_FU; j=j+2) begin
-        if (CDB[i].taken) begin
+        if (CDB[j].taken) begin
           complete_hit[i] = `TRUE;
           complete_idx[i] = j;
           break;

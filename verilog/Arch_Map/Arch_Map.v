@@ -9,14 +9,17 @@ module Arch_Map (
   input  ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out
 `else
   input  ROB_ARCH_MAP_OUT_t                             ROB_Arch_Map_out,
-  output logic              [31:0][$clog2(`NUM_PR)-1:0] next_arch_map
+  output logic              [31:0][$clog2(`NUM_PR)-1:0] next_arch_map,
 `endif
+  output ARCH_MAP_MAP_TABLE_OUT_t                           ARCH_MAP_MAP_Table_out
 );
 
   logic [31:0][$clog2(`NUM_PR)-1:0] arch_map;
 `ifndef DEBUG
   logic [31:0][$clog2(`NUM_PR)-1:0] next_arch_map;
 `endif
+
+  assign ARCH_MAP_MAP_Table_out.arch_map = arch_map;
 
   always_comb begin
     next_arch_map = arch_map;

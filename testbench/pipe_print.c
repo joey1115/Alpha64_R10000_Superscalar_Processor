@@ -39,9 +39,9 @@ void print_ROB_ht(int head, int tail)
     
 }
 
-void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, int complete, int halt, int illegal, int NPC_hi, int NPC_lo){
+void print_ROB_entry(int i, int valid, int T, int T_old, int dest_idx, int complete, int halt, int illegal, int NPC_hi, int NPC_lo, int wr_mem, int rd_mem){
   if (ppfile != NULL)
-    fprintf(ppfile, "index: %3d | valid: %1d | T: %3d | T_old: %3d | dest_idx: %3d | complete: %1d | halt: %1d | illegal: %1d | NPC: %x%x |\n", i,valid, T, T_old, dest_idx, complete, halt, illegal, NPC_hi, NPC_lo);
+    fprintf(ppfile, "index: %3d | valid: %1d | T: %3d | T_old: %3d | dest_idx: %3d | complete: %1d | halt: %1d | illegal: %1d | NPC: %x%x | wr_mem: %1d | rd_mem: %1d\n", i,valid, T, T_old, dest_idx, complete, halt, illegal, NPC_hi, NPC_lo, wr_mem, rd_mem);
 }
 
 void print_RS_head(){
@@ -49,7 +49,7 @@ void print_RS_head(){
     fprintf(ppfile, "----------------------------------------------------------------------------------------------------------------RS--------------------------------------------------------------------------------------------------------------\n");
 }
 
-void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select){
+void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, int NPC_lo, int dest_idx, int ROB_idx, int FL_idx, int T_idx, int T1, int T1_ready, int T2, int T2_ready, int T1_select, int T2_select, int SQ_idx, int LQ_idx, int uncond_branch, int cond_branch, int wr_mem, int rd_mem, int target_hi, int target_lo){
 
   char *T1_str;
   char *T2_str;
@@ -246,8 +246,8 @@ void print_RS_entry(char* funcType, int busy, int inst, int func, int NPC_hi, in
       break;
   }
       if (ppfile != NULL)
-        fprintf(ppfile, "Function: %-8s | busy: %1d |  inst: %-8s | func: %-8s | NPC: %x%x | dest_idx: %3d | ROB_idx: %2d | FL_idx: %2d | T_idx: %3d | T1: %3d | T1_ready: %1d | T2: %3d | T2_ready: %1d | ALU_OPA_SELECT: %-10s | ALU_OPB_SELECT: %-10s\n",
-                funcType, busy, str, ALU_func, NPC_hi, NPC_lo, dest_idx, ROB_idx, FL_idx, T_idx, T1, T1_ready, T2, T2_ready, T1_str, T2_str);
+        fprintf(ppfile, "Function: %-8s | busy: %1d |  inst: %-8s | func: %-8s | NPC: %x%x | dest_idx: %3d |\n ROB_idx: %2d | FL_idx: %2d | T_idx: %3d | T1: %3d | T1_ready: %1d | T2: %3d | T2_ready: %1d | ALU_OPA_SELECT: %-10s | ALU_OPB_SELECT: %-10s |\nSQ_idx: %3d | LQ_idx: %3d | uncond_branch: %1d | cond_branch: %1d | wr_mem: %1d | rd_mem: %1d | target: %x%x |\n\n",
+                funcType, busy, str, ALU_func, NPC_hi, NPC_lo, dest_idx, ROB_idx, FL_idx, T_idx, T1, T1_ready, T2, T2_ready, T1_str, T2_str, SQ_idx, LQ_idx, uncond_branch, cond_branch, wr_mem, rd_mem, target_hi, target_lo);
 }
 
 void print_maptable_head(){
@@ -256,7 +256,7 @@ void print_maptable_head(){
     fprintf(ppfile, " reg |  T      | PR data\n");
   }
 }
-void print_maptable_entries(int reg_idx, int T, int ready, int PR_data_hi, int PR_data_lo){
+void print_maptable_entry(int reg_idx, int T, int ready, int PR_data_hi, int PR_data_lo){
   char *ready_bit;
   if(ready){
     ready_bit = "+";
@@ -275,7 +275,7 @@ void print_CDB_head(){
   }
 }
 
-void print_CDB_entries(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO){
+void print_CDB_entry(int taken, int T_idx, int ROB_idx, int dest_idx, int T_value_HI, int T_value_LO){
   if (ppfile != NULL){
     fprintf(ppfile, "taken: %1d | T_idx: %3d | ROB_idx: %3d | dest_idx: %3d | T_value: %x%x |\n" , taken, T_idx, ROB_idx, dest_idx, T_value_HI, T_value_LO);
   }
@@ -288,7 +288,7 @@ void print_archmap_head(){
   }
 }
 
-void print_archmap_entries(int reg_idx, int pr){
+void print_archmap_entry(int reg_idx, int pr){
   if(ppfile != NULL){
     fprintf(ppfile, " %3d | %3d \n", reg_idx, pr);
   }
@@ -325,6 +325,77 @@ void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst)
   }
 }
 
+void print_Dcache_head()
+{
+    fprintf(ppfile, "---------------------------------------Dcache----------------------------------- \n");   
+}
+void print_Dcache_bank(int data_hi, int data_lo, int tag_hi, int tag_lo, int dirty, int valid){
+  if(ppfile != NULL){
+    fprintf(ppfile, "data: %x%x | tag: %x%x | dirty: %1d | valid: %1d |        ", data_hi, data_lo, tag_hi, tag_lo, dirty, valid);
+  }
+}
+
+void print_MSHR_head(int writeback_head, int head, int tail, int mem_bus)
+{
+  char *mem_bus_char;
+  if(mem_bus == 0) {
+    mem_bus_char = "BUS_NONE";
+  }
+  else if(mem_bus == 1) {
+    mem_bus_char = "BUS_LOAD";
+  }
+  else if(mem_bus == 2){
+    mem_bus_char = "BUS_STORE";
+  }
+  else {
+    mem_bus_char = "ERROR";
+  }
+  fprintf(ppfile, "---------------------------------------MSHR----------------------------------- \n");
+  fprintf(ppfile, "writeback_head: %3d, head: %3d, tail: %3d, MEM_BUS: %s\n", writeback_head, head, tail, mem_bus_char);
+}
+void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo, int dirty, int addr_hi, int addr_lo, int inst_type, int proc2mem_command, int complete, int mem_tag, int state){
+  if(ppfile != NULL){
+    fprintf(ppfile, "depth: %d | valid %1d | data: %x%x | dirty: %x | addr: %x%x | inst_type: %d | proc2mem_command: %d | complete: %1d | mem_tag: %x | state: %d  |\n", MSHR_DEPTH, valid, data_hi, data_lo, dirty, addr_hi, addr_lo, inst_type, proc2mem_command, complete, mem_tag, state);
+  }
+}
+
+void print_sq_head(int head, int tail)
+{
+  fprintf(ppfile, "---------------------------------------SQ----------------------------------- \n");
+  if(ppfile != NULL){
+    fprintf(ppfile, "head:%2d   tail:%2d\n", head, tail);
+  }
+}
+void print_sq_entry(int idx, int valid, int addr_hi, int addr_lo, int value_hi, int value_lo){
+  if(ppfile != NULL){
+    fprintf(ppfile, " %2d | valid: %1d | addr: %8x%8x | value: %8x%8x | \n", idx, valid, addr_hi, addr_lo, value_hi, value_lo);
+  }
+}
+
+void print_lq_head(int head, int tail)
+{
+  fprintf(ppfile, "---------------------------------------LQ----------------------------------- \n");
+  if(ppfile != NULL){
+    fprintf(ppfile, "head:%2d   tail:%2d\n", head, tail);
+  }
+}
+void print_lq_entry(int idx, int valid, int addr_hi, int addr_lo, int ROB_idx, int FL_idx, int SQ_idx, int PC_hi, int PC_lo)
+{
+  if(ppfile != NULL){
+    fprintf(ppfile, " %2d | valid: %1d | addr: %8x%8x | ROB_idx:%3d | FL_idx:%3d | SQ_idx:%3d | PC: %8x%8x | \n", idx, valid, addr_hi, addr_lo, ROB_idx, FL_idx, SQ_idx, PC_hi, PC_lo);
+  }
+}
+
+void print_num(int i){
+  if(ppfile != NULL){
+    fprintf(ppfile, " %3d", i);
+  }
+}
+void print_enter(){
+  if(ppfile != NULL){
+    fprintf(ppfile, "\n");
+  }
+}
 
 void print_stage(char* div, int inst, int npc, int valid_inst)
 {

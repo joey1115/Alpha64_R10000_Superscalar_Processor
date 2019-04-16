@@ -7,8 +7,8 @@ module decoder(
   output DECODER_FL_OUT_t        decoder_FL_out,
   output DECODER_MAP_TABLE_OUT_t decoder_Map_Table_out,
   output DECODER_SQ_OUT_t        decoder_SQ_out,
-  output DECODER_LQ_OUT_t        decoder_LQ_out,
-  output logic                   illegal
+  output DECODER_LQ_OUT_t        decoder_LQ_out
+  // output logic                   illegal
 );
 
   INST_t         [`NUM_SUPER-1:0]       inst;  // fetched instruction out
@@ -25,9 +25,10 @@ module decoder(
   ALU_FUNC       [`NUM_SUPER-1:0]       func;
   logic          [`NUM_SUPER-1:0][4:0]  rega_idx;
   logic          [`NUM_SUPER-1:0][4:0]  regb_idx;
+  logic                                 illegal;
 
-  assign decoder_ROB_out       = '{halt, dest_idx, internal_illegal, NPC};
-  assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch, target, wr_mem, rd_mem};
+  assign decoder_ROB_out       = '{halt, dest_idx, internal_illegal, NPC, wr_mem, rd_mem};
+  assign decoder_RS_out        = '{FU, inst, func, NPC, dest_idx, opa_select, opb_select, cond_branch, uncond_branch, wr_mem, rd_mem, target};
   assign decoder_FL_out        = '{dest_idx};
   assign decoder_Map_Table_out = '{dest_idx, rega_idx, regb_idx};
   assign decoder_SQ_out        = '{wr_mem};
@@ -146,6 +147,7 @@ module inst_decoder(
     regb_idx      = `ZERO_REG;
     if(valid_in) begin
       inst          = inst_in;
+      PC            = PC_in;
       NPC           = NPC_in;
       valid = `TRUE;
       case(inst_in.m.opcode)

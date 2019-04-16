@@ -41,7 +41,7 @@ module F_stage(
   assign if_IR_out[1] = BP_F_out.inst_valid[1] ? Imem2proc_data[63:32] : `NOOP_INST;
 
   // default next PC value
-  assign PC_plus = (PC_reg[2]) ? (PC_reg + 4) : (PC_reg + (`NUM_SUPER*4)); // Warning: This works for only 2-way Superscalar
+  assign PC_plus = (PC_reg[2]) ? (PC_reg + 4) : (PC_reg + 8); // Warning: This works for only 2-way Superscalar
 
   // next PC is target_pc if there is a taken branch or
   // the next sequential PC (PC+4) if no branch
