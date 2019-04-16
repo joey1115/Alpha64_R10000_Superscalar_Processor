@@ -11,6 +11,8 @@ module Dcache(
   input logic                                                       wr1_from_mem,
   //addr from proc
   input SASS_ADDR                                                   rd1_addr, wr1_addr,
+  input logic                                                       rd1_search,
+  input logic                                                       wr1_search,
   output logic [63:0]                                               rd1_data_out,
   output logic                                                      rd1_hit_out, wr1_hit_out,
 
@@ -108,7 +110,7 @@ module Dcache(
     rd1_data_out = 0;
     rd1_hit_out = 0;
     for(int i = 0 ; i <`NUM_WAY; i++) begin
-      if(rd1_hit[i]) begin
+      if(rd1_hit[i] & rd1_search) begin
         rd1_data_out = rd1_data[i];
         rd1_hit_out = 1;
       end
@@ -118,7 +120,7 @@ module Dcache(
   always_comb begin
     wr1_hit_out = 0;
     for(int i = 0 ; i <`NUM_WAY; i++) begin
-      if(wr1_hit[i]) begin
+      if(wr1_hit[i] & wr1_search) begin
         wr1_hit_out = 1;
       end
     end

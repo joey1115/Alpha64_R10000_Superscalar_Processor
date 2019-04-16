@@ -230,6 +230,9 @@ module pipeline (
   logic                 halt_pipeline;
   logic                 illegal_out_pipeline;
   logic                 fetch_en_in;
+  logic                 rd1_search;
+  logic                 wr1_search;
+
 
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
@@ -355,6 +358,8 @@ module pipeline (
     .rd1_addr(rd1_addr),
     .wr1_addr(wr1_addr),
     .wr1_data(wr1_data),
+    .rd1_search(rd1_search),
+    .wr1_search(wr1_search),
 
     //MSHR to cache                                 
     .mshr_valid(mshr_valid),
@@ -413,6 +418,8 @@ module pipeline (
     .wr1_data(wr1_data),
     .wr1_dirty(wr1_dirty),
     .wr1_valid(wr1_valid),
+    .rd1_search(rd1_search),
+    .wr1_search(wr1_search),
   `ifdef DEBUG
     .cache_bank(Dcache_bank),
   `endif
