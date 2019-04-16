@@ -16,6 +16,8 @@ module icache(
 `ifdef DEBUG
         output I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  i_cache,
         output MEM_TAG_TABLE_t [15:0]                   mem_tag_table,
+        output logic [$clog2(`NUM_ICACHE_LINES)-1:0]    head,
+        output logic [$clog2(`NUM_ICACHE_LINES)-1:0]    tail,
 `endif
 
         output logic [63:0] Icache_data_out,     // value is memory[proc2Icache_addr]
@@ -29,9 +31,11 @@ module icache(
 `ifndef DEBUG
   I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  i_cache;
   MEM_TAG_TABLE_t [15:0]                   mem_tag_table;
+  logic [$clog2(`NUM_ICACHE_LINES)-1:0]    head,
+  logic [$clog2(`NUM_ICACHE_LINES)-1:0]    tail,
 `endif
   I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  next_i_cache;
-  logic [$clog2(`NUM_ICACHE_LINES)-1:0]    head, tail, next_head, next_tail, diff1, diff2, idx, tail_plus_one;
+  logic [$clog2(`NUM_ICACHE_LINES)-1:0]    next_head, next_tail, diff1, diff2, idx, tail_plus_one;
   logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
   MEM_TAG_TABLE_t [15:0]                   next_mem_tag_table;
   logic  [1:0] next_proc2Imem_command;

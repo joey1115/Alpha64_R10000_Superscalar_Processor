@@ -386,9 +386,12 @@ void print_lq_entry(int idx, int valid, int addr_hi, int addr_lo, int ROB_idx, i
   }
 }
 
-void print_icache_head()
+void print_icache_head(int head, int tail)
 {
   fprintf(ppfile, "---------------------------------------iCache----------------------------------- \n");
+  if(ppfile != NULL){
+    fprintf(ppfile, "head:%2d   tail:%2d\n", head, tail);
+  }
 }
 
 void print_icache_entry(int i, int valid, int tag, int data_hi, int data_lo)
