@@ -29,7 +29,7 @@ module Dcache(
  
   //LRU logic
   logic [`NUM_IDX-1:0]               regA, regB, regC, next_regA, next_regB, next_regC;
-  logic [`NUM_IDX-1:0][`NUM_WAY-1:0] LRU_bank_sel;
+  logic [`NUM_IDX-1:0][`NUM_WAY-1:0] LRU_bank_sel, prev_LRU_bank_sel;
   logic [$clog2(`NUM_WAY)-1:0]       LRU_bank_idx;
   
 
@@ -51,7 +51,7 @@ module Dcache(
     next_regA = regA;
     next_regB = regB;
     next_regC = regC;
-    LRU_bank_sel = 0;
+    LRU_bank_sel = prev_LRU_bank_sel;
 
     
     next_regA[wr1_addr.set_index] = (wr1_from_mem & wr1_en)? (~regA[wr1_addr.set_index]) : regA[wr1_addr.set_index];
@@ -63,16 +63,19 @@ module Dcache(
     LRU_bank_sel[wr1_addr.set_index][2] = regA[wr1_addr.set_index] & !regC[wr1_addr.set_index];
     LRU_bank_sel[wr1_addr.set_index][3] = regA[wr1_addr.set_index] & regC[wr1_addr.set_index];
   end
+
   always_ff @(posedge clock) begin
     if(reset) begin
       regA <= 'SD 0;
       regB <= 'SD 0;
       regC <= 'SD 0;
+      prev_LRU_bank_sel <= `SD 0;
     end
     else begin
       regA <= `SD next_regA;
       regB <= `SD next_regB;
       regC <= `SD next_regC;
+      prev_LRU_bank_sel <= `SD LRU_bank_sel;
     end
   end
   

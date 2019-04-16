@@ -19,7 +19,8 @@ module MSHR(
   //looking up the MSHR      
   input SASS_ADDR [1:0]                                          search_addr, //address to search
   input MSHR_INST_TYPE [1:0]                                     search_type, //address search type (might not need)
-  input [63:0]                                                   search_wr_data,
+  input logic [63:0]                                             search_wr_data,
+  input logic [1:0]                                              search_en,
       
 `ifdef DEBUG
   output MSHR_ENTRY_t [`MSHR_DEPTH-1:0]                          MSHR_queue,
@@ -89,7 +90,10 @@ module MSHR(
   logic                          request_accepted;
 
   logic [$clog2(`MSHR_DEPTH)-1:0] tail_plus_one, tail_plus_two, tail_plus_three, head_plus_one;
-  logic [$clog2(`MSHR_DEPTH)] index_rd_search, index_wr_search, index;
+  logic [$clog2(`MSHR_DEPTH)-1:0] index_rd_search, index_wr_search;
+  logic [`MSHR_DEPTH-1:0][$clog2(`MSHR_DEPTH)-1:0]index;
+
+  logic rd_search_hit;
 
   //how many entries to allocate
   assign tail_move = miss_en[0] + miss_en[1] + miss_en[2];
@@ -127,30 +131,51 @@ module MSHR(
   pe_mshr idx_select2 (internal_miss_en1, data_idx[1]);
   pe_mshr idx_select3 (internal_miss_en2, data_idx[2]);
 
+  always_comb begin
+    index = 0;
+    index_rd_search = 0;
+    index_wr_search = 0;
+    rd_search_hit = 0;
+
+    for(int i= 0; i < `MSHR_DEPTH; i++) begin
+      index[i] = head + i;
+    end
+
+    for(int i = 0; i < `MSHR_DEPTH; i++) begin
+      if((search_addr[0] == MSHR_queue[index[i]].addr) && (search_type[0] == LOAD) && MSHR_queue[index[i]].valid) begin
+        index_rd_search = index[i];
+        rd_search_hit = 1;
+      end
+    end
+
+    for(int i = 0; i < `MSHR_DEPTH; i++) begin
+      if((search_addr[1] == MSHR_queue[i].addr) && (search_type[1] == STORE) && MSHR_queue[index[i]].valid) begin
+        index_wr_search = index[i];
+      end
+    end
+  end
+
   //allocation logic
   always_comb begin
     next_MSHR_queue = MSHR_queue;
     next_tail = tail;
-
     //search logic
     //if type of searcher is load
-    miss_addr_hit = 0;
+    
     rd_wb_en = 0;
     wr_wb_en = 0;
-    for(int i = 0; i < `MSHR_DEPTH; i++) begin
-      index = head + i;
-      if((search_addr[0] == MSHR_queue[index].addr) && (search_type[0] == LOAD) && MSHR_queue[index].valid) begin
-        index_rd_search = index;
-        miss_addr_hit[0] = 1;
-      end
+    miss_addr_hit = 0;
+    
+    rd_wb_dirty = 0;
+    rd_wb_data = 0;
+    rd_wb_addr = 0;
+    rd_wb_dirty = 0;
+    rd_wb_data = 0;
+    rd_wb_addr = 0;
 
-      if((search_addr[1] == MSHR_queue[i].addr) && (search_type[1] == STORE) && MSHR_queue[index].valid) begin
-        index_wr_search = index;
-      end
-    end
-
+    miss_addr_hit[0] = rd_search_hit;
     //load
-    if(MSHR_queue[index_rd_search].proc2mem_command == BUS_STORE) begin
+    if(MSHR_queue[index_rd_search].proc2mem_command == BUS_STORE && search_en[0]) begin
       rd_wb_en = 1;
       rd_wb_dirty = 0;
       rd_wb_data = MSHR_queue[index_rd_search].data;
@@ -158,23 +183,25 @@ module MSHR(
     end
 
     //store
-    if(MSHR_queue[index_wr_search].proc2mem_command == BUS_STORE) begin
-      miss_addr_hit[1] = 1;
-      next_MSHR_queue[index_wr_search].dirty = 0;
-      next_MSHR_queue[index_wr_search].data = search_wr_data;
-
-      wr_wb_en = 1;
-      wr_wb_addr = MSHR_queue[index_wr_search].addr;
-      wr_wb_data = search_wr_data;
-      wr_wb_dirty = 0;
-    end
-    else begin
-      if(MSHR_queue[index_wr_search].inst_type == LOAD) begin
-        miss_addr_hit[1] = 0; //make the store send to mshr
+    if(search_en[1]) begin
+      if(MSHR_queue[index_wr_search].proc2mem_command == BUS_STORE) begin
+        miss_addr_hit[1] = 1;
+        next_MSHR_queue[index_wr_search].dirty = 0;
+        next_MSHR_queue[index_wr_search].data = search_wr_data;
+  
+        wr_wb_en = 1;
+        wr_wb_addr = MSHR_queue[index_wr_search].addr;
+        wr_wb_data = search_wr_data;
+        wr_wb_dirty = 0;
       end
       else begin
-        next_MSHR_queue[index_wr_search].data = search_wr_data;
-        next_MSHR_queue[index_wr_search].dirty = 1;
+        if(MSHR_queue[index_wr_search].inst_type == LOAD) begin
+          miss_addr_hit[1] = 0; //make the store send to mshr
+        end
+        else begin
+          next_MSHR_queue[index_wr_search].data = search_wr_data;
+          next_MSHR_queue[index_wr_search].dirty = 1;
+        end
       end
     end
 

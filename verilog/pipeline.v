@@ -219,7 +219,8 @@ module pipeline (
   logic [2:0][1:0]      mshr_proc2mem_command;
   SASS_ADDR [1:0]       search_addr;
   MSHR_INST_TYPE [1:0]  search_type;
-  logic  [63:0]         search_wr_data;
+  logic [63:0]          search_wr_data;
+  logic [1:0]           search_en;
   logic                 stored_rd_wb;
   logic                 stored_wr_wb;
   logic                 stored_mem_wr;
@@ -384,6 +385,7 @@ module pipeline (
     .search_addr(search_addr),
     .search_type(search_type),
     .search_wr_data(search_wr_data),
+    .search_en(search_en),
     //cache to MSHR (Written back)                      
     .stored_rd_wb(stored_rd_wb),
     .stored_wr_wb(stored_wr_wb),
@@ -438,6 +440,7 @@ module pipeline (
     .search_addr(search_addr), //address to search
     .search_type(search_type), //address search type (might not need)
     .search_wr_data(search_wr_data),
+    .search_en(search_en),
         
 `ifdef DEBUG
     .MSHR_queue(MSHR_queue),

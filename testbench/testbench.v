@@ -15,7 +15,7 @@
 // ******** WARNING !!! *********
 // DANGEROUS FEATURE: HALT_ON_TIMEOUT should always be uncommented
 // unless you know the pipeline will never reach the halt instruction and run forever
-// `define HALT_ON_TIMEOUT
+`define HALT_ON_TIMEOUT
 // After runing for TIMEOUT_CYCLES cycles, halt!
 `define TIMEOUT_CYCLES 10000
 
@@ -30,8 +30,6 @@
 // `define PRINT_ARCHMAP
 // `define PRINT_REG
 // `define PRINT_MEMBUS
-// `define PRINT_DCACHE_BANK
-// `define PRINT_MSHR_ENTRY
 `define PRINT_SQ
 `define PRINT_LQ
 `define PRINT_DCACHE_BANK
@@ -105,6 +103,8 @@ module testbench;
 
   logic state_count, next_state_count;
   logic stop_cycle;
+
+  logic [64:0] clock_cycle;
 
 
   ROB_t pipeline_ROB;
@@ -281,9 +281,11 @@ module testbench;
     if(reset) begin
       clock_count <= `SD 0;
       instr_count <= `SD 0;
+      clock_cycle <= `SD 0;
     end else begin
       clock_count <= `SD next_clock_count;
       instr_count <= `SD next_instr_count;
+      clock_cycle <= `SD clock_cycle + 1;
     end
   end
 
@@ -564,7 +566,7 @@ module testbench;
 
       // deal with any halting conditions
 `ifdef HALT_ON_TIMEOUT
-      if (clock_count > `TIMEOUT_CYCLES)
+      if (clock_cycle > `TIMEOUT_CYCLES)
       begin
         $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
         show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);

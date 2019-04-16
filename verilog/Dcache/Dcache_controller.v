@@ -54,7 +54,8 @@ module Dcache_controller(
     //cache to MSHR (searching)                                 
     output SASS_ADDR [1:0]                                                        search_addr,
     output MSHR_INST_TYPE [1:0]                                                   search_type,
-    output [63:0]                                                                 search_wr_data,
+    output logic [63:0]                                                           search_wr_data,
+    output logic [1:0]                                                            search_en,
     //cache to MSHR (Written back)                      
     output logic                                                                  stored_rd_wb,
     output logic                                                                  stored_wr_wb,
@@ -90,11 +91,13 @@ assign d_cache_sq_out.valid = (stored_wr_wb || miss_en[1]);
 //search mshr for rd1 d_cache_lq_out.value
 assign search_addr[0] = rd1_addr;
 assign search_type[0] = LOAD;
+assign search_en[0]   = lq_d_cache_out.rd_en;
 
 //search mshr for wr1 d_cache_lq_out.value
 assign search_addr[1] = {sq_d_cache_out.addr,3'b000};
 assign search_type[1] = STORE;
 assign search_wr_data = sq_d_cache_out.value;
+assign search_en[1]   = sq_d_cache_out.wr_en;
 
 //if not in cache, enable to push d_cache_lq_out.value to the MSHR
 assign miss_en[0] = (lq_d_cache_out.rd_en & !rd1_hit & !miss_addr_hit[0]);
@@ -109,7 +112,7 @@ assign miss_data_in[0] = {64'hDEADBEEFDEADBEEF};
 assign inst_type[0] = LOAD;
 assign mshr_proc2mem_command[0] = BUS_LOAD;
 
-assign miss_addr[1] = wr1_addr;
+assign miss_addr[1] = {sq_d_cache_out.addr,3'b000};
 assign miss_data_in[1]= sq_d_cache_out.value;
 assign inst_type[1] = STORE;
 assign mshr_proc2mem_command[1] = BUS_LOAD;
@@ -126,7 +129,7 @@ assign rd1_addr = {lq_d_cache_out.addr,3'b000};
 
 
 assign wr1_addr = (write_back_stage)              ?  write_back_addr :
-                  (sq_d_cache_out.wr_en & wr1_hit)               ?  sq_d_cache_out.addr      :
+                  (sq_d_cache_out.wr_en & wr1_hit)               ?  {sq_d_cache_out.addr,3'b000}      :
                   (wr_wb_en)                      ?  wr_wb_addr      :
                   (!wr_wb_en & rd_wb_en)          ?  rd_wb_addr      : mem_addr;
 
@@ -146,7 +149,7 @@ assign wr1_en = (wr1_hit & sq_d_cache_out.wr_en) | wr1_from_mem;
 
 //inform MSHR that it is written
 assign stored_rd_wb = !sq_d_cache_out.wr_en & rd_wb_en;
-assign stored_wr_wb = !sq_d_cache_out.wr_en & !rd_wb_en & wr_wb_en;
+assign stored_wr_wb = !sq_d_cache_out.wr_en & !rd_wb_en & wr_wb_en; //wr_wb_enable is always zero
 assign stored_mem_wr = !sq_d_cache_out.wr_en & !rd_wb_en & !wr_wb_en & mem_wr;
 
 //set the cache id valid or not
