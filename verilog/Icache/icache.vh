@@ -11,13 +11,13 @@
 
 typedef struct packed {
   logic                                    valid;
-  logic [16-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
+  logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
   logic [64:0]                             data;
 } I_CACHE_ENTRY_t;
 
 typedef struct packed {
   logic [$clog2(`NUM_ICACHE_LINES)-1:0]    idx;
-  logic [16-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
+  logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
 } MEM_TAG_TABLE_t;
 
 `endif

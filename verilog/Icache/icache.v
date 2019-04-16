@@ -23,7 +23,7 @@ module icache(
   // logic [127:0]        valids, next_valids;
   I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]  i_cache, next_i_cache;
   logic [$clog2(`NUM_ICACHE_LINES)-1:0]    head, tail, next_head, next_tail, diff1, diff2, idx, tail_plus_one;
-  logic [16-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
+  logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
   MEM_TAG_TABLE_t [15:0]                   mem_tag_table, next_mem_tag_table;
   // logic [3:0][63:0]    mem_tag_table, next_mem_tag_table;
 
