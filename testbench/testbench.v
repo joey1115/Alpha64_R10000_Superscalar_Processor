@@ -30,12 +30,10 @@
 // `define PRINT_ARCHMAP
 // `define PRINT_REG
 // `define PRINT_MEMBUS
-// `define PRINT_SQ
-// `define PRINT_LQ
-// `define PRINT_DCACHE_BANK
-// `define PRINT_MSHR_ENTRY
-`define PRINT_ICACHE
-`define PRINT_MEM_TAG_TABLE
+`define PRINT_SQ
+`define PRINT_LQ
+`define PRINT_DCACHE_BANK
+`define PRINT_MSHR_ENTRY
 
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
