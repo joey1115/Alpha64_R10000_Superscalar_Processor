@@ -213,7 +213,7 @@ module MSHR(
       if(MSHR_queue[i].state == INPROGRESS && mem2proc_tag == MSHR_queue[i].mem_tag && MSHR_queue[i].valid) begin
         next_MSHR_queue[i].complete = 1;
         next_MSHR_queue[i].state    = DONE;
-        next_MSHR_queue[i].data     = mem2proc_data;
+        next_MSHR_queue[i].data     = (MSHR_queue[i].inst_type == LOAD) ? mem2proc_data : next_MSHR_queue[i].data;
         next_MSHR_queue[i].dirty    = 0;
       end
     end
