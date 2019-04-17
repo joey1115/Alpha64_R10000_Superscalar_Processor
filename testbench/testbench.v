@@ -34,7 +34,7 @@
 `define PRINT_LQ
 // `define PRINT_DCACHE_BANK
 // `define PRINT_MSHR_ENTRY
-// `define PRINT_ICACHE
+`define PRINT_ICACHE
 // `define PRINT_MEM_TAG_TABLE
 
 `include "sys_defs.vh"
