@@ -334,7 +334,11 @@ void print_Dcache_bank(int data_hi, int data_lo, int tag_hi, int tag_lo, int dir
     fprintf(ppfile, "data: %x%x | tag: %x%x | dirty: %1d | valid: %1d |        ", data_hi, data_lo, tag_hi, tag_lo, dirty, valid);
   }
 }
-
+void print_count(int count_hi, int count_lo){
+  if(ppfile != NULL){
+    fprintf(ppfile,"count: %x%x   |  \n", count_hi, count_lo);
+  }
+}
 void print_MSHR_head(int writeback_head, int head, int tail, int mem_bus)
 {
   char *mem_bus_char;

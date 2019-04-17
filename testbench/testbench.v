@@ -16,17 +16,18 @@
 // DANGEROUS FEATURE: HALT_ON_TIMEOUT should always be uncommented
 // unless you know the pipeline will never reach the halt instruction and run forever
 `define HALT_ON_TIMEOUT
+// `define HALT_ON_CYCLE
 // After runing for TIMEOUT_CYCLES cycles, halt!
-`define TIMEOUT_CYCLES 10000
+`define TIMEOUT_CYCLES 2000
 
 
 `define PRINT_DISPATCH_EN
 // `define PRINT_FETCHBUFFER
 `define PRINT_ROB
-`define PRINT_RS
-`define PRINT_MAP_TABLE
-`define PRINT_FREELIST
-`define PRINT_CDB
+// `define PRINT_RS
+// `define PRINT_MAP_TABLE
+// `define PRINT_FREELIST
+// `define PRINT_CDB
 // `define PRINT_ARCHMAP
 // `define PRINT_REG
 // `define PRINT_MEMBUS
@@ -34,6 +35,7 @@
 `define PRINT_LQ
 `define PRINT_DCACHE_BANK
 `define PRINT_MSHR_ENTRY
+`define PRINT_COUNT
 
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
@@ -75,6 +77,7 @@ extern void print_membus(int proc2mem_command, int mem2proc_response,
                          int proc2mem_addr_hi, int proc2mem_addr_lo,
                          int proc2mem_data_hi, int proc2mem_data_lo);
 extern void print_close();
+extern void print_count(int count_hi, int count_lo);
 
 
 module testbench;
@@ -129,6 +132,7 @@ module testbench;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
+  logic          [63:0]                           count;
   
 
   // Instantiate the Pipeline
@@ -170,6 +174,7 @@ module testbench;
     .MSHR_writeback_head(MSHR_writeback_head),
     .MSHR_head(MSHR_head),
     .MSHR_tail(MSHR_tail),
+    .count(count),
 `endif
     // Outputs
     .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
@@ -514,6 +519,10 @@ module testbench;
       end
 `endif
 
+`ifdef PRINT_COUNT
+      print_count(count[63:32], count[31:0]);
+`endif
+
 `ifdef PRINT_DCACHE_BANK
     print_Dcache_head();
     for(int i=0; i < `NUM_IDX; i++) begin
@@ -566,7 +575,11 @@ module testbench;
 
       // deal with any halting conditions
 `ifdef HALT_ON_TIMEOUT
+// `ifdef HALT_ON_CYCLE
+//       if (clock_cycle > `TIMEOUT_CYCLES)
+// `else
       if (clock_count > `TIMEOUT_CYCLES)
+// `endif
       begin
         $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
         show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);

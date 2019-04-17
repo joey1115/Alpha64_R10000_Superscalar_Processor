@@ -38,6 +38,7 @@ module pipeline (
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head,
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail,
+  output logic          [63:0]                           count,
 `endif
   output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
@@ -120,6 +121,7 @@ module pipeline (
 `ifndef DEBUG
   logic                                          RS_valid;
 `endif
+
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
   F_DECODER_OUT_t                                F_decoder_out;
@@ -186,6 +188,9 @@ module pipeline (
   logic       [`NUM_SUPER-1:0]                                            RS_match_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]                       RS_match_idx;
 `endif
+`ifndef DEBUG
+  logic [63:0]  count;
+`endif
 
   logic [63:0] rd1_data;
   logic rd1_hit;
@@ -232,6 +237,7 @@ module pipeline (
   logic                 fetch_en_in;
   logic                 rd1_search;
   logic                 wr1_search;
+  logic [2:0]           miss_dirty;
 
 
   assign en           = `TRUE;
@@ -388,6 +394,7 @@ module pipeline (
     .miss_data_in(miss_data_in),
     .inst_type(inst_type),
     .mshr_proc2mem_command(mshr_proc2mem_command),
+    .miss_dirty(miss_dirty),
     //cache to MSHR (searching)                                 
     .search_addr(search_addr),
     .search_type(search_type),
@@ -397,6 +404,10 @@ module pipeline (
     // .stored_rd_wb(stored_rd_wb),
     // .stored_wr_wb(stored_wr_wb),
     .stored_mem_wr(stored_mem_wr),
+
+`ifdef DEBUG
+    .count(count),
+`endif
     .write_back(write_back),
     // .cache_valid(cache_valid),
     .halt_pipeline(halt_pipeline),
@@ -444,6 +455,7 @@ module pipeline (
     .miss_data_in(miss_data_in),
     .inst_type(inst_type),
     .mshr_proc2mem_command(mshr_proc2mem_command),
+    .miss_dirty(miss_dirty),
         
     //looking up the MSHR      
     .search_addr(search_addr), //address to search
