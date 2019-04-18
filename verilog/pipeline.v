@@ -125,6 +125,7 @@ module pipeline (
 `ifndef DEBUG
   logic                                          RS_valid;
 `endif
+
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
   F_DECODER_OUT_t                                F_decoder_out;
@@ -191,6 +192,9 @@ module pipeline (
   logic       [`NUM_SUPER-1:0]                                            RS_match_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]                       RS_match_idx;
 `endif
+`ifndef DEBUG
+  logic [63:0]  count;
+`endif
 
   logic [63:0] rd1_data;
   logic rd1_hit;
@@ -231,13 +235,14 @@ module pipeline (
   logic                 stored_mem_wr;
   logic                 write_back;
   logic                 write_back_stage;
-  logic                 cache_valid;
+  // logic                 cache_valid;
   logic                 halt_pipeline;
   logic                 illegal_out_pipeline;
   logic                 fetch_en_in;
   logic                 bus_select;
   logic                 rd1_search;
   logic                 wr1_search;
+  logic [2:0]           miss_dirty;
 
 
   assign en           = `TRUE;
@@ -376,17 +381,22 @@ module pipeline (
     .miss_data_in(miss_data_in),
     .inst_type(inst_type),
     .mshr_proc2mem_command(mshr_proc2mem_command),
+    .miss_dirty(miss_dirty),
     //cache to MSHR (searching)                                 
     .search_addr(search_addr),
     .search_type(search_type),
     .search_wr_data(search_wr_data),
     .search_en(search_en),
     //cache to MSHR (Written back)                      
-    .stored_rd_wb(stored_rd_wb),
-    .stored_wr_wb(stored_wr_wb),
+    // .stored_rd_wb(stored_rd_wb),
+    // .stored_wr_wb(stored_wr_wb),
     .stored_mem_wr(stored_mem_wr),
+
+`ifdef DEBUG
+    .count(count),
+`endif
     .write_back(write_back),
-    .cache_valid(cache_valid),
+    // .cache_valid(cache_valid),
     .halt_pipeline(halt_pipeline),
     .write_back_stage(write_back_stage)
 );
@@ -422,8 +432,8 @@ module pipeline (
     .reset(reset),
         
     //stored to cache input      
-    .stored_rd_wb(stored_rd_wb),
-    .stored_wr_wb(stored_wr_wb),
+    // .stored_rd_wb(stored_rd_wb),
+    // .stored_wr_wb(stored_wr_wb),
     .stored_mem_wr(stored_mem_wr),
         
     //storing to the MSHR      
@@ -432,6 +442,7 @@ module pipeline (
     .miss_data_in(miss_data_in),
     .inst_type(inst_type),
     .mshr_proc2mem_command(mshr_proc2mem_command),
+    .miss_dirty(miss_dirty),
         
     //looking up the MSHR      
     .search_addr(search_addr), //address to search

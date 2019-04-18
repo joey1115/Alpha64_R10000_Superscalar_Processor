@@ -15,9 +15,13 @@
 // ******** WARNING !!! *********
 // DANGEROUS FEATURE: HALT_ON_TIMEOUT should always be uncommented
 // unless you know the pipeline will never reach the halt instruction and run forever
-`define HALT_ON_TIMEOUT
+`define HALT_ON_TIMEOUT_CLOCK_COUNT //STOP ON CLOCK COUNT FOR CPI
+`define HALT_ON_TIMEOUT_CYCLE_COUNT //STOP ON CYCLE COUNT (DURATION OF PROGRAM)
+
+// `define HALT_ON_CYCLE
 // After runing for TIMEOUT_CYCLES cycles, halt!
-`define TIMEOUT_CYCLES 10000
+`define TIMEOUT_MAX_CYCLES 10000
+`define TIMEOUT_MAX_CLOCK 10000
 
 
 // `define PRINT_DISPATCH_EN
@@ -81,6 +85,7 @@ extern void print_membus(int proc2mem_command, int mem2proc_response,
                          int proc2mem_addr_hi, int proc2mem_addr_lo,
                          int proc2mem_data_hi, int proc2mem_data_lo);
 extern void print_close();
+extern void print_count(int count_hi, int count_lo);
 
 
 module testbench;
@@ -530,6 +535,10 @@ module testbench;
       end
 `endif
 
+`ifdef PRINT_COUNT
+      print_count(count[63:32], count[31:0]);
+`endif
+
 `ifdef PRINT_DCACHE_BANK
     print_Dcache_head();
     for(int i=0; i < `NUM_IDX; i++) begin
@@ -595,8 +604,8 @@ module testbench;
 
 
       // deal with any halting conditions
-`ifdef HALT_ON_TIMEOUT
-      if (clock_cycle > `TIMEOUT_CYCLES)
+`ifdef HALT_ON_TIMEOUT_CLOCK_COUNT
+      if (clock_count > `TIMEOUT_MAX_CLOCK)
       begin
         $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
         show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
@@ -604,7 +613,25 @@ module testbench;
 
         $display("@@  %t : System halted\n@@", $realtime);
 
-        $display(  "@@@ System halted on Timeout");
+        $display(  "@@@ System halted on Timeout (Program ran too long)");
+        $display("@@@\n@@");
+        show_clk_count;
+        print_close(); // close the pipe_print output file
+        $fclose(wb_fileno);
+        #100 $finish;
+      end
+`endif
+
+`ifdef HALT_ON_TIMEOUT_CYCLE_COUNT
+      if (clock_cycle > `TIMEOUT_MAX_CYCLES)
+      begin
+        $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
+        show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
+        // 8Bytes per line, 16kB total
+
+        $display("@@  %t : System halted\n@@", $realtime);
+
+        $display(  "@@@ System halted on Timeout (Program + overhead ran too long)");
         $display("@@@\n@@");
         show_clk_count;
         print_close(); // close the pipe_print output file

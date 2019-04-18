@@ -1,0 +1,69 @@
+Chronologic VCS simulator copyright 1991-2017
+Contains Synopsys proprietary information.
+Compiler version N-2017.12-SP2-1_Full64; Runtime version N-2017.12-SP2-1_Full64;  Apr 18 12:50 2019
+@@
+@@
+@@                     0  Asserting System reset......
+@@
+@@                     0 : System STILL at reset, can't show anything
+@@
+@@
+@@                   100 : System STILL at reset, can't show anything
+@@
+@@
+@@                   200 : System STILL at reset, can't show anything
+@@
+@@
+@@                   300 : System STILL at reset, can't show anything
+@@
+@@                   360  Deasserting System reset......
+@@
+@@
+@@@ Unified Memory contents hex on left, decimal on right: 
+@@@
+@@@ mem[    0] = 2ffe0000c3e00021 : 3458201567153356833
+@@@ mem[    8] = 0000000000000001 : 1
+@@@ mem[   16] = 0000000000000001 : 1
+@@@ mem[   24] = 0000000000000002 : 2
+@@@ mem[   32] = 0000000000000003 : 3
+@@@ mem[   40] = 0000000000000003 : 3
+@@@ mem[   48] = 0000000000000003 : 3
+@@@ mem[   56] = 0000000000000004 : 4
+@@@ mem[   64] = 0000000000000005 : 5
+@@@ mem[   72] = 0000000000000005 : 5
+@@@ mem[   80] = 0000000000000005 : 5
+@@@ mem[   88] = 0000000000000006 : 6
+@@@ mem[   96] = 0000000000000007 : 7
+@@@ mem[  104] = 0000000000000008 : 8
+@@@ mem[  112] = 0000000000000009 : 9
+@@@ mem[  120] = 0000000000000009 : 9
+@@@ mem[  128] = 0000000000000009 : 9
+@@@ mem[  136] = 213f001020bf0001 : 2395633596053258241
+@@@ mem[  144] = 47e50406a4690000 : 5180551372934283264
+@@@ mem[  152] = 4261153247e90413 : 4783127584943178771
+@@@ mem[  160] = a5f30000a5d20000 : 11957901438380802048
+@@@ mem[  168] = f560000641c303ab : 17681132163929670571
+@@@ mem[  176] = 42411532b5d30000 : 4774120387532488704
+@@@ mem[  184] = 40c0352642611533 : 4665787652394521907
+@@@ mem[  192] = c3fffff6e4c00001 : 14123288392321990657
+@@@ mem[  200] = 41211409b4730000 : 4693054318611464192
+@@@ mem[  208] = 40a213aa40a03405 : 4657306586604123141
+@@@ mem[  216] = 00000555f55fffed : 5866747068397
+@@@
+@@@
+@@                352220 : System halted
+@@
+@@@ System halted on HALT instruction
+@@@
+@@
+@@  3519 cycles / 598 instrs = 5.884615 CPI
+@@
+@@  105540.00 ns total time to execute
+@@
+
+$finish called from file "testbench/testbench.v", line 274.
+$finish at simulation time               353220
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 35322000 ps
+CPU Time:      0.300 seconds;       Data structure size:   0.1Mb
+Thu Apr 18 12:50:39 2019

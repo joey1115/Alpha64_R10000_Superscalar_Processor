@@ -1,0 +1,72 @@
+Chronologic VCS simulator copyright 1991-2017
+Contains Synopsys proprietary information.
+Compiler version N-2017.12-SP2-1_Full64; Runtime version N-2017.12-SP2-1_Full64;  Apr 18 12:50 2019
+@@
+@@
+@@                     0  Asserting System reset......
+@@
+@@                     0 : System STILL at reset, can't show anything
+@@
+@@
+@@                   100 : System STILL at reset, can't show anything
+@@
+@@
+@@                   200 : System STILL at reset, can't show anything
+@@
+@@
+@@                   300 : System STILL at reset, can't show anything
+@@
+@@                   360  Deasserting System reset......
+@@
+@@
+@@@ Unified Memory contents hex on left, decimal on right: 
+@@@
+@@@ mem[    0] = 47ff041f205f0000 : 5187869827487694848
+@@@ mem[    8] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[   16] = 207f100047ff041f : 2341607924649886751
+@@@ mem[   24] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[   32] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[   40] = 47ff041ff040000e : 5187869830975324174
+@@@ mem[   48] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[   56] = b443000047ff041f : 12989225751474537503
+@@@ mem[   64] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[   72] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[   80] = 47ff041f40611403 : 5187869828024701955
+@@@ mem[   88] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[   96] = 4040340247ff041f : 4629757601339343903
+@@@ mem[  104] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[  112] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[  120] = 47ff041f4041fda1 : 5187869828022664609
+@@@ mem[  128] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[  136] = f43fffe647ff041f : 17600067233302643743
+@@@ mem[  144] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[  152] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[  160] = 47ff041f00000555 : 5187869826944599381
+@@@ mem[  168] = 47ff041f47ff041f : 5187869828152493087
+@@@ mem[  176] = 0000000047ff041f : 1207895071
+@@@
+@@@ mem[ 4104] = 0000000000000002 : 2
+@@@ mem[ 4112] = 0000000000000004 : 4
+@@@ mem[ 4120] = 0000000000000006 : 6
+@@@ mem[ 4128] = 0000000000000008 : 8
+@@@ mem[ 4136] = 000000000000000a : 10
+@@@ mem[ 4144] = 000000000000000c : 12
+@@@ mem[ 4152] = 000000000000000e : 14
+@@@
+@@@
+@@                164420 : System halted
+@@
+@@@ System halted on HALT instruction
+@@@
+@@
+@@  1641 cycles / 318 instrs = 5.160377 CPI
+@@
+@@  49200.00 ns total time to execute
+@@
+
+$finish called from file "testbench/testbench.v", line 274.
+$finish at simulation time               165420
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 16542000 ps
+CPU Time:      0.280 seconds;       Data structure size:   0.1Mb
+Thu Apr 18 12:50:36 2019
