@@ -42,6 +42,7 @@ module pipeline (
   output logic [$clog2(`NUM_ICACHE_LINES)-1:0]           i_cache_head,
   output logic [$clog2(`NUM_ICACHE_LINES)-1:0]           i_cache_tail,
   output MEM_TAG_TABLE_t [15:0]                          mem_tag_table,
+  output logic           [63:0]                          proc2Icache_addr,
 `endif
   output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
@@ -168,7 +169,7 @@ module pipeline (
   logic  [4:0] Icache_wr_idx;
   logic  [7:0] Icache_wr_tag;
   logic        Icache_wr_en;
-  logic [63:0] Icache_data_out, proc2Icache_addr;
+  logic [63:0] Icache_data_out;
   logic        Icache_valid_out;
   logic [3:0]  Imem2proc_response;
   logic [3:0]  Dmem2proc_response;

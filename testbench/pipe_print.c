@@ -386,11 +386,11 @@ void print_lq_entry(int idx, int valid, int addr_hi, int addr_lo, int ROB_idx, i
   }
 }
 
-void print_icache_head(int head, int tail)
+void print_icache_head(int head, int tail, int addr_hi, int addr_lo)
 {
   fprintf(ppfile, "---------------------------------------iCache----------------------------------- \n");
   if(ppfile != NULL){
-    fprintf(ppfile, "head:%2d   tail:%2d\n", head, tail);
+    fprintf(ppfile, "head:%2d   tail:%2d    addr: HEX: %x_%x DEC: %d IDX: %d TAG: %d\n", head, tail, addr_hi, addr_lo, addr_lo, ((addr_hi & 0xFF00) >> 8), (addr_lo >> 8));
   }
 }
 

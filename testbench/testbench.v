@@ -20,22 +20,22 @@
 `define TIMEOUT_CYCLES 10000
 
 
-`define PRINT_DISPATCH_EN
+// `define PRINT_DISPATCH_EN
 // `define PRINT_FETCHBUFFER
-`define PRINT_ROB
-`define PRINT_RS
-`define PRINT_MAP_TABLE
-`define PRINT_FREELIST
-`define PRINT_CDB
+// `define PRINT_ROB
+// `define PRINT_RS
+// `define PRINT_MAP_TABLE
+// `define PRINT_FREELIST
+// `define PRINT_CDB
 // `define PRINT_ARCHMAP
 // `define PRINT_REG
 `define PRINT_MEMBUS
-`define PRINT_SQ
-`define PRINT_LQ
+// `define PRINT_SQ
+// `define PRINT_LQ
 // `define PRINT_DCACHE_BANK
 // `define PRINT_MSHR_ENTRY
 `define PRINT_ICACHE
-// `define PRINT_MEM_TAG_TABLE
+`define PRINT_MEM_TAG_TABLE
 
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
@@ -58,7 +58,7 @@ extern void print_freelist_head(int FL_head, int FL_tail);
 extern void print_freelist_entry(int i, int freePR);
 extern void print_fetchbuffer_head(int FB_head, int FB_tail);
 extern void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst);
-extern void print_icache_head(int head, int tail);
+extern void print_icache_head(int head, int tail, int addr_hi, int addr_lo);
 extern void print_icache_entry(int i, int valid, int tag, int data_hi, int data_lo);
 extern void print_mem_tag_table_head();
 extern void print_mem_tag_table_entry(int i, int idx, int tag);
@@ -94,6 +94,7 @@ module testbench;
 
   logic  [1:0] proc2mem_command;
   logic [63:0] proc2mem_addr;
+  logic [63:0] proc2Icache_addr;
   logic [63:0] proc2mem_data;
   logic  [3:0] mem2proc_response;
   logic [63:0] mem2proc_data;
@@ -184,6 +185,7 @@ module testbench;
     .i_cache_head(i_cache_head),
     .i_cache_tail(i_cache_tail),
     .mem_tag_table(mem_tag_table),
+    .proc2Icache_addr(proc2Icache_addr),
 `endif
     // Outputs
     .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
@@ -547,7 +549,7 @@ module testbench;
 `endif
 
 `ifdef PRINT_ICACHE
-    print_icache_head({{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}},i_cache_head}, {{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}},i_cache_tail});
+    print_icache_head({{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}},i_cache_head}, {{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}},i_cache_tail}, proc2Icache_addr[63:32], proc2Icache_addr[31:0]);
     for(int i = 0; i < `NUM_ICACHE_LINES; i++) begin
       print_icache_entry(i, {31'b0, i_cache[i].valid}, {{(32-(16-$clog2(`NUM_ICACHE_LINES)-3)){1'b0}}, i_cache[i].tag}, i_cache[i].data[63:32], i_cache[i].data[31:0]);
     end
