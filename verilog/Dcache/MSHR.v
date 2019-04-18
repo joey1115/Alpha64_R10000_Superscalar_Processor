@@ -244,7 +244,7 @@ module MSHR(
 
     //retire logic
     // MSHR_queue change
-    next_MSHR_queue[writeback_head].valid = (stored_mem_wr | MSHR_queue[writeback_head].proc2mem_command == BUS_STORE) ? 0 : MSHR_queue[writeback_head].valid;
+    next_MSHR_queue[writeback_head].valid = ((stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command == BUS_STORE) && MSHR_queue[writeback_head].complete && MSHR_queue[writeback_head].valid) ? 0 : MSHR_queue[writeback_head].valid;
 
     //mem complete request
     for (int i = 0; i < `MSHR_DEPTH;i++) begin
@@ -413,7 +413,7 @@ module MSHR(
   assign mem_addr = MSHR_queue[writeback_head].addr;
 
   //retire logic
-  assign next_writeback_head = ((stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command != BUS_LOAD) && MSHR_queue[writeback_head].valid) ? writeback_head_plus_one : writeback_head;
+  assign next_writeback_head = ((stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command == BUS_STORE) && MSHR_queue[writeback_head].complete && MSHR_queue[writeback_head].valid) ? writeback_head_plus_one : writeback_head;
  
   always_ff @(posedge clock) begin
     if(reset) begin
