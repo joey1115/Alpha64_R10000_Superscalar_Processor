@@ -263,14 +263,15 @@ module LQ (
   logic       [`NUM_SUPER-1:0]                       rollback_valid;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] diff;
 
-  assign next_tail     = rollback_en ? LQ_rollback_idx :
-                         dispatch_en ? virtual_tail    : tail;
-  assign tail_plus_one = tail + 1;
-  assign tail_plus_two = tail + 2;
-  assign head_plus_one = head + 1;
-  assign head_plus_two = head + 2;
+  assign next_tail           = rollback_en ? LQ_rollback_idx :
+                               dispatch_en ? virtual_tail    : tail;
+  assign tail_plus_one       = tail + 1;
+  assign tail_plus_two       = tail + 2;
+  assign head_plus_one       = head + 1;
+  assign head_plus_two       = head + 2;
   assign LQ_idx_minus_one[0] = FU_LQ_out.LQ_idx[0] - 1;
   assign LQ_idx_minus_one[1] = FU_LQ_out.LQ_idx[1] - 1;
+  assign tail_map_idx        = SQ_LQ_out.LQ_idx - head;
 
   always_comb begin
     LQ_BP_out.LQ_target.ROB_idx    = lq[lq_map_idx[ld_idx]].ROB_idx - 1;
@@ -398,10 +399,6 @@ module LQ (
     for (int j = 0; j < `NUM_LSQ; j++) begin
       lq_map_idx[j] = head + j;
     end
-  end
-
-  always_comb begin
-    tail_map_idx = SQ_LQ_out.LQ_idx - head;
   end
 
   // Rollback
