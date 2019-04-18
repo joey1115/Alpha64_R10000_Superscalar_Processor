@@ -9,65 +9,17 @@ module Dcache_controller(
     output D_CACHE_LQ_OUT_t                                                       d_cache_lq_out,
     output D_CACHE_SQ_OUT_t                                                       d_cache_sq_out, // tells if a store can be moved on.
 
-    //Dcachemem to cache                                  
-    input logic [63:0]                                                            rd1_data, 
-    input logic                                                                   rd1_hit, wr1_hit,
-    input logic                                                                   evicted_dirty,
-    input logic                                                                   evicted_valid,
-    input SASS_ADDR                                                               evicted_addr,
-    input logic [63:0]                                                            evicted_data,
-
-    // cache to Dcachemem                       
-    output logic                                                                  wr1_en, wr1_dirty, wr1_from_mem, wr1_valid,
-    output SASS_ADDR                                                              rd1_addr, wr1_addr,
-    output logic [63:0]                                                           wr1_data,
-    output logic                                                                  rd1_search,
-    output logic                                                                  wr1_search,
-
-
-    //MSHR to cache                                 
-    input logic                                                                   mshr_valid,
-    input logic                                                                   mshr_empty,
-
-    // input logic [1:0][63:0]                                                       miss_data,
-    // input logic [1:0]                                                             miss_data_valid,
-    input logic [1:0]                                                             miss_addr_hit,
-
-    input logic                                                                   mem_wr,
-    input logic                                                                   mem_dirty,
-    input logic [63:0]                                                            mem_data,
-    input SASS_ADDR                                                               mem_addr,
-
-    input logic                                                                   rd_wb_en,
-    input logic                                                                   rd_wb_dirty,
-    input logic [63:0]                                                            rd_wb_data,
-    input SASS_ADDR                                                               rd_wb_addr,
-
-    input logic                                                                   wr_wb_en,
-    input logic                                                                   wr_wb_dirty,
-    input logic [63:0]                                                            wr_wb_data,
-    input SASS_ADDR                                                               wr_wb_addr,
-
-    //cache to MSHR (loading)                                 
-    output logic [2:0]                                                            miss_en,
-    output SASS_ADDR [2:0]                                                        miss_addr,
-    output logic [2:0][63:0]                                                      miss_data_in,
-    output MSHR_INST_TYPE [2:0]                                                   inst_type,
-    output logic [2:0][1:0]                                                       mshr_proc2mem_command,
-    output logic [2:0]                                                            miss_dirty,
-    //cache to MSHR (searching)                                 
-    output SASS_ADDR [1:0]                                                        search_addr,
-    output MSHR_INST_TYPE [1:0]                                                   search_type,
-    output logic [63:0]                                                           search_wr_data,
-    output logic [1:0]                                                            search_en,
-    //cache to MSHR (Written back)                      
-    // output logic                                                                  stored_rd_wb,
-    // output logic                                                                  stored_wr_wb,
-    output logic                                                                  stored_mem_wr,
-
 `ifdef DEBUG
     output logic [63:0]             count,
 `endif
+
+    input logic [3:0]                                                             mem2proc_response,
+    input logic [63:0]                                                            mem2proc_data,     // data resulting from a load
+    input logic [3:0]                                                             mem2proc_tag,       // 0 = no value, other=tag of transaction
+    //cache to mshr
+    output logic [63:0]                                                           proc2mem_addr,
+    output logic [63:0]                                                           proc2mem_data,
+    output logic [1:0]                                                            proc2mem_command,
 
     input  logic                                                                  write_back,
     // output logic                                                                  cache_valid,
@@ -84,91 +36,142 @@ logic [1:0] state, next_state;
 logic [63:0] next_count;
 SASS_ADDR write_back_addr;
 // logic write_back_stage;
+logic mshr_valid;
+logic mshr_empty;
 
+logic [63:0]       rd1_data;
+logic              rd1_hit, wr1_hit;
+logic              evicted_dirty;
+logic              evicted_valid;
+SASS_ADDR          evicted_addr;
+logic [63:0]       evicted_data;                     
+logic              wr1_en, wr1_dirty, wr1_from_mem, wr1_valid;
+SASS_ADDR          rd1_addr, wr1_addr;
+logic [63:0]       wr1_data;
+logic              rd1_search;
+logic              wr1_search;
+logic              stored_rd_wb;
+logic              stored_mem_wr;
+
+
+D_CACHE_MSHR_OUT_t d_cache_mshr_out, next_d_cache_mshr_out;
+
+MSHR_D_CACHE_OUT_t mshr_d_cache_out, next_mshr_d_cache_out;
+
+Dcache dcache_0 (
+    .clock(clock),
+    .reset(reset),
+    //enable signals 
+    .wr1_en(wr1_en),
+    .wr1_from_mem(wr1_from_mem),
+    //addr from proc
+    .rd1_addr(rd1_addr),
+    .wr1_addr(wr1_addr),
+    .rd1_data_out(rd1_data),
+    .rd1_hit_out(rd1_hit),
+    .wr1_hit_out(wr1_hit),
+    .wr1_data(wr1_data),
+    .wr1_dirty(wr1_dirty),
+    .wr1_valid(wr1_valid),
+    .rd1_search(rd1_search),
+    .wr1_search(wr1_search),
+  `ifdef DEBUG
+    .cache_bank(Dcache_bank),
+  `endif
+    .evicted_dirty_out(evicted_dirty), 
+    .evicted_valid_out(evicted_valid),
+    .evicted_addr_out(evicted_addr),
+    .evicted_data_out(evicted_data)
+  );
+
+  MSHR mshr_0 (
+    .clock(clock),
+    .reset(reset),
+    .d_cache_mshr_out(d_cache_mshr_out),
+    // .stored_rd_wb(stored_rd_wb),
+    .stored_mem_wr(stored_mem_wr),
+`ifdef DEBUG
+    .MSHR_queue(MSHR_queue),
+    .writeback_head(MSHR_writeback_head),
+    .head(MSHR_head),
+    .tail(MSHR_tail),
+`endif
+    .next_mshr_d_cache_out(next_mshr_d_cache_out),
+    .mshr_valid(mshr_valid),
+    .mshr_empty(mshr_empty),
+    //mem to mshr
+    .mem2proc_response(Dmem2proc_response),
+    .mem2proc_data(mem2proc_data),     // data resulting from a load
+    .mem2proc_tag(mem2proc_tag),       // 0 = no value, other=tag of transaction
+    //cache to mshr
+    .proc2mem_addr(proc2Dmem_addr),
+    .proc2mem_data(proc2mem_data),
+    .proc2mem_command(proc2Dmem_command)
+  );
 
 //read cache outputs
-
 //output d_cache_lq_out.value from mshr if exist otherwise from cache
 assign d_cache_lq_out.value = rd1_data; 
 
 //d_cache_lq_out.value is valid if it is read and if d_cache_lq_out.value is either in cache or mshr
 assign d_cache_lq_out.valid = rd1_hit;
 
-assign d_cache_sq_out.valid = ((wr1_hit & sq_d_cache_out.wr_en) || wr_wb_en || miss_en[1]); // We think it is always 1
+assign d_cache_sq_out.valid = ((wr1_hit & sq_d_cache_out.wr_en) || mshr_d_cache_out.wr_wb_en || next_d_cache_mshr_out.miss_en[1]); // We think it is always 1
 
-
-//set MSHR CMMD
-
-//search mshr for rd1 d_cache_lq_out.value
-assign search_addr[0] = rd1_addr;
-assign search_type[0] = LOAD;
-assign search_en[0]   = lq_d_cache_out.rd_en;
-
-//search mshr for wr1 d_cache_lq_out.value
-assign search_addr[1] = {sq_d_cache_out.addr,3'b000};
-assign search_type[1] = STORE;
-assign search_wr_data = sq_d_cache_out.value;
-assign search_en[1]   = sq_d_cache_out.wr_en;
+//Signals to MSHR
 
 //if not in cache, enable to push d_cache_lq_out.value to the MSHR
-assign miss_en[0] = (lq_d_cache_out.rd_en & !rd1_hit & !miss_addr_hit[0]) & mshr_valid;
+assign next_d_cache_mshr_out.miss_en[0] = lq_d_cache_out.rd_en & !rd1_hit & mshr_valid;
 //Miss from stores
-assign miss_en[1] = (sq_d_cache_out.wr_en & !wr1_hit & !miss_addr_hit[1]) & mshr_valid;
+assign next_d_cache_mshr_out.miss_en[1] = sq_d_cache_out.wr_en & !wr1_hit & mshr_valid;
 //Store inst from evicts
-assign miss_en[2] = (wr1_from_mem & evicted_dirty & evicted_valid) & mshr_valid;// when wr1 is from memory and it is dirty
+assign next_d_cache_mshr_out.miss_en[2] = wr1_from_mem & evicted_dirty & evicted_valid & mshr_valid;// when wr1 is from memory and it is dirty
 
 //d_cache_lq_out.value sent to MSHR search
-assign miss_addr[0] = rd1_addr;
-assign miss_data_in[0] = {64'hDEADBEEFDEADBEEF};
-assign inst_type[0] = LOAD;
-assign mshr_proc2mem_command[0] = BUS_LOAD;
-assign miss_dirty[0] = 0;
+assign next_d_cache_mshr_out.miss_addr[0] = rd1_addr;
+assign next_d_cache_mshr_out.miss_data_in[0] = {64'hDEADBEEFDEADBEEF};
+assign next_d_cache_mshr_out.inst_type[0] = LOAD;
+assign next_d_cache_mshr_out.mshr_proc2mem_command[0] = BUS_LOAD;
+assign next_d_cache_mshr_out.miss_dirty[0] = 0;
 
-assign miss_addr[1] = {sq_d_cache_out.addr,3'b000};
-assign miss_data_in[1]= sq_d_cache_out.value;
-assign inst_type[1] = STORE;
-assign mshr_proc2mem_command[1] = BUS_LOAD;
-assign miss_dirty[1] = 1;
+assign next_d_cache_mshr_out.miss_addr[1] = {sq_d_cache_out.addr,3'b000};
+assign next_d_cache_mshr_out.miss_data_in[1]= sq_d_cache_out.value;
+assign next_d_cache_mshr_out.inst_type[1] = STORE;
+assign next_d_cache_mshr_out.mshr_proc2mem_command[1] = BUS_LOAD;
+assign next_d_cache_mshr_out.miss_dirty[1] = 1;
 
-assign miss_addr[2] = evicted_addr;
-assign miss_data_in[2] = evicted_data;
-assign inst_type[2] = EVICT;
-assign mshr_proc2mem_command[2] = BUS_STORE;
-assign miss_dirty[2] = 0;
+assign next_d_cache_mshr_out.miss_addr[2] = evicted_addr;
+assign next_d_cache_mshr_out.miss_data_in[2] = evicted_data;
+assign next_d_cache_mshr_out.inst_type[2] = EVICT;
+assign next_d_cache_mshr_out.mshr_proc2mem_command[2] = BUS_STORE;
+assign next_d_cache_mshr_out.miss_dirty[2] = 0;
 
-//d_cache_lq_out.value to cache
+
 //assign cachemem inputs
 assign rd1_addr = {lq_d_cache_out.addr,3'b000};
-
 assign rd1_search = lq_d_cache_out.rd_en;
 
-
-
-assign wr1_addr = (write_back_stage & !mem_wr)              ?  write_back_addr :
-                  (wr_wb_en)                      ?  wr_wb_addr      :
-                  (sq_d_cache_out.wr_en)          ?  {sq_d_cache_out.addr,3'b000}:
-                  (!wr_wb_en & rd_wb_en)          ?  rd_wb_addr      : mem_addr;
-
-assign wr1_dirty = (wr_wb_en)                      ?  wr_wb_dirty :
-                   (sq_d_cache_out.wr_en)          ?  1           :
-                   (!wr_wb_en & rd_wb_en)          ?  rd_wb_dirty : mem_dirty;
-
-assign wr1_data = (wr_wb_en)                      ?  wr_wb_data :
-                  (sq_d_cache_out.wr_en)          ?  sq_d_cache_out.value:
-                  (!wr_wb_en & rd_wb_en)          ?  rd_wb_data : mem_data;
-
-assign wr1_valid = (write_back_stage)             ? 0 : 1;
-
-assign wr1_from_mem = mem_wr | rd_wb_en | wr_wb_en | write_back_stage;
-
 assign wr1_search = wr1_from_mem | sq_d_cache_out.wr_en;
+
+assign wr1_addr = (write_back_stage)                                                                     ?  write_back_addr :
+                  (!write_back_stage & (sq_d_cache_out.wr_en & wr1_hit))                                   ?  {sq_d_cache_out.addr,3'b000} :
+                  (!write_back_stage & !(sq_d_cache_out.wr_en & wr1_hit) & mshr_d_cache_out.rd_wb_en)     ?  mshr_d_cache_out.rd_wb_addr : mshr_d_cache_out.mem_addr;
+
+assign wr1_dirty = (sq_d_cache_out.wr_en & wr1_hit)                                 ?  1 :
+                   (!(sq_d_cache_out.wr_en & wr1_hit) & mshr_d_cache_out.rd_wb_en)    ?  mshr_d_cache_out.rd_wb_dirty : mshr_d_cache_out.mem_dirty;
+
+assign wr1_data = (sq_d_cache_out.wr_en & wr1_hit)                                  ?  sq_d_cache_out.value:
+                  (!(sq_d_cache_out.wr_en & wr1_hit) & mshr_d_cache_out.rd_wb_en)     ?  mshr_d_cache_out.rd_wb_data : mshr_d_cache_out.mem_data;
+
+assign wr1_valid = !write_back_stage;
+
+assign wr1_from_mem = mshr_d_cache_out.mem_wr | mshr_d_cache_out.rd_wb_en | write_back_stage;
 
 assign wr1_en = (wr1_hit & sq_d_cache_out.wr_en) | (wr1_from_mem & mshr_valid);
 
 //inform MSHR that it is written
-// assign stored_rd_wb = !sq_d_cache_out.wr_en & !wr_wb_en & rd_wb_en;
-// assign stored_wr_wb = wr_wb_en; //wr_wb_enable is always zero
-assign stored_mem_wr = !sq_d_cache_out.wr_en & !rd_wb_en & !wr_wb_en & mem_wr;
+assign stored_rd_wb = !sq_d_cache_out.wr_en & mshr_d_cache_out.rd_wb_en;
+assign stored_mem_wr = !sq_d_cache_out.wr_en & !mshr_d_cache_out.rd_wb_en & mshr_d_cache_out.mem_wr;
 
 //set the cache id valid or not
 // assign cache_valid = mshr_valid;
@@ -205,6 +208,17 @@ always_ff @(posedge clock) begin
   else begin
     state           <= `SD next_state;
     count           <= `SD next_count;
+  end
+end
+
+always_ff @(posedge clock) begin
+  if(reset) begin
+    d_cache_mshr_out  <= `SD 0;
+    mshr_d_cache_out  <= `SD 0;
+  end
+  else begin
+    d_cache_mshr_out  <= `SD next_d_cache_mshr_out;
+    mshr_d_cache_out  <= `SD next_mshr_d_cache_out;
   end
 end
 
