@@ -180,7 +180,6 @@ module cache_bank(
   assign evicted_dirty = cache_bank[evicted_idx].dirty;
   assign evicted_addr.tag = cache_bank[evicted_idx].tag;
   assign evicted_addr.set_index = evicted_idx;
-  assign evicted_addr.ignore = 3'b000;
   assign evicted_data = cache_bank[evicted_idx].data;
 
   always_comb begin
