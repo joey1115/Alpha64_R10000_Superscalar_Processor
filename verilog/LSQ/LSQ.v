@@ -74,12 +74,12 @@ module SQ (
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      SQ_LQ_out.LQ_idx[i] = FU_SQ_out.LQ_idx[i];
       SQ_LQ_out.hit[i]    = st_hit[i];
       SQ_LQ_out.value[i]  = sq[sq_map_idx[st_idx[i]]].value;
-      SQ_LQ_out.done[i]   = FU_SQ_out.done[i];
-      SQ_LQ_out.addr[i]   = FU_SQ_out.result[i][63:3];
     end
+    SQ_LQ_out.LQ_idx = sq[head].LQ_idx;
+    SQ_LQ_out.retire = ROB_SQ_out.wr_mem != 2'b00;
+    SQ_LQ_out.addr   = sq[head].addr;
   end
 
   // Dispatch valid
@@ -172,7 +172,7 @@ module SQ (
     // Execute
     for (int i = 0; i < `NUM_SUPER; i++) begin
       if (FU_SQ_out.done[i] & !rollback_valid[0]) begin
-        next_sq[SQ_idx_minus_one[i]] = '{FU_SQ_out.result[i][63:3], `TRUE, FU_SQ_out.T1_value[i]};
+        next_sq[SQ_idx_minus_one[i]] = '{FU_SQ_out.result[i][63:3], `TRUE, FU_SQ_out.T1_value[i], FU_SQ_out.LQ_idx[i]};
       end
     end
   end
@@ -258,9 +258,9 @@ module LQ (
 `endif
   LQ_ENTRY_t  [`NUM_LSQ-1:0]                         next_lq;
   LQ_FU_OUT_t                                        next_LQ_FU_out;
-  logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, virtual_tail, head_plus_one, head_plus_two, tail_plus_one, tail_plus_two;
-  logic       [`NUM_SUPER-1:0]                       ld_hit;
-  logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] ld_idx, tail_map_idx, LQ_idx_minus_one;
+  logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, virtual_tail, head_plus_one, head_plus_two, tail_plus_one, tail_plus_two, tail_map_idx, ld_idx;
+  logic                                              ld_hit;
+  logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx_minus_one;
   logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   lq_map_idx;
   logic       [`NUM_SUPER-1:0]                       rollback_valid;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] diff;
@@ -275,14 +275,12 @@ module LQ (
   assign LQ_idx_minus_one[1] = FU_LQ_out.LQ_idx[1] - 1;
 
   always_comb begin
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      LQ_BP_out.LQ_target[i].ROB_idx    = lq[lq_map_idx[ld_idx[i]]].ROB_idx - 1;
-      LQ_BP_out.LQ_target[i].FL_idx     = lq[lq_map_idx[ld_idx[i]]].FL_idx - 1;
-      LQ_BP_out.LQ_target[i].SQ_idx     = lq[lq_map_idx[ld_idx[i]]].SQ_idx;
-      LQ_BP_out.LQ_target[i].LQ_idx     = lq_map_idx[ld_idx[i]];
-      LQ_BP_out.LQ_target[i].target_PC  = lq[lq_map_idx[ld_idx[i]]].PC;
-      LQ_BP_out.LQ_target[i].LQ_violate = ld_hit[i] & LQ_FU_out.done[i];
-    end
+    LQ_BP_out.LQ_target.ROB_idx    = lq[lq_map_idx[ld_idx]].ROB_idx - 1;
+    LQ_BP_out.LQ_target.FL_idx     = lq[lq_map_idx[ld_idx]].FL_idx - 1;
+    LQ_BP_out.LQ_target.SQ_idx     = lq[lq_map_idx[ld_idx]].SQ_idx;
+    LQ_BP_out.LQ_target.LQ_idx     = lq_map_idx[ld_idx];
+    LQ_BP_out.LQ_target.target_PC  = lq[lq_map_idx[ld_idx]].PC;
+    LQ_BP_out.LQ_target.LQ_violate = ld_hit & SQ_LQ_out.retire;
   end
 
   // Dispatch valid
@@ -405,25 +403,21 @@ module LQ (
   end
 
   always_comb begin
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      tail_map_idx[i] = SQ_LQ_out.LQ_idx[i] - head;
-    end
+    tail_map_idx = SQ_LQ_out.LQ_idx - head;
   end
 
   // Rollback
   always_comb begin
-    ld_hit = '{`NUM_SUPER{`FALSE}};
-    ld_idx = {`NUM_SUPER{{$clog2(`NUM_LSQ){1'b0}}}};
+    ld_hit = `FALSE;
+    ld_idx = {$clog2(`NUM_LSQ){1'b0}};
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      // if (SQ_LQ_out.done[i]) begin
-        for (int j = 0; j < `NUM_LSQ; j++) begin
-          if (SQ_LQ_out.addr[i] == lq[lq_map_idx[j]].addr && j < tail_map_idx[i]) begin
-            ld_hit[i] = `TRUE;
-            ld_idx[i] = j;
-            break;
-          end
+      for (int j = 0; j < `NUM_LSQ; j++) begin
+        if (SQ_LQ_out.addr == lq[lq_map_idx[j]].addr && j < tail_map_idx) begin
+          ld_hit = `TRUE;
+          ld_idx = j;
+          break;
         end
-      // end
+      end
     end
   end
 
