@@ -38,11 +38,7 @@ module pipeline (
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head,
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail,
-  output I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]         i_cache,
-  output logic [$clog2(`NUM_ICACHE_LINES)-1:0]           i_cache_head,
-  output logic [$clog2(`NUM_ICACHE_LINES)-1:0]           i_cache_tail,
-  output MEM_TAG_TABLE_t [15:0]                          mem_tag_table,
-  output logic           [63:0]                          proc2Icache_addr,
+  output logic          [63:0]                           count,
 `endif
   output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
@@ -125,6 +121,7 @@ module pipeline (
 `ifndef DEBUG
   logic                                          RS_valid;
 `endif
+
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
   F_DECODER_OUT_t                                F_decoder_out;
@@ -169,7 +166,7 @@ module pipeline (
   logic  [4:0] Icache_wr_idx;
   logic  [7:0] Icache_wr_tag;
   logic        Icache_wr_en;
-  logic [63:0] Icache_data_out;
+  logic [63:0] Icache_data_out, proc2Icache_addr;
   logic        Icache_valid_out;
   logic [3:0]  Imem2proc_response;
   logic [3:0]  Dmem2proc_response;
@@ -190,6 +187,9 @@ module pipeline (
   logic       [$clog2(`NUM_FL)-1:0]                                       next_tail;
   logic       [`NUM_SUPER-1:0]                                            RS_match_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]                       RS_match_idx;
+`endif
+`ifndef DEBUG
+  logic [63:0]  count;
 `endif
 
   logic [63:0] rd1_data;
@@ -231,13 +231,13 @@ module pipeline (
   logic                 stored_mem_wr;
   logic                 write_back;
   logic                 write_back_stage;
-  logic                 cache_valid;
+  // logic                 cache_valid;
   logic                 halt_pipeline;
   logic                 illegal_out_pipeline;
   logic                 fetch_en_in;
-  logic                 bus_select;
   logic                 rd1_search;
   logic                 wr1_search;
+  logic [2:0]           miss_dirty;
 
 
   assign en           = `TRUE;
@@ -257,12 +257,14 @@ module pipeline (
   assign illegal_out_pipeline = illegal_out[0] || (~halt_out[0] & illegal_out[1]);
   // assign proc2Dmem_command = BUS_NONE;
   // assign proc2Dmem_addr = 0;
-  assign bus_select = proc2Dmem_command==BUS_NONE;
-  assign proc2mem_command = bus_select ? proc2Imem_command:proc2Dmem_command;
-  assign proc2mem_addr = bus_select ? proc2Imem_addr:proc2Dmem_addr;
+  assign proc2mem_command =
+    (proc2Dmem_command==BUS_NONE) ? proc2Imem_command:proc2Dmem_command;
+  assign proc2mem_addr =
+    (proc2Dmem_command==BUS_NONE) ? proc2Imem_addr:proc2Dmem_addr;
   //TODO: Uncomment and pass for mem stage in the pipeline
-  assign Dmem2proc_response = bus_select ? 0 : mem2proc_response;
-  assign Imem2proc_response = bus_select ? mem2proc_response : 0;
+  assign Dmem2proc_response = 
+    (proc2Dmem_command==BUS_NONE) ? 0 : mem2proc_response;
+  assign Imem2proc_response = (proc2Dmem_command==BUS_NONE) ? mem2proc_response : 0;
 
   assign fetch_en_in = fetch_en;
 `ifdef DEBUG
@@ -294,6 +296,21 @@ module pipeline (
     end
   end
 `endif
+   // Actual cache (data and tag RAMs)
+  cache cachememory (
+    // inputs
+    .clock     (clock),
+    .reset     (reset),
+    .wr1_en    (Icache_wr_en),
+    .wr1_idx   (Icache_wr_idx),
+    .wr1_tag   (Icache_wr_tag),
+    .wr1_data  (mem2proc_data),
+    .rd1_idx   (Icache_rd_idx),
+    .rd1_tag   (Icache_rd_tag),
+    // outputs
+    .rd1_data  (cachemem_data),
+    .rd1_valid (cachemem_valid)
+  );
 
   // Cache controller
   icache icache_0(
@@ -304,17 +321,18 @@ module pipeline (
     .Imem2proc_data     (mem2proc_data),
     .Imem2proc_tag      (mem2proc_tag),
     .proc2Icache_addr   (proc2Icache_addr),
+    .cachemem_data      (cachemem_data),
+    .cachemem_valid     (cachemem_valid),
     // outputs
     .proc2Imem_command  (proc2Imem_command),
     .proc2Imem_addr     (proc2Imem_addr),
-`ifdef DEBUG
-    .i_cache(i_cache),
-    .mem_tag_table(mem_tag_table),
-    .head(i_cache_head),
-    .tail(i_cache_tail),
-`endif
     .Icache_data_out    (Icache_data_out),
-    .Icache_valid_out   (Icache_valid_out)
+    .Icache_valid_out   (Icache_valid_out),
+    .current_index      (Icache_rd_idx),
+    .current_tag        (Icache_rd_tag),
+    .last_index         (Icache_wr_idx),
+    .last_tag           (Icache_wr_tag),
+    .data_write_enable  (Icache_wr_en)
   );
 
   //D cache modules
@@ -376,17 +394,22 @@ module pipeline (
     .miss_data_in(miss_data_in),
     .inst_type(inst_type),
     .mshr_proc2mem_command(mshr_proc2mem_command),
+    .miss_dirty(miss_dirty),
     //cache to MSHR (searching)                                 
     .search_addr(search_addr),
     .search_type(search_type),
     .search_wr_data(search_wr_data),
     .search_en(search_en),
     //cache to MSHR (Written back)                      
-    .stored_rd_wb(stored_rd_wb),
-    .stored_wr_wb(stored_wr_wb),
+    // .stored_rd_wb(stored_rd_wb),
+    // .stored_wr_wb(stored_wr_wb),
     .stored_mem_wr(stored_mem_wr),
+
+`ifdef DEBUG
+    .count(count),
+`endif
     .write_back(write_back),
-    .cache_valid(cache_valid),
+    // .cache_valid(cache_valid),
     .halt_pipeline(halt_pipeline),
     .write_back_stage(write_back_stage)
 );
@@ -422,8 +445,8 @@ module pipeline (
     .reset(reset),
         
     //stored to cache input      
-    .stored_rd_wb(stored_rd_wb),
-    .stored_wr_wb(stored_wr_wb),
+    // .stored_rd_wb(stored_rd_wb),
+    // .stored_wr_wb(stored_wr_wb),
     .stored_mem_wr(stored_mem_wr),
         
     //storing to the MSHR      
@@ -432,6 +455,7 @@ module pipeline (
     .miss_data_in(miss_data_in),
     .inst_type(inst_type),
     .mshr_proc2mem_command(mshr_proc2mem_command),
+    .miss_dirty(miss_dirty),
         
     //looking up the MSHR      
     .search_addr(search_addr), //address to search
