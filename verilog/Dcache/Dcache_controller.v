@@ -10,7 +10,12 @@ module Dcache_controller(
     output D_CACHE_SQ_OUT_t                                                       d_cache_sq_out, // tells if a store can be moved on.
 
 `ifdef DEBUG
-    output logic [63:0]             count,
+    output logic [63:0]                                    count,
+    output MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]                MSHR_queue,
+    output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head,
+    output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
+    output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail,
+    output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]     Dcache_bank,
 `endif
 
     input logic [3:0]                                                             mem2proc_response,
@@ -96,17 +101,17 @@ Dcache dcache_0 (
     .head(MSHR_head),
     .tail(MSHR_tail),
 `endif
-    .next_mshr_d_cache_out(next_mshr_d_cache_out),
+    .mshr_d_cache_out(next_mshr_d_cache_out),
     .mshr_valid(mshr_valid),
     .mshr_empty(mshr_empty),
     //mem to mshr
-    .mem2proc_response(Dmem2proc_response),
+    .mem2proc_response(mem2proc_response),
     .mem2proc_data(mem2proc_data),     // data resulting from a load
     .mem2proc_tag(mem2proc_tag),       // 0 = no value, other=tag of transaction
     //cache to mshr
-    .proc2mem_addr(proc2Dmem_addr),
+    .proc2mem_addr(proc2mem_addr),
     .proc2mem_data(proc2mem_data),
-    .proc2mem_command(proc2Dmem_command)
+    .proc2mem_command(proc2mem_command)
   );
 
 //read cache outputs
@@ -116,7 +121,7 @@ assign d_cache_lq_out.value = rd1_data;
 //d_cache_lq_out.value is valid if it is read and if d_cache_lq_out.value is either in cache or mshr
 assign d_cache_lq_out.valid = rd1_hit;
 
-assign d_cache_sq_out.valid = ((wr1_hit & sq_d_cache_out.wr_en) || mshr_d_cache_out.wr_wb_en || next_d_cache_mshr_out.miss_en[1]); // We think it is always 1
+assign d_cache_sq_out.valid = ((wr1_hit & sq_d_cache_out.wr_en) || next_d_cache_mshr_out.miss_en[1]); // We think it is always 1
 
 //Signals to MSHR
 
@@ -153,15 +158,15 @@ assign rd1_search = lq_d_cache_out.rd_en;
 
 assign wr1_search = wr1_from_mem | sq_d_cache_out.wr_en;
 
-assign wr1_addr = (write_back_stage)                                                                     ?  write_back_addr :
-                  (!write_back_stage & (sq_d_cache_out.wr_en & wr1_hit))                                   ?  {sq_d_cache_out.addr,3'b000} :
-                  (!write_back_stage & !(sq_d_cache_out.wr_en & wr1_hit) & mshr_d_cache_out.rd_wb_en)     ?  mshr_d_cache_out.rd_wb_addr : mshr_d_cache_out.mem_addr;
+assign wr1_addr = (write_back_stage)                                                                      ?  write_back_addr :
+                  (!write_back_stage & sq_d_cache_out.wr_en)                                              ?  {sq_d_cache_out.addr,3'b000} :
+                  (!write_back_stage & !sq_d_cache_out.wr_en & mshr_d_cache_out.rd_wb_en)                 ?  mshr_d_cache_out.rd_wb_addr : mshr_d_cache_out.mem_addr;
 
-assign wr1_dirty = (sq_d_cache_out.wr_en & wr1_hit)                                 ?  1 :
-                   (!(sq_d_cache_out.wr_en & wr1_hit) & mshr_d_cache_out.rd_wb_en)    ?  mshr_d_cache_out.rd_wb_dirty : mshr_d_cache_out.mem_dirty;
+assign wr1_dirty = (sq_d_cache_out.wr_en)                                                                 ?  1 :
+                   (!(sq_d_cache_out.wr_en) & mshr_d_cache_out.rd_wb_en)                                  ?  mshr_d_cache_out.rd_wb_dirty : mshr_d_cache_out.mem_dirty;
 
-assign wr1_data = (sq_d_cache_out.wr_en & wr1_hit)                                  ?  sq_d_cache_out.value:
-                  (!(sq_d_cache_out.wr_en & wr1_hit) & mshr_d_cache_out.rd_wb_en)     ?  mshr_d_cache_out.rd_wb_data : mshr_d_cache_out.mem_data;
+assign wr1_data = (sq_d_cache_out.wr_en)                                                                  ?  sq_d_cache_out.value:
+                  (!(sq_d_cache_out.wr_en) & mshr_d_cache_out.rd_wb_en)                                   ?  mshr_d_cache_out.rd_wb_data : mshr_d_cache_out.mem_data;
 
 assign wr1_valid = !write_back_stage;
 

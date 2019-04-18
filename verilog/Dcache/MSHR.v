@@ -50,7 +50,6 @@ module MSHR(
   logic [$clog2(`MSHR_DEPTH)-1:0] writeback_head, head, tail;
 `endif
   logic [$clog2(`MSHR_DEPTH)-1:0] next_writeback_head, next_head, next_tail, writeback_head_plus_one;
-  logic [1:0]                    tail_move;
   // logic [2:0][1:0]               data_idx;
   // logic [3:0]                    internal_miss_en1,internal_miss_en2;
   // logic [3:0]                    internal_miss_en1_mask, internal_miss_en2_mask, internal_miss_en3_mask;
@@ -62,6 +61,8 @@ module MSHR(
   logic [`MSHR_DEPTH-1:0][$clog2(`MSHR_DEPTH)-1:0]index;
 
   logic rd_search_hit, wr_search_hit;
+
+  logic pending_rd_bus_load, pending_wr_bus_load, pending_bus_load;
 
   //how many entries to allocate
   // assign tail_move = d_cache_mshr_out.miss_en[0] + d_cache_mshr_out.miss_en[1] + d_cache_mshr_out.miss_en[2];
@@ -166,7 +167,7 @@ module MSHR(
     pending_bus_load = 0;
     if(wr_search_hit & MSHR_queue[index[index_wr_search]].valid) begin
       if(MSHR_queue[index[index_wr_search]].inst_type == STORE && MSHR_queue[index[index_wr_search]].proc2mem_command == BUS_LOAD) begin
-        next_MSHR_queue[index[index_wr_search]].data = d_cache_mshr_out.search_wr_data;
+        next_MSHR_queue[index[index_wr_search]].data = d_cache_mshr_out.miss_data_in[1];
         next_MSHR_queue[index[index_wr_search]].dirty = 1;
       end
       else begin
@@ -198,7 +199,8 @@ module MSHR(
     pending_rd_bus_load = d_cache_mshr_out.miss_en[0] && !rd_search_hit;
     pending_wr_bus_load = d_cache_mshr_out.miss_en[1] && !wr_search_hit;
 
-    if(pending_rd_bus_load & !pending_wr_bus_load & !pending_bus_load & !miss_en[2]) begin
+    next_tail = tail;
+    if(pending_rd_bus_load & !pending_wr_bus_load & !pending_bus_load & !d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[0];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[0];
@@ -211,7 +213,7 @@ module MSHR(
 
       next_tail = tail_plus_one;
     end
-    else if(!pending_rd_bus_load & pending_wr_bus_load & !pending_bus_load & !miss_en[2]) begin
+    else if(!pending_rd_bus_load & pending_wr_bus_load & !pending_bus_load & !d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[1];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[1];
@@ -224,7 +226,7 @@ module MSHR(
 
       next_tail = tail_plus_one;
     end
-    else if(!pending_rd_bus_load & !pending_wr_bus_load & pending_bus_load & !miss_en[2]) begin
+    else if(!pending_rd_bus_load & !pending_wr_bus_load & pending_bus_load & !d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[1];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[1];
@@ -237,7 +239,7 @@ module MSHR(
 
       next_tail = tail_plus_one;
     end
-    else if(!pending_rd_bus_load & !pending_wr_bus_load & !pending_bus_load & miss_en[2]) begin
+    else if(!pending_rd_bus_load & !pending_wr_bus_load & !pending_bus_load & d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[2];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[2];
@@ -250,7 +252,7 @@ module MSHR(
 
       next_tail = tail_plus_one;
     end
-    else if(pending_rd_bus_load & pending_wr_bus_load & !pending_bus_load & !miss_en[2]) begin
+    else if(pending_rd_bus_load & pending_wr_bus_load & !pending_bus_load & !d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[0];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[0];
@@ -261,19 +263,19 @@ module MSHR(
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
 
-      next_MSHR_queue[tail].valid = 1;
-      next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[1];
-      next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[1];
-      next_MSHR_queue[tail].inst_type = d_cache_mshr_out.inst_type[1];
-      next_MSHR_queue[tail].proc2mem_command = d_cache_mshr_out.mshr_proc2mem_command[1];
-      next_MSHR_queue[tail].complete = 0;
-      next_MSHR_queue[tail].mem_tag = 0;
-      next_MSHR_queue[tail].state = WAITING;
-      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].valid = 1;
+      next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
+      next_MSHR_queue[tail_plus_one].addr = d_cache_mshr_out.miss_addr[1];
+      next_MSHR_queue[tail_plus_one].inst_type = d_cache_mshr_out.inst_type[1];
+      next_MSHR_queue[tail_plus_one].proc2mem_command = d_cache_mshr_out.mshr_proc2mem_command[1];
+      next_MSHR_queue[tail_plus_one].complete = 0;
+      next_MSHR_queue[tail_plus_one].mem_tag = 0;
+      next_MSHR_queue[tail_plus_one].state = WAITING;
+      next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[1];
 
       next_tail = tail_plus_two;
     end
-    else if(pending_rd_bus_load & !pending_wr_bus_load & pending_bus_load & !miss_en[2]) begin
+    else if(pending_rd_bus_load & !pending_wr_bus_load & pending_bus_load & !d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[0];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[0];
@@ -284,19 +286,19 @@ module MSHR(
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
 
-      next_MSHR_queue[tail].valid = 1;
-      next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[1];
-      next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[1];
-      next_MSHR_queue[tail].inst_type = d_cache_mshr_out.inst_type[1];
-      next_MSHR_queue[tail].proc2mem_command = BUS_LOAD;
-      next_MSHR_queue[tail].complete = 0;
-      next_MSHR_queue[tail].mem_tag = 0;
-      next_MSHR_queue[tail].state = WAITING;
-      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].valid = 1;
+      next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
+      next_MSHR_queue[tail_plus_one].addr = d_cache_mshr_out.miss_addr[1];
+      next_MSHR_queue[tail_plus_one].inst_type = d_cache_mshr_out.inst_type[1];
+      next_MSHR_queue[tail_plus_one].proc2mem_command = BUS_LOAD;
+      next_MSHR_queue[tail_plus_one].complete = 0;
+      next_MSHR_queue[tail_plus_one].mem_tag = 0;
+      next_MSHR_queue[tail_plus_one].state = WAITING;
+      next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[1];
 
       next_tail = tail_plus_two;
     end
-    else if(pending_rd_bus_load & !pending_wr_bus_load & !pending_bus_load & miss_en[2]) begin
+    else if(pending_rd_bus_load & !pending_wr_bus_load & !pending_bus_load & d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[0];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[0];
@@ -307,19 +309,19 @@ module MSHR(
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
 
-      next_MSHR_queue[tail].valid = 1;
-      next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[2];
-      next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[2];
-      next_MSHR_queue[tail].inst_type = d_cache_mshr_out.inst_type[2];
-      next_MSHR_queue[tail].proc2mem_command = d_cache_mshr_out.mshr_proc2mem_command[2];
-      next_MSHR_queue[tail].complete = 0;
-      next_MSHR_queue[tail].mem_tag = 0;
-      next_MSHR_queue[tail].state = WAITING;
-      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail_plus_one].valid = 1;
+      next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[2];
+      next_MSHR_queue[tail_plus_one].addr = d_cache_mshr_out.miss_addr[2];
+      next_MSHR_queue[tail_plus_one].inst_type = d_cache_mshr_out.inst_type[2];
+      next_MSHR_queue[tail_plus_one].proc2mem_command = d_cache_mshr_out.mshr_proc2mem_command[2];
+      next_MSHR_queue[tail_plus_one].complete = 0;
+      next_MSHR_queue[tail_plus_one].mem_tag = 0;
+      next_MSHR_queue[tail_plus_one].state = WAITING;
+      next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[2];
 
       next_tail = tail_plus_two;
     end
-    else if(!pending_rd_bus_load & pending_wr_bus_load & pending_bus_load & !miss_en[2]) begin
+    else if(!pending_rd_bus_load & pending_wr_bus_load & pending_bus_load & !d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[1];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[1];
@@ -330,19 +332,19 @@ module MSHR(
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
 
-      next_MSHR_queue[tail].valid = 1;
-      next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[1];
-      next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[1];
-      next_MSHR_queue[tail].inst_type = d_cache_mshr_out.inst_type[1];
-      next_MSHR_queue[tail].proc2mem_command = BUS_LOAD;
-      next_MSHR_queue[tail].complete = 0;
-      next_MSHR_queue[tail].mem_tag = 0;
-      next_MSHR_queue[tail].state = WAITING;
-      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].valid = 1;
+      next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
+      next_MSHR_queue[tail_plus_one].addr = d_cache_mshr_out.miss_addr[1];
+      next_MSHR_queue[tail_plus_one].inst_type = d_cache_mshr_out.inst_type[1];
+      next_MSHR_queue[tail_plus_one].proc2mem_command = BUS_LOAD;
+      next_MSHR_queue[tail_plus_one].complete = 0;
+      next_MSHR_queue[tail_plus_one].mem_tag = 0;
+      next_MSHR_queue[tail_plus_one].state = WAITING;
+      next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[1];
 
       next_tail = tail_plus_two;
     end
-    else if(!pending_rd_bus_load & pending_wr_bus_load & !pending_bus_load & miss_en[2]) begin
+    else if(!pending_rd_bus_load & pending_wr_bus_load & !pending_bus_load & d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[1];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[1];
@@ -353,19 +355,19 @@ module MSHR(
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
 
-      next_MSHR_queue[tail].valid = 1;
-      next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[2];
-      next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[2];
-      next_MSHR_queue[tail].inst_type = d_cache_mshr_out.inst_type[2];
-      next_MSHR_queue[tail].proc2mem_command = d_cache_mshr_out.mshr_proc2mem_command[2];
-      next_MSHR_queue[tail].complete = 0;
-      next_MSHR_queue[tail].mem_tag = 0;
-      next_MSHR_queue[tail].state = WAITING;
-      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail_plus_one].valid = 1;
+      next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[2];
+      next_MSHR_queue[tail_plus_one].addr = d_cache_mshr_out.miss_addr[2];
+      next_MSHR_queue[tail_plus_one].inst_type = d_cache_mshr_out.inst_type[2];
+      next_MSHR_queue[tail_plus_one].proc2mem_command = d_cache_mshr_out.mshr_proc2mem_command[2];
+      next_MSHR_queue[tail_plus_one].complete = 0;
+      next_MSHR_queue[tail_plus_one].mem_tag = 0;
+      next_MSHR_queue[tail_plus_one].state = WAITING;
+      next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[2];
 
       next_tail = tail_plus_two;
     end
-    else if(!pending_rd_bus_load & !pending_wr_bus_load & pending_bus_load & miss_en[2]) begin
+    else if(!pending_rd_bus_load & !pending_wr_bus_load & pending_bus_load & d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[1];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[1];
@@ -376,19 +378,19 @@ module MSHR(
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
 
-      next_MSHR_queue[tail].valid = 1;
-      next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[2];
-      next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[2];
-      next_MSHR_queue[tail].inst_type = d_cache_mshr_out.inst_type[2];
-      next_MSHR_queue[tail].proc2mem_command = d_cache_mshr_out.mshr_proc2mem_command[2];
-      next_MSHR_queue[tail].complete = 0;
-      next_MSHR_queue[tail].mem_tag = 0;
-      next_MSHR_queue[tail].state = WAITING;
-      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail_plus_one].valid = 1;
+      next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[2];
+      next_MSHR_queue[tail_plus_one].addr = d_cache_mshr_out.miss_addr[2];
+      next_MSHR_queue[tail_plus_one].inst_type = d_cache_mshr_out.inst_type[2];
+      next_MSHR_queue[tail_plus_one].proc2mem_command = d_cache_mshr_out.mshr_proc2mem_command[2];
+      next_MSHR_queue[tail_plus_one].complete = 0;
+      next_MSHR_queue[tail_plus_one].mem_tag = 0;
+      next_MSHR_queue[tail_plus_one].state = WAITING;
+      next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[2];
 
       next_tail = tail_plus_two;
     end
-    else if(pending_rd_bus_load & pending_wr_bus_load & pending_bus_load & !miss_en[2]) begin
+    else if(pending_rd_bus_load & pending_wr_bus_load & pending_bus_load & !d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[0];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[0];
@@ -421,7 +423,7 @@ module MSHR(
 
       next_tail = tail_plus_three;
     end
-    else if(pending_rd_bus_load & pending_wr_bus_load & !pending_bus_load & miss_en[2]) begin
+    else if(pending_rd_bus_load & pending_wr_bus_load & !pending_bus_load & d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[0];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[0];
@@ -454,7 +456,7 @@ module MSHR(
 
       next_tail = tail_plus_three;
     end
-    else if(pending_rd_bus_load & !pending_wr_bus_load & pending_bus_load & miss_en[2]) begin
+    else if(pending_rd_bus_load & !pending_wr_bus_load & pending_bus_load & d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[0];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[0];
@@ -487,7 +489,7 @@ module MSHR(
 
       next_tail = tail_plus_three;
     end
-    else if(!pending_rd_bus_load & pending_wr_bus_load & pending_bus_load & miss_en[2]) begin
+    else if(!pending_rd_bus_load & pending_wr_bus_load & pending_bus_load & d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[1];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[1];
@@ -520,7 +522,7 @@ module MSHR(
 
       next_tail = tail_plus_three;
     end
-    else if(pending_rd_bus_load & pending_wr_bus_load & pending_bus_load & miss_en[2]) begin
+    else if(pending_rd_bus_load & pending_wr_bus_load & pending_bus_load & d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
       next_MSHR_queue[tail].data = d_cache_mshr_out.miss_data_in[0];
       next_MSHR_queue[tail].addr = d_cache_mshr_out.miss_addr[0];
