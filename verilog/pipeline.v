@@ -257,8 +257,8 @@ module pipeline (
   // assign proc2Dmem_command = BUS_NONE;
   // assign proc2Dmem_addr = 0;
   assign bus_select = proc2Dmem_command==BUS_NONE;
-  assign proc2mem_command = bus_select ? proc2Imem_command:proc2Dmem_command;
-  assign proc2mem_addr = bus_select ? proc2Imem_addr:proc2Dmem_addr;
+  assign proc2mem_command = bus_select ? proc2Imem_command : proc2Dmem_command;
+  assign proc2mem_addr    = bus_select ? proc2Imem_addr    : proc2Dmem_addr;
   //TODO: Uncomment and pass for mem stage in the pipeline
   assign Dmem2proc_response = bus_select ? 0 : mem2proc_response;
   assign Imem2proc_response = bus_select ? mem2proc_response : 0;
