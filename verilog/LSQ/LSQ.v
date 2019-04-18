@@ -76,7 +76,7 @@ module SQ (
       SQ_LQ_out.value[i]  = sq[sq_map_idx[st_idx[i]]].value;
     end
     SQ_LQ_out.LQ_idx = sq[head].LQ_idx;
-    SQ_LQ_out.retire = ROB_SQ_out.wr_mem != 2'b00;
+    SQ_LQ_out.retire = (ROB_SQ_out.wr_mem & ROB_SQ_out.retire) != 2'b00;
     SQ_LQ_out.addr   = sq[head].addr;
   end
 
@@ -276,7 +276,7 @@ module LQ (
   always_comb begin
     LQ_BP_out.LQ_target.ROB_idx    = lq[lq_map_idx[ld_idx]].ROB_idx - 1;
     LQ_BP_out.LQ_target.FL_idx     = lq[lq_map_idx[ld_idx]].FL_idx - 1;
-    LQ_BP_out.LQ_target.SQ_idx     = lq[lq_map_idx[ld_idx]].SQ_idx;
+    LQ_BP_out.LQ_target.SQ_idx     = lq[lq_map_idx[ld_idx]].SQ_idx + 1;
     LQ_BP_out.LQ_target.LQ_idx     = lq_map_idx[ld_idx];
     LQ_BP_out.LQ_target.target_PC  = lq[lq_map_idx[ld_idx]].PC;
     LQ_BP_out.LQ_target.LQ_violate = ld_hit & SQ_LQ_out.retire;
