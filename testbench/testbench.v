@@ -15,19 +15,22 @@
 // ******** WARNING !!! *********
 // DANGEROUS FEATURE: HALT_ON_TIMEOUT should always be uncommented
 // unless you know the pipeline will never reach the halt instruction and run forever
-`define HALT_ON_TIMEOUT
+`define HALT_ON_TIMEOUT_CLOCK_COUNT //STOP ON CLOCK COUNT FOR CPI
+`define HALT_ON_TIMEOUT_CYCLE_COUNT //STOP ON CYCLE COUNT (DURATION OF PROGRAM)
+
 // `define HALT_ON_CYCLE
 // After runing for TIMEOUT_CYCLES cycles, halt!
-`define TIMEOUT_CYCLES 2000
+`define TIMEOUT_MAX_CYCLES 2000
+`define TIMEOUT_MAX_CLOCK 2000
 
 
 `define PRINT_DISPATCH_EN
 // `define PRINT_FETCHBUFFER
 `define PRINT_ROB
-// `define PRINT_RS
-// `define PRINT_MAP_TABLE
+`define PRINT_RS
+`define PRINT_MAP_TABLE
 // `define PRINT_FREELIST
-// `define PRINT_CDB
+`define PRINT_CDB
 // `define PRINT_ARCHMAP
 // `define PRINT_REG
 // `define PRINT_MEMBUS
@@ -574,12 +577,8 @@ module testbench;
 
 
       // deal with any halting conditions
-`ifdef HALT_ON_TIMEOUT
-// `ifdef HALT_ON_CYCLE
-//       if (clock_cycle > `TIMEOUT_CYCLES)
-// `else
-      if (clock_count > `TIMEOUT_CYCLES)
-// `endif
+`ifdef HALT_ON_TIMEOUT_CLOCK_COUNT
+      if (clock_count > `TIMEOUT_MAX_CLOCK)
       begin
         $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
         show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
@@ -587,7 +586,25 @@ module testbench;
 
         $display("@@  %t : System halted\n@@", $realtime);
 
-        $display(  "@@@ System halted on Timeout");
+        $display(  "@@@ System halted on Timeout (Program ran too long)");
+        $display("@@@\n@@");
+        show_clk_count;
+        print_close(); // close the pipe_print output file
+        $fclose(wb_fileno);
+        #100 $finish;
+      end
+`endif
+
+`ifdef HALT_ON_TIMEOUT_CYCLE_COUNT
+      if (clock_cycle > `TIMEOUT_MAX_CYCLES)
+      begin
+        $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
+        show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
+        // 8Bytes per line, 16kB total
+
+        $display("@@  %t : System halted\n@@", $realtime);
+
+        $display(  "@@@ System halted on Timeout (Program + overhead ran too long)");
         $display("@@@\n@@");
         show_clk_count;
         print_close(); // close the pipe_print output file

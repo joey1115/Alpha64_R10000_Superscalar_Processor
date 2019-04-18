@@ -37,7 +37,7 @@ module SQ (
   logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, virtual_tail;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] head_map_idx;
   SQ_ENTRY_t  [`NUM_LSQ-1:0]                         next_sq;
-  logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx;
+  logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx, idx;
   logic       [`NUM_SUPER-1:0]                       retire_valid;
   logic       [`NUM_SUPER-1:0]                       st_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] st_idx, SQ_idx_minus_one;
@@ -196,8 +196,8 @@ module SQ (
     st_hit = {`NUM_SUPER{`FALSE}};
     st_idx = {`NUM_SUPER{`FALSE}};
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      for (int j = `NUM_LSQ; j >= 0; j--) begin
-        if (LQ_SQ_out.addr[i] == sq[sq_map_idx[j]].addr && sq[sq_map_idx[j]].valid && j > head_map_idx) begin
+      for (int j = `NUM_LSQ - 1; j >= 0; j--) begin
+        if (LQ_SQ_out.addr[i] == sq[sq_map_idx[j]].addr && sq[sq_map_idx[j]].valid && j > head_map_idx[i]) begin
           st_hit[i] = `TRUE;
           st_idx[i] = j;
           break;

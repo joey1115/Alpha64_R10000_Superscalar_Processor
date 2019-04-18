@@ -244,7 +244,7 @@ module MSHR(
 
     //retire logic
     // MSHR_queue change
-    next_MSHR_queue[writeback_head].valid = (stored_mem_wr | MSHR_queue[writeback_head].proc2mem_command == BUS_STORE) ? 0 : MSHR_queue[writeback_head].valid;
+    next_MSHR_queue[writeback_head].valid = ((stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command == BUS_STORE) && MSHR_queue[writeback_head].complete && MSHR_queue[writeback_head].valid) ? 0 : MSHR_queue[writeback_head].valid;
 
     //mem complete request
     for (int i = 0; i < `MSHR_DEPTH;i++) begin
@@ -257,7 +257,7 @@ module MSHR(
     end
 
     //if data is a store command and handled, invalidate as it is handled
-    next_MSHR_queue[head].complete = (MSHR_queue[head].proc2mem_command == BUS_STORE) ? request_accepted : MSHR_queue[head].complete;
+    next_MSHR_queue[head].complete = (MSHR_queue[head].proc2mem_command == BUS_STORE & request_accepted) ? 1 : MSHR_queue[head].complete;
 
     next_MSHR_queue[head].state    = (request_accepted) ? INPROGRESS : MSHR_queue[head].state;
 
@@ -392,74 +392,6 @@ module MSHR(
       next_MSHR_queue[tail_plus_two].state = WAITING;
       next_MSHR_queue[tail_plus_two].dirty =  miss_dirty[2];
     end
-
-    // case(tail_move)
-    //   2'b01: begin
-    //     next_MSHR_queue[tail].valid = 1;
-    //     next_MSHR_queue[tail].data = miss_data_in[data_idx[0]];
-    //     next_MSHR_queue[tail].addr = miss_addr[data_idx[0]];
-    //     next_MSHR_queue[tail].inst_type = inst_type[data_idx[0]];
-    //     next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
-    //     next_MSHR_queue[tail].complete = 0;
-    //     next_MSHR_queue[tail].mem_tag = 0;
-    //     next_MSHR_queue[tail].state = WAITING;
-    //     next_MSHR_queue[tail].dirty = miss_dirty[data_idx[0]];
-    //   end
-    //   2'b10: begin
-    //     next_MSHR_queue[tail].valid = 1;
-    //     next_MSHR_queue[tail].data = miss_data_in[data_idx[1]];
-    //     next_MSHR_queue[tail].addr = miss_addr[data_idx[1]];
-    //     next_MSHR_queue[tail].inst_type = inst_type[data_idx[1]];
-    //     next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[1]];
-    //     next_MSHR_queue[tail].complete = 0;
-    //     next_MSHR_queue[tail].mem_tag = 0;
-    //     next_MSHR_queue[tail].state = WAITING;
-    //     next_MSHR_queue[tail].dirty =  miss_dirty[data_idx[1]];
-
-  
-    //     next_MSHR_queue[tail_plus_one].valid = 1;
-    //     next_MSHR_queue[tail_plus_one].data = miss_data_in[data_idx[0]];
-    //     next_MSHR_queue[tail_plus_one].addr = miss_addr[data_idx[0]];
-    //     next_MSHR_queue[tail_plus_one].inst_type = inst_type[data_idx[0]];
-    //     next_MSHR_queue[tail_plus_one].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
-    //     next_MSHR_queue[tail_plus_one].complete = 0;
-    //     next_MSHR_queue[tail_plus_one].mem_tag = 0;
-    //     next_MSHR_queue[tail_plus_one].state = WAITING;
-    //     next_MSHR_queue[tail_plus_one].dirty =  miss_dirty[data_idx[0]];
-    //   end
-
-    //   2'b11: begin
-    //     next_MSHR_queue[tail].valid = 1;
-    //     next_MSHR_queue[tail].data = miss_data_in[data_idx[2]];
-    //     next_MSHR_queue[tail].addr = miss_addr[data_idx[2]];
-    //     next_MSHR_queue[tail].inst_type = inst_type[data_idx[2]];
-    //     next_MSHR_queue[tail].proc2mem_command = mshr_proc2mem_command[data_idx[2]];
-    //     next_MSHR_queue[tail].complete = 0;
-    //     next_MSHR_queue[tail].mem_tag = 0;
-    //     next_MSHR_queue[tail].state = WAITING;
-    //     next_MSHR_queue[tail].dirty =  miss_dirty[data_idx[2]];
-
-    //     next_MSHR_queue[tail_plus_one].valid = 1;
-    //     next_MSHR_queue[tail_plus_one].data = miss_data_in[data_idx[1]];
-    //     next_MSHR_queue[tail_plus_one].addr = miss_addr[data_idx[1]];
-    //     next_MSHR_queue[tail_plus_one].inst_type = inst_type[data_idx[1]];
-    //     next_MSHR_queue[tail_plus_one].proc2mem_command = mshr_proc2mem_command[data_idx[1]];
-    //     next_MSHR_queue[tail_plus_one].complete = 0;
-    //     next_MSHR_queue[tail_plus_one].mem_tag = 0;
-    //     next_MSHR_queue[tail_plus_one].state = WAITING;
-    //     next_MSHR_queue[tail_plus_one].dirty =  miss_dirty[data_idx[1]];
-
-    //     next_MSHR_queue[tail_plus_two].valid = 1;
-    //     next_MSHR_queue[tail_plus_two].data = miss_data_in[data_idx[0]];
-    //     next_MSHR_queue[tail_plus_two].addr = miss_addr[data_idx[0]];
-    //     next_MSHR_queue[tail_plus_two].inst_type = inst_type[data_idx[0]];
-    //     next_MSHR_queue[tail_plus_two].proc2mem_command = mshr_proc2mem_command[data_idx[0]];
-    //     next_MSHR_queue[tail_plus_two].complete = 0;
-    //     next_MSHR_queue[tail_plus_two].mem_tag = 0;
-    //     next_MSHR_queue[tail_plus_two].state = WAITING;
-    //     next_MSHR_queue[tail_plus_two].dirty =  miss_dirty[data_idx[0]];
-    //   end
-    // endcase
   end
 
   //send data to mem
@@ -481,7 +413,7 @@ module MSHR(
   assign mem_addr = MSHR_queue[writeback_head].addr;
 
   //retire logic
-  assign next_writeback_head = ((stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command != BUS_LOAD) && MSHR_queue[writeback_head].valid) ? writeback_head_plus_one : writeback_head;
+  assign next_writeback_head = ((stored_mem_wr || MSHR_queue[writeback_head].proc2mem_command == BUS_STORE) && MSHR_queue[writeback_head].complete && MSHR_queue[writeback_head].valid) ? writeback_head_plus_one : writeback_head;
  
   always_ff @(posedge clock) begin
     if(reset) begin
@@ -507,88 +439,4 @@ module MSHR(
       tail           <= `SD next_tail;
     end
   end
-endmodule
-
-module pe_mshr(gnt,enc);
-  //synopsys template
-  parameter OUT_WIDTH=2;
-  parameter IN_WIDTH=1<<OUT_WIDTH;
-
-  input   [IN_WIDTH-1:0] gnt;
-
-  output [OUT_WIDTH-1:0] enc;
-  wor    [OUT_WIDTH-1:0] enc;
-  
-  genvar i,j;
-  generate
-    for(i=0;i<OUT_WIDTH;i=i+1)
-    begin : foo
-      for(j=1;j<IN_WIDTH;j=j+1)
-      begin : bar
-        if (j[i]) begin : if1
-          assign enc[i] = gnt[j];
-        end
-      end
-    end
-  endgenerate
-endmodule
-
-module ps (req, en, gnt);
-  //synopsys template
-  parameter NUM_BITS = 4;
-  
-    input  [NUM_BITS-1:0] req;
-    input                 en;
-  
-    output [NUM_BITS-1:0] gnt;
-    logic                req_up;
-          
-    wire   [NUM_BITS-2:0] req_ups;
-    wire   [NUM_BITS-2:0] enables;
-          
-    assign req_up = req_ups[NUM_BITS-2];
-    assign enables[NUM_BITS-2] = en;
-          
-    genvar i,j;
-    generate
-      if ( NUM_BITS == 2 )
-      begin : gen1
-        ps2 single (.req(req),.en(en),.gnt(gnt),.req_up(req_up));
-      end
-      else
-      begin : gen2
-        for(i=0;i<NUM_BITS/2;i=i+1)
-        begin : foo
-          ps2 base ( .req(req[2*i+1:2*i]),
-                     .en(enables[i]),
-                     .gnt(gnt[2*i+1:2*i]),
-                     .req_up(req_ups[i])
-          );
-        end
-  
-        for(j=NUM_BITS/2;j<=NUM_BITS-2;j=j+1)
-        begin : bar
-          ps2 top ( .req(req_ups[2*j-NUM_BITS+1:2*j-NUM_BITS]),
-                    .en(enables[j]),
-                    .gnt(enables[2*j-NUM_BITS+1:2*j-NUM_BITS]),
-                    .req_up(req_ups[j])
-          );
-        end
-      end
-    endgenerate
-endmodule
-  
-module ps2(req, en, gnt, req_up);
-
-  input     [1:0] req;
-  input           en;
-  
-  output    [1:0] gnt;
-  output          req_up;
-  
-  assign gnt[1] = en & req[1];
-  assign gnt[0] = en & req[0] & !req[1];
-  
-  assign req_up = req[1] | req[0];
-
 endmodule

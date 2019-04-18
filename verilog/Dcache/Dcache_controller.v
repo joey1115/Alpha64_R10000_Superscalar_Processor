@@ -185,14 +185,16 @@ end
 always_comb begin
   if (state == 0 && write_back) 
     next_state = 1;
-  else if(write_back_stage && count >= 63)
+  else if (state == 1 && mshr_empty)
     next_state = 2;
+  else if(write_back_stage && count > 64)
+    next_state = 3;
   else
     next_state = state;
 end
 
-assign halt_pipeline = (state == 2) && mshr_empty;
-assign write_back_stage = state == 1;
+assign halt_pipeline = (state == 3) && mshr_empty;
+assign write_back_stage = state == 2;
 assign write_back_addr = count & {{61{1'b1}},3'b000};
 
 always_ff @(posedge clock) begin
