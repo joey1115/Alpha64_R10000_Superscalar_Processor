@@ -32,8 +32,6 @@
    
 `define MSHR_DEPTH          (`NUM_BLOCK*16) // num of blocks need multiple of NUM_BLOCKS
 
-`define NUM_ICACHE_LINES (32)
-
 `define DEBUG
 `define MULT_FORWARDING
 
