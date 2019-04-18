@@ -347,159 +347,26 @@ module pipeline (
     .d_cache_lq_out(D_cache_LQ_out),
     .d_cache_sq_out(D_cache_SQ_out), // tells if a store can be moved on.
 
-    //Dcachemem to cache                                  
-    .rd1_data(rd1_data),
-    .rd1_hit(rd1_hit),
-    .wr1_hit(wr1_hit),
-    .evicted_dirty(evicted_dirty),
-    .evicted_valid(evicted_valid),
-    .evicted_addr(evicted_addr),
-    .evicted_data(evicted_data),
-
-    // cache to Dcachemem                       
-    .wr1_en(wr1_en),
-    .wr1_dirty(wr1_dirty),
-    .wr1_from_mem(wr1_from_mem),
-    .wr1_valid(wr1_valid),
-    .rd1_addr(rd1_addr),
-    .wr1_addr(wr1_addr),
-    .wr1_data(wr1_data),
-    .rd1_search(rd1_search),
-    .wr1_search(wr1_search),
-
-    //MSHR to cache                                 
-    .mshr_valid(mshr_valid),
-    .mshr_empty(mshr_empty),
-
-    .miss_addr_hit(miss_addr_hit),
-
-    .mem_wr(mem_wr),
-    .mem_dirty(mem_dirty),
-    .mem_data(mem_data),
-    .mem_addr(mem_addr),
-
-    .rd_wb_en(rd_wb_en),
-    .rd_wb_dirty(rd_wb_dirty),
-    .rd_wb_data(rd_wb_data),
-    .rd_wb_addr(rd_wb_addr),
-
-    .wr_wb_en(wr_wb_en),
-    .wr_wb_dirty(wr_wb_dirty),
-    .wr_wb_data(wr_wb_data),
-    .wr_wb_addr(wr_wb_addr),
-
-    //cache to MSHR (loading)                                 
-    .miss_en(miss_en),
-    .miss_addr(miss_addr),
-    .miss_data_in(miss_data_in),
-    .inst_type(inst_type),
-    .mshr_proc2mem_command(mshr_proc2mem_command),
-    .miss_dirty(miss_dirty),
-    //cache to MSHR (searching)                                 
-    .search_addr(search_addr),
-    .search_type(search_type),
-    .search_wr_data(search_wr_data),
-    .search_en(search_en),
-    //cache to MSHR (Written back)                      
-    // .stored_rd_wb(stored_rd_wb),
-    // .stored_wr_wb(stored_wr_wb),
-    .stored_mem_wr(stored_mem_wr),
-
 `ifdef DEBUG
     .count(count),
+    .MSHR_queue(MSHR_queue),
+    .MSHR_writeback_head(MSHR_writeback_head),
+    .MSHR_head(MSHR_head),
+    .MSHR_tail(MSHR_tail),
+    .Dcache_bank(Dcache_bank),
 `endif
+    .mem2proc_response(Dmem2proc_response),
+    .mem2proc_data(mem2proc_data),     // data resulting from a load
+    .mem2proc_tag(mem2proc_tag),       // 0 = no value, other=tag of transaction
+    //cache to mshr
+    .proc2mem_addr(proc2Dmem_addr),
+    .proc2mem_data(proc2mem_data),
+    .proc2mem_command(proc2Dmem_command),
     .write_back(write_back),
     // .cache_valid(cache_valid),
     .halt_pipeline(halt_pipeline),
     .write_back_stage(write_back_stage)
 );
-
-  Dcache dcache_0 (
-    .clock(clock),
-    .reset(reset),
-    //enable signals 
-    .wr1_en(wr1_en),
-    .wr1_from_mem(wr1_from_mem),
-    //addr from proc
-    .rd1_addr(rd1_addr),
-    .wr1_addr(wr1_addr),
-    .rd1_data_out(rd1_data),
-    .rd1_hit_out(rd1_hit),
-    .wr1_hit_out(wr1_hit),
-    .wr1_data(wr1_data),
-    .wr1_dirty(wr1_dirty),
-    .wr1_valid(wr1_valid),
-    .rd1_search(rd1_search),
-    .wr1_search(wr1_search),
-  `ifdef DEBUG
-    .cache_bank(Dcache_bank),
-  `endif
-    .evicted_dirty_out(evicted_dirty), 
-    .evicted_valid_out(evicted_valid),
-    .evicted_addr_out(evicted_addr),
-    .evicted_data_out(evicted_data)
-  );
-
-  MSHR mshr_0 (
-    .clock(clock),
-    .reset(reset),
-        
-    //stored to cache input      
-    // .stored_rd_wb(stored_rd_wb),
-    // .stored_wr_wb(stored_wr_wb),
-    .stored_mem_wr(stored_mem_wr),
-        
-    //storing to the MSHR      
-    .miss_en(miss_en),
-    .miss_addr(miss_addr),
-    .miss_data_in(miss_data_in),
-    .inst_type(inst_type),
-    .mshr_proc2mem_command(mshr_proc2mem_command),
-    .miss_dirty(miss_dirty),
-        
-    //looking up the MSHR      
-    .search_addr(search_addr), //address to search
-    .search_type(search_type), //address search type (might not need)
-    .search_wr_data(search_wr_data),
-    .search_en(search_en),
-        
-`ifdef DEBUG
-    .MSHR_queue(MSHR_queue),
-    .writeback_head(MSHR_writeback_head),
-    .head(MSHR_head),
-    .tail(MSHR_tail),
-`endif
-    .miss_addr_hit(miss_addr_hit), // if address search in the MSHR
-        
-    .mem_wr(mem_wr),
-    .mem_dirty(mem_dirty),
-    .mem_data(mem_data),
-    .mem_addr(mem_addr),
-  
-    .rd_wb_en(rd_wb_en),
-    .rd_wb_dirty(rd_wb_dirty),
-    .rd_wb_data(rd_wb_data),
-    .rd_wb_addr(rd_wb_addr),
-  
-    .wr_wb_en(wr_wb_en),
-    .wr_wb_dirty(wr_wb_dirty),
-    .wr_wb_data(wr_wb_data),
-    .wr_wb_addr(wr_wb_addr),
-  
-    //mshr to cache      
-    .mshr_valid(mshr_valid),
-    .mshr_empty(mshr_empty),
-  
-    //mem to mshr
-    .mem2proc_response(Dmem2proc_response),
-    .mem2proc_data(mem2proc_data),     // data resulting from a load
-    .mem2proc_tag(mem2proc_tag),       // 0 = no value, other=tag of transaction
-  
-    //cache to mshr
-    .proc2mem_addr(proc2Dmem_addr),
-    .proc2mem_data(proc2mem_data),
-    .proc2mem_command(proc2Dmem_command)
-  );
 
   F_stage F_stage_0 (
     // Inputs

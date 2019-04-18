@@ -56,9 +56,9 @@ module Dcache(
     LRU_bank_sel = prev_LRU_bank_sel;
 
     
-    next_regA[wr1_addr.set_index] = (wr1_from_mem & wr1_en)? (~regA[wr1_addr.set_index]) : regA[wr1_addr.set_index];
-    next_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr1_from_mem & wr1_en) ? (~regB[wr1_addr.set_index]) : regB[wr1_addr.set_index];
-    next_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr1_from_mem & wr1_en)  ? (~regC[wr1_addr.set_index]) : regC[wr1_addr.set_index];
+    next_regA[wr1_addr.set_index] = (wr1_from_mem & wr1_en & !wr1_hit_out)? (~regA[wr1_addr.set_index]) : regA[wr1_addr.set_index];
+    next_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr1_from_mem & wr1_en & !wr1_hit_out) ? (~regB[wr1_addr.set_index]) : regB[wr1_addr.set_index];
+    next_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr1_from_mem & wr1_en & !wr1_hit_out)  ? (~regC[wr1_addr.set_index]) : regC[wr1_addr.set_index];
 
     LRU_bank_sel[wr1_addr.set_index][0] = !regA[wr1_addr.set_index] & !regB[wr1_addr.set_index];
     LRU_bank_sel[wr1_addr.set_index][1] = !regA[wr1_addr.set_index] & regB[wr1_addr.set_index];
@@ -200,6 +200,8 @@ module cache_bank(
       for(int i=0; i < `NUM_IDX; i++) begin
         cache_bank[i].valid <= `SD 0;
         cache_bank[i].dirty <= `SD 0;
+        cache_bank[i].data <= `SD 0;
+        cache_bank[i].tag <= `SD 0;
       end
     else begin
       cache_bank <= next_cache_bank;
