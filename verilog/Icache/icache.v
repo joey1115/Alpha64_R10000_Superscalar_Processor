@@ -86,24 +86,40 @@ module icache (
 
 
   assign proc2Imem_addr = tag_match ? {48'h0, i_cache[tail].tag, tail, 3'h0} : proc2Icache_addr;
-  assign next_head = Icache_valid_out ? idx + 1 : idx;
-
+  // next_head
+  assign next_head = idx;
+  // next_tail
   always_comb begin
-    if (tag_match) begin
-      if (Imem2proc_response != 0 && tail_plus_one != head) begin
-        next_tail = tail_plus_one;
+    if (tail > head) begin
+      if (idx >= head && idx <= tail) begin
+        if (tail_plus_one == head) begin
+          next_tail = tail;
+        end else begin
+          next_tail = tail_plus_one;
+        end
       end else begin
-        next_tail = tail;
+        next_tail = idx;
       end
-    end else begin
-      if (Imem2proc_response != 0) begin
-        next_tail = idx + 1;
+    end else if (tail < head) begin
+      if (idx >= head || idx <= tail) begin
+        if (tail_plus_one == head) begin
+          next_tail = tail;
+        end else begin
+          next_tail = tail_plus_one;
+        end
       end else begin
         next_tail = idx;
       end
     end
   end
-
+  // next_proc2Imem_addr
+  always_comb begin
+    if (tail_plus_one == head) begin
+      next_proc2Imem_addr    = BUS_NONE;
+    end else begin
+      next_proc2Imem_command = BUS_LOAD;
+    end
+  end
 
   always_ff @(posedge clock) begin
     if (reset) begin
