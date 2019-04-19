@@ -47,26 +47,18 @@ module icache (
   assign tag_match        = (i_cache[idx].tag == tag);
   assign Icache_valid_out = (i_cache[idx].valid && tag_match);
 
-
   // 2. i_cache request inst from mem
-  assign next_proc2Imem_command = (Icache_valid_out && tail_plus_one == head) ? BUS_NONE : BUS_LOAD;
-  assign next_proc2Imem_addr    = (Icache_valid_out) ? {48'h0, i_cache[tail].tag, tail, 3'h0} : proc2Icache_addr;
-
-
-  // 3. i_cache receive inst from mem
-  assign write_en               = (Imem2proc_tag != 0) && (mem_tag_table[Imem2proc_tag].valid);
-
+  assign write_en = (Imem2proc_tag != 0) && (mem_tag_table[Imem2proc_tag].valid);
   always_comb begin
-    next_i_cache          = i_cache;
+    next_i_cache = i_cache;
     next_i_cache[idx].tag = tag;
     if (~tag_match) begin
       next_i_cache[idx].valid = `FALSE;
     end
     if (write_en) begin
-      next_i_cache[mem_tag_table[Imem2proc_tag].idx].valid     = `TRUE;
-      next_i_cache[mem_tag_table[Imem2proc_tag].idx].requested = `FALSE;
-      next_i_cache[mem_tag_table[Imem2proc_tag].idx].tag       = mem_tag_table[Imem2proc_tag].tag;
-      next_i_cache[mem_tag_table[Imem2proc_tag].idx].data      = Imem2proc_data;
+      next_i_cache[mem_tag_table[Imem2proc_tag].idx].valid = `TRUE;
+      next_i_cache[mem_tag_table[Imem2proc_tag].idx].tag   = mem_tag_table[Imem2proc_tag].tag;
+      next_i_cache[mem_tag_table[Imem2proc_tag].idx].data  = Imem2proc_data;
     end
   end
 
@@ -93,9 +85,9 @@ module icache (
 
 
 
+  assign proc2Imem_addr = tag_match ? {48'h0, i_cache[tail].tag, tail, 3'h0} : proc2Icache_addr;
+  assign next_head = Icache_valid_out ? idx + 1 : idx;
 
-  assign next_head      = Icache_valid_out ? idx + 1 : idx;
-  assign tail_plus_one  = tail + 1;
   always_comb begin
     if (tag_match) begin
       if (Imem2proc_response != 0 && tail_plus_one != head) begin
@@ -112,24 +104,20 @@ module icache (
     end
   end
 
+
   always_ff @(posedge clock) begin
     if (reset) begin
       i_cache           <= `SD 0;
       mem_tag_table     <= `SD 0;
-      head              <= `SD 0;
-      tail              <= `SD 0;
       proc2Imem_command <= `SD BUS_NONE;
       proc2Imem_addr    <= `SD 0;
     end else begin
       icache            <= `SD next_i_cache;
-      head              <= `SD next_head；
-      tail              <= `SD next_tail;
       mem_tag_table     <= `SD next_mem_tag_table;
       proc2Imem_command <= `SD next_proc2Imem_command;
       proc2Imem_addr    <= `SD next_proc2Imem_addr;
     end
   end
-
 
 //   logic                                              valid, match, write;
 // `ifndef DEBUG
