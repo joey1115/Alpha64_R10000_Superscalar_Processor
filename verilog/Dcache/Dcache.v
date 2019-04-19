@@ -205,12 +205,12 @@ module cache_bank(
   assign wr1_hit = cache_bank[wr1_addr.set_index].valid && (wr1_addr.tag == cache_bank[wr1_addr.set_index].tag);
 
   //evicted
-  assign evicted_valid = cache_bank[rd1_addr.set_index].valid;
-  assign evicted_dirty = cache_bank[rd1_addr.set_index].dirty;
-  assign evicted_addr.tag = cache_bank[rd1_addr.set_index].tag;
-  assign evicted_addr.set_index = rd1_addr.set_index;
+  assign evicted_valid = cache_bank[wr1_addr.set_index].valid;
+  assign evicted_dirty = cache_bank[wr1_addr.set_index].dirty;
+  assign evicted_addr.tag = cache_bank[wr1_addr.set_index].tag;
+  assign evicted_addr.set_index = wr1_addr.set_index;
   assign evicted_addr.ignore = 3'b000;
-  assign evicted_data = cache_bank[rd1_addr.set_index].data;
+  assign evicted_data = cache_bank[wr1_addr.set_index].data;
 
   always_comb begin
     next_cache_bank = cache_bank;
