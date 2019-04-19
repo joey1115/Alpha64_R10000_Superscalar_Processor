@@ -212,7 +212,7 @@ module MSHR(
     next_MSHR_queue[head].mem_tag = mem2proc_response;
 
     pending_rd_bus_load = d_cache_mshr_out.miss_en[0] && !rd_search_hit && changed_rd_input;
-    pending_wr_bus_load = d_cache_mshr_out.miss_en[1] && !wr_search_hit && prev_changed_wr_input;
+    pending_wr_bus_load = d_cache_mshr_out.miss_en[1] && !wr_search_hit;// && prev_changed_wr_input;
 
     next_tail = tail;
     if(pending_rd_bus_load & !pending_wr_bus_load & !pending_bus_load & !d_cache_mshr_out.miss_en[2]) begin
