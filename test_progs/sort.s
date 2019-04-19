@@ -42,23 +42,23 @@ iloop:	clr	$r6		# r6 is j (inner loop counter)          94
 jloop:	ldq	$r2,0($r1)	# r2 <- a[j]                      a4
 	ldq	$r3,8($r1)	# r3 <- a[j+1]                          a8
 
-	cmpult	$r2,$r3,$r4                                     ac
+	cmpult	$r2,$r3,$r4                                   # ac
 	bne	$r4,noswap	#  branch if $r2 < $r3                  b0
 
 	# do swap
-	stq	$r2,8($r1)                                          b4
-	stq	$r3,0($r1)                                          b8
+	stq	$r2,8($r1)                                        # b4
+	stq	$r3,0($r1)                                        # b8
 
 noswap:	# increment j (and a[j] ptr) and test
-	addq	$r1,8,$r1                                         bc
-	addq	$r6,1,$r6                                         c0
-	cmpult	$r6,$r7,$r4                                     c4
+	addq	$r1,8,$r1                                       # bc
+	addq	$r6,1,$r6                                       # c0
+	cmpult	$r6,$r7,$r4                                   # c4
 	bne	$r4,jloop	# branch if $r6 < $r7                     c8
 
 	# fall through: inner loop done, check outer loop (i)
-	addq	$r5,1,$r5                                         cc
-	cmpult	$r5,16,$r4                                      d0
-	bne	$r4,iloop                                           d4
+	addq	$r5,1,$r5                                       # cc
+	cmpult	$r5,16,$r4                                    # d0
+	bne	$r4,iloop                                         # d4
 
 	# fall through:	done
-	call_pal 0x555                                          d8
+	call_pal 0x555                                        # d8
