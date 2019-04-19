@@ -10,7 +10,8 @@
 `endif
 
 typedef struct packed {
-  logic                                    valid;
+  logic                                    valid;     // data valid
+  logic                                    requented; // has requested mem
   logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
   logic [64:0]                             data;
 } I_CACHE_ENTRY_t;
