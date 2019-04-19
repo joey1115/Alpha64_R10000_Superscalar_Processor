@@ -74,7 +74,6 @@ do
   fi
   if [[ -n $result_mem || -n $result_wb ]]
   then
-    echo "Error $filename wb"
     cp -pf "./output/"$filename".pipeline.sol.out" ./result/
     cp -pf "./output/"$filename".pipeline.test.out" ./result/
   fi
