@@ -72,4 +72,10 @@ do
     cp -pf "./output/"$filename".writeback.sol.out" ./result/
     cp -pf "./output/"$filename".writeback.test.out" ./result/
   fi
+  if [[ -n $result_mem || -n $result_wb ]]
+  then
+    echo "Error $filename wb"
+    cp -pf "./output/"$filename".pipeline.sol.out" ./result/
+    cp -pf "./output/"$filename".pipeline.test.out" ./result/
+  fi
 done
