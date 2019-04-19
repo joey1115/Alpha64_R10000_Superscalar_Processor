@@ -64,7 +64,7 @@ module MSHR(
 
   logic pending_rd_bus_load, pending_wr_bus_load, pending_bus_load;
   
-  logic changed_rd_input, changed_wr_input;
+  logic changed_rd_input, changed_wr_input, prev_changed_wr_input;
 
   SASS_ADDR current_rd_addr, last_rd_addr;
   SASS_ADDR current_wr_addr, last_wr_addr;
@@ -171,6 +171,7 @@ module MSHR(
 
   assign current_wr_addr = d_cache_mshr_out.miss_addr[1];
   assign changed_wr_input = current_wr_addr != last_wr_addr;
+  
 
 
   //allocation logic
@@ -211,7 +212,7 @@ module MSHR(
     next_MSHR_queue[head].mem_tag = mem2proc_response;
 
     pending_rd_bus_load = d_cache_mshr_out.miss_en[0] && !rd_search_hit && changed_rd_input;
-    pending_wr_bus_load = d_cache_mshr_out.miss_en[1] && !wr_search_hit && changed_wr_input;
+    pending_wr_bus_load = d_cache_mshr_out.miss_en[1] && !wr_search_hit && prev_changed_wr_input;
 
     next_tail = tail;
     if(pending_rd_bus_load & !pending_wr_bus_load & !pending_bus_load & !d_cache_mshr_out.miss_en[2]) begin
@@ -614,6 +615,7 @@ module MSHR(
       tail              <= `SD 0;
       last_rd_addr      <= `SD -1;
       last_wr_addr      <= `SD -1;
+      prev_changed_wr_input <= `SD 0;
     end
     else begin
       MSHR_queue        <= `SD next_MSHR_queue;
@@ -622,6 +624,7 @@ module MSHR(
       tail              <= `SD next_tail;
       last_rd_addr      <= `SD current_rd_addr;
       last_wr_addr      <= `SD current_wr_addr;
+      prev_changed_wr_input <= `SD changed_wr_input;
     end
   end
 endmodule
