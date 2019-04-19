@@ -65,11 +65,7 @@ module icache (
         next_tail = tail;
       end
     end else begin
-      if (Imem2proc_response != 0) begin
-        next_tail = idx + 1;
-      end else begin
         next_tail = idx;
-      end
     end
   end
 
@@ -81,7 +77,7 @@ module icache (
     end
     if (write_en) begin
       next_i_cache[mem_tag_table[Imem2proc_tag].idx].valid = `TRUE;
-      // next_i_cache[mem_tag_table[Imem2proc_tag].idx].tag   = mem_tag_table[Imem2proc_tag].tag;
+      next_i_cache[mem_tag_table[Imem2proc_tag].idx].tag   = mem_tag_table[Imem2proc_tag].tag;
       next_i_cache[mem_tag_table[Imem2proc_tag].idx].data  = Imem2proc_data;
     end
   end
