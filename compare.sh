@@ -57,7 +57,7 @@ do
   filename=$(basename -- "$i")
   filename="${filename%.*}"
   result_mem=$(diff <(grep '@@@ mem' ./output/"$filename".program.sol.out) <(grep '@@@ mem' ./output/"$filename".program.test.out))
-  result_wb=$(diff <(grep '@@@ mem' ./output/"$filename".writeback.sol.out) <(grep '@@@ mem' ./output/"$filename".writeback.test.out))
+  result_wb=$(diff ./output/"$filename".writeback.sol.out ./output/"$filename".writeback.test.out)
   # diff ./output/"$filename".program.sol.out ./output/"$filename".program.test.out
   # diff ./output/"$filename".writeback.sol.out ./output/"$filename".writeback.test.out
   if [[ -n $result_mem ]]
