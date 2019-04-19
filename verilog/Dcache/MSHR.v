@@ -63,7 +63,8 @@ module MSHR(
   logic rd_search_hit, wr_search_hit;
 
   logic pending_rd_bus_load, pending_wr_bus_load, pending_bus_load;
-  logic [2:0] prev_pending_rd_bus_load;
+  
+  logic changed_rd_input, changed_wr_input;
 
   SASS_ADDR current_rd_addr, last_rd_addr;
   SASS_ADDR current_wr_addr, last_wr_addr;
@@ -168,7 +169,7 @@ module MSHR(
   assign current_rd_addr = d_cache_mshr_out.miss_addr[0];
   assign changed_rd_input = current_rd_addr != last_rd_addr;
 
-  assign current_wr_addr = d_cache_mshr_out.miss_addr[0];
+  assign current_wr_addr = d_cache_mshr_out.miss_addr[1];
   assign changed_wr_input = current_wr_addr != last_wr_addr;
 
 
