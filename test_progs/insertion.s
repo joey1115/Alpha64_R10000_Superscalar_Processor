@@ -23,28 +23,28 @@
   modified from sort.s
 */
 
- br	start
+ br	start                                                       #04
   .align 3
   .quad	3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3 
   .align 3
-start:	
-  lda $r5,1   # i=1 
-  
-  lda $r9,16 #index to a[1]
+start:	                                
+  lda $r5,1   # i=1                                             #94
+
+  lda $r9,16 #index to a[1]                                     #90
 
 iloop:
-  ldq $r3, 0($r9) #temp = a[i]
-  mov $r5,$r6     #j = i
-  mov $r9,$r19     #index j
-  subq $r19,8,$r18 #index j-1
+  ldq $r3, 0($r9) #temp = a[i]                                  #94
+  mov $r5,$r6     #j = i                                        #98
+  mov $r9,$r19     #index j                                     #9c  
+  subq $r19,8,$r18 #index j-1                                   #a0
 jloop:
-  ldq $r14, 0($r18) #r14 = a[j-1]
-  ldq $r15, 0($r19) #r15 = a[j]
+  ldq $r14, 0($r18) #r14 = a[j-1]                               #a4
+  ldq $r15, 0($r19) #r15 = a[j]                                 #a8
 
-  cmpult $r14,$r3, $r11       
-  bne $r11,ifinish
+  cmpult $r14,$r3, $r11                                         #ac
+  bne $r11,ifinish                                              #ac
   
-  stq $r14, 0($r19) #a[j] = temp
+  stq $r14, 0($r19) #a[j] = temp                                #b0
   
   subq $r18,8,$r18  #index to a[j-1]
   subq $r19,8,$r19  #index to a[j]

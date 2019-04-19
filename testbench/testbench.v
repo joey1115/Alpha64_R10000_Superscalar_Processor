@@ -25,7 +25,7 @@
 
 
 `define PRINT_DISPATCH_EN
-// `define PRINT_FETCHBUFFER
+`define PRINT_FETCHBUFFER
 `define PRINT_ROB
 `define PRINT_RS
 // `define PRINT_MAP_TABLE
