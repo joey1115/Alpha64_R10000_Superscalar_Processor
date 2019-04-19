@@ -476,17 +476,17 @@ module LQ (
       end
       2'b01: begin
         next_lq[LQ_idx_minus_one[0]].addr  = FU_LQ_out.result[0][63:3];
-        next_lq[LQ_idx_minus_one[0]].valid = (SQ_LQ_out.hit[0] || D_cache_LQ_out.valid) & rollback_valid[0];
+        next_lq[LQ_idx_minus_one[0]].valid = SQ_LQ_out.hit[0] || D_cache_LQ_out.valid;
       end
       2'b10: begin
         next_lq[LQ_idx_minus_one[1]].addr  = FU_LQ_out.result[1][63:3];
-        next_lq[LQ_idx_minus_one[1]].valid = (SQ_LQ_out.hit[1] || D_cache_LQ_out.valid) & rollback_valid[1];
+        next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1] || D_cache_LQ_out.valid;
       end
       2'b11: begin
         next_lq[LQ_idx_minus_one[0]].addr  = FU_LQ_out.result[0][63:3];
-        next_lq[LQ_idx_minus_one[0]].valid = (SQ_LQ_out.hit[0] || D_cache_LQ_out.valid) & rollback_valid[0];
+        next_lq[LQ_idx_minus_one[0]].valid = SQ_LQ_out.hit[0] || D_cache_LQ_out.valid;
         next_lq[LQ_idx_minus_one[1]].addr  = FU_LQ_out.result[1][63:3];
-        next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1] & rollback_valid[1];
+        next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1];
       end
     endcase
   end
