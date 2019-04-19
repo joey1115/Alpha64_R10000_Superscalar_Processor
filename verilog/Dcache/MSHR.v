@@ -63,6 +63,11 @@ module MSHR(
   logic rd_search_hit, wr_search_hit;
 
   logic pending_rd_bus_load, pending_wr_bus_load, pending_bus_load;
+  logic [2:0] prev_pending_rd_bus_load;
+
+  SASS_ADDR current_rd_addr, last_rd_addr;
+  SASS_ADDR current_wr_addr, last_wr_addr;
+
 
   //how many entries to allocate
   // assign tail_move = d_cache_mshr_out.miss_en[0] + d_cache_mshr_out.miss_en[1] + d_cache_mshr_out.miss_en[2];
@@ -159,6 +164,14 @@ module MSHR(
 
   assign next_head = (request_accepted) ? head_plus_one : head;
 
+  //change logic
+  assign current_rd_addr = d_cache_mshr_out.miss_addr[0];
+  assign changed_rd_input = current_rd_addr != last_rd_addr;
+
+  assign current_wr_addr = d_cache_mshr_out.miss_addr[0];
+  assign changed_wr_input = current_wr_addr != last_wr_addr;
+
+
   //allocation logic
   always_comb begin
     next_MSHR_queue = MSHR_queue;
@@ -196,8 +209,8 @@ module MSHR(
 
     next_MSHR_queue[head].mem_tag = mem2proc_response;
 
-    pending_rd_bus_load = d_cache_mshr_out.miss_en[0] && !rd_search_hit;
-    pending_wr_bus_load = d_cache_mshr_out.miss_en[1] && !wr_search_hit;
+    pending_rd_bus_load = d_cache_mshr_out.miss_en[0] && !rd_search_hit && changed_rd_input;
+    pending_wr_bus_load = d_cache_mshr_out.miss_en[1] && !wr_search_hit && changed_wr_input;
 
     next_tail = tail;
     if(pending_rd_bus_load & !pending_wr_bus_load & !pending_bus_load & !d_cache_mshr_out.miss_en[2]) begin
@@ -595,15 +608,19 @@ module MSHR(
         MSHR_queue[i].mem_tag <= `SD 0;
         MSHR_queue[i].state <= `SD WAITING;
       end
-      writeback_head <= `SD 0;
-      head           <= `SD 0;
-      tail           <= `SD 0;
+      writeback_head    <= `SD 0;
+      head              <= `SD 0;
+      tail              <= `SD 0;
+      last_rd_addr      <= `SD -1;
+      last_wr_addr      <= `SD -1;
     end
     else begin
-      MSHR_queue     <= `SD next_MSHR_queue;
-      writeback_head <= `SD next_writeback_head;
-      head           <= `SD next_head;
-      tail           <= `SD next_tail;
+      MSHR_queue        <= `SD next_MSHR_queue;
+      writeback_head    <= `SD next_writeback_head;
+      head              <= `SD next_head;
+      tail              <= `SD next_tail;
+      last_rd_addr      <= `SD current_rd_addr;
+      last_wr_addr      <= `SD current_wr_addr;
     end
   end
 endmodule
