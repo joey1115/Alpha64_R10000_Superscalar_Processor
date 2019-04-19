@@ -173,7 +173,7 @@ assign wr1_valid = !write_back_stage;
 
 assign wr1_from_mem = mshr_d_cache_out.mem_wr | mshr_d_cache_out.rd_wb_en | write_back_stage;
 
-assign wr1_en = (wr1_hit & sq_d_cache_out.wr_en) | (wr1_from_mem & mshr_valid);
+assign wr1_en = (wr1_hit & sq_d_cache_out.wr_en) | (!sq_d_cache_out.wr_en & wr1_from_mem & mshr_valid);
 
 //inform MSHR that it is written
 assign stored_rd_wb = !sq_d_cache_out.wr_en & mshr_d_cache_out.rd_wb_en;

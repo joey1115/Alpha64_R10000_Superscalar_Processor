@@ -345,7 +345,7 @@ module MSHR(
       next_MSHR_queue[tail].complete = 0;
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
-      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
@@ -368,7 +368,7 @@ module MSHR(
       next_MSHR_queue[tail].complete = 0;
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
-      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[2];
@@ -391,7 +391,7 @@ module MSHR(
       next_MSHR_queue[tail].complete = 0;
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
-      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[2];
