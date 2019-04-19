@@ -241,7 +241,7 @@ module pipeline (
 
 
   assign en           = `TRUE;
-  assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && !rollback_en;
+  assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && && LSQ_valid && !rollback_en;
   assign dispatch_en  = get_fetch_buff && inst_out_valid;
 
   assign stop_cycle = halt_out[0] | halt_out[1];
