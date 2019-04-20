@@ -77,7 +77,7 @@ module Dcache(
         regB[i] <= `SD 1'b0;
         regC[i] <= `SD 1'b0;
         prev_LRU_bank_sel[i] <= `SD 4'b0001;
-      begin
+      end
     end
     else begin
       regA <= `SD next_regA;
