@@ -386,18 +386,19 @@ void print_lq_entry(int idx, int valid, int addr_hi, int addr_lo, int ROB_idx, i
   }
 }
 
-void print_icache_head(int head, int tail)
+// void print_icache_head(int head, int tail)
+void print_icache_head()
 {
   fprintf(ppfile, "---------------------------------------iCache----------------------------------- \n");
-  if(ppfile != NULL){
-    fprintf(ppfile, "head:%2d   tail:%2d\n", head, tail);
-  }
+  // if(ppfile != NULL){
+    // fprintf(ppfile, "head:%2d   tail:%2d\n", head, tail);
+  // }
 }
 
-void print_icache_entry(int i, int valid, int tag, int data_hi, int data_lo)
+void print_icache_entry(int i, int valid, int requested, int tag, int data_hi, int data_lo)
 {
   if(ppfile != NULL){
-    fprintf(ppfile, " %2d | addr: %d | valid: %1d | tag: %d | data: %x %x\n", i, ((tag << 8) + (i << 3)), valid, tag, data_hi, data_lo);
+    fprintf(ppfile, " %2d | addr: %d | valid: %1d | requested: %1d | tag: %d | data: %x %x\n", i, ((tag << 8) + (i << 3)), valid, requested, tag, data_hi, data_lo);
   }
 }
 
@@ -406,10 +407,12 @@ void print_mem_tag_table_head()
   fprintf(ppfile, "---------------------------------------Mem_Tag_Table----------------------------------- \n");
 }
 
-void print_mem_tag_table_entry(int i, int idx, int tag)
+// void print_mem_tag_table_entry(int i, int idx, int tag)
+void print_mem_tag_table_entry(int i, int idx)
 {
   if(ppfile != NULL){
-    fprintf(ppfile, " %2d | idx: %d | tag: %d\n", i, idx, tag);
+    // fprintf(ppfile, " %2d | idx: %d | tag: %d\n", i, idx, tag);
+    fprintf(ppfile, " %2d | idx: %d\n", i, idx);
   }
 }
 

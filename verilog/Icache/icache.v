@@ -2,147 +2,179 @@
 `timescale 1ns/100ps
 
 module icache (
-  // Input
+  // inputs
   input  logic                                           clock,
   input  logic                                           reset,
-
+  input  logic           [63:0]                          proc2Icache_addr,   // address from f-stage
   input  logic           [3:0]                           Imem2proc_response, // response  from memory (0 or transaction#)
   input  logic           [3:0]                           Imem2proc_tag,      // tag       from memory (0 or transaction#)
   input  logic           [63:0]                          Imem2proc_data,     // inst data from memory
-
-  input  logic           [63:0]                          proc2Icache_addr,   // address from f-stage
-
-  // Output
-  output logic  [1:0]                                       proc2Imem_command,  // command to memory (BUS_NONE or BUS_LOAD)
-  output logic [63:0]                                       proc2Imem_addr,     // address to memory
+  // outputs
+  output logic  [1:0]                                    proc2Imem_command,  // command to memory (BUS_NONE or BUS_LOAD)
+  output logic [63:0]                                    proc2Imem_addr,     // address to memory
 `ifdef DEBUG
-  output I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]            i_cache,
-  output MEM_TAG_TABLE_t [15:0]                             mem_tag_table,
-  output logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    head,
-  output logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    tail,
-  output logic           [15-$clog2(`NUM_ICACHE_LINES)-3:0] prefetch_addr_tag_idx,
+  output I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]         i_cache,
+  output MEM_TAG_TABLE_t [15:0]                          mem_tag_table,
+  // output logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    head,
+  // output logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    tail,
 `endif
-  output logic           [63:0]                             Icache_data_out,    // value is memory[proc2Icache_addr] // to f-stage
-  output logic                                              Icache_valid_out    // when this is high // hit/miss     // to f-stage
+  output logic           [63:0]                          Icache_data_out,    // value is memory[proc2Icache_addr] // to f-stage
+  output logic                                           Icache_valid_out    // when this is high // hit/miss     // to f-stage
 );
+
 
 `ifndef DEBUG
   I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]            i_cache;
   MEM_TAG_TABLE_t [15:0]                             mem_tag_table;
-  logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    head;
-  logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    tail;
-  logic           [15-$clog2(`NUM_ICACHE_LINES)-3:0] prefetch_addr_tag_idx; // {tag, index}
+  // logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    head;
+  // logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    tail;
 `endif
-
-  logic           [1:0]                              next_proc2Imem_command;
-  logic           [63:0]                             next_proc2Imem_addr;
   I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]            next_i_cache;
   MEM_TAG_TABLE_t [15:0]                             next_mem_tag_table;
-  logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    next_head;
-  logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    next_tail;
-  logic           [15-$clog2(`NUM_ICACHE_LINES)-3:0] next_prefetch_addr_tag_idx;
+  // logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    next_head;
+  // logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    next_tail;
 
-  wire [$clog2(`NUM_ICACHE_LINES)-1:0]    idx;       // index of the entry that f-stage requests
-  wire [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;       // tag of the address from f-stage
-  wire                                    f_stage_tag_match;  // whether address from f-stage matches the tag in i_cache entry
-  wire                                    prefetch_tag_match; // whether address to prefetch matches the tag in i_cache entry
-  wire                                    write_en;  // write_en for i_cache
-  wire [$clog2(`NUM_ICACHE_LINES)-1:0]    tail_plus_one; // tail+1
-  wire [63:0]                             prefetch_addr; // prefetching address
-  wire [$clog2(`NUM_ICACHE_LINES)-1:0]    prefetch_idx;  // index of prefetching address
-  wire [15-$clog2(`NUM_ICACHE_LINES)-3:0] prefetch_tag;  // tag of prefetching address
+  logic [$clog2(`NUM_ICACHE_LINES)-1:0]    idx; // index of the address from f-stage
+  logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag; // tag   of the address from f-stage
+  logic [12:0]                             last_proc2Imem_addr; // proc2Imem_addr of last cycle 
+  logic                                    load_requested, next_load_requested; // a load requested has been sent to mem in the last cycle
 
-  // 1. f-stage gets inst from i_cache
+
+  wire        f_stage_tag_match;    // whether address from f-stage has a tag-match in i_cache entry
+  wire        prefetch_tag_match;   // whether prefetch address has a tag-match in i_cache entry
+  // wire [12:0] prefetch_lower_bound; // lower bound of prefetch address range = f-stage addr
+  wire [12:0] prefetch_upper_bound; // upper bound of prefetch address range
+
+  wire [12:0] prefetch_addr; // last_proc2Imem_addr+1 (here stores only its tag and idx)
+  wire [$clog2(`NUM_ICACHE_LINES)-1:0]    prefetch_idx; // index of prefetch address
+  wire [15-$clog2(`NUM_ICACHE_LINES)-3:0] prefetch_tag; // tag   of prefetch address
+  // wire [$clog2(`NUM_ICACHE_LINES)-1:0]    last_idx;     // index of last_proc2Imem_addrress
+  // wire [15-$clog2(`NUM_ICACHE_LINES)-3:0] last_tag;     // tag   of last_proc2Imem_addr
+
+  wire load_request_denied;
+  wire can_prefetch;
+  wire write_cache; // cache write enable
+
+
+  // OUTPUT: Icache_data_out
   assign idx = proc2Icache_addr[3+$clog2(`NUM_ICACHE_LINES)-1:3];
   assign Icache_data_out = i_cache[idx].data;
 
+  // OUTPUT: Icache_valid_out
+  /* Note: Cache output valid only when entry valid AND tag match */
   assign tag = proc2Icache_addr[15:3+$clog2(`NUM_ICACHE_LINES)];
   assign f_stage_tag_match = (i_cache[idx].tag == tag);
   assign Icache_valid_out = (i_cache[idx].valid && f_stage_tag_match);
 
-  // 2. i_cache request inst from mem
-  assign prefetch_addr = {48'h0, prefetch_addr_tag_idx, 3'h0};
-  assign prefetch_idx  = prefetch_addr[3+$clog2(`NUM_ICACHE_LINES)-1:3];
-  assign prefetch_tag  = prefetch_addr[15:3+$clog2(`NUM_ICACHE_LINES)];
+  // OUTPUT: proc2Imem_command
+  // assign prefetch_lower_bound = proc2Icache_addr[15:3];
+  assign prefetch_upper_bound = proc2Icache_addr[15:3] + 13'd8; // next-8-line prefetch
+  assign prefetch_addr = last_proc2Imem_addr + 13'd1;
+  assign prefetch_idx = prefetch_addr[$clog2(`NUM_ICACHE_LINES)-1:0];
+  assign prefetch_tag = prefetch_addr[12:$clog2(`NUM_ICACHE_LINES)];
   assign prefetch_tag_match = (i_cache[prefetch_idx].tag == prefetch_tag);
-  
-  assign tail_plus_one = tail + {($clog2(`NUM_ICACHE_LINES)-1){1'b0}, 1'b1};
-  assign next_proc2Imem_command = ((f_stage_tag_match) && (!prefetch_tag_match) && (tail_plus_one == head)) ? BUS_NONE : BUS_LOAD;
-  assign next_proc2Imem_addr    = (f_stage_tag_match) ? prefetch_addr : proc2Icache_addr;
-
-  // Next prefetch_addr_tag_idx
+  /* Note: When can we load from mem?
+    1. a miss and the data has not been requested (f-stage addr's tag doesn't match && !i_cache[idx].requested), OR
+    2. load request denied (load_requested && mem response==0), OR
+    3. can prefetch (prefetch_addr!=upperbound && address hasn't been fetched before (prefetch addr tag doesn't match))
+  */
+  assign load_request_denied = (load_requested && Imem2proc_response==0);
+  assign can_prefetch = (prefetch_addr!=prefetch_upper_bound && !prefetch_tag_match);
   always_comb begin
-    if (!f_stage_tag_match) begin
-      next_prefetch_addr_tag_idx = {tag, idx};
+    if ( (!(i_cache[idx].valid && f_stage_tag_match) && !i_cache[idx].requested) || load_request_denied || can_prefetch ) begin
+      proc2Imem_command = BUS_LOAD;
     end else begin
-      next_prefetch_addr_tag_idx = prefetch_addr_tag_idx + {{(15-$clog2(`NUM_ICACHE_LINES)-3){1'b0}}, 1'b1};
+      proc2Imem_command = BUS_NONE;
     end
   end
 
-  // Next head and tail
-  assign next_head = idx;
+  // Register: next_load_requested
+  /* Note: load_requested is essenstially the same as proc2Imem_command */
   always_comb begin
-    if (!f_stage_tag_match) begin
-      next_tail = idx;
-    end else if ((tail_plus_one != head) && (Imem2proc_response != 4'b0)) begin
-      next_tail = tail_plus_one;
+    if ( (!(i_cache[idx].valid && f_stage_tag_match) && !i_cache[idx].requested) || load_request_denied || can_prefetch ) begin
+      next_load_requested = `TRUE;
     end else begin
-      next_tail = tail;
+      next_load_requested = `FALSE;
     end
   end
 
-  always_ff @(posedge clock) begin
-    if (reset) begin
-      proc2Imem_command <= `SD BUS_NONE;
-      proc2Imem_addr    <= `SD 64'b0;
-    end else begin
-      proc2Imem_command <= `SD next_proc2Imem_command;
-      proc2Imem_addr    <= `SD next_proc2Imem_addr;
-    end
-  end
-
-  // 3. i_cache receives inst from mem
-  assign write_en = (Imem2proc_tag != 0) && (mem_tag_table[Imem2proc_tag].valid);
+  // Output: proc2Imem_addr
+  /* Note: Which address do we load?
+    if (1. a miss and the data has not been requested)
+      f-stage addr
+    else if (2. load request denied)
+      last fetch addr
+    else if (don't load: prefetch addr == upperbound)
+      last fetch addr
+    else (don't load: prefetch addr tag matches) OR (3. can prefetch)
+      prefetch addr
+   */
   always_comb begin
-    next_i_cache = i_cache;
-    // Mem responses to the request
-    if (Imem2proc_response != 4'b0) begin
-      next_i_cache[idx].valid = `FALSE;
-      next_i_cache[idx].tag   = tag;
-    end
-    // Write inst from mem to i_cache
-    if (write_en) begin
-      next_i_cache[mem_tag_table[Imem2proc_tag].idx].valid = `TRUE;
-      next_i_cache[mem_tag_table[Imem2proc_tag].idx].data  = Imem2proc_data;
+    if ((!(i_cache[idx].valid && f_stage_tag_match) && !i_cache[idx].requested)) begin
+      proc2Imem_addr = proc2Icache_addr;
+    end else if (load_request_denied || prefetch_addr==prefetch_upper_bound) begin
+      proc2Imem_addr = {48'h0, last_proc2Imem_addr, 3'h0};
+    end else begin
+      proc2Imem_addr = {48'h0, prefetch_addr, 3'h0};
     end
   end
 
+  // Register: next_mem_tag_table
+  assign write_cache = mem_tag_table[Imem2proc_tag].valid;
   always_comb begin
     next_mem_tag_table = mem_tag_table;
-    // Mem responses to the request
+    // Write inst to i_cache
+    /* Note:
+      Clear the entry when data arrive.
+      Write inst to i_cache when entry mem_tag_table[Imem2proc_tag] is valid.
+      mem_tag_table[0] is never valid, so doesn't need to check (Imem2proc_response != 4'b0).
+    */
+    if (write_cache) begin
+      next_mem_tag_table[Imem2proc_tag].valid = `FALSE;
+    end
+    // Mem responses to a load request
+    /* Note: When mem responses to a load request, update valid, idx, and tag in the entry specified by the mem response. */
     if (Imem2proc_response != 4'b0) begin
       next_mem_tag_table[Imem2proc_response].valid = `TRUE;
       next_mem_tag_table[Imem2proc_response].idx   = idx;
-      next_mem_tag_table[Imem2proc_response].tag   = tag;
-    end
-    // Write inst from mem to i_cache
-    if (write_en) begin
-      next_mem_tag_table[Imem2proc_tag].valid = `FALSE;
     end
   end
 
+  // Register: next_i_cache
+  // assign last_idx = last_proc2Imem_addr[$clog2(`NUM_ICACHE_LINES)-1:0];
+  // assign last_tag = last_proc2Imem_addr[12:$clog2(`NUM_ICACHE_LINES)];
+  always_comb begin
+    next_i_cache = i_cache;
+    // Write inst to i_cache
+    /* Note:
+      Write inst to i_cache when entry mem_tag_table[Imem2proc_tag] is valid.
+      mem_tag_table[0] is never valid, so doesn't need to check (Imem2proc_response != 4'b0).
+     */
+    if (write_cache) begin
+      next_i_cache[mem_tag_table[Imem2proc_tag].idx].valid = `TRUE;
+      next_i_cache[mem_tag_table[Imem2proc_tag].idx].requested = `FALSE;
+      next_i_cache[mem_tag_table[Imem2proc_tag].idx].data  = Imem2proc_data;
+    end
+    // Mem responses to a load request
+    /* Note: When mem responses to a load request, evict previous entry and write in the tag. */
+    if (Imem2proc_response != 4'b0) begin
+      next_i_cache[idx].valid = `FALSE;
+      next_i_cache[idx].requested = `TRUE;
+      next_i_cache[idx].tag   = tag;
+    end
+  end
+
+
+  // i_cache update
   always_ff @(posedge clock) begin
     if (reset) begin
       i_cache <= `SD 0;
-      head    <= `SD 0;
-      tail    <= `SD 0;
     end else begin
       i_cache <= `SD next_i_cache;
-      head    <= `SD next_head;
-      tail    <= `SD next_tail;
     end
   end
 
+  // mem_tag_table update
   always_ff @(posedge clock) begin
     if (reset) begin
       mem_tag_table <= `SD 0;
@@ -151,103 +183,15 @@ module icache (
     end
   end
 
+  // other register update
   always_ff @(posedge clock) begin
     if (reset) begin
-      prefetch_addr_tag_idx <= `SD 0;
+      last_proc2Imem_addr <= `SD 0;
+      load_requested      <= `SD 0;
     end else begin
-      prefetch_addr_tag_idx <= `SD next_prefetch_addr_tag_idx;
+      last_proc2Imem_addr <= `SD proc2Imem_addr[15:3];
+      load_requested      <= `SD next_load_requested;
     end
   end
 
-//   logic                                              valid;
-//   logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    next_head, next_tail, diff1, diff2, tail_plus_one;
-//   
-//   logic           [1:0]                              next_proc2Imem_command;
-
-//   assign tail_plus_one          = tail + 1;
-//   assign diff1                  = idx - head;
-//   assign diff2                  = tail - head;
-//   assign valid                  = diff1 <= diff2;
-//   assign tag_match                  = i_cache[idx].tag == tag;
-//   assign next_proc2Imem_command = BUS_LOAD;
-
-//   always_comb begin
-//     if (tag_match) begin
-//       proc2Imem_addr = {48'h0, i_cache[tail].tag, tail, 3'h0};
-//     end else begin
-//       proc2Imem_addr = proc2Icache_addr;
-//     end
-//   end
-
-//   always_comb begin
-//     if (tag_match) begin
-//       next_head = head;
-//     end else begin
-//       next_head = idx;
-//     end
-//   end
-
-//   always_comb begin
-//     if (tag_match) begin
-//       if (Imem2proc_response != 0 && tail_plus_one != head) begin
-//         next_tail = tail_plus_one;
-//       end else begin
-//         next_tail = tail;
-//       end
-//     end else begin
-//       if (Imem2proc_response != 0) begin
-//         next_tail = idx + 1;
-//       end else begin
-//         next_tail = idx;
-//       end
-//     end
-//   end
-
-//   always_comb begin
-//     next_i_cache = i_cache;
-//     next_i_cache[idx].tag = tag;
-//     if (~tag_match) begin
-//       next_i_cache[idx].valid = `FALSE;
-//     end
-//     if (write_en) begin
-//       next_i_cache[mem_tag_table[Imem2proc_tag].idx].valid = `TRUE;
-//       next_i_cache[mem_tag_table[Imem2proc_tag].idx].data  = Imem2proc_data;
-//     end
-//   end
-
-//   always_comb begin
-//     next_mem_tag_table = mem_tag_table;
-//     if (write_en) begin
-//         next_mem_tag_table[Imem2proc_tag].valid = `FALSE;
-//     end
-//     if (tag_match) begin
-//       if (Imem2proc_response != 0) begin
-//         next_mem_tag_table[Imem2proc_response].valid = `TRUE;
-//         next_mem_tag_table[Imem2proc_response].idx   = tail;
-//         next_mem_tag_table[Imem2proc_response].tag   = tag;
-//       end
-//     end else begin
-//       if (Imem2proc_response != 0) begin
-//         next_mem_tag_table[Imem2proc_response].valid = `TRUE;
-//         next_mem_tag_table[Imem2proc_response].idx   = idx;
-//         next_mem_tag_table[Imem2proc_response].tag   = tag;
-//       end
-//     end
-//   end
-
-//   always_ff @(posedge clock) begin
-//     if (reset) begin
-//       i_cache           <= `SD 0;
-//       head              <= `SD 0;
-//       tail              <= `SD 0;
-//       mem_tag_table     <= `SD 0;
-//       proc2Imem_command <= `SD BUS_NONE;
-//     end else begin
-//       i_cache           <= `SD next_i_cache;
-//       head              <= `SD next_head;
-//       tail              <= `SD next_tail;
-//       mem_tag_table     <= `SD next_mem_tag_table;
-//       proc2Imem_command <= `SD next_proc2Imem_command;
-//     end
-//   end
 endmodule

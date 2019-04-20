@@ -11,6 +11,7 @@
 
 typedef struct packed {
   logic                                    valid;
+  logic                                    requested; // TRUE means a load into this entry has been requested
   logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
   logic [64:0]                             data;
 } I_CACHE_ENTRY_t;
@@ -18,7 +19,6 @@ typedef struct packed {
 typedef struct packed {
   logic                                    valid;
   logic [$clog2(`NUM_ICACHE_LINES)-1:0]    idx;
-  logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;
 } MEM_TAG_TABLE_t;
 
 `endif
