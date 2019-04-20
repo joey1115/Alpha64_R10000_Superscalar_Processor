@@ -131,7 +131,7 @@ assign next_d_cache_mshr_out.miss_en[0] = lq_d_cache_out.rd_en & !rd1_hit & mshr
 //Miss from stores
 assign next_d_cache_mshr_out.miss_en[1] = sq_d_cache_out.wr_en & !wr1_hit & mshr_valid;
 //Store inst from evicts
-assign next_d_cache_mshr_out.miss_en[2] = wr1_from_mem & evicted_dirty & evicted_valid & mshr_valid;// when wr1 is from memory and it is dirty
+assign next_d_cache_mshr_out.miss_en[2] = wr1_from_mem & evicted_dirty & evicted_valid;// when wr1 is from memory and it is dirty
 
 //d_cache_lq_out.value sent to MSHR search
 assign next_d_cache_mshr_out.miss_addr[0] = rd1_addr;
@@ -173,11 +173,11 @@ assign wr1_valid = !write_back_stage;
 
 assign wr1_from_mem = mshr_d_cache_out.mem_wr | mshr_d_cache_out.rd_wb_en | write_back_stage;
 
-assign wr1_en = (wr1_hit & sq_d_cache_out.wr_en) | (!sq_d_cache_out.wr_en & wr1_from_mem & mshr_valid);
+assign wr1_en = (wr1_hit & sq_d_cache_out.wr_en) | (!sq_d_cache_out.wr_en & wr1_from_mem);
 
 //inform MSHR that it is written
-assign stored_rd_wb = !sq_d_cache_out.wr_en & mshr_d_cache_out.rd_wb_en;
-assign stored_mem_wr = !sq_d_cache_out.wr_en & !mshr_d_cache_out.rd_wb_en & mshr_d_cache_out.mem_wr;
+assign stored_rd_wb = !sq_d_cache_out.wr_en & mshr_d_cache_out.rd_wb_en & wr1_en;
+assign stored_mem_wr = !sq_d_cache_out.wr_en & !mshr_d_cache_out.rd_wb_en & mshr_d_cache_out.mem_wr & wr1_en;
 
 //set the cache id valid or not
 // assign cache_valid = mshr_valid;
