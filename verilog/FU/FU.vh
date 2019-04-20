@@ -109,7 +109,6 @@ typedef struct packed {
   logic [$clog2(`NUM_FL)-1:0]  FL_idx;  // Dest idx
   logic [$clog2(`NUM_LSQ)-1:0] SQ_idx;
   logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
-  logic [63:0]                 NPC;
 } LD_OUT_t;
 
 `define LD_OUT_RESET '{     \
@@ -120,8 +119,7 @@ typedef struct packed {
   {$clog2(`NUM_ROB){1'b0}}, \
   {$clog2(`NUM_FL){1'b0}},  \
   {$clog2(`NUM_LSQ){1'b0}}, \
-  {$clog2(`NUM_LSQ){1'b0}}, \
-  64'hbaadbeefdeadbeef      \
+  {$clog2(`NUM_LSQ){1'b0}}  \
 }
 
 typedef struct packed {
