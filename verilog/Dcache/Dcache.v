@@ -143,7 +143,6 @@ module Dcache(
                              (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_dirty[1] :
                              (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_dirty[2] :
                              (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_dirty[3] : 0;
- 
   assign evicted_valid_out = (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_valid[0] :
                              (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_valid[1] :
                              (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_valid[2] :
