@@ -126,8 +126,8 @@ module inst_decoder(
   assign target = target_in;
   always_comb begin
     inst          = `NOOP_INST;
-    PC            = 64'hbaadbeefdeadbeef;
-    NPC           = 64'hbaadbeefdeadbeef;
+    PC            = 64'h0;
+    NPC           = 64'h0;
     opa_select    = ALU_OPA_IS_REGA;
     opb_select    = ALU_OPB_IS_REGB;
     func          = ALU_ADDQ;
@@ -146,9 +146,9 @@ module inst_decoder(
     rega_idx      = `ZERO_REG;
     regb_idx      = `ZERO_REG;
     if(valid_in) begin
-      inst          = inst_in;
-      PC            = PC_in;
-      NPC           = NPC_in;
+      inst  = inst_in;
+      PC    = PC_in;
+      NPC   = NPC_in;
       valid = `TRUE;
       case(inst_in.m.opcode)
         `PAL_INST: begin
