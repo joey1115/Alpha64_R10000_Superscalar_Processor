@@ -31,6 +31,18 @@ typedef struct packed {
   MSHR_STATE                          state;
 } MSHR_ENTRY_t;
 
+`define MSHR_queue_reset '{ \
+1'b0,                   \
+64'hbaadbeefdeadbeef,   \
+1'b0,                   \
+64'h0,                  \
+2'h0,                  \
+2'b0,                   \
+1'b0,                   \
+4'b0,                   \
+2'b0    \
+}
+
 typedef struct packed {
   // logic [1:0]                         miss_addr_hit;
   logic                               mem_wr;
@@ -58,17 +70,7 @@ typedef struct packed {
 {64'hbaadbeefdeadbeef}            \
 }
 
-`define MSHR_queue_reset '{ \
-{1'b0},                   \
-{64'b0},                  \
-{1'b0},                   \
-{64'hbaadbeefdeadbeef},   \
-{64'hbaadbeefdeadbeef},   \
-{1'b0},                   \
-{1'b0},                   \
-{64'hbaadbeefdeadbeef},   \
-{64'hbaadbeefdeadbeef}    \
-}
+
 
 `define writeback_head_reset '{  \
   ($clog2(`MSHR_DEPTH)){1'b0}   \
