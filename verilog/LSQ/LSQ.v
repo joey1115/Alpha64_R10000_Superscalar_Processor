@@ -35,7 +35,7 @@ module SQ (
   logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, virtual_tail;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] head_map_idx;
   SQ_ENTRY_t  [`NUM_LSQ-1:0]                         next_sq;
-  logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx, idx;
+  logic       [`NUM_SUPER-1:0][`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx;
   logic       [`NUM_SUPER-1:0]                       retire_valid;
   logic       [`NUM_SUPER-1:0]                       st_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] st_idx, SQ_idx_minus_one;

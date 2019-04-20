@@ -527,7 +527,7 @@ module testbench;
 `endif
 
 `ifdef PRINT_COUNT
-      print_count({{(64-6){1'b0}},count});
+      print_count({{(32-6){1'b0}},count});
 `endif
 
 `ifdef PRINT_DCACHE_BANK
