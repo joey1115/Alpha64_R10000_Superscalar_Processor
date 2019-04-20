@@ -605,9 +605,9 @@ module MSHR(
       writeback_head    <= `SD `writeback_head_reset;
       head              <= `SD `head_reset;
       tail              <= `SD `tail_reset;
-      last_rd_addr      <= `SD -1;
-      last_wr_addr      <= `SD -1;
-      prev_changed_wr_input <= `SD 0;
+      last_rd_addr      <= `SD 64'h1111_1111_1111_1111;
+      last_wr_addr      <= `SD 64'h1111_1111_1111_1111;
+      prev_changed_wr_input <= `SD `FALSE;
     end
     else begin
       MSHR_queue        <= `SD next_MSHR_queue;

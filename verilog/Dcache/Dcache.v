@@ -229,8 +229,8 @@ module cache_bank(
       for(int i=0; i < `NUM_IDX; i++) begin
         cache_bank[i].valid <= `SD 0;
         cache_bank[i].dirty <= `SD 0;
-        cache_bank[i].data <= `SD 0;
-        cache_bank[i].tag <= `SD 0;
+        cache_bank[i].data <= `SD baadbeefdeadbeef;
+        cache_bank[i].tag <= `SD {`NUM_TAG_BITS{1'b0}};
       end
     else begin
       cache_bank <= `SD next_cache_bank;

@@ -182,21 +182,21 @@ module ROB (
   end
   always_ff @ (posedge clock) begin
     if(reset) begin
-      state <= `SD 0;
-      ROB_rollback_idx_reg <= `SD 0;
-      rob.tail <= `SD 0;
-      rob.head <= `SD 0;
+      state <= `SD 2'b0;
+      ROB_rollback_idx_reg <= `SD {`NUM_ROB{1'b0}};
+      rob.tail <= `SD {$clog2(`NUM_ROB){1'b0}};
+      rob.head <= `SD {$clog2(`NUM_ROB){1'b0}};
       for(int i=0; i < `NUM_ROB; i++) begin
-         rob.entry[i].valid <= `SD 0;
-         rob.entry[i].complete <= `SD 0;
-         rob.entry[i].halt <= `SD 0;
-         rob.entry[i].illegal <= `SD 0;
-         rob.entry[i].T_idx <= `SD 0;
-         rob.entry[i].Told_idx <= `SD 0;
-         rob.entry[i].dest_idx <= `SD 0;
-         rob.entry[i].wr_mem <= `SD 0;
-         rob.entry[i].rd_mem <= `SD 0;
-         rob.entry[i].NPC <= `SD 0;
+         rob.entry[i].valid <= `SD `FALSE;
+         rob.entry[i].complete <= `SD `FALSE;
+         rob.entry[i].halt <= `SD `FALSE;
+         rob.entry[i].illegal <= `SD `FALSE;
+         rob.entry[i].T_idx <= `SD `ZERO_PR;
+         rob.entry[i].Told_idx <= `SD `ZERO_PR;
+         rob.entry[i].dest_idx <= `SD `ZERO_REG;
+         rob.entry[i].wr_mem <= `SD `FALSE;
+         rob.entry[i].rd_mem <= `SD `FALSE;
+         rob.entry[i].NPC <= `SD 64'h0;
       end
     end // if (reset) else
     else if(en)begin
