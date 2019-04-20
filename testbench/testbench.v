@@ -137,6 +137,7 @@ module testbench;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
   logic          [63:0]                           count;
+  logic          [`NUM_IDX-1:0][`NUM_WAY-1:0]     LRU_bank_sel;
   
 
   // Instantiate the Pipeline
