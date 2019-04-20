@@ -75,7 +75,7 @@ module Dcache(
       regA <= `SD `regA_reset;
       regB <= `SD `regB_reset;
       regC <= `SD `regC_reset;
-      prev_LRU_bank_sel <= `SD '{(`NUM_IDX-1){{4'b1000}}};
+      prev_LRU_bank_sel <= `SD '{(`NUM_IDX){4'b1000}};
     end
     else begin
       regA <= `SD next_regA;
