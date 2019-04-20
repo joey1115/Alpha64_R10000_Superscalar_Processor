@@ -126,7 +126,7 @@ module RS (
     for (int j = 0; j < `NUM_FU; j++) begin
       next_RS[j].T1.ready = T1_ready[j]; // T1 ready
       next_RS[j].T2.ready = T2_ready[j]; // T2 ready
-      if ( RS_entry_ready[j] || RS_rollback[j] ) begin
+      if ( (RS_entry_ready[j] && FU_valid[j]) || RS_rollback[j] ) begin
         next_RS[j] = `RS_ENTRY_RESET; // Clear RS entry
       end // if ( RS[i].busy == `FALSE && dispatch_en ) begin
     end // for (int i = 0; i < `NUM_FU; i++) begin

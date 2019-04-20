@@ -378,7 +378,7 @@ module st (
   assign regA               = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
   assign regB               = FU_in.T2_value;
   assign result             = regA + regB;
-  assign FU_valid           = !FU_in.ready || CDB_valid || rollback_valid;
+  assign FU_valid           = !FU_in.ready || CDB_valid || rollback_valid_out;
 
   always_comb begin
     if ( !CDB_valid && !rollback_valid_out ) begin
@@ -433,7 +433,7 @@ module ld (
   assign regA               = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
   assign regB               = FU_in.T2_value;
   assign result             = regA + regB;
-  assign FU_valid           = !FU_in.ready || LQ_valid || rollback_valid;
+  assign FU_valid           = !FU_in.ready || LQ_valid || rollback_valid_out;
 
   always_comb begin
     if ( !LQ_valid && !rollback_valid_out ) begin
