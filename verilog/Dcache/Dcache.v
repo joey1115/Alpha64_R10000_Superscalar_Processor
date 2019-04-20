@@ -63,7 +63,7 @@ module Dcache(
     for(int i = 0; i < `MSHR_DEPTH; i++) begin
       dummywire[i] = bank_empty[i];
     end
-    cache_empty = ~(|dummywire);
+    cache_empty = & dummywire;
   end
 
   //LRU decision
