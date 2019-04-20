@@ -181,7 +181,7 @@ module Dcache_controller(
                     (sq_d_cache_out.wr_en)                                                                    ?  sq_d_cache_out.value:
                     (!(sq_d_cache_out.wr_en) && mshr_d_cache_out.rd_wb_en)                                    ?  mshr_d_cache_out.rd_wb_data : mshr_d_cache_out.mem_data;
 
-  assign wr1_valid = !write_back_stage;
+  assign wr1_valid = !write_back_stage || (mshr_d_cache_out.mem_wr || mshr_d_cache_out.rd_wb_en);
 
   assign wr1_from_mem = mshr_d_cache_out.mem_wr || mshr_d_cache_out.rd_wb_en || write_back_stage;
 
