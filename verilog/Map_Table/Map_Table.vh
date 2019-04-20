@@ -81,8 +81,6 @@
   {{{($clog2(`NUM_PR)-5){1'b0}}, 5'h00}, `TRUE}  \
 }
 
-`define MAP_TABLE_STACK_RESET '{`NUM_ROB{`MAP_TABLE_STACK_ENTRY_RESET}}
-
 typedef struct packed {
   logic [`NUM_SUPER-1:0][$clog2(`NUM_PR)-1:0] Told_idx;           // output Told to ROB
 } MAP_TABLE_ROB_OUT_t;

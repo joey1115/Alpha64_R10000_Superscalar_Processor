@@ -38,7 +38,7 @@ module PR (
 
   always_ff @(posedge clock) begin
     if (reset) begin
-      pr <= `SD {(`NUM_PR*64){1'b0}};
+      pr <= `SD {`NUM_PR{64'h0}};
     end else if (en) begin
       pr <= `SD next_pr;
     end
