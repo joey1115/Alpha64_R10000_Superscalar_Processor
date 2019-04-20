@@ -408,11 +408,11 @@ void print_mem_tag_table_head()
 }
 
 // void print_mem_tag_table_entry(int i, int idx, int tag)
-void print_mem_tag_table_entry(int i, int idx)
+void print_mem_tag_table_entry(int i, int valid, int idx)
 {
   if(ppfile != NULL){
     // fprintf(ppfile, " %2d | idx: %d | tag: %d\n", i, idx, tag);
-    fprintf(ppfile, " %2d | idx: %d\n", i, idx);
+    fprintf(ppfile, " %2d | valid: %1d | idx: %d\n", i, valid, idx);
   }
 }
 

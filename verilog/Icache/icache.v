@@ -26,18 +26,14 @@ module icache (
 `ifndef DEBUG
   I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]            i_cache;
   MEM_TAG_TABLE_t [15:0]                             mem_tag_table;
-  // logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    head;
-  // logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    tail;
 `endif
   I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]            next_i_cache;
   MEM_TAG_TABLE_t [15:0]                             next_mem_tag_table;
-  // logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    next_head;
-  // logic           [$clog2(`NUM_ICACHE_LINES)-1:0]    next_tail;
 
   logic [$clog2(`NUM_ICACHE_LINES)-1:0]    idx; // index of the address from f-stage
   logic [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag; // tag   of the address from f-stage
-  logic [12:0]                             last_proc2Imem_addr; // proc2Imem_addr of last cycle 
-  logic                                    load_requested, next_load_requested; // a load requested has been sent to mem in the last cycle
+  logic [12:0]                             last_proc2Imem_addr; // proc2Imem_addr of last cycle
+  logic                                    last_load_request_denied, load_request_denied;
 
 
   wire        f_stage_tag_match;    // whether address from f-stage has a tag-match in i_cache entry
@@ -48,10 +44,7 @@ module icache (
   wire [12:0] prefetch_addr; // last_proc2Imem_addr+1 (here stores only its tag and idx)
   wire [$clog2(`NUM_ICACHE_LINES)-1:0]    prefetch_idx; // index of prefetch address
   wire [15-$clog2(`NUM_ICACHE_LINES)-3:0] prefetch_tag; // tag   of prefetch address
-  // wire [$clog2(`NUM_ICACHE_LINES)-1:0]    last_idx;     // index of last_proc2Imem_addrress
-  // wire [15-$clog2(`NUM_ICACHE_LINES)-3:0] last_tag;     // tag   of last_proc2Imem_addr
 
-  wire load_request_denied;
   wire can_prefetch;
   wire write_cache; // cache write enable
 
@@ -67,52 +60,44 @@ module icache (
   assign Icache_valid_out = (i_cache[idx].valid && f_stage_tag_match);
 
   // OUTPUT: proc2Imem_command
-  // assign prefetch_lower_bound = proc2Icache_addr[15:3];
+  assign load_request_denied = (proc2Imem_command==BUS_LOAD && Imem2proc_response==4'b0);
   assign prefetch_upper_bound = proc2Icache_addr[15:3] + 13'd8; // next-8-line prefetch
   assign prefetch_addr = last_proc2Imem_addr + 13'd1;
   assign prefetch_idx = prefetch_addr[$clog2(`NUM_ICACHE_LINES)-1:0];
   assign prefetch_tag = prefetch_addr[12:$clog2(`NUM_ICACHE_LINES)];
   assign prefetch_tag_match = (i_cache[prefetch_idx].tag == prefetch_tag);
-  /* Note: When can we load from mem?
-    1. a miss and the data has not been requested (f-stage addr's tag doesn't match && !i_cache[idx].requested), OR
-    2. load request denied (load_requested && mem response==0), OR
-    3. can prefetch (prefetch_addr!=upperbound && address hasn't been fetched before (prefetch addr tag doesn't match))
+  assign prefetch_hit = (i_cache[prefetch_idx].valid && prefetch_tag_match);
+  assign can_prefetch = (prefetch_addr!=prefetch_upper_bound && !prefetch_hit && i_cache[prefetch_idx].requested);
+  /* Note: When do we load from mem:
+    1. f-stage addr miss and not requested (!hit && !i_cache[idx].requested) OR
+    2. last load request denied (load request denied == BUS_LOAD && mem response ==0) OR
+    3. can prefetch
+      (1) prefetch addr != upperbound AND
+      (2) prefetch addr miss && not requested 
   */
-  assign load_request_denied = (load_requested && Imem2proc_response==0);
-  assign can_prefetch = (prefetch_addr!=prefetch_upper_bound && !prefetch_tag_match);
   always_comb begin
-    if ( (!(i_cache[idx].valid && f_stage_tag_match) && !i_cache[idx].requested) || load_request_denied || can_prefetch ) begin
+    if ( (!Icache_valid_out && !i_cache[idx].requested) || last_load_request_denied || can_prefetch ) begin
       proc2Imem_command = BUS_LOAD;
     end else begin
       proc2Imem_command = BUS_NONE;
     end
   end
 
-  // Register: next_load_requested
-  /* Note: load_requested is essenstially the same as proc2Imem_command */
-  always_comb begin
-    if ( (!(i_cache[idx].valid && f_stage_tag_match) && !i_cache[idx].requested) || load_request_denied || can_prefetch ) begin
-      next_load_requested = `TRUE;
-    end else begin
-      next_load_requested = `FALSE;
-    end
-  end
-
   // Output: proc2Imem_addr
   /* Note: Which address do we load?
-    if (1. a miss and the data has not been requested)
+    if (1. f-stage addr miss and not requested)
       f-stage addr
-    else if (2. load request denied)
+    else if (2. last load request denied)
       last fetch addr
     else if (don't load: prefetch addr == upperbound)
       last fetch addr
-    else (don't load: prefetch addr tag matches) OR (3. can prefetch)
+    else ( don't load: prefetch addr miss && not requested OR 3. can prefetch)
       prefetch addr
    */
   always_comb begin
-    if ((!(i_cache[idx].valid && f_stage_tag_match) && !i_cache[idx].requested)) begin
+    if (!Icache_valid_out && !i_cache[idx].requested) begin
       proc2Imem_addr = proc2Icache_addr;
-    end else if (load_request_denied || prefetch_addr==prefetch_upper_bound) begin
+    end else if (last_load_request_denied || prefetch_addr==prefetch_upper_bound) begin
       proc2Imem_addr = {48'h0, last_proc2Imem_addr, 3'h0};
     end else begin
       proc2Imem_addr = {48'h0, prefetch_addr, 3'h0};
@@ -141,8 +126,6 @@ module icache (
   end
 
   // Register: next_i_cache
-  // assign last_idx = last_proc2Imem_addr[$clog2(`NUM_ICACHE_LINES)-1:0];
-  // assign last_tag = last_proc2Imem_addr[12:$clog2(`NUM_ICACHE_LINES)];
   always_comb begin
     next_i_cache = i_cache;
     // Write inst to i_cache
@@ -186,11 +169,11 @@ module icache (
   // other register update
   always_ff @(posedge clock) begin
     if (reset) begin
-      last_proc2Imem_addr <= `SD 0;
-      load_requested      <= `SD 0;
+      last_proc2Imem_addr      <= `SD 0;
+      last_load_request_denied <= `SD 0;
     end else begin
-      last_proc2Imem_addr <= `SD proc2Imem_addr[15:3];
-      load_requested      <= `SD next_load_requested;
+      last_proc2Imem_addr      <= `SD proc2Imem_addr[15:3];
+      last_load_request_denied <= `SD load_request_denied;
     end
   end
 

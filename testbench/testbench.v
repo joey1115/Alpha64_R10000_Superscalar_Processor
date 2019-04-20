@@ -22,7 +22,7 @@
 
 `define PRINT_DISPATCH_EN
 `define PRINT_FETCHBUFFER
-`define PRINT_ROB
+// `define PRINT_ROB
 // `define PRINT_RS
 // `define PRINT_MAP_TABLE
 // `define PRINT_FREELIST
@@ -63,7 +63,7 @@ extern void print_icache_head();
 extern void print_icache_entry(int i, int valid, int requested, int tag, int data_hi, int data_lo);
 extern void print_mem_tag_table_head();
 // extern void print_mem_tag_table_entry(int i, int idx, int tag);
-extern void print_mem_tag_table_entry(int i, int idx);
+extern void print_mem_tag_table_entry(int i, int valid, int idx);
 extern void print_num(int i);
 extern void print_enter();
 extern void print_sq_head(int head, int tail);
@@ -560,7 +560,7 @@ module testbench;
     print_mem_tag_table_head();
     for(int i = 0; i < 16; i++) begin
       // print_mem_tag_table_entry(i, {{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}}, mem_tag_table[i].idx}, {{(32-(16-$clog2(`NUM_ICACHE_LINES)-3)){1'b0}}, mem_tag_table[i].tag});
-      print_mem_tag_table_entry(i, {{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}}, mem_tag_table[i].idx});
+      print_mem_tag_table_entry(i, {31'b0, mem_tag_table[i].valid}, {{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}}, mem_tag_table[i].idx});
     end
 `endif
 
