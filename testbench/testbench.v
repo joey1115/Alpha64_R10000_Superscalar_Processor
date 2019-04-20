@@ -534,7 +534,7 @@ module testbench;
     for(int i=0; i < `NUM_IDX; i++) begin
       print_num(i);
       for(int j=0; j < `NUM_WAY; j++) begin
-        print_Dcache_LRU({{(31){1'b0}},LRU_bank_sel[j][i]});
+        print_Dcache_LRU({{(31){1'b0}},LRU_bank_sel[i][j]});
         print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(64-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag[`NUM_TAG_BITS-1:32]},Dcache_bank[j][i].tag[31:0],{{(31){1'b0}},Dcache_bank[j][i].dirty},{{(31){1'b0}},Dcache_bank[j][i].valid});
       end
       print_enter();
