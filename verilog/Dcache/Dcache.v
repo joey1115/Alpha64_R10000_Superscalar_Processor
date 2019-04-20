@@ -64,10 +64,10 @@ module Dcache(
     next_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr1_from_mem & wr1_en) ? (~regB[wr1_addr.set_index]) : regB[wr1_addr.set_index];
     next_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr1_from_mem & wr1_en)  ? (~regC[wr1_addr.set_index]) : regC[wr1_addr.set_index];
 
-    LRU_bank_sel[wr1_addr.set_index][0] = !regA[wr1_addr.set_index] & !regB[wr1_addr.set_index];
-    LRU_bank_sel[wr1_addr.set_index][1] = !regA[wr1_addr.set_index] & regB[wr1_addr.set_index];
-    LRU_bank_sel[wr1_addr.set_index][2] = regA[wr1_addr.set_index] & !regC[wr1_addr.set_index];
-    LRU_bank_sel[wr1_addr.set_index][3] = regA[wr1_addr.set_index] & regC[wr1_addr.set_index];
+    LRU_bank_sel[wr1_addr.set_index][0] = !next_regA[wr1_addr.set_index] & !next_regB[wr1_addr.set_index];
+    LRU_bank_sel[wr1_addr.set_index][1] = !next_regA[wr1_addr.set_index] & next_regB[wr1_addr.set_index];
+    LRU_bank_sel[wr1_addr.set_index][2] = next_regA[wr1_addr.set_index] & !next_regC[wr1_addr.set_index];
+    LRU_bank_sel[wr1_addr.set_index][3] = next_regA[wr1_addr.set_index] & next_regC[wr1_addr.set_index];
   end
 
   always_ff @(posedge clock) begin
