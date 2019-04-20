@@ -73,7 +73,7 @@ module SQ (
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       SQ_LQ_out.hit[i]    = st_hit[i];
-      SQ_LQ_out.value[i]  = sq[sq_map_idx[st_idx[i]]].value;
+      SQ_LQ_out.value[i]  = sq[sq_map_idx[i][st_idx[i]]].value;
     end
     SQ_LQ_out.LQ_idx = sq[head].LQ_idx;
     SQ_LQ_out.retire = (ROB_SQ_out.wr_mem & ROB_SQ_out.retire) != 2'b00;
