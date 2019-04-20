@@ -178,8 +178,10 @@ module SQ (
   // Age logic
   // Map SQ idx
   always_comb begin
-    for (int j = 0; j < `NUM_LSQ; j++) begin
-      sq_map_idx[j] = LQ_SQ_out.SQ_idx + j;
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      for (int j = 0; j < `NUM_LSQ; j++) begin
+        sq_map_idx[i][j] = LQ_SQ_out.SQ_idx[i] + j;
+      end
     end
   end
 
@@ -195,7 +197,7 @@ module SQ (
     st_idx = {`NUM_SUPER{`FALSE}};
     for (int i = 0; i < `NUM_SUPER; i++) begin
       for (int j = `NUM_LSQ - 1; j >= 0; j--) begin
-        if (LQ_SQ_out.addr[i] == sq[sq_map_idx[j]].addr && sq[sq_map_idx[j]].valid && j > head_map_idx[i]) begin
+        if (LQ_SQ_out.addr[i] == sq[sq_map_idx[i][j]].addr && sq[sq_map_idx[i][j]].valid && j > head_map_idx[i]) begin
           st_hit[i] = `TRUE;
           st_idx[i] = j;
           break;
