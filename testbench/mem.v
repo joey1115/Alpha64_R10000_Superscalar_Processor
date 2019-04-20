@@ -15,7 +15,7 @@ module mem (
     input         clk,              // Memory clock
     input  [63:0] proc2mem_addr,    // address for current command
     input  [63:0] proc2mem_data,    // data for current store
-    input   [1:0] proc2mem_command, // `BUS_NONE `BUS_LOAD or `BUS_STORE
+    input   [1:0] proc2mem_command, // BUS_NONE BUS_LOAD or BUS_STORE
 
     output logic  [3:0] mem2proc_response, // 0 = can't accept, other=tag of transaction
     output logic [63:0] mem2proc_data,     // data resulting from a load

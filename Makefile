@@ -27,31 +27,60 @@
 ## CONFIGURATION
 ################################################################################
 
-VCS = SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD)
+VCS = vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=$(CLOCK_PERIOD) +define+PIPELINE +lint=PCWM +lint=TFIPC-L +lint=ERASM-L +error+20
 LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
 
 SYNTH_DIR = ./synth
 
-PROGRAM = test_progs/evens.s
+PROGRAM = test_progs/maptable_history_test.s
 ASSEMBLED = program.mem
 ASSEMBLER = vs-asm
 
 # SIMULATION CONFIG
 
-HEADERS      = $(wildcard *.vh)
-TESTBENCH    = $(wildcard testbench/*.v)
-TESTBENCH   += $(wildcard testbench/*.c)
-PIPEFILES    = $(wildcard verilog/*.v)
-CACHEFILES   = $(wildcard verilog/cache/*.v)
-DECODERFILES = $(wildcard verilog/decoder/*.v)
+HEADERS       = $(wildcard *.vh)
+HEADERS      += $(wildcard verilog/Arch_Map/Arch_Map.vh)
+HEADERS      += $(wildcard verilog/BP/BP.vh)
+HEADERS      += $(wildcard verilog/CDB/CDB.vh)
+HEADERS      += $(wildcard verilog/decoder/decoder.vh)
+HEADERS      += $(wildcard verilog/FETCH_BUFFER/FETCH_BUFFER.vh)
+HEADERS      += $(wildcard verilog/FL/FL.vh)
+HEADERS      += $(wildcard verilog/FU/FU.vh)
+HEADERS      += $(wildcard verilog/Map_Table/Map_Table.vh)
+HEADERS      += $(wildcard verilog/PR/PR.vh)
+HEADERS      += $(wildcard verilog/ROB/ROB.vh)
+HEADERS      += $(wildcard verilog/RS/RS.vh)
+HEADERS      += $(wildcard verilog/Dcache/*.vh)
+HEADERS      += $(wildcard verilog/LSQ/*.vh)
+TESTBENCH     = $(wildcard testbench/*.v)
+TESTBENCH    += $(wildcard testbench/*.c)
+PIPEFILES     = $(wildcard verilog/*.v)
+ARCHMAPFILES  = $(wildcard verilog/Arch_Map/Arch_Map.v)
+BPFILES       = $(wildcard verilog/BP/BP.v)
+CACHEFILES    = $(wildcard verilog/cache/cachemem.v)
+CDBFILES      = $(wildcard verilog/CDB/CDB.v)
+DECODERFILES  = $(wildcard verilog/decoder/decoder.v)
+FBFILES       = $(wildcard verilog/FETCH_BUFFER/FETCH_BUFFER.v)
+FLFILES       = $(wildcard verilog/FL/FL.v)
+FUFILES       = $(wildcard verilog/FU/FU.v)
+MAPTABLEFILES = $(wildcard verilog/Map_Table/Map_Table.v)
+PRFILES       = $(wildcard verilog/PR/PR.v)
+ROBFILES      = $(wildcard verilog/ROB/ROB.v)
+RSFILES       = $(wildcard verilog/RS/RS.v)
+DCACHEFILES   = $(wildcard verilog/Dcache/Dcache.v)
+MSHRFILES     = $(wildcard verilog/Dcache/MSHR.v)
+DCACHECFILES  = $(wildcard verilog/Dcache/Dcache_controller.v)
+LSQFILES      = $(wildcard verilog/LSQ/LSQ.v)
 
-SIMFILES    = $(PIPEFILES) $(CACHEFILES) $(DECODERFILES)
+SIMFILES    = $(PIPEFILES) $(ARCHMAPFILES) $(CACHEFILES) $(CDBFILES) $(DECODERFILES) $(FBFILES) $(FLFILES) $(FUFILES) $(MAPTABLEFILES) $(PRFILES) $(ROBFILES) $(RSFILES) $(DCACHEFILES) $(LSQFILES) $(MSHRFILES) $(DCACHECFILES) $(BPFILES)
 
 # SYNTHESIS CONFIG
 
 export HEADERS
 export PIPEFILES
 export CACHEFILES
+export SIMFILES
+export ARCHMAPFILES
 
 export CACHE_NAME = cache
 export PIPELINE_NAME = pipeline
@@ -63,7 +92,7 @@ CACHE     = $(SYNTH_DIR)/$(CACHE_NAME).vg
 # Passed through to .tcl scripts:
 export CLOCK_NET_NAME = clock
 export RESET_NET_NAME = reset
-export CLOCK_PERIOD = 30	# TODO: You will want to make this more aggresive
+export CLOCK_PERIOD = 15	# TODO: You will want to make this more aggresive
 
 ################################################################################
 ## RULES
@@ -81,14 +110,14 @@ sim:	simv $(ASSEMBLED)
 	./simv | tee sim_program.out
 
 simv:	$(HEADERS) $(SIMFILES) $(TESTBENCH)
-	$(VCS) $^ -o simv
+	$(VCS) $^ +define+DEBUG -o simv
 
 .PHONY: sim
 
 # Programs
 
 $(ASSEMBLED):	$(PROGRAM)
-	./$(ASSEMBLER) < $< > $@
+	./$(ASSEMBLER) < $(PROGRAM) > $(ASSEMBLED)
 
 # Synthesis
 
@@ -103,7 +132,7 @@ syn:	syn_simv $(ASSEMBLED)
 	./syn_simv | tee syn_program.out
 
 syn_simv:	$(HEADERS) $(SYNFILES) $(TESTBENCH)
-	$(VCS) $^ $(LIB) +define+SYNTH_TEST -o syn_simv 
+	$(VCS) $^ $(LIB) +define+SYNTH_TEST -o syn_simv
 
 .PHONY: syn
 

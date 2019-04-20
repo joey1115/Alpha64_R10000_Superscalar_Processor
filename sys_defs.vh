@@ -18,6 +18,8 @@
 `define DUT(mod) mod
 `endif
 
+`define DEBUG
+
 //////////////////////////////////////////////
 //
 // Memory/testbench attribute definitions
@@ -26,8 +28,7 @@
 
 
 `define NUM_MEM_TAGS           15
-`define NUM_PR                 64
-`define NUM_ALU                1
+
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
@@ -87,7 +88,6 @@ typedef enum logic [1:0] {
   DEST_NONE     = 2'h2
 } DEST_REG_SEL;
 
-
 //
 // ALU function code input
 // probably want to leave these alone
@@ -111,212 +111,6 @@ typedef enum logic [4:0] {
   ALU_CMPULT    = 5'h0f,
   ALU_CMPULE    = 5'h10
 } ALU_FUNC;
-
-typedef enum logic {
-  PR_NOT_READY = 1'b0,
-  PR_READY = 1'b1
-} PR_STATUS;
-
-typedef union packed {
-	logic [31:0] inst;
-	struct packed {
-		logic [5:0] opcode;
-		logic [4:0] rega_idx;
-		logic [4:0] regb_idx;
-		logic [15:0] mem_disp;
-  } m; //memory with displacement inst
-	struct packed {
-		logic [5:0] opcode;
-		logic [4:0] rega_idx;
-		logic [4:0] regb_idx;
-		logic [15:0] func;
-  } m_func; //memory with function inst
-	struct packed {
-		logic [5:0] opcode;
-		logic [4:0] rega_idx;
-		logic [20:0] branch_disp;
-  } b; //Branch inst
-	struct packed {
-		logic [5:0] opcode;
-		logic [4:0] rega_idx;
-		logic [4:0] regb_idx;
-		logic [2:0] SBZ;
-    logic       IMM;
-    logic [6:0] func;
-    logic [4:0] regc_idx;
-  } op; //operate inst
-	struct packed {
-		logic [5:0] opcode;
-		logic [4:0] rega_idx;
-		logic [7:0] LIT;
-    logic       IMM;
-    logic [6:0] func;
-    logic [4:0] regc_idx;
-  } op_imm; //operate immediate inst
-`ifdef FLOATING_POINT_INST	
-  struct packed {
-    logic [5:0] opcode;
-    logic [4:0] rega_idx;
-    logic [4:0] regb_idx;
-    logic [10:0] func;
-    logic [4:0] regc_idx;
-	} opf;  //floating point inst
-`endif
-	struct packed {
-		logic [5:0] opcode;
-    logic [25:0] func;
-	} pal; //pal inst
-  
-} INST; //instruction typedef, this should cover all types of instructions
-
-// typedef struct packed {
-//   logic [31:0] inst;  // fetched instruction out
-//   logic        valid; // PC + 4 
-// } DECODER_PACKET_IN;
-
-typedef struct packed {
-  ALU_OPA_SELECT opa_select;  // fetched instruction out
-  ALU_OPB_SELECT opb_select;
-  // DEST_REG_SEL   dest_reg; // mux selects
-  ALU_FUNC       alu_func;
-  logic          rd_mem, wr_mem, ldl_mem, stc_mem, cond_branch, uncond_branch;
-  logic          halt;      // non-zero on a halt
-  logic          cpuid;     // get CPUID instruction
-  logic          illegal;   // non-zero on an illegal instruction
-  logic          valid; // for counting valid instructions executed
-  logic [4:0]    dest_reg_idx;
-} DECODER_PACKET_OUT;
-//////////////////////////////////////////////
-//
-// IF Packets:
-// Data that is exchanged between the IF and the ID stages  
-//
-//////////////////////////////////////////////
-
-typedef struct packed {
-  logic        valid; // If low, the data in this struct is garbage
-  INST         inst;  // fetched instruction out
-  logic [63:0] NPC; // PC + 4 
-} IF_ID_PACKET;
-
-`define IF_ID_PACKET_RESET '{ \
-  `FALSE, \
-  `NOOP_INST, \
-  0 \
-}
-
-//////////////////////////////////////////////
-//
-// ID Packets:
-// Data that is exchanged from ID to EX stage
-//
-//////////////////////////////////////////////
-// typedef struct packed {
-//   FU            unit;
-//   logic         busy;
-//   logic [5:0]   inst;
-//   logic [$clog2(NUM_PR)-1:0] T;
-//   logic [$clog2(NUM_PR)-1:0] T1;
-//   PR_STATUS          T1_status;
-//   logic [$clog2(NUM_PR)-1:0] T2;
-//   PR_STATUS          T2_status;
-// } RS_ENTRY;
-
-typedef struct packed {
-  logic [63:0]   NPC;   // PC + 4
-  logic [63:0]   rega_value;    // reg A value                                  
-  logic [63:0]   regb_value;    // reg B value                                  
-  ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
-  ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
-  INST           inst;                 // instruction
-  logic [4:0]    dest_reg_idx;  // destination (writeback) register index      
-  ALU_FUNC       alu_func;      // ALU function select (ALU_xxx *)
-  logic          rd_mem;        // does inst read memory?
-  logic          wr_mem;        // does inst write memory?
-  logic          ldl_mem;       // load-lock inst?
-  logic          stc_mem;       // store-conditional inst?
-  logic          cond_branch;   // is inst a conditional branch?
-  logic          uncond_branch; // is inst an unconditional branch?
-  logic          halt;          // is this a halt?
-  logic          cpuid;         // get CPUID inst?
-  logic          illegal;       // is this instruction illegal?
-  logic          valid;         // is inst a valid instruction to be counted for CPI calculations?
-  //RS_ENTRY [NUM_RS-1:0] RS;
-} ID_EX_PACKET;
-
-`define ID_EX_PACKET_RESET '{ \
-  {64{1'b0}}, \
-  {64{1'b0}}, \
-  {64{1'b0}}, \
-  ALU_OPA_IS_REGA, \
-  ALU_OPB_IS_REGB, \
-  `NOOP_INST, \
-  `ZERO_REG, \
-  ALU_ADDQ, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0, \
-  1'b0 \
-}
-
-typedef struct packed {
-  INST         inst;
-  logic [63:0] alu_result; // alu_result
-  logic [63:0] NPC; //pc + 4
-  logic             take_branch; // is this a taken branch?
-  //pass throughs from decode stage
-  logic [63:0] rega_value;
-  logic             rd_mem, wr_mem;
-  logic [4:0]       dest_reg_idx;
-  logic             halt, illegal, valid;
-} EX_MEM_PACKET;
-
-`define EX_MEM_PACKET_RESET '{ \
-  `NOOP_INST, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  `ZERO_REG, \
-  0, \
-  0, \
-  0 \
-}
-
-typedef struct packed {
-  INST         inst;
-  logic [63:0] NPC; //pc + 4
-  logic             halt, illegal, valid, stall;
-  logic             take_branch; // is this a taken branch?
-  logic [4:0]       dest_reg_idx;
-  logic [63:0]      result;
-} MEM_WB_PACKET;
-
-`define MEM_WB_PACKET_RESET '{ \
-  `NOOP_INST, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  0, \
-  `ZERO_REG, \
-  0 \
-}
-
-typedef struct packed {
-  logic [63:0] wr_data;
-  logic        wr_en;
-  logic [4:0]  wr_idx;
-} WB_REG_PACKET;
 
 //////////////////////////////////////////////
 //

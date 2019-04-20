@@ -24,7 +24,7 @@ read_file -f ddc [list ${cache_module}.ddc]
 set_dont_touch ${cache_module}
 
 set headers [getenv HEADERS]
-set sources [getenv PIPEFILES]
+set sources [getenv SIMFILES]
 
 read_file -f sverilog [list ${headers} ${sources}]
 set design_name [getenv PIPELINE_NAME]
