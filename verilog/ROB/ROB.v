@@ -171,7 +171,7 @@ module ROB (
    
   end
 
-  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx : ROB_rollback_idx_reg;
+  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx + 1 : ROB_rollback_idx_reg;
 
   always_comb begin
     case(state)
