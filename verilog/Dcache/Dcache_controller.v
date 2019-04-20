@@ -222,14 +222,16 @@ always_ff @(posedge clock) begin
   end
 end
 
+assign mshr_d_cache_out = next_mshr_d_cache_out;
+
 always_ff @(posedge clock) begin
   if(reset) begin
     d_cache_mshr_out  <= `SD `d_cache_mshr_out_reset;
-    mshr_d_cache_out  <= `SD `mshr_d_cache_out_reset;
+    //mshr_d_cache_out  <= `SD `mshr_d_cache_out_reset;
   end
   else begin
     d_cache_mshr_out  <= `SD next_d_cache_mshr_out;
-    mshr_d_cache_out  <= `SD next_mshr_d_cache_out;
+    //mshr_d_cache_out  <= `SD next_mshr_d_cache_out;
   end
 end
 
