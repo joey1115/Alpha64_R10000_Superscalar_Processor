@@ -20,6 +20,7 @@ module cache(
   assign rd1_data = data[rd1_idx];
   assign rd1_valid = valids[rd1_idx] && (tags[rd1_idx] == rd1_tag);
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset)
       valids <= `SD 32'b0;

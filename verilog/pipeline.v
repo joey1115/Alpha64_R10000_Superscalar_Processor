@@ -32,6 +32,7 @@ module pipeline (
   output LQ_ENTRY_t       [`NUM_LSQ-1:0]                 pipeline_LQ,
   output logic            [$clog2(`NUM_LSQ)-1:0]         LQ_head,
   output logic            [$clog2(`NUM_LSQ)-1:0]         LQ_tail,
+  output logic [`NUM_IDX-1:0][`NUM_WAY-1:0]              LRU_bank_sel,
 // 
   output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]     Dcache_bank,
   output MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]                MSHR_queue,
@@ -124,12 +125,10 @@ module pipeline (
 
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
-  F_DECODER_OUT_t                                F_decoder_out;
   // To be modified
   D_CACHE_SQ_OUT_t                               D_cache_SQ_out;
   D_CACHE_LQ_OUT_t                               D_cache_LQ_out;
   ARCH_MAP_MAP_TABLE_OUT_t                       ARCH_MAP_MAP_Table_out;
-  // F_DECODER_OUT_t                                F_decoder_out;
 // `ifdef DEBUG
 //   SQ_ENTRY_t       [`NUM_LSQ-1:0]                         SQ_table;
 //   logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_head;
@@ -191,6 +190,14 @@ module pipeline (
 `ifndef DEBUG
   logic [63:0]  count;
 `endif
+
+  logic                 write_back_stage;
+  // logic                 cache_valid;
+  logic                 halt_pipeline;
+  logic                 illegal_out_pipeline;
+  logic                 fetch_en_in;
+  logic                 write_back;
+
 
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && LSQ_valid && !rollback_en;
@@ -306,6 +313,7 @@ module pipeline (
     .MSHR_head(MSHR_head),
     .MSHR_tail(MSHR_tail),
     .Dcache_bank(Dcache_bank),
+    .LRU_bank_sel(LRU_bank_sel),
 `endif
     .mem2proc_response(Dmem2proc_response),
     .mem2proc_data(mem2proc_data),     // data resulting from a load

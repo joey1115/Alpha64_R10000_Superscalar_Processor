@@ -37,7 +37,7 @@ module ROB (
 
   logic writeTail, moveHead, mispredict, b_t;
   logic [$clog2(`NUM_ROB)-1:0] ROB_rollback_idx_reg, NROB_rollback_idx_reg, ROB_rollback_idx_reg_plus_one;
-  logic [1:0] state, Nstate;
+  logic [2:0] state, Nstate;
   logic [$clog2(`NUM_ROB)-1:0] tail_plus_one;
   logic [$clog2(`NUM_ROB)-1:0] tail_minus_one, tail_minus_two;
   logic [$clog2(`NUM_ROB)-1:0] head_plus_one, ROB_rollback_idx_minus_one;
@@ -58,7 +58,7 @@ module ROB (
   assign ROB_FL_out.Told_idx = '{rob.entry[head_plus_one].Told_idx, rob.entry[rob.head].Told_idx};
 
   //assign ROB_valid
-  assign ROB_MAP_Table_out.stall_dispatch = (state == 1);
+  assign ROB_MAP_Table_out.stall_dispatch = (state == 1) || (state == 2) || (state == 3);
   //!Nrob.entry[Nrob.tail].valid
   assign ROB_rollback_idx_minus_one = ROB_rollback_idx - 1;
   assign tail_plus_one = rob.tail + 1;
@@ -171,32 +171,36 @@ module ROB (
    
   end
 
-  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx : ROB_rollback_idx_reg;
+  assign NROB_rollback_idx_reg = (mispredict) ? ROB_rollback_idx + 1 : ROB_rollback_idx_reg;
 
   always_comb begin
     case(state)
-      0: Nstate = (mispredict) ? 1 : state;
-      1: Nstate = ((rob.head == ROB_rollback_idx_reg) || (rob.head == (ROB_rollback_idx_reg_plus_one))) ? 0 : state;
+      2'h0: Nstate = (mispredict) ? 2'h1 : state;
+      2'h1: Nstate = ((rob.head == ROB_rollback_idx_reg) || (rob.head == (ROB_rollback_idx_reg_plus_one))) ? 2'h2 : state;
+      2'h2: Nstate = 2'h3;
+      2'h3: Nstate = 2'h0;
       default: Nstate = state;
     endcase 
   end
+
+  // synopsys sync_set_reset "reset"
   always_ff @ (posedge clock) begin
     if(reset) begin
-      state <= `SD 0;
-      ROB_rollback_idx_reg <= `SD 0;
-      rob.tail <= `SD 0;
-      rob.head <= `SD 0;
+      state <= `SD 2'b0;
+      ROB_rollback_idx_reg <= `SD {`NUM_ROB{1'b0}};
+      rob.tail <= `SD {$clog2(`NUM_ROB){1'b0}};
+      rob.head <= `SD {$clog2(`NUM_ROB){1'b0}};
       for(int i=0; i < `NUM_ROB; i++) begin
-         rob.entry[i].valid <= `SD 0;
-         rob.entry[i].complete <= `SD 0;
-         rob.entry[i].halt <= `SD 0;
-         rob.entry[i].illegal <= `SD 0;
-         rob.entry[i].T_idx <= `SD 0;
-         rob.entry[i].Told_idx <= `SD 0;
-         rob.entry[i].dest_idx <= `SD 0;
-         rob.entry[i].wr_mem <= `SD 0;
-         rob.entry[i].rd_mem <= `SD 0;
-         rob.entry[i].NPC <= `SD 0;
+         rob.entry[i].valid <= `SD `FALSE;
+         rob.entry[i].complete <= `SD `FALSE;
+         rob.entry[i].halt <= `SD `FALSE;
+         rob.entry[i].illegal <= `SD `FALSE;
+         rob.entry[i].T_idx <= `SD `ZERO_PR;
+         rob.entry[i].Told_idx <= `SD `ZERO_PR;
+         rob.entry[i].dest_idx <= `SD `ZERO_REG;
+         rob.entry[i].wr_mem <= `SD `FALSE;
+         rob.entry[i].rd_mem <= `SD `FALSE;
+         rob.entry[i].NPC <= `SD 64'h0;
       end
     end // if (reset) else
     else if(en)begin

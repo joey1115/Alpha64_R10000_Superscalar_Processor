@@ -112,6 +112,7 @@ module icache (
     end
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       i_cache           <= `SD 0;

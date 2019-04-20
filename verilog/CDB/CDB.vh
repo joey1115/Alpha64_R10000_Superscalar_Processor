@@ -20,7 +20,7 @@ typedef struct packed {
 } CDB_entry_t;
 
 `define CDB_RENTRY_RESET {`FALSE, `ZERO_PR, {$clog2(`NUM_ROB){1'b0}}, `ZERO_REG, 64'hbaadbeefdeadbeef}
-`define CDB_RENTRY_RESET_PACKED '{`FALSE, `ZERO_PR, 0, `ZERO_REG, 64'hbaadbeefdeadbeef}
+`define CDB_RENTRY_RESET_PACKED '{`FALSE, `ZERO_PR, {$clog2(`NUM_ROB){1'b0}}, `ZERO_REG, 64'hbaadbeefdeadbeef}
 `define CDB_RESET '{`NUM_FU{`CDB_RENTRY_RESET}}
 
 typedef struct packed {

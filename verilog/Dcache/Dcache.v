@@ -13,6 +13,7 @@ module Dcache(
   input SASS_ADDR                                                   rd1_addr, wr1_addr,
   input logic                                                       rd1_search,
   input logic                                                       wr1_search,
+  input logic                                                       write_back_stage,
   output logic [63:0]                                               rd1_data_out,
   output logic                                                      rd1_hit_out, wr1_hit_out,
 
@@ -21,6 +22,7 @@ module Dcache(
   input logic                                                       wr1_valid,
 `ifdef DEBUG
   output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]               cache_bank,
+  output logic [`NUM_IDX-1:0][`NUM_WAY-1:0]                        LRU_bank_sel,
 `endif
 
   output logic                                                      evicted_dirty_out, 
@@ -31,7 +33,10 @@ module Dcache(
  
   //LRU logic
   logic [`NUM_IDX-1:0]               regA, regB, regC, next_regA, next_regB, next_regC;
-  logic [`NUM_IDX-1:0][`NUM_WAY-1:0] LRU_bank_sel, prev_LRU_bank_sel;
+`ifndef DEBUG
+  logic [`NUM_IDX-1:0][`NUM_WAY-1:0] LRU_bank_sel;
+`endif
+  logic [`NUM_IDX-1:0][`NUM_WAY-1:0] next_LRU_bank_sel;
   // logic [$clog2(`NUM_WAY)-1:0]       LRU_bank_idx;
   
 
@@ -53,36 +58,39 @@ module Dcache(
     next_regA = regA;
     next_regB = regB;
     next_regC = regC;
-    LRU_bank_sel = prev_LRU_bank_sel;
+    next_LRU_bank_sel = LRU_bank_sel;
 
     
     next_regA[wr1_addr.set_index] = (wr1_from_mem & wr1_en)? (~regA[wr1_addr.set_index]) : regA[wr1_addr.set_index];
     next_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr1_from_mem & wr1_en) ? (~regB[wr1_addr.set_index]) : regB[wr1_addr.set_index];
     next_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr1_from_mem & wr1_en)  ? (~regC[wr1_addr.set_index]) : regC[wr1_addr.set_index];
 
-    LRU_bank_sel[wr1_addr.set_index][0] = !regA[wr1_addr.set_index] & !regB[wr1_addr.set_index];
-    LRU_bank_sel[wr1_addr.set_index][1] = !regA[wr1_addr.set_index] & regB[wr1_addr.set_index];
-    LRU_bank_sel[wr1_addr.set_index][2] = regA[wr1_addr.set_index] & !regC[wr1_addr.set_index];
-    LRU_bank_sel[wr1_addr.set_index][3] = regA[wr1_addr.set_index] & regC[wr1_addr.set_index];
+    next_LRU_bank_sel[wr1_addr.set_index][0] = !next_regA[wr1_addr.set_index] & !next_regB[wr1_addr.set_index];
+    next_LRU_bank_sel[wr1_addr.set_index][1] = !next_regA[wr1_addr.set_index] & next_regB[wr1_addr.set_index];
+    next_LRU_bank_sel[wr1_addr.set_index][2] = next_regA[wr1_addr.set_index] & !next_regC[wr1_addr.set_index];
+    next_LRU_bank_sel[wr1_addr.set_index][3] = next_regA[wr1_addr.set_index] & next_regC[wr1_addr.set_index];
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset) begin
-      regA <= `SD `regA_reset;
-      regB <= `SD `regB_reset;
-      regC <= `SD `regC_reset;
-      prev_LRU_bank_sel <= `SD `prev_LRU_bank_sel_reset;
+      for(int i = 0; i < `NUM_IDX; i++) begin
+        regA[i] <= `SD 1'b0;
+        regB[i] <= `SD 1'b0;
+        regC[i] <= `SD 1'b0;
+        LRU_bank_sel[i] <= `SD 4'b0001;
+      end
     end
     else begin
       regA <= `SD next_regA;
       regB <= `SD next_regB;
       regC <= `SD next_regC;
-      prev_LRU_bank_sel <= `SD LRU_bank_sel;
+      LRU_bank_sel <= `SD next_LRU_bank_sel;
     end
   end
   
-  assign wr1_en_sel = (wr1_en & wr1_hit_out)? wr1_hit : //if data to store in cache, write to where it is hit
-                      (wr1_en & wr1_from_mem & !wr1_hit_out)? LRU_bank_sel[wr1_addr.set_index] : 0; //if data from mem and line not in cache, write to the LRU bank
+  assign wr1_en_sel = (wr1_en && wr1_hit_out && !write_back_stage)? wr1_hit : //if data to store in cache, write to where it is hit
+                      (wr1_en)? LRU_bank_sel[wr1_addr.set_index] : 0; //if data from mem and line not in cache, write to the LRU bank
   ////////////////////////////////////////////////////////~~~~~~~~~~~~~~ need to think through the wr operations of the cache  wr1_hit | wr1_en in bank
   cache_bank bank [`NUM_WAY-1:0] (
       .clock(clock),
@@ -92,8 +100,8 @@ module Dcache(
       .wr1_addr(wr1_addr),
       .rd1_data(rd1_data),
       .rd1_hit(rd1_hit),
-      .wr1_hit(wr1_hit), 
-      .wr1_data(wr1_data),  
+      .wr1_hit(wr1_hit),
+      .wr1_data(wr1_data),
       .wr1_dirty(wr1_dirty),
       .wr1_valid(wr1_valid),
 `ifdef DEBUG
@@ -133,25 +141,24 @@ module Dcache(
   //     end
   //   end
   // end
-  assign evicted_dirty_out = (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0001) ? evicted_dirty[0] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0010) ? evicted_dirty[1] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0100) ? evicted_dirty[2] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b1000) ? evicted_dirty[3] : 0;
+  assign evicted_dirty_out = (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_dirty[0] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_dirty[1] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_dirty[2] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_dirty[3] : 0;
+  assign evicted_valid_out = (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_valid[0] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_valid[1] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_valid[2] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_valid[3] : 0;
 
-  assign evicted_valid_out = (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0001) ? evicted_valid[0] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0010) ? evicted_valid[1] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0100) ? evicted_valid[2] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b1000) ? evicted_valid[3] : 0;
+  assign evicted_addr_out = (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_addr[0] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_addr[1] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_addr[2] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_addr[3] : 0;
 
-  assign evicted_addr_out = (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0001) ? evicted_addr[0] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0010) ? evicted_addr[1] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0100) ? evicted_addr[2] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b1000) ? evicted_addr[3] : 0;
-
-  assign evicted_data_out = (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0001) ? evicted_data[0] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0010) ? evicted_data[1] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b0100) ? evicted_data[2] :
-                             (wr1_search & LRU_bank_sel[wr1_addr.set_index] == 4'b1000) ? evicted_data[3] : 0;
+  assign evicted_data_out = (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_data[0] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_data[1] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_data[2] :
+                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_data[3] : 0;
 
 
 
@@ -224,13 +231,14 @@ module cache_bank(
   end
 
   //write
+  //synopsys sync_set_reset “reset”
   always_ff @(posedge clock) begin
     if(reset)
       for(int i=0; i < `NUM_IDX; i++) begin
         cache_bank[i].valid <= `SD 0;
         cache_bank[i].dirty <= `SD 0;
-        cache_bank[i].data <= `SD 0;
-        cache_bank[i].tag <= `SD 0;
+        cache_bank[i].data <= `SD 64'hbaadbeefdeadbeef;
+        cache_bank[i].tag <= `SD {`NUM_TAG_BITS{1'b0}};
       end
     else begin
       cache_bank <= `SD next_cache_bank;
