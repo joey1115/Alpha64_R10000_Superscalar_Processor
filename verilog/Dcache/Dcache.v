@@ -68,10 +68,10 @@ module Dcache(
 
   always_ff @(posedge clock) begin
     if(reset) begin
-      regA <= 'SD 0;
-      regB <= 'SD 0;
-      regC <= 'SD 0;
-      prev_LRU_bank_sel <= `SD 0;
+      regA <= `SD `regA_reset;
+      regB <= `SD `regB_reset;
+      regC <= `SD `regC_reset;
+      prev_LRU_bank_sel <= `SD `prev_LRU_bank_sel_reset;
     end
     else begin
       regA <= `SD next_regA;

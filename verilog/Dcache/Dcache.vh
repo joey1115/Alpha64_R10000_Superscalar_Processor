@@ -60,6 +60,28 @@ typedef struct packed {
 `endif
 
 
+`define state_reset             2'b0
+`define count_reset             64'b0
+`define d_cache_mshr_out_reset '{ \
+{{2'b0}},                   \
+{3{64'hbaadbeefdeadbeef}}, \
+{3{64'hbaadbeefdeadbeef}}, \
+{2{3'b0}},                 \
+{3{2'b0}},                 \
+{3'b0}                    \
+}
+`define regA_reset  '{(`NUM_IDX){1'b0}}
+`define regB_reset  '{(`NUM_IDX){1'b0}}
+`define regC_reset  '{(`NUM_IDX){1'b0}}
+
+
+`define prev_LRU_bank_sel_reset '{  \
+  (`NUM_IDX){4'b0}                \
+}
+
+
+
+
 //SEND RETIRE signal to PR, Told to PR freeing (freelist)
 //TAKE IN CDB (tag and valid) to update the complete column.
 //check the head and the complete bit is set if so retire is activated.

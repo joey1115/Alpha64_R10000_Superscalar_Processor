@@ -208,8 +208,8 @@ assign write_back_addr = count & {{61{1'b1}},3'b000};
 
 always_ff @(posedge clock) begin
   if(reset) begin
-    state           <= `SD 0;
-    count           <= `SD 0;
+    state           <= `SD `state_reset;
+    count           <= `SD `count_reset;
   end
   else begin
     state           <= `SD next_state;
@@ -219,8 +219,8 @@ end
 
 always_ff @(posedge clock) begin
   if(reset) begin
-    d_cache_mshr_out  <= `SD 0;
-    mshr_d_cache_out  <= `SD 0;
+    d_cache_mshr_out  <= `SD `d_cache_mshr_out_reset;
+    mshr_d_cache_out  <= `SD `mshr_d_cache_out_reset;
   end
   else begin
     d_cache_mshr_out  <= `SD next_d_cache_mshr_out;

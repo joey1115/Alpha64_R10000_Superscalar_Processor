@@ -21,6 +21,6 @@ typedef struct packed {
 } BP_F_OUT_t;
 
 `define BHT_RESET {2**`NUM_BH_IDX_BITS{2'b00}}
-`define BTB_RESET {2**`NUM_BH_IDX_BITS{64'b0}}
+`define BTB_RESET {2**`NUM_BH_IDX_BITS{64'h0}}
 
 `endif
