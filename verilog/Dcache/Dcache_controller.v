@@ -83,6 +83,7 @@ module Dcache_controller(
       .wr1_valid(wr1_valid),
       .rd1_search(rd1_search),
       .wr1_search(wr1_search),
+      .write_back_stage(write_back_stage),
     `ifdef DEBUG
       .cache_bank(Dcache_bank),
       .LRU_bank_sel(LRU_bank_sel),

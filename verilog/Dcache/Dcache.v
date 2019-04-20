@@ -13,6 +13,7 @@ module Dcache(
   input SASS_ADDR                                                   rd1_addr, wr1_addr,
   input logic                                                       rd1_search,
   input logic                                                       wr1_search,
+  input logic                                                       write_back_stage,
   output logic [63:0]                                               rd1_data_out,
   output logic                                                      rd1_hit_out, wr1_hit_out,
 
@@ -88,8 +89,8 @@ module Dcache(
     end
   end
   
-  assign wr1_en_sel = (wr1_en && wr1_hit_out)? wr1_hit : //if data to store in cache, write to where it is hit
-                      (wr1_en && wr1_from_mem && !wr1_hit_out)? LRU_bank_sel[wr1_addr.set_index] : 0; //if data from mem and line not in cache, write to the LRU bank
+  assign wr1_en_sel = (wr1_en && wr1_hit_out && !write_back_stage)? wr1_hit : //if data to store in cache, write to where it is hit
+                      (wr1_en)? LRU_bank_sel[wr1_addr.set_index] : 0; //if data from mem and line not in cache, write to the LRU bank
   ////////////////////////////////////////////////////////~~~~~~~~~~~~~~ need to think through the wr operations of the cache  wr1_hit | wr1_en in bank
   cache_bank bank [`NUM_WAY-1:0] (
       .clock(clock),
