@@ -91,7 +91,7 @@ module testbench;
   logic        reset;
   logic [31:0] clock_count, next_clock_count;
   logic [31:0] instr_count, next_instr_count;
-  int          wb_fileno;
+  int          wb_fileno, wb_fileno_clk;
 
   logic  [1:0] proc2mem_command;
   logic [63:0] proc2mem_addr;
@@ -280,6 +280,7 @@ module testbench;
     $display("@@  %t  Deasserting System reset......\n@@\n@@", $realtime);
 
     wb_fileno = $fopen("writeback.out");
+    wb_fileno_clk = $fopen("writeback_clk.out");
 
     //Open header AFTER throwing the reset otherwise the reset state is displayed
     print_open();
@@ -572,9 +573,15 @@ module testbench;
                 pipeline_commit_NPC[i]-4,
                 pipeline_commit_wr_idx[i],
                 pipeline_commit_wr_data[i]);
+            $fdisplay(wb_fileno_clk, "PC=%x, REG[%d]=%x, clk=%x",
+                pipeline_commit_NPC[i]-4,
+                pipeline_commit_wr_idx[i],
+                pipeline_commit_wr_data[i],
+                clock_count);
           end
           else begin
             $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[i]-4);
+            $fdisplay(wb_fileno_clk, "PC=%x, ---",pipeline_commit_NPC[i]-4);
           end
         end
       end
@@ -614,6 +621,7 @@ module testbench;
         show_clk_count;
         print_close(); // close the pipe_print output file
         $fclose(wb_fileno);
+        $fclose(wb_fileno_clk);
         #100 $finish;
       end
 `endif
@@ -641,6 +649,7 @@ module testbench;
         show_clk_count;
         print_close(); // close the pipe_print output file
         $fclose(wb_fileno);
+        $fclose(wb_fileno_clk);
         #100 $finish;
       end
 
