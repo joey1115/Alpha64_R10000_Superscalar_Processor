@@ -22,7 +22,7 @@ module cache(
 
   always_ff @(posedge clock) begin
     if(reset)
-      valids <= `SD 31'b0;
+      valids <= `SD 32'b0;
     else if(wr1_en) 
       valids[wr1_idx] <= `SD 1;
   end
