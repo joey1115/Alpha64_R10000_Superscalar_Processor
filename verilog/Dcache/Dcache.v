@@ -32,7 +32,10 @@ module Dcache(
  
   //LRU logic
   logic [`NUM_IDX-1:0]               regA, regB, regC, next_regA, next_regB, next_regC;
-  logic [`NUM_IDX-1:0][`NUM_WAY-1:0] LRU_bank_sel, prev_LRU_bank_sel;
+`ifndef DEBUG
+  logic [`NUM_IDX-1:0][`NUM_WAY-1:0] LRU_bank_sel;
+`endif
+  logic [`NUM_IDX-1:0][`NUM_WAY-1:0] prev_LRU_bank_sel;
   // logic [$clog2(`NUM_WAY)-1:0]       LRU_bank_idx;
   
 
@@ -72,7 +75,7 @@ module Dcache(
       regA <= `SD `regA_reset;
       regB <= `SD `regB_reset;
       regC <= `SD `regC_reset;
-      prev_LRU_bank_sel <= `SD `{(`NUM_IDX-1){4'b1000}};
+      prev_LRU_bank_sel <= `SD '{(`NUM_IDX-1){4'b1000}};
     end
     else begin
       regA <= `SD next_regA;
