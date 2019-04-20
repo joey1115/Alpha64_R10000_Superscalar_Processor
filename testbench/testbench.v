@@ -303,6 +303,7 @@ module testbench;
     next_instr_count = (instr_count + pipeline_completed_insts);
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset)
       state_count <= `SD 0;

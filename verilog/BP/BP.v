@@ -89,6 +89,7 @@ module BP(
     end // for
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       BHT <= `SD `BHT_RESET;
@@ -115,6 +116,7 @@ module BP(
     end
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       BTB <= `SD `BTB_RESET;

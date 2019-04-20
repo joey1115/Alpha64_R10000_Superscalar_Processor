@@ -204,6 +204,7 @@ module SQ (
     end
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       head      <= `SD {($clog2(`NUM_LSQ)){1'b0}};
@@ -491,6 +492,7 @@ module LQ (
     endcase
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       head      <= `SD {($clog2(`NUM_LSQ)){1'b0}};

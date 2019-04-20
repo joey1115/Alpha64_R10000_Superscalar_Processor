@@ -36,6 +36,7 @@ module PR (
     end // for
   end // always_comb
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       pr <= `SD {`NUM_PR{64'h0}};

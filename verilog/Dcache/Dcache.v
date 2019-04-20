@@ -66,6 +66,7 @@ module Dcache(
     LRU_bank_sel[wr1_addr.set_index][3] = regA[wr1_addr.set_index] & regC[wr1_addr.set_index];
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset) begin
       regA <= `SD `regA_reset;
@@ -80,7 +81,7 @@ module Dcache(
       prev_LRU_bank_sel <= `SD LRU_bank_sel;
     end
   end
-  
+
   assign wr1_en_sel = (wr1_en & wr1_hit_out)? wr1_hit : //if data to store in cache, write to where it is hit
                       (wr1_en & wr1_from_mem & !wr1_hit_out)? LRU_bank_sel[wr1_addr.set_index] : 0; //if data from mem and line not in cache, write to the LRU bank
   ////////////////////////////////////////////////////////~~~~~~~~~~~~~~ need to think through the wr operations of the cache  wr1_hit | wr1_en in bank
@@ -224,6 +225,7 @@ module cache_bank(
   end
 
   //write
+  //synopsys sync_set_reset “reset”
   always_ff @(posedge clock) begin
     if(reset)
       for(int i=0; i < `NUM_IDX; i++) begin

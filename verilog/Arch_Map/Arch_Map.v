@@ -30,6 +30,7 @@ module Arch_Map (
     end
   end // always
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset) begin
       arch_map <= `SD `ARCH_MAP_RESET;

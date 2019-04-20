@@ -157,6 +157,7 @@ module RS (
 
 assign FU_list = {{(`NUM_ALU){FU_ALU}}, {(`NUM_MULT){FU_MULT}}, {(`NUM_BR){FU_BR}}, {(`NUM_ST){FU_ST}}, {(`NUM_LD){FU_LD}}};
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset) begin
       RS <= `SD `RS_RESET;

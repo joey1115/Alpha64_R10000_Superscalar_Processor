@@ -156,6 +156,7 @@ module mult_stage (
   end
 `endif
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
 `ifdef MULT_FORWARDING
     if ( reset ) begin
@@ -397,6 +398,7 @@ module st (
     end
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       ST_out <= `SD `ST_OUT_RESET;
@@ -450,6 +452,7 @@ module ld (
     end
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       LD_out <= `SD `LD_OUT_RESET;

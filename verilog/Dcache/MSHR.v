@@ -596,7 +596,7 @@ module MSHR(
   assign mshr_d_cache_out.mem_data = MSHR_queue[writeback_head].data;
   assign mshr_d_cache_out.mem_addr = MSHR_queue[writeback_head].addr;
 
-
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i = 0; i < `MSHR_DEPTH; i++) begin

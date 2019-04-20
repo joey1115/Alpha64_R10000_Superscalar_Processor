@@ -180,6 +180,8 @@ module ROB (
       default: Nstate = state;
     endcase 
   end
+
+  // synopsys sync_set_reset "reset"
   always_ff @ (posedge clock) begin
     if(reset) begin
       state <= `SD 2'b0;
