@@ -493,8 +493,8 @@ module LQ (
 
   always_ff @(posedge clock) begin
     if (reset) begin
-      head      <= `SD 0;
-      tail      <= `SD 0;
+      head      <= `SD {($clog2(`NUM_LSQ)){1'b0}};
+      tail      <= `SD {($clog2(`NUM_LSQ)){1'b0}};
       lq        <= `SD `LQ_RESET;
       LQ_FU_out <= `SD `LQ_FU_OUT_RESET;
     end else if (en) begin
