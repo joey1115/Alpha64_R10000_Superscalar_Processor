@@ -17,6 +17,7 @@ module Dcache_controller(
     output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
     output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail,
     output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]     Dcache_bank,
+    output logic [`NUM_IDX-1:0][`NUM_WAY-1:0]              LRU_bank_sel,
 `endif
 
     input logic [3:0]                                                             mem2proc_response,
@@ -84,6 +85,7 @@ Dcache dcache_0 (
     .wr1_search(wr1_search),
   `ifdef DEBUG
     .cache_bank(Dcache_bank),
+    .LRU_bank_sel(LRU_bank_sel),
   `endif
     .evicted_dirty_out(evicted_dirty), 
     .evicted_valid_out(evicted_valid),

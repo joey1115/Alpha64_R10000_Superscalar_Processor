@@ -32,6 +32,7 @@ module pipeline (
   output LQ_ENTRY_t       [`NUM_LSQ-1:0]                 pipeline_LQ,
   output logic            [$clog2(`NUM_LSQ)-1:0]         LQ_head,
   output logic            [$clog2(`NUM_LSQ)-1:0]         LQ_tail,
+  output logic [`NUM_IDX-1:0][`NUM_WAY-1:0]              LRU_bank_sel,
 // 
   output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]     Dcache_bank,
   output MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]                MSHR_queue,
@@ -312,6 +313,7 @@ module pipeline (
     .MSHR_head(MSHR_head),
     .MSHR_tail(MSHR_tail),
     .Dcache_bank(Dcache_bank),
+    .LRU_bank_sel(LRU_bank_sel)，
 `endif
     .mem2proc_response(Dmem2proc_response),
     .mem2proc_data(mem2proc_data),     // data resulting from a load

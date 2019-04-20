@@ -21,6 +21,7 @@ module Dcache(
   input logic                                                       wr1_valid,
 `ifdef DEBUG
   output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]               cache_bank,
+  output logic [`NUM_IDX-1:0][`NUM_WAY-1:0]                        LRU_bank_sel,
 `endif
 
   output logic                                                      evicted_dirty_out, 
@@ -92,8 +93,8 @@ module Dcache(
       .wr1_addr(wr1_addr),
       .rd1_data(rd1_data),
       .rd1_hit(rd1_hit),
-      .wr1_hit(wr1_hit), 
-      .wr1_data(wr1_data),  
+      .wr1_hit(wr1_hit),
+      .wr1_data(wr1_data),
       .wr1_dirty(wr1_dirty),
       .wr1_valid(wr1_valid),
 `ifdef DEBUG

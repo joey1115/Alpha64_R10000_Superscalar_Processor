@@ -329,6 +329,13 @@ void print_Dcache_head()
 {
     fprintf(ppfile, "---------------------------------------Dcache----------------------------------- \n");   
 }
+
+void print_Dcache_LRU(int way1){
+  if(ppfile != NULL){
+    fprintf(ppfile, " %1d ", way1);
+  }
+}
+
 void print_Dcache_bank(int data_hi, int data_lo, int tag_hi, int tag_lo, int dirty, int valid){
   if(ppfile != NULL){
     fprintf(ppfile, "data: %x%x | tag: %x%x | dirty: %1d | valid: %1d |        ", data_hi, data_lo, tag_hi, tag_lo, dirty, valid);
