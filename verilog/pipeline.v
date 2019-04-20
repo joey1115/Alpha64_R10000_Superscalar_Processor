@@ -313,7 +313,7 @@ module pipeline (
     .MSHR_head(MSHR_head),
     .MSHR_tail(MSHR_tail),
     .Dcache_bank(Dcache_bank),
-    .LRU_bank_sel(LRU_bank_sel)，
+    .LRU_bank_sel(LRU_bank_sel),
 `endif
     .mem2proc_response(Dmem2proc_response),
     .mem2proc_data(mem2proc_data),     // data resulting from a load
