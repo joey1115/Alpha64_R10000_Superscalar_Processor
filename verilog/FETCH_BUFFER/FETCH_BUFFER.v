@@ -105,7 +105,7 @@ module FETCH_BUFFER (
       for(int i=0; i < `NUM_FB; i++) begin
         FB[i].PC <= `SD 64'hbaadbeefdeadbeef;
         FB[i].NPC <= `SD 64'hbaadbeefdeadbeef;
-        FB[i].inst <= `SD 32'hdeadbeef;
+        FB[i].inst <= `SD `NOOP_INST;
         FB[i].target <= `SD 64'hbaadbeefdeadbeef;
         FB[i].valid <= `SD 0;
       end
