@@ -445,7 +445,6 @@ module ld (
       next_LD_out.FL_idx   = FU_in.FL_idx;
       next_LD_out.SQ_idx   = FU_in.SQ_idx;
       next_LD_out.LQ_idx   = FU_in.LQ_idx;
-      next_LD_out.NPC      = FU_in.NPC;
     end else begin
       next_LD_out = `LD_OUT_RESET;
     end
