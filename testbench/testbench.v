@@ -136,7 +136,7 @@ module testbench;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
-  logic          [6:0]                           count;
+  logic          [7:0]                           count;
   logic          [`NUM_IDX-1:0][`NUM_WAY-1:0]     LRU_bank_sel;
   
 
@@ -527,7 +527,7 @@ module testbench;
 `endif
 
 `ifdef PRINT_COUNT
-      print_count({{(64-7){1'b0}},count[6:0]});
+      print_count({{(64-8){1'b0}},count});
 `endif
 
 `ifdef PRINT_DCACHE_BANK

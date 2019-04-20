@@ -20,6 +20,8 @@ module Dcache(
   input logic [63:0]                                                wr1_data,
   input logic                                                       wr1_dirty,
   input logic                                                       wr1_valid,
+
+  output logic                                                      cache_empty,
 `ifdef DEBUG
   output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]               cache_bank,
   output logic [`NUM_IDX-1:0][`NUM_WAY-1:0]                        LRU_bank_sel,
@@ -52,6 +54,17 @@ module Dcache(
   logic [`NUM_WAY-1:0]            evicted_dirty;
   logic [`NUM_WAY-1:0]            evicted_valid;
   logic [`NUM_WAY-1:0][63:0]      evicted_data;
+
+
+  logic [`NUM_WAY-1:0]            bank_empty;
+  logic [`NUM_WAY-1:0]            dummywire;
+
+  always_comb begin
+    for(int i = 0; i < `MSHR_DEPTH; i++) begin
+      dummywire[i] = bank_empty[i];
+    end
+    cache_empty = ~(|dummywire);
+  end
 
   //LRU decision
   always_comb begin
@@ -104,6 +117,7 @@ module Dcache(
       .wr1_data(wr1_data),
       .wr1_dirty(wr1_dirty),
       .wr1_valid(wr1_valid),
+      .bank_empty(bank_empty),
 `ifdef DEBUG
       .cache_bank(cache_bank),
 `endif
@@ -188,6 +202,8 @@ module cache_bank(
   input logic                                                       wr1_dirty,
   input logic                                                       wr1_valid,
 
+  output logic                                                      bank_empty,
+
 `ifdef DEBUG
   output D_CACHE_LINE_t [`NUM_IDX-1:0]                              cache_bank,
 `endif
@@ -203,6 +219,17 @@ module cache_bank(
   D_CACHE_LINE_t [`NUM_IDX-1:0] cache_bank;
 `endif  
   D_CACHE_LINE_t [`NUM_IDX-1:0] next_cache_bank;
+
+  logic [`NUM_IDX-1:0]        dummywire;
+
+  always_comb begin
+    for(int i = 0; i < `NUM_IDX; i++) begin
+      dummywire[i] = cache_bank[i].valid;
+    end
+    bank_empty = ~(|dummywire);
+  end
+  
+  
 
   //check read hit
   assign rd1_hit = cache_bank[rd1_addr.set_index].valid && (rd1_addr.tag == cache_bank[rd1_addr.set_index].tag);

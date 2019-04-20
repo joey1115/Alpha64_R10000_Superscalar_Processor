@@ -11,7 +11,7 @@ module Dcache_controller(
     output D_CACHE_SQ_OUT_t                                                       d_cache_sq_out, // tells if a store can be moved on.
 
 `ifdef DEBUG
-    output logic [63:0]                                    count,
+    output logic [7:0]                                    count,
     output MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]                MSHR_queue,
     output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head,
     output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
@@ -36,7 +36,7 @@ module Dcache_controller(
   //logics
 
   `ifndef DEBUG
-      logic [6:0]                   count;
+      logic [7:0]                   count;
   `endif
 
   logic [1:0] state, next_state;
@@ -61,6 +61,8 @@ module Dcache_controller(
   logic              stored_rd_wb;
   logic              stored_mem_wr;
 
+  logic              cache_empty;
+
 
   D_CACHE_MSHR_OUT_t d_cache_mshr_out, next_d_cache_mshr_out;
 
@@ -84,6 +86,7 @@ module Dcache_controller(
       .rd1_search(rd1_search),
       .wr1_search(wr1_search),
       .write_back_stage(write_back_stage),
+      .cache_empty(cache_empty),
     `ifdef DEBUG
       .cache_bank(Dcache_bank),
       .LRU_bank_sel(LRU_bank_sel),
@@ -204,7 +207,7 @@ module Dcache_controller(
       next_state = 1;
     else if (state == 1 && mshr_empty)
       next_state = 2;
-    else if(write_back_stage && count > 128)
+    else if(write_back_stage && cache_empty)
       next_state = 3;
     else
       next_state = state;
