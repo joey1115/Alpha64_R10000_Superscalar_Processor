@@ -76,7 +76,7 @@ typedef struct packed {
 
 
 `define prev_LRU_bank_sel_reset '{  \
-  (`NUM_IDX){4'b0}                \
+  (`NUM_IDX-1){4'b1000}                \
 }
 
 
