@@ -58,7 +58,7 @@ module ROB (
   assign ROB_FL_out.Told_idx = '{rob.entry[head_plus_one].Told_idx, rob.entry[rob.head].Told_idx};
 
   //assign ROB_valid
-  assign ROB_MAP_Table_out.stall_dispatch = (state > 0);
+  assign ROB_MAP_Table_out.stall_dispatch = (state == 1) || (state == 2) || (state == 3);
   //!Nrob.entry[Nrob.tail].valid
   assign ROB_rollback_idx_minus_one = ROB_rollback_idx - 1;
   assign tail_plus_one = rob.tail + 1;
@@ -175,10 +175,10 @@ module ROB (
 
   always_comb begin
     case(state)
-      0: Nstate = (mispredict) ? 1 : state;
-      1: Nstate = ((rob.head == ROB_rollback_idx_reg) || (rob.head == (ROB_rollback_idx_reg_plus_one))) ? 2 : state;
-      2: Nstate = 3;
-      3: Nstate = 0;
+      2'h0: Nstate = (mispredict) ? 2'h1 : state;
+      2'h1: Nstate = ((rob.head == ROB_rollback_idx_reg) || (rob.head == (ROB_rollback_idx_reg_plus_one))) ? 2'h2 : state;
+      2'h2: Nstate = 2'h3;
+      2'h3: Nstate = 2'h0;
       default: Nstate = state;
     endcase 
   end
