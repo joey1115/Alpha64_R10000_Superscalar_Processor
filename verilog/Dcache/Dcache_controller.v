@@ -122,7 +122,7 @@ assign d_cache_lq_out.value = rd1_data;
 //d_cache_lq_out.value is valid if it is read and if d_cache_lq_out.value is either in cache or mshr
 assign d_cache_lq_out.valid = rd1_hit;
 
-assign d_cache_sq_out.valid = ((wr1_hit & sq_d_cache_out.wr_en) || next_d_cache_mshr_out.miss_en[1]); // We think it is always 1
+assign d_cache_sq_out.valid = ((wr1_hit & sq_d_cache_out.wr_en) || next_d_cache_mshr_out.miss_en[1]) & mshr_valid; // We think it is always 1
 
 //Signals to MSHR
 
