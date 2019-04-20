@@ -63,10 +63,10 @@ typedef struct packed {
 `define state_reset             2'b0
 `define count_reset             64'b0
 `define d_cache_mshr_out_reset '{ \
-{{2'b0}},                   \
+{{3'b0}},                   \
 {3{64'hbaadbeefdeadbeef}}, \
 {3{64'hbaadbeefdeadbeef}}, \
-{2{3'b0}},                 \
+{{3'b0}},                 \
 {3{2'b0}},                 \
 {3'b0}                    \
 }
