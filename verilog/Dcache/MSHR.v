@@ -600,19 +600,11 @@ module MSHR(
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i = 0; i < `MSHR_DEPTH; i++) begin
-        MSHR_queue[i].valid <= `SD 0;
-        MSHR_queue[i].data <= `SD 0;
-        MSHR_queue[i].dirty <= `SD 0;
-        MSHR_queue[i].addr <= `SD 0;
-        MSHR_queue[i].inst_type <= `SD LOAD;
-        MSHR_queue[i].proc2mem_command <= `SD BUS_NONE;
-        MSHR_queue[i].complete <= `SD 0;
-        MSHR_queue[i].mem_tag <= `SD 0;
-        MSHR_queue[i].state <= `SD WAITING;
+        MSHR_queue[i] <= `SD `MSHR_queue_reset;
       end
-      writeback_head    <= `SD 0;
-      head              <= `SD 0;
-      tail              <= `SD 0;
+      writeback_head    <= `SD `writeback_head_reset;
+      head              <= `SD `head_reset;
+      tail              <= `SD `tail_reset;
       last_rd_addr      <= `SD -1;
       last_wr_addr      <= `SD -1;
       prev_changed_wr_input <= `SD 0;

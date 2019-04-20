@@ -47,4 +47,39 @@ typedef struct packed {
   // SASS_ADDR                           wr_wb_addr;
 } MSHR_D_CACHE_OUT_t;
 
+`define mshr_d_cache_out_reset '{  \
+{1'b0},                           \
+{1'b0},                           \
+{64'hbaadbeefdeadbeef},           \
+{64'hbaadbeefdeadbeef},           \
+{1'b0},                           \
+{1'b0},                           \
+{64'hbaadbeefdeadbeef},           \
+{64'hbaadbeefdeadbeef}            \
+}
+
+`define MSHR_queue_reset '{ \
+{1'b0},                   \
+{64'b0},                  \
+{1'b0},                   \
+{64'hbaadbeefdeadbeef},   \
+{64'hbaadbeefdeadbeef},   \
+{1'b0},                   \
+{1'b0},                   \
+{64'hbaadbeefdeadbeef},   \
+{64'hbaadbeefdeadbeef}    \
+}
+
+`define writeback_head_reset '{  \
+  ($clog2(`MSHR_DEPTH)){1'b0}   \
+}
+
+`define head_reset '{  \
+  ($clog2(`MSHR_DEPTH)){1'b0}   \
+}
+
+`define tail_reset '{  \
+  ($clog2(`MSHR_DEPTH)){1'b0}   \
+}
+
 `endif
