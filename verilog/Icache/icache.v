@@ -44,28 +44,35 @@ module icache (
 
   wire [$clog2(`NUM_ICACHE_LINES)-1:0]    idx;       // index of the entry that f-stage requests
   wire [15-$clog2(`NUM_ICACHE_LINES)-3:0] tag;       // tag of the address from f-stage
-  wire                                    tag_match; // whether address from f-stage matches the tag in i_cache entry
+  wire                                    f_stage_tag_match;  // whether address from f-stage matches the tag in i_cache entry
+  wire                                    prefetch_tag_match; // whether address to prefetch matches the tag in i_cache entry
   wire                                    write_en;  // write_en for i_cache
   wire [$clog2(`NUM_ICACHE_LINES)-1:0]    tail_plus_one; // tail+1
   wire [63:0]                             prefetch_addr; // prefetching address
+  wire [$clog2(`NUM_ICACHE_LINES)-1:0]    prefetch_idx;  // index of prefetching address
+  wire [15-$clog2(`NUM_ICACHE_LINES)-3:0] prefetch_tag;  // tag of prefetching address
 
   // 1. f-stage gets inst from i_cache
   assign idx = proc2Icache_addr[3+$clog2(`NUM_ICACHE_LINES)-1:3];
   assign Icache_data_out = i_cache[idx].data;
 
   assign tag = proc2Icache_addr[15:3+$clog2(`NUM_ICACHE_LINES)];
-  assign tag_match = (i_cache[idx].tag == tag);
-  assign Icache_valid_out = (i_cache[idx].valid && tag_match);
+  assign f_stage_tag_match = (i_cache[idx].tag == tag);
+  assign Icache_valid_out = (i_cache[idx].valid && f_stage_tag_match);
 
   // 2. i_cache request inst from mem
   assign prefetch_addr = {48'h0, prefetch_addr_tag_idx, 3'h0};
+  assign prefetch_idx  = prefetch_addr[3+$clog2(`NUM_ICACHE_LINES)-1:3];
+  assign prefetch_tag  = prefetch_addr[15:3+$clog2(`NUM_ICACHE_LINES)];
+  assign prefetch_tag_match = (i_cache[prefetch_idx].tag == prefetch_tag);
+  
   assign tail_plus_one = tail + {($clog2(`NUM_ICACHE_LINES)-1){1'b0}, 1'b1};
-  assign next_proc2Imem_command = ((tag_match) && (tail_plus_one == head)) ? BUS_NONE : BUS_LOAD;
-  assign next_proc2Imem_addr    = (tag_match) ? prefetch_addr : proc2Icache_addr;
+  assign next_proc2Imem_command = ((f_stage_tag_match) && (!prefetch_tag_match) && (tail_plus_one == head)) ? BUS_NONE : BUS_LOAD;
+  assign next_proc2Imem_addr    = (f_stage_tag_match) ? prefetch_addr : proc2Icache_addr;
 
   // Next prefetch_addr_tag_idx
   always_comb begin
-    if (!tag_match) begin
+    if (!f_stage_tag_match) begin
       next_prefetch_addr_tag_idx = {tag, idx};
     end else begin
       next_prefetch_addr_tag_idx = prefetch_addr_tag_idx + {{(15-$clog2(`NUM_ICACHE_LINES)-3){1'b0}}, 1'b1};
@@ -75,7 +82,7 @@ module icache (
   // Next head and tail
   assign next_head = idx;
   always_comb begin
-    if (!tag_match) begin
+    if (!f_stage_tag_match) begin
       next_tail = idx;
     end else if ((tail_plus_one != head) && (Imem2proc_response != 4'b0)) begin
       next_tail = tail_plus_one;
