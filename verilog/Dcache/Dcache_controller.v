@@ -44,6 +44,7 @@ SASS_ADDR write_back_addr;
 // logic write_back_stage;
 logic mshr_valid;
 logic mshr_empty;
+logic wr1_strictly_from_mem;
 
 logic [63:0]       rd1_data;
 logic              rd1_hit, wr1_hit;
@@ -69,7 +70,7 @@ Dcache dcache_0 (
     .reset(reset),
     //enable signals 
     .wr1_en(wr1_en),
-    .wr1_from_mem(wr1_from_mem),
+    .wr1_from_mem(wr1_strictly_from_mem),
     //addr from proc
     .rd1_addr(rd1_addr),
     .wr1_addr(wr1_addr),
@@ -172,6 +173,8 @@ assign wr1_data = (sq_d_cache_out.wr_en)                                        
 assign wr1_valid = !write_back_stage;
 
 assign wr1_from_mem = mshr_d_cache_out.mem_wr | mshr_d_cache_out.rd_wb_en | write_back_stage;
+
+assign wr1_strictly_from_mem = wr1_from_mem & !sq_d_cache_out.wr_en;
 
 assign wr1_en = (wr1_hit & sq_d_cache_out.wr_en) | (!sq_d_cache_out.wr_en & wr1_from_mem);
 
