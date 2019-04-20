@@ -124,12 +124,10 @@ module pipeline (
 
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
-  F_DECODER_OUT_t                                F_decoder_out;
   // To be modified
   D_CACHE_SQ_OUT_t                               D_cache_SQ_out;
   D_CACHE_LQ_OUT_t                               D_cache_LQ_out;
   ARCH_MAP_MAP_TABLE_OUT_t                       ARCH_MAP_MAP_Table_out;
-  // F_DECODER_OUT_t                                F_decoder_out;
 // `ifdef DEBUG
 //   SQ_ENTRY_t       [`NUM_LSQ-1:0]                         SQ_table;
 //   logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_head;
@@ -192,52 +190,12 @@ module pipeline (
   logic [63:0]  count;
 `endif
 
-  logic [63:0] rd1_data;
-  logic rd1_hit;
-  logic wr1_hit;
-  logic evicted_dirty;
-  logic evicted_valid;
-  SASS_ADDR evicted_addr;
-  logic [63:0] evicted_data;
-  logic wr1_en, wr1_dirty, wr1_from_mem, wr1_valid;
-  SASS_ADDR rd1_addr,wr1_addr;
-  logic [63:0] wr1_data;
-  logic mshr_valid;
-  logic mshr_empty;
-  logic [1:0] miss_addr_hit;
-  logic mem_wr;
-  logic mem_dirty;
-  logic [63:0] mem_data;
-  SASS_ADDR mem_addr;
-  logic rd_wb_en;
-  logic rd_wb_dirty;
-  logic [63:0] rd_wb_data;
-  SASS_ADDR rd_wb_addr;
-  logic wr_wb_en;
-  logic wr_wb_dirty;
-  logic [63:0] wr_wb_data;
-  SASS_ADDR wr_wb_addr;
-  logic [2:0]           miss_en;
-  SASS_ADDR [2:0]       miss_addr;
-  logic [2:0][63:0]     miss_data_in;
-  MSHR_INST_TYPE [2:0]  inst_type;
-  logic [2:0][1:0]      mshr_proc2mem_command;
-  SASS_ADDR [1:0]       search_addr;
-  MSHR_INST_TYPE [1:0]  search_type;
-  logic [63:0]          search_wr_data;
-  logic [1:0]           search_en;
-  logic                 stored_rd_wb;
-  logic                 stored_wr_wb;
-  logic                 stored_mem_wr;
-  logic                 write_back;
   logic                 write_back_stage;
   // logic                 cache_valid;
   logic                 halt_pipeline;
   logic                 illegal_out_pipeline;
   logic                 fetch_en_in;
-  logic                 rd1_search;
-  logic                 wr1_search;
-  logic [2:0]           miss_dirty;
+  logic                 write_back;
 
 
   assign en           = `TRUE;
