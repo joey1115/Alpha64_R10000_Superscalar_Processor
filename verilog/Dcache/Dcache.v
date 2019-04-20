@@ -35,7 +35,7 @@ module Dcache(
 `ifndef DEBUG
   logic [`NUM_IDX-1:0][`NUM_WAY-1:0] LRU_bank_sel;
 `endif
-  logic [`NUM_IDX-1:0][`NUM_WAY-1:0] prev_LRU_bank_sel;
+  logic [`NUM_IDX-1:0][`NUM_WAY-1:0] next_LRU_bank_sel;
   // logic [$clog2(`NUM_WAY)-1:0]       LRU_bank_idx;
   
 
@@ -57,17 +57,17 @@ module Dcache(
     next_regA = regA;
     next_regB = regB;
     next_regC = regC;
-    LRU_bank_sel = prev_LRU_bank_sel;
+    next_LRU_bank_sel = LRU_bank_sel;
 
     
     next_regA[wr1_addr.set_index] = (wr1_from_mem & wr1_en)? (~regA[wr1_addr.set_index]) : regA[wr1_addr.set_index];
     next_regB[wr1_addr.set_index] = (!regA[wr1_addr.set_index] & wr1_from_mem & wr1_en) ? (~regB[wr1_addr.set_index]) : regB[wr1_addr.set_index];
     next_regC[wr1_addr.set_index] = (regA[wr1_addr.set_index] & wr1_from_mem & wr1_en)  ? (~regC[wr1_addr.set_index]) : regC[wr1_addr.set_index];
 
-    LRU_bank_sel[wr1_addr.set_index][0] = !next_regA[wr1_addr.set_index] & !next_regB[wr1_addr.set_index];
-    LRU_bank_sel[wr1_addr.set_index][1] = !next_regA[wr1_addr.set_index] & next_regB[wr1_addr.set_index];
-    LRU_bank_sel[wr1_addr.set_index][2] = next_regA[wr1_addr.set_index] & !next_regC[wr1_addr.set_index];
-    LRU_bank_sel[wr1_addr.set_index][3] = next_regA[wr1_addr.set_index] & next_regC[wr1_addr.set_index];
+    next_LRU_bank_sel[wr1_addr.set_index][0] = !next_regA[wr1_addr.set_index] & !next_regB[wr1_addr.set_index];
+    next_LRU_bank_sel[wr1_addr.set_index][1] = !next_regA[wr1_addr.set_index] & next_regB[wr1_addr.set_index];
+    next_LRU_bank_sel[wr1_addr.set_index][2] = next_regA[wr1_addr.set_index] & !next_regC[wr1_addr.set_index];
+    next_LRU_bank_sel[wr1_addr.set_index][3] = next_regA[wr1_addr.set_index] & next_regC[wr1_addr.set_index];
   end
 
   always_ff @(posedge clock) begin
@@ -76,14 +76,14 @@ module Dcache(
         regA[i] <= `SD 1'b0;
         regB[i] <= `SD 1'b0;
         regC[i] <= `SD 1'b0;
-        prev_LRU_bank_sel[i] <= `SD 4'b0001;
+        LRU_bank_sel[i] <= `SD 4'b0001;
       end
     end
     else begin
       regA <= `SD next_regA;
       regB <= `SD next_regB;
       regC <= `SD next_regC;
-      prev_LRU_bank_sel <= `SD LRU_bank_sel;
+      LRU_bank_sel <= `SD next_LRU_bank_sel;
     end
   end
   
