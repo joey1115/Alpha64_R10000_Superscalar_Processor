@@ -217,17 +217,18 @@ module Dcache_controller(
       state           <= `SD `state_reset;
       count           <= `SD `count_reset;
     end
+  end
 
-    always_comb begin
-      if (state == 0 && write_back) 
-        next_state = 1;
-      else if (state == 1 && mshr_empty)
-        next_state = 2;
-      else if(write_back_stage && count > 64)
-        next_state = 3;
-      else
-        next_state = state;
-    end
+  always_comb begin
+    if (state == 0 && write_back) 
+      next_state = 1;
+    else if (state == 1 && mshr_empty)
+      next_state = 2;
+    else if(write_back_stage && count > 64)
+      next_state = 3;
+    else
+      next_state = state;
+  end
 
   assign mshr_d_cache_out = next_mshr_d_cache_out;
 
