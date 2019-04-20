@@ -242,5 +242,6 @@ module Dcache_controller(
       d_cache_mshr_out  <= `SD next_d_cache_mshr_out;
       //mshr_d_cache_out  <= `SD next_mshr_d_cache_out;
     end
+  end
 
 endmodule
