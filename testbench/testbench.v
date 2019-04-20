@@ -81,7 +81,7 @@ extern void print_membus(int proc2mem_command, int mem2proc_response,
                          int proc2mem_addr_hi, int proc2mem_addr_lo,
                          int proc2mem_data_hi, int proc2mem_data_lo);
 extern void print_close();
-extern void print_count(int count_hi, int count_lo);
+extern void print_count(int count_hi);
 
 
 module testbench;
@@ -136,7 +136,7 @@ module testbench;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
-  logic          [63:0]                           count;
+  logic          [6:0]                           count;
   logic          [`NUM_IDX-1:0][`NUM_WAY-1:0]     LRU_bank_sel;
   
 
@@ -527,7 +527,7 @@ module testbench;
 `endif
 
 `ifdef PRINT_COUNT
-      print_count(count[63:32], count[31:0]);
+      print_count({{(64-7){1'b0}},count[6:0]});
 `endif
 
 `ifdef PRINT_DCACHE_BANK

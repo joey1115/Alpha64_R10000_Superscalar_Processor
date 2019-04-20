@@ -36,7 +36,7 @@ module Dcache_controller(
   //logics
 
   `ifndef DEBUG
-      logic [63:0]                   count;
+      logic [6:0]                   count;
   `endif
 
   logic [1:0] state, next_state;
@@ -204,7 +204,7 @@ module Dcache_controller(
       next_state = 1;
     else if (state == 1 && mshr_empty)
       next_state = 2;
-    else if(write_back_stage && count > 64)
+    else if(write_back_stage && count > 128)
       next_state = 3;
     else
       next_state = state;

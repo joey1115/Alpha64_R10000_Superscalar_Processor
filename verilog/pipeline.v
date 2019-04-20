@@ -39,7 +39,7 @@ module pipeline (
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head,
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail,
-  output logic          [63:0]                           count,
+  output logic          [6:0]                           count,
 `endif
   output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
@@ -188,7 +188,7 @@ module pipeline (
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_FU)-1:0]                       RS_match_idx;
 `endif
 `ifndef DEBUG
-  logic [63:0]  count;
+  logic [6:0]  count;
 `endif
 
   logic                 write_back_stage;
