@@ -134,7 +134,7 @@ module Dcache_controller(
   //Miss from stores
   assign next_d_cache_mshr_out.miss_en[1] = sq_d_cache_out.wr_en && !wr1_hit && mshr_valid;
   //Store inst from evicts
-  assign next_d_cache_mshr_out.miss_en[2] = ((!sq_d_cache_out.wr_en && mshr_d_cache_out.rd_wb_en && wr1_en) || (!sq_d_cache_out.wr_en && mshr_d_cache_out.mem_wr && wr1_en) || write_back_stage) && evicted_dirty && evicted_valid;// when wr1 is from memory and it is dirty
+  assign next_d_cache_mshr_out.miss_en[2] = ((!sq_d_cache_out.wr_en && mshr_d_cache_out.rd_wb_en && wr1_en) || (!sq_d_cache_out.wr_en && mshr_d_cache_out.mem_wr && wr1_en)) && evicted_dirty && evicted_valid;// when wr1 is from memory and it is dirty
 
   //d_cache_lq_out.value sent to MSHR search
   assign next_d_cache_mshr_out.miss_addr[0] = rd1_addr;
