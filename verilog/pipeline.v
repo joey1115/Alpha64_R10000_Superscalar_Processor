@@ -124,12 +124,10 @@ module pipeline (
 
   RS_FU_OUT_t                                    RS_FU_out;
   RS_PR_OUT_t                                    RS_PR_out;
-  F_DECODER_OUT_t                                F_decoder_out;
   // To be modified
   D_CACHE_SQ_OUT_t                               D_cache_SQ_out;
   D_CACHE_LQ_OUT_t                               D_cache_LQ_out;
   ARCH_MAP_MAP_TABLE_OUT_t                       ARCH_MAP_MAP_Table_out;
-  // F_DECODER_OUT_t                                F_decoder_out;
 // `ifdef DEBUG
 //   SQ_ENTRY_t       [`NUM_LSQ-1:0]                         SQ_table;
 //   logic            [$clog2(`NUM_LSQ)-1:0]                 SQ_head;
