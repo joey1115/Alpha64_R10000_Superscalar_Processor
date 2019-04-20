@@ -172,6 +172,7 @@ module inst_decoder(
           opb_select = ALU_OPB_IS_REGB;
           func       = ALU_ADDQ;
           dest_idx   = inst_in.r.rega_idx;
+          regb_idx   = inst_in.r.regb_idx;
           FU         = FU_ALU;
         end
 
