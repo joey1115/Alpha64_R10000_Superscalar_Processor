@@ -36,11 +36,11 @@ typedef struct packed {
 64'hbaadbeefdeadbeef,   \
 1'b0,                   \
 64'h0,                  \
-2'h0,                  \
+STORE,                  \
 2'b0,                   \
 1'b0,                   \
 4'b0,                   \
-2'b0    \
+INPROGRESS   \
 }
 
 typedef struct packed {
@@ -63,11 +63,11 @@ typedef struct packed {
 {1'b0},                           \
 {1'b0},                           \
 {64'hbaadbeefdeadbeef},           \
-{64'hbaadbeefdeadbeef},           \
+{64'h0},           \
 {1'b0},                           \
 {1'b0},                           \
 {64'hbaadbeefdeadbeef},           \
-{64'hbaadbeefdeadbeef}            \
+{64'h0}            \
 }
 
 
