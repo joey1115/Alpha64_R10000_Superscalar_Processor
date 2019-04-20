@@ -72,6 +72,7 @@ extern void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo
 extern void print_Dcache_head();
 extern void print_MSHR_head(int writeback_head, int head, int tail, int mem_bus);
 extern void print_Dcache_bank(int data_hi, int data_lo, int tag_hi,int tag_lo, int dirty, int valid);
+extern void print_Dcache_LRU(int way1);
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
                       int wb_reg_wr_idx_out_1, int wb_reg_wr_idx_out_2,
@@ -136,6 +137,7 @@ module testbench;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
   logic          [63:0]                           count;
+  logic          [`NUM_IDX-1:0][`NUM_WAY-1:0]     LRU_bank_sel;
   
 
   // Instantiate the Pipeline
@@ -178,6 +180,7 @@ module testbench;
     .MSHR_head(MSHR_head),
     .MSHR_tail(MSHR_tail),
     .count(count),
+    .LRU_bank_sel(LRU_bank_sel),
 `endif
     // Outputs
     .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
@@ -532,6 +535,7 @@ module testbench;
     for(int i=0; i < `NUM_IDX; i++) begin
       print_num(i);
       for(int j=0; j < `NUM_WAY; j++) begin
+        print_Dcache_LRU({{(31){1'b0}},LRU_bank_sel[i][j]});
         print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(64-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag[`NUM_TAG_BITS-1:32]},Dcache_bank[j][i].tag[31:0],{{(31){1'b0}},Dcache_bank[j][i].dirty},{{(31){1'b0}},Dcache_bank[j][i].valid});
       end
       print_enter();
