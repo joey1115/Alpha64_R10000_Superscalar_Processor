@@ -192,6 +192,13 @@ module pipeline (
   logic [63:0]  count;
 `endif
 
+  logic                 write_back_stage;
+  // logic                 cache_valid;
+  logic                 halt_pipeline;
+  logic                 illegal_out_pipeline;
+  logic                 fetch_en_in;
+
+
   assign en           = `TRUE;
   assign get_fetch_buff = ROB_valid && RS_valid && FL_valid && LSQ_valid && !rollback_en;
   assign dispatch_en  = get_fetch_buff && inst_out_valid;
