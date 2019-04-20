@@ -168,16 +168,16 @@ module Dcache_controller(
 
   assign wr1_search = wr1_from_mem || sq_d_cache_out.wr_en;
 
-  assign wr1_addr = (write_back_stage && wr1_from_mem)                                                        ? mshr_d_cache_out.mem_addr :
+  assign wr1_addr = (write_back_stage && (mshr_d_cache_out.mem_wr || mshr_d_cache_out.rd_wb_en))              ? mshr_d_cache_out.mem_addr :
                     (write_back_stage)                                                                        ? write_back_addr :
                     (!write_back_stage && sq_d_cache_out.wr_en)                                               ? {sq_d_cache_out.addr,3'b000} :
                     (!write_back_stage && !sq_d_cache_out.wr_en && mshr_d_cache_out.rd_wb_en)                 ? mshr_d_cache_out.rd_wb_addr : mshr_d_cache_out.mem_addr;
 
-  assign wr1_dirty = (write_back_stage && wr1_from_mem)                                                        ? mshr_d_cache_out.mem_dirty :
+  assign wr1_dirty = (write_back_stage && (mshr_d_cache_out.mem_wr || mshr_d_cache_out.rd_wb_en))              ? mshr_d_cache_out.mem_dirty :
                      (sq_d_cache_out.wr_en)                                                                    ? 1 :
                      (!(sq_d_cache_out.wr_en) && mshr_d_cache_out.rd_wb_en)                                    ? mshr_d_cache_out.rd_wb_dirty : mshr_d_cache_out.mem_dirty;
 
-  assign wr1_data = (write_back_stage && wr1_from_mem)                                                        ?  mshr_d_cache_out.mem_data :
+  assign wr1_data = (write_back_stage && (mshr_d_cache_out.mem_wr || mshr_d_cache_out.rd_wb_en))                                                        ?  mshr_d_cache_out.mem_data :
                     (sq_d_cache_out.wr_en)                                                                    ?  sq_d_cache_out.value:
                     (!(sq_d_cache_out.wr_en) && mshr_d_cache_out.rd_wb_en)                                    ?  mshr_d_cache_out.rd_wb_data : mshr_d_cache_out.mem_data;
 
