@@ -37,10 +37,10 @@ typedef struct packed {
 1'b0,                   \
 64'h0,                  \
 STORE,                  \
-2'b0,                   \
+BUS_NONE,               \
 1'b0,                   \
 4'b0,                   \
-INPROGRESS   \
+INPROGRESS              \
 }
 
 typedef struct packed {
@@ -59,15 +59,15 @@ typedef struct packed {
   // SASS_ADDR                           wr_wb_addr;
 } MSHR_D_CACHE_OUT_t;
 
-`define mshr_d_cache_out_reset '{  \
-{1'b0},                           \
-{1'b0},                           \
-{64'hbaadbeefdeadbeef},           \
-{64'h0},           \
-{1'b0},                           \
-{1'b0},                           \
-{64'hbaadbeefdeadbeef},           \
-{64'h0}            \
+`define mshr_d_cache_out_reset '{ \
+1'b0,                           \
+1'b0,                           \
+64'hbaadbeefdeadbeef,           \
+64'h0,                          \
+1'b0,                           \
+1'b0,                           \
+64'hbaadbeefdeadbeef,           \
+64'h0                           \
 }
 
 
