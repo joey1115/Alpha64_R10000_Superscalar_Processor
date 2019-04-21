@@ -43,7 +43,7 @@ set auto_wire_load_selection "false"
 set compile_seqmap_synchronous_extraction "true"
 
 # uncomment this and change number appropriately if on multi-core machine
-#set_host_options -max_cores 2
+set_host_options -max_cores 6
 
 #/***********************************************************/
 #/*  Clk Periods/uncertainty/transition                     */
