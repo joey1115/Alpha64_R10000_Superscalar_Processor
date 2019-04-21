@@ -170,7 +170,7 @@ module MSHR(
   always_comb begin
     if (state == 0 && changed_rd_input) 
       next_state = 1;
-    else if (state == 1 && key_enter_MSHR)
+    else if ( key_enter_MSHR)
       next_state = 0;
     else
       next_state = state;
@@ -644,7 +644,7 @@ module MSHR(
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i = 0; i < `MSHR_DEPTH; i++) begin
-        state = 0;
+        state <= 0;
         MSHR_queue[i] <= `SD `MSHR_queue_reset;
       end
       writeback_head    <= `SD `writeback_head_reset;
