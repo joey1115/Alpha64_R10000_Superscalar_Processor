@@ -258,7 +258,7 @@ module LQ (
   logic       [$clog2(`NUM_LSQ)-1:0]                 tail;
 `endif
   LQ_ENTRY_t  [`NUM_LSQ-1:0]                         next_lq;
-  LQ_FU_OUT_t                                        next_LQ_FU_out;
+  // LQ_FU_OUT_t                                        next_LQ_FU_out;
   logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, virtual_tail, head_plus_one, head_plus_two, tail_plus_one, tail_plus_two, tail_map_idx, ld_idx;
   logic                                              ld_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx_minus_one;
@@ -339,52 +339,54 @@ module LQ (
     endcase
   end
 
-  always_comb begin
-    case(FU_LQ_out.done)
-      2'b00: begin
-        LQ_valid[0] = `TRUE;
-        LQ_valid[1] = `TRUE;
-      end
-      2'b01: begin
-        LQ_valid[0] = (CDB_valid[0] & (D_cache_LQ_out.valid | SQ_LQ_out.hit[0])) | rollback_valid[0];
-        LQ_valid[1] = `TRUE;
-      end
-      2'b10: begin
-        LQ_valid[0] = `TRUE;
-        LQ_valid[1] = (CDB_valid[1] & (D_cache_LQ_out.valid | SQ_LQ_out.hit[1])) | rollback_valid[1];
-      end
-      2'b11: begin
-        LQ_valid[0] = (CDB_valid[0] & (D_cache_LQ_out.valid | SQ_LQ_out.hit[0])) | rollback_valid[0];
-        LQ_valid[1] = SQ_LQ_out.hit[1] | rollback_valid[1];
-      end
-    endcase
-  end
+  assign LQ_valid = (CDB_valid & LQ_FU_out.done) | (~FU_LQ_out.done) | rollback_valid;
+
+  // always_comb begin
+  //   case(FU_LQ_out.done)
+  //     2'b00: begin
+  //       LQ_valid[0] = `TRUE;
+  //       LQ_valid[1] = `TRUE;
+  //     end
+  //     2'b01: begin
+  //       LQ_valid[0] = (CDB_valid[0] & (D_cache_LQ_out.valid | SQ_LQ_out.hit[0])) | rollback_valid[0];
+  //       LQ_valid[1] = `TRUE;
+  //     end
+  //     2'b10: begin
+  //       LQ_valid[0] = `TRUE;
+  //       LQ_valid[1] = (CDB_valid[1] & (D_cache_LQ_out.valid | SQ_LQ_out.hit[1])) | rollback_valid[1];
+  //     end
+  //     2'b11: begin
+  //       LQ_valid[0] = (CDB_valid[0] & (D_cache_LQ_out.valid | SQ_LQ_out.hit[0])) | rollback_valid[0];
+  //       LQ_valid[1] = SQ_LQ_out.hit[1] | rollback_valid[1];
+  //     end
+  //   endcase
+  // end
 
   always_comb begin
-    next_LQ_FU_out.dest_idx[0] = FU_LQ_out.dest_idx[0];
-    next_LQ_FU_out.dest_idx[1] = FU_LQ_out.dest_idx[1];
-    next_LQ_FU_out.T_idx[0]    = FU_LQ_out.T_idx[0];
-    next_LQ_FU_out.T_idx[1]    = FU_LQ_out.T_idx[1];
-    next_LQ_FU_out.ROB_idx[0]  = FU_LQ_out.ROB_idx[0];
-    next_LQ_FU_out.ROB_idx[1]  = FU_LQ_out.ROB_idx[1];
-    next_LQ_FU_out.result[0]   = SQ_LQ_out.hit[0] ? SQ_LQ_out.value[0] : D_cache_LQ_out.value;
-    next_LQ_FU_out.result[1]   = SQ_LQ_out.hit[1] ? SQ_LQ_out.value[1] : D_cache_LQ_out.value;
+    LQ_FU_out.dest_idx[0] = FU_LQ_out.dest_idx[0];
+    LQ_FU_out.dest_idx[1] = FU_LQ_out.dest_idx[1];
+    LQ_FU_out.T_idx[0]    = FU_LQ_out.T_idx[0];
+    LQ_FU_out.T_idx[1]    = FU_LQ_out.T_idx[1];
+    LQ_FU_out.ROB_idx[0]  = FU_LQ_out.ROB_idx[0];
+    LQ_FU_out.ROB_idx[1]  = FU_LQ_out.ROB_idx[1];
+    LQ_FU_out.result[0]   = SQ_LQ_out.hit[0] ? SQ_LQ_out.value[0] : D_cache_LQ_out.value;
+    LQ_FU_out.result[1]   = SQ_LQ_out.hit[1] ? SQ_LQ_out.value[1] : D_cache_LQ_out.value;
     case(FU_LQ_out.done)
       2'b00: begin
-        next_LQ_FU_out.done[0] = `FALSE;
-        next_LQ_FU_out.done[1] = `FALSE;
+        LQ_FU_out.done[0] = `FALSE;
+        LQ_FU_out.done[1] = `FALSE;
       end
       2'b01: begin
-        next_LQ_FU_out.done[0] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[0]) & ~rollback_valid[0];
-        next_LQ_FU_out.done[1] = `FALSE;
+        LQ_FU_out.done[0] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[0]) & ~rollback_valid[0];
+        LQ_FU_out.done[1] = `FALSE;
       end
       2'b10: begin
-        next_LQ_FU_out.done[0] = `FALSE;
-        next_LQ_FU_out.done[1] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[1]) & ~rollback_valid[1];
+        LQ_FU_out.done[0] = `FALSE;
+        LQ_FU_out.done[1] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[1]) & ~rollback_valid[1];
       end
       2'b11: begin
-        next_LQ_FU_out.done[0] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[0]) & ~rollback_valid[0];
-        next_LQ_FU_out.done[1] = SQ_LQ_out.hit[1] & ~rollback_valid[1];
+        LQ_FU_out.done[0] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[0]) & ~rollback_valid[0];
+        LQ_FU_out.done[1] = SQ_LQ_out.hit[1] & ~rollback_valid[1];
       end
     endcase
   end
@@ -500,12 +502,12 @@ module LQ (
       head      <= `SD {($clog2(`NUM_LSQ)){1'b0}};
       tail      <= `SD {($clog2(`NUM_LSQ)){1'b0}};
       lq        <= `SD `LQ_RESET;
-      LQ_FU_out <= `SD `LQ_FU_OUT_RESET;
+      // LQ_FU_out <= `SD `LQ_FU_OUT_RESET;
     end else if (en) begin
       head      <= `SD next_head;
       tail      <= `SD next_tail;
       lq        <= `SD next_lq;
-      LQ_FU_out <= `SD next_LQ_FU_out;
+      // LQ_FU_out <= `SD next_LQ_FU_out;
     end
   end
 endmodule
