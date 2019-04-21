@@ -408,12 +408,14 @@ module LQ (
   always_comb begin
     ld_hit = `FALSE;
     ld_idx = {$clog2(`NUM_LSQ){1'b0}};
-    for (int i = 0; i < `NUM_SUPER; i++) begin
-      for (int j = 0; j < `NUM_LSQ; j++) begin
-        if (SQ_LQ_out.addr == lq[lq_map_idx[j]].addr && j < tail_map_idx) begin
-          ld_hit = `TRUE;
-          ld_idx = j;
-          break;
+    if (head != tail) begin
+      for (int i = 0; i < `NUM_SUPER; i++) begin
+        for (int j = 0; j < `NUM_LSQ; j++) begin
+          if (SQ_LQ_out.addr == lq[lq_map_idx[j]].addr && j <= tail_map_idx) begin
+            ld_hit = `TRUE;
+            ld_idx = j;
+            break;
+          end
         end
       end
     end
