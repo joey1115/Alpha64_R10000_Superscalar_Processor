@@ -44,6 +44,8 @@ module icache (
   wire [12:0] prefetch_addr; // last_proc2Imem_addr+1 (here stores only its tag and idx)
   wire [$clog2(`NUM_ICACHE_LINES)-1:0]    prefetch_idx; // index of prefetch address
   wire [15-$clog2(`NUM_ICACHE_LINES)-3:0] prefetch_tag; // tag   of prefetch address
+  wire [$clog2(`NUM_ICACHE_LINES)-1:0]    proc2Imem_addr_idx; // index of address to fetch
+  wire [15-$clog2(`NUM_ICACHE_LINES)-3:0] proc2Imem_addr_tag; // tag   of address to fetch
 
   wire can_prefetch;
   wire write_cache; // cache write enable
@@ -105,6 +107,8 @@ module icache (
   end
 
   // Register: next_mem_tag_table
+  assign proc2Imem_addr_idx = proc2Imem_addr[3+$clog2(`NUM_ICACHE_LINES)-1:3];
+  assign proc2Imem_addr_tag = proc2Imem_addr[15:3+$clog2(`NUM_ICACHE_LINES)];
   assign write_cache = mem_tag_table[Imem2proc_tag].valid;
   always_comb begin
     next_mem_tag_table = mem_tag_table;
@@ -121,7 +125,7 @@ module icache (
     /* Note: When mem responses to a load request, update valid, idx, and tag in the entry specified by the mem response. */
     if (Imem2proc_response != 4'b0) begin
       next_mem_tag_table[Imem2proc_response].valid = `TRUE;
-      next_mem_tag_table[Imem2proc_response].idx   = idx;
+      next_mem_tag_table[Imem2proc_response].idx   = proc2Imem_addr_idx;
     end
   end
 
@@ -143,7 +147,7 @@ module icache (
     if (Imem2proc_response != 4'b0) begin
       next_i_cache[idx].valid = `FALSE;
       next_i_cache[idx].requested = `TRUE;
-      next_i_cache[idx].tag   = tag;
+      next_i_cache[idx].tag   = proc2Imem_addr_tag;
     end
   end
 
