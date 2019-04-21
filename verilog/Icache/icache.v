@@ -105,7 +105,7 @@ module icache (
       proc2Imem_addr = {48'h0, prefetch_addr, 3'h0};
     end
   end
-
+ 
   // Register: next_mem_tag_table
   assign proc2Imem_addr_idx = proc2Imem_addr[3+$clog2(`NUM_ICACHE_LINES)-1:3];
   assign proc2Imem_addr_tag = proc2Imem_addr[15:3+$clog2(`NUM_ICACHE_LINES)];
@@ -145,9 +145,9 @@ module icache (
     // Mem responses to a load request
     /* Note: When mem responses to a load request, evict previous entry and write in the tag. */
     if (Imem2proc_response != 4'b0) begin
-      next_i_cache[idx].valid = `FALSE;
-      next_i_cache[idx].requested = `TRUE;
-      next_i_cache[idx].tag   = proc2Imem_addr_tag;
+      next_i_cache[proc2Imem_addr_idx].valid = `FALSE;
+      next_i_cache[proc2Imem_addr_idx].requested = `TRUE;
+      next_i_cache[proc2Imem_addr_idx].tag   = proc2Imem_addr_tag;
     end
   end
 

@@ -27,14 +27,14 @@
 
 `define PRINT_DISPATCH_EN
 `define PRINT_FETCHBUFFER
-// `define PRINT_ROB
-// `define PRINT_RS
+`define PRINT_ROB
+`define PRINT_RS
 // `define PRINT_MAP_TABLE
 // `define PRINT_FREELIST
 // `define PRINT_CDB
 // `define PRINT_ARCHMAP
 // `define PRINT_REG
-`define PRINT_MEMBUS
+// `define PRINT_MEMBUS
 // `define PRINT_SQ
 // `define PRINT_LQ
 // `define PRINT_DCACHE_BANK
