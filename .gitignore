@@ -32,3 +32,4 @@ program.mem
 *.out
 !test_progs_solution/*.out
 !P4_example/*.out
+!output/*.out

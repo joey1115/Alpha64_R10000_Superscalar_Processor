@@ -112,6 +112,7 @@ module Map_Table (
     next_map_table[`ZERO_REG].ready = `TRUE;                                // Force ZERO_REG to be ready
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset) begin
       map_table        <= `SD `MAP_TABLE_RESET;

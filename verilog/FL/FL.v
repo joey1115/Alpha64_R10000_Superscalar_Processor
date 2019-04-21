@@ -112,10 +112,11 @@ module FL (
     end
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if ( reset ) begin
-      head <= `SD 0;
-      tail <= `SD 0;
+      head <= `SD {$clog2(`NUM_FL){1'b0}};
+      tail <= `SD {$clog2(`NUM_FL){1'b0}};
       for (int i = 0; i < `NUM_FL; i++) begin
         FL_table[i] <= `SD i + 32;
       end

@@ -13,10 +13,15 @@
 `endif
 
 typedef struct packed {
-  logic [60:0] addr;
-  logic        valid;
-  logic [63:0] value;
+  logic [60:0]                 addr;
+  logic                        valid;
+  logic [63:0]                 value;
+  logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
 } SQ_ENTRY_t;
+
+`define SQ_ENTRY_RESET {61'h0, `FALSE, 64'hbaadbeafdeadbeef, {$clog2(`NUM_LSQ){1'b0}}}
+`define SQ_ENTRY_RESET_PACKED '{61'h0, `FALSE, 64'hbaadbeafdeadbeef, {$clog2(`NUM_LSQ){1'b0}}}
+`define SQ_RESET '{`NUM_LSQ{`SQ_ENTRY_RESET}}
 
 typedef struct packed {
   logic        wr_en;
@@ -25,11 +30,11 @@ typedef struct packed {
 } SQ_D_CACHE_OUT_t;
 
 typedef struct packed {
-  logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] LQ_idx;
-  logic [`NUM_SUPER-1:0]                       hit;
-  logic [`NUM_SUPER-1:0][63:0]                 value;
-  logic [`NUM_SUPER-1:0]                       done;
-  logic [`NUM_SUPER-1:0][60:0]                 addr;
+  logic [`NUM_SUPER-1:0]       hit;
+  logic [`NUM_SUPER-1:0][63:0] value;
+  logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
+  logic                        retire;
+  logic [60:0]                 addr;
 } SQ_LQ_OUT_t;
 
 typedef struct packed {
@@ -64,6 +69,9 @@ typedef struct packed {
   logic [$clog2(`NUM_LSQ)-1:0] SQ_idx;
   logic [63:0]                 PC;
 } LQ_ENTRY_t;
+
+`define LQ_ENTRY_RESET {61'h0, `FALSE, {$clog2(`NUM_ROB){1'b0}}, {$clog2(`NUM_FL){1'b0}}, {$clog2(`NUM_LSQ){1'b0}}, 64'h0}
+`define LQ_RESET '{`NUM_LSQ{`LQ_ENTRY_RESET}}
 
 typedef struct packed {
   logic [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] SQ_idx;
@@ -101,14 +109,7 @@ typedef struct packed {
 } LQ_TARGET_t;
 
 typedef struct packed {
-  LQ_TARGET_t [`NUM_SUPER-1:0] LQ_target;
+  LQ_TARGET_t LQ_target;
 } LQ_BP_OUT_t;
-
-`define SQ_ENTRY_RESET {61'h0, `FALSE, 64'hbaadbeafdeadbeef}
-`define SQ_ENTRY_RESET_PACKED '{61'h0, `FALSE, 64'hbaadbeafdeadbeef}
-`define SQ_RESET '{`NUM_LSQ{`SQ_ENTRY_RESET}}
-
-`define LQ_ENTRY_RESET {61'h0, `FALSE, {`NUM_ROB{1'b0}}, {`NUM_FL{1'b0}}, {`NUM_LSQ{1'b0}}}
-`define LQ_RESET '{`NUM_LSQ{`LQ_ENTRY_RESET}}
 
 `endif

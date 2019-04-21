@@ -20,9 +20,10 @@ module cache(
   assign rd1_data = data[rd1_idx];
   assign rd1_valid = valids[rd1_idx] && (tags[rd1_idx] == rd1_tag);
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset)
-      valids <= `SD 31'b0;
+      valids <= `SD 32'b0;
     else if(wr1_en) 
       valids[wr1_idx] <= `SD 1;
   end

@@ -98,16 +98,17 @@ module FETCH_BUFFER (
     end
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset | rollback_en) begin
       head <= `SD 0;
       tail <= `SD 0;
       for(int i=0; i < `NUM_FB; i++) begin
-        FB[i].PC <= `SD 0;
-        FB[i].NPC <= `SD 0;
-        FB[i].inst <= `SD 0;
-        FB[i].target <= `SD 0;
-        FB[i].valid <= `SD 0;
+        FB[i].PC <= `SD 64'h0;
+        FB[i].NPC <= `SD 64'h0;
+        FB[i].inst <= `SD `NOOP_INST;
+        FB[i].target <= `SD 64'h0;
+        FB[i].valid <= `SD `FALSE;
       end
     end 
     else if(en) begin

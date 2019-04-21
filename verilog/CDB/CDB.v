@@ -114,6 +114,7 @@ module CDB (
     end
   end // always_comb
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       CDB <= `SD `CDB_RESET;

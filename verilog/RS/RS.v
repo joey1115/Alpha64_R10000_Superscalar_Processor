@@ -126,7 +126,7 @@ module RS (
     for (int j = 0; j < `NUM_FU; j++) begin
       next_RS[j].T1.ready = T1_ready[j]; // T1 ready
       next_RS[j].T2.ready = T2_ready[j]; // T2 ready
-      if ( RS_entry_ready[j] || RS_rollback[j] ) begin
+      if ( (RS_entry_ready[j] && FU_valid[j]) || RS_rollback[j] ) begin
         next_RS[j] = `RS_ENTRY_RESET; // Clear RS entry
       end // if ( RS[i].busy == `FALSE && dispatch_en ) begin
     end // for (int i = 0; i < `NUM_FU; i++) begin
@@ -157,6 +157,7 @@ module RS (
 
 assign FU_list = {{(`NUM_ALU){FU_ALU}}, {(`NUM_MULT){FU_MULT}}, {(`NUM_BR){FU_BR}}, {(`NUM_ST){FU_ST}}, {(`NUM_LD){FU_LD}}};
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset) begin
       RS <= `SD `RS_RESET;

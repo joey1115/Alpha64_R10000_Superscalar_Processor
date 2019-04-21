@@ -26,7 +26,7 @@ void print_cycles()
 {
   /* we'll enforce the printing of a header */
   if (ppfile != NULL)
-    fprintf(ppfile, "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ncycle: %5d\n", cycle_count++);
+    fprintf(ppfile, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ncycle: %5d\n", cycle_count++);
 }
 
 void print_ROB_ht(int head, int tail)
@@ -329,12 +329,23 @@ void print_Dcache_head()
 {
     fprintf(ppfile, "---------------------------------------Dcache----------------------------------- \n");   
 }
+
+void print_Dcache_LRU(int way1){
+  if(ppfile != NULL){
+    fprintf(ppfile, " %1d ", way1);
+  }
+}
+
 void print_Dcache_bank(int data_hi, int data_lo, int tag_hi, int tag_lo, int dirty, int valid){
   if(ppfile != NULL){
     fprintf(ppfile, "data: %x%x | tag: %x%x | dirty: %1d | valid: %1d |        ", data_hi, data_lo, tag_hi, tag_lo, dirty, valid);
   }
 }
-
+void print_count(int count_hi){
+  if(ppfile != NULL){
+    fprintf(ppfile,"count: %x   |  \n", count_hi);
+  }
+}
 void print_MSHR_head(int writeback_head, int head, int tail, int mem_bus)
 {
   char *mem_bus_char;
@@ -385,34 +396,6 @@ void print_lq_entry(int idx, int valid, int addr_hi, int addr_lo, int ROB_idx, i
     fprintf(ppfile, " %2d | valid: %1d | addr: %8x%8x | ROB_idx:%3d | FL_idx:%3d | SQ_idx:%3d | PC: %8x%8x | \n", idx, valid, addr_hi, addr_lo, ROB_idx, FL_idx, SQ_idx, PC_hi, PC_lo);
   }
 }
-
-void print_icache_head(int head, int tail, int addr_hi, int addr_lo)
-{
-  fprintf(ppfile, "---------------------------------------iCache----------------------------------- \n");
-  if(ppfile != NULL){
-    fprintf(ppfile, "head:%2d   tail:%2d    addr: HEX: %x_%x DEC: %d IDX: %d TAG: %d\n", head, tail, addr_hi, addr_lo, addr_lo, ((addr_hi & 0xFF00) >> 8), (addr_lo >> 8));
-  }
-}
-
-void print_icache_entry(int i, int valid, int tag, int data_hi, int data_lo)
-{
-  if(ppfile != NULL){
-    fprintf(ppfile, " %2d | addr: %d | valid: %1d | tag: %d | data: %x %x\n", i, ((tag << 8) + (i << 3)), valid, tag, data_hi, data_lo);
-  }
-}
-
-void print_mem_tag_table_head()
-{
-  fprintf(ppfile, "---------------------------------------Mem_Tag_Table----------------------------------- \n");
-}
-
-void print_mem_tag_table_entry(int i, int idx, int tag)
-{
-  if(ppfile != NULL){
-    fprintf(ppfile, " %2d | idx: %d | tag: %d\n", i, idx, tag);
-  }
-}
-
 
 void print_num(int i){
   if(ppfile != NULL){

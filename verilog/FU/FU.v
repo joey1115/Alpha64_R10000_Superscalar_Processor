@@ -156,6 +156,7 @@ module mult_stage (
   end
 `endif
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
 `ifdef MULT_FORWARDING
     if ( reset ) begin
@@ -377,7 +378,7 @@ module st (
   assign regA               = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
   assign regB               = FU_in.T2_value;
   assign result             = regA + regB;
-  assign FU_valid           = !FU_in.ready || CDB_valid || rollback_valid;
+  assign FU_valid           = !FU_in.ready || CDB_valid || rollback_valid_out;
 
   always_comb begin
     if ( !CDB_valid && !rollback_valid_out ) begin
@@ -397,6 +398,7 @@ module st (
     end
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       ST_out <= `SD `ST_OUT_RESET;
@@ -431,7 +433,7 @@ module ld (
   assign regA               = { {48{FU_in.inst[15]}}, FU_in.inst.m.mem_disp };
   assign regB               = FU_in.T2_value;
   assign result             = regA + regB;
-  assign FU_valid           = !FU_in.ready || LQ_valid || rollback_valid;
+  assign FU_valid           = !FU_in.ready || LQ_valid || rollback_valid_out;
 
   always_comb begin
     if ( !LQ_valid && !rollback_valid_out ) begin
@@ -445,12 +447,12 @@ module ld (
       next_LD_out.FL_idx   = FU_in.FL_idx;
       next_LD_out.SQ_idx   = FU_in.SQ_idx;
       next_LD_out.LQ_idx   = FU_in.LQ_idx;
-      next_LD_out.NPC      = FU_in.NPC;
     end else begin
       next_LD_out = `LD_OUT_RESET;
     end
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if (reset) begin
       LD_out <= `SD `LD_OUT_RESET;

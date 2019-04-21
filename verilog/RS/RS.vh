@@ -52,7 +52,7 @@ typedef struct packed {
   `FALSE,                   \
   `NOOP_INST,               \
   ALU_ADDQ,                 \
-  64'hbaadbeefdeadbeef,     \
+  64'h0,                    \
   `ZERO_REG,                \
   {$clog2(`NUM_ROB){1'b0}}, \
   {$clog2(`NUM_FL){1'b0}},  \
@@ -67,7 +67,7 @@ typedef struct packed {
   `FALSE,                   \
   `FALSE,                   \
   `FALSE,                   \
-  64'hbaadbeefdeadbeef      \
+  64'h0                     \
 } // RS entry reset
 `define RS_RESET '{`NUM_FU{`RS_ENTRY_RESET}} // RS reset
 

@@ -15,27 +15,30 @@
 // ******** WARNING !!! *********
 // DANGEROUS FEATURE: HALT_ON_TIMEOUT should always be uncommented
 // unless you know the pipeline will never reach the halt instruction and run forever
-`define HALT_ON_TIMEOUT
+`define HALT_ON_TIMEOUT_CLOCK_COUNT //STOP ON CLOCK COUNT FOR CPI
+`define HALT_ON_TIMEOUT_CYCLE_COUNT //STOP ON CYCLE COUNT (DURATION OF PROGRAM)
+
+// `define HALT_ON_CYCLE
 // After runing for TIMEOUT_CYCLES cycles, halt!
-`define TIMEOUT_CYCLES 10000
+`define TIMEOUT_MAX_CYCLES 1000000
+`define TIMEOUT_MAX_CLOCK 1000000
 
 
-// `define PRINT_DISPATCH_EN
-// `define PRINT_FETCHBUFFER
-// `define PRINT_ROB
-// `define PRINT_RS
-// `define PRINT_MAP_TABLE
-// `define PRINT_FREELIST
-// `define PRINT_CDB
-// `define PRINT_ARCHMAP
-// `define PRINT_REG
+`define PRINT_DISPATCH_EN
+`define PRINT_FETCHBUFFER
+`define PRINT_ROB
+`define PRINT_RS
+`define PRINT_MAP_TABLE
+`define PRINT_FREELIST
+`define PRINT_CDB
+`define PRINT_ARCHMAP
+`define PRINT_REG
 `define PRINT_MEMBUS
-// `define PRINT_SQ
-// `define PRINT_LQ
-// `define PRINT_DCACHE_BANK
-// `define PRINT_MSHR_ENTRY
-`define PRINT_ICACHE
-`define PRINT_MEM_TAG_TABLE
+`define PRINT_SQ
+`define PRINT_LQ
+`define PRINT_DCACHE_BANK
+`define PRINT_MSHR_ENTRY
+`define PRINT_COUNT
 
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
@@ -58,10 +61,7 @@ extern void print_freelist_head(int FL_head, int FL_tail);
 extern void print_freelist_entry(int i, int freePR);
 extern void print_fetchbuffer_head(int FB_head, int FB_tail);
 extern void print_fetchbuffer_entry(int i, int valid, int NPC_hi, int NPC_lo, int inst);
-extern void print_icache_head(int head, int tail, int addr_hi, int addr_lo);
-extern void print_icache_entry(int i, int valid, int tag, int data_hi, int data_lo);
-extern void print_mem_tag_table_head();
-extern void print_mem_tag_table_entry(int i, int idx, int tag);
+
 extern void print_num(int i);
 extern void print_enter();
 extern void print_sq_head(int head, int tail);
@@ -72,7 +72,7 @@ extern void print_MSHR_entry(int MSHR_DEPTH, int valid, int data_hi, int data_lo
 extern void print_Dcache_head();
 extern void print_MSHR_head(int writeback_head, int head, int tail, int mem_bus);
 extern void print_Dcache_bank(int data_hi, int data_lo, int tag_hi,int tag_lo, int dirty, int valid);
-
+extern void print_Dcache_LRU(int way1);
 extern void print_reg(int wb_reg_wr_data_out_hi_1, int wb_reg_wr_data_out_lo_1,
                       int wb_reg_wr_data_out_hi_2, int wb_reg_wr_data_out_lo_2,
                       int wb_reg_wr_idx_out_1, int wb_reg_wr_idx_out_2,
@@ -81,6 +81,7 @@ extern void print_membus(int proc2mem_command, int mem2proc_response,
                          int proc2mem_addr_hi, int proc2mem_addr_lo,
                          int proc2mem_data_hi, int proc2mem_data_lo);
 extern void print_close();
+extern void print_count(int count_hi);
 
 
 module testbench;
@@ -90,11 +91,10 @@ module testbench;
   logic        reset;
   logic [31:0] clock_count, next_clock_count;
   logic [31:0] instr_count, next_instr_count;
-  int          wb_fileno;
+  int          wb_fileno, wb_fileno_clk;
 
   logic  [1:0] proc2mem_command;
   logic [63:0] proc2mem_addr;
-  logic [63:0] proc2Icache_addr;
   logic [63:0] proc2mem_data;
   logic  [3:0] mem2proc_response;
   logic [63:0] mem2proc_data;
@@ -136,10 +136,8 @@ module testbench;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
-  I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]         i_cache;
-  logic [$clog2(`NUM_ICACHE_LINES)-1:0]           i_cache_head;
-  logic [$clog2(`NUM_ICACHE_LINES)-1:0]           i_cache_tail;
-  MEM_TAG_TABLE_t [15:0]                          mem_tag_table;
+  logic          [5:0]                           count;
+  logic          [`NUM_IDX-1:0][`NUM_WAY-1:0]     LRU_bank_sel;
   
 
   // Instantiate the Pipeline
@@ -181,11 +179,8 @@ module testbench;
     .MSHR_writeback_head(MSHR_writeback_head),
     .MSHR_head(MSHR_head),
     .MSHR_tail(MSHR_tail),
-    .i_cache(i_cache),
-    .i_cache_head(i_cache_head),
-    .i_cache_tail(i_cache_tail),
-    .mem_tag_table(mem_tag_table),
-    .proc2Icache_addr(proc2Icache_addr),
+    .count(count),
+    .LRU_bank_sel(LRU_bank_sel),
 `endif
     // Outputs
     .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
@@ -285,6 +280,7 @@ module testbench;
     $display("@@  %t  Deasserting System reset......\n@@\n@@", $realtime);
 
     wb_fileno = $fopen("writeback.out");
+    wb_fileno_clk = $fopen("writeback_clk.out");
 
     //Open header AFTER throwing the reset otherwise the reset state is displayed
     print_open();
@@ -311,6 +307,7 @@ module testbench;
     next_instr_count = (instr_count + pipeline_completed_insts);
   end
 
+  // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset)
       state_count <= `SD 0;
@@ -530,11 +527,16 @@ module testbench;
       end
 `endif
 
+`ifdef PRINT_COUNT
+      print_count({{(32-6){1'b0}},count});
+`endif
+
 `ifdef PRINT_DCACHE_BANK
     print_Dcache_head();
     for(int i=0; i < `NUM_IDX; i++) begin
       print_num(i);
       for(int j=0; j < `NUM_WAY; j++) begin
+        print_Dcache_LRU({{(31){1'b0}},LRU_bank_sel[i][j]});
         print_Dcache_bank(Dcache_bank[j][i].data[63:32], Dcache_bank[j][i].data[31:0], {{(64-`NUM_TAG_BITS){1'b0}},Dcache_bank[j][i].tag[`NUM_TAG_BITS-1:32]},Dcache_bank[j][i].tag[31:0],{{(31){1'b0}},Dcache_bank[j][i].dirty},{{(31){1'b0}},Dcache_bank[j][i].valid});
       end
       print_enter();
@@ -545,20 +547,6 @@ module testbench;
     print_MSHR_head({{(32-$clog2(`MSHR_DEPTH)){1'b0}},MSHR_writeback_head},{{(32-$clog2(`MSHR_DEPTH)){1'b0}},MSHR_head},{{(32-$clog2(`MSHR_DEPTH)){1'b0}},MSHR_tail}, {{(32-2){1'b0}},proc2mem_command});
     for(int i = 0; i < `MSHR_DEPTH; i++) begin
       print_MSHR_entry(i,{{(31){1'b0}},MSHR_queue[i].valid}, MSHR_queue[i].data[63:32],MSHR_queue[i].data[31:0],{{(31){1'b0}},MSHR_queue[i].dirty}, MSHR_queue[i].addr[63:32], MSHR_queue[i].addr[31:0], {{(30){1'b0}},MSHR_queue[i].inst_type}, {{(30){1'b0}},MSHR_queue[i].proc2mem_command}, {{(31){1'b0}},MSHR_queue[i].complete}, {{(28){1'b0}},MSHR_queue[i].mem_tag}, {{(30){1'b0}},MSHR_queue[i].state} );
-    end
-`endif
-
-`ifdef PRINT_ICACHE
-    print_icache_head({{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}},i_cache_head}, {{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}},i_cache_tail}, proc2Icache_addr[63:32], proc2Icache_addr[31:0]);
-    for(int i = 0; i < `NUM_ICACHE_LINES; i++) begin
-      print_icache_entry(i, {31'b0, i_cache[i].valid}, {{(32-(16-$clog2(`NUM_ICACHE_LINES)-3)){1'b0}}, i_cache[i].tag}, i_cache[i].data[63:32], i_cache[i].data[31:0]);
-    end
-`endif
-
-`ifdef PRINT_MEM_TAG_TABLE
-    print_mem_tag_table_head();
-    for(int i = 0; i < 16; i++) begin
-      print_mem_tag_table_entry(i, {{(32-$clog2(`NUM_ICACHE_LINES)){1'b0}}, mem_tag_table[i].idx}, {{(32-(16-$clog2(`NUM_ICACHE_LINES)-3)){1'b0}}, mem_tag_table[i].tag});
     end
 `endif
 
@@ -585,9 +573,15 @@ module testbench;
                 pipeline_commit_NPC[i]-4,
                 pipeline_commit_wr_idx[i],
                 pipeline_commit_wr_data[i]);
+            $fdisplay(wb_fileno_clk, "PC=%x, REG[%d]=%x, clk=%x",
+                pipeline_commit_NPC[i]-4,
+                pipeline_commit_wr_idx[i],
+                pipeline_commit_wr_data[i],
+                clock_count);
           end
           else begin
             $fdisplay(wb_fileno, "PC=%x, ---",pipeline_commit_NPC[i]-4);
+            $fdisplay(wb_fileno_clk, "PC=%x, ---",pipeline_commit_NPC[i]-4);
           end
         end
       end
@@ -595,8 +589,8 @@ module testbench;
 
 
       // deal with any halting conditions
-`ifdef HALT_ON_TIMEOUT
-      if (clock_cycle > `TIMEOUT_CYCLES)
+`ifdef HALT_ON_TIMEOUT_CLOCK_COUNT
+      if (clock_count > `TIMEOUT_MAX_CLOCK)
       begin
         $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
         show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
@@ -604,11 +598,31 @@ module testbench;
 
         $display("@@  %t : System halted\n@@", $realtime);
 
-        $display(  "@@@ System halted on Timeout");
+        $display(  "@@@ System halted on Timeout (Program ran too long)");
         $display("@@@\n@@");
         show_clk_count;
         print_close(); // close the pipe_print output file
         $fclose(wb_fileno);
+        $fclose(wb_fileno_clk);
+        #100 $finish;
+      end
+`endif
+
+`ifdef HALT_ON_TIMEOUT_CYCLE_COUNT
+      if (clock_cycle > `TIMEOUT_MAX_CYCLES)
+      begin
+        $display(  "@@@ Unified Memory contents hex on left, decimal on right: ");
+        show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
+        // 8Bytes per line, 16kB total
+
+        $display("@@  %t : System halted\n@@", $realtime);
+
+        $display(  "@@@ System halted on Timeout (Program + overhead ran too long)");
+        $display("@@@\n@@");
+        show_clk_count;
+        print_close(); // close the pipe_print output file
+        $fclose(wb_fileno);
+        $fclose(wb_fileno_clk);
         #100 $finish;
       end
 `endif
@@ -636,6 +650,7 @@ module testbench;
         show_clk_count;
         print_close(); // close the pipe_print output file
         $fclose(wb_fileno);
+        $fclose(wb_fileno_clk);
         #100 $finish;
       end
 
