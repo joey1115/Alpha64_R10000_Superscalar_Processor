@@ -35,7 +35,7 @@ module SQ (
   logic       [$clog2(`NUM_LSQ)-1:0]                 next_head, next_tail, tail_plus_one, tail_plus_two, head_plus_one, head_plus_two, virtual_tail;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] head_map_idx;
   SQ_ENTRY_t  [`NUM_LSQ-1:0]                         next_sq;
-  logic       [`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx, idx;
+  logic       [`NUM_SUPER-1:0][`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx;
   logic       [`NUM_SUPER-1:0]                       retire_valid;
   logic       [`NUM_SUPER-1:0]                       st_hit;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] st_idx, SQ_idx_minus_one;
@@ -73,7 +73,7 @@ module SQ (
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
       SQ_LQ_out.hit[i]    = st_hit[i];
-      SQ_LQ_out.value[i]  = sq[sq_map_idx[st_idx[i]]].value;
+      SQ_LQ_out.value[i]  = sq[sq_map_idx[i][st_idx[i]]].value;
     end
     SQ_LQ_out.LQ_idx = sq[head].LQ_idx;
     SQ_LQ_out.retire = (ROB_SQ_out.wr_mem & ROB_SQ_out.retire) != 2'b00;
@@ -178,8 +178,10 @@ module SQ (
   // Age logic
   // Map SQ idx
   always_comb begin
-    for (int j = 0; j < `NUM_LSQ; j++) begin
-      sq_map_idx[j] = LQ_SQ_out.SQ_idx + j;
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      for (int j = 0; j < `NUM_LSQ; j++) begin
+        sq_map_idx[i][j] = LQ_SQ_out.SQ_idx[i] + j;
+      end
     end
   end
 
@@ -195,7 +197,7 @@ module SQ (
     st_idx = {`NUM_SUPER{`FALSE}};
     for (int i = 0; i < `NUM_SUPER; i++) begin
       for (int j = `NUM_LSQ - 1; j >= 0; j--) begin
-        if (LQ_SQ_out.addr[i] == sq[sq_map_idx[j]].addr && sq[sq_map_idx[j]].valid && j > head_map_idx[i]) begin
+        if (LQ_SQ_out.addr[i] == sq[sq_map_idx[i][j]].addr && sq[sq_map_idx[i][j]].valid && j > head_map_idx[i]) begin
           st_hit[i] = `TRUE;
           st_idx[i] = j;
           break;
