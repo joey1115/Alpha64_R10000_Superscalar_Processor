@@ -20,8 +20,8 @@
 
 // `define HALT_ON_CYCLE
 // After runing for TIMEOUT_CYCLES cycles, halt!
-`define TIMEOUT_MAX_CYCLES 10000
-`define TIMEOUT_MAX_CLOCK 10000
+`define TIMEOUT_MAX_CYCLES 1000000
+`define TIMEOUT_MAX_CLOCK 1000000
 
 
 `define PRINT_DISPATCH_EN
