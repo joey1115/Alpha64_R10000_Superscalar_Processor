@@ -40,6 +40,8 @@ module pipeline (
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
   output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail,
   output logic          [5:0]                           count,
+  output I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]         i_cache,
+  output MEM_TAG_TABLE_t [15:0]                          mem_tag_table,
 `endif
   output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
   output logic        [`NUM_SUPER-1:0][63:0]             pipeline_commit_wr_data,
@@ -276,22 +278,40 @@ module pipeline (
     // inputs 
     .clock              (clock),
     .reset              (reset),
-    .Imem2proc_response (Imem2proc_response),
-    .Imem2proc_data     (mem2proc_data),
-    .Imem2proc_tag      (mem2proc_tag),
     .proc2Icache_addr   (proc2Icache_addr),
-    .cachemem_data      (cachemem_data),
-    .cachemem_valid     (cachemem_valid),
+    .Imem2proc_response (Imem2proc_response),
+    .Imem2proc_tag      (mem2proc_tag),
+    .Imem2proc_data     (mem2proc_data),
     // outputs
     .proc2Imem_command  (proc2Imem_command),
     .proc2Imem_addr     (proc2Imem_addr),
+`ifdef DEBUG
+    .i_cache(i_cache),
+    .mem_tag_table(mem_tag_table),
+    // .head(i_cache_head),
+    // .tail(i_cache_tail),
+`endif
     .Icache_data_out    (Icache_data_out),
-    .Icache_valid_out   (Icache_valid_out),
-    .current_index      (Icache_rd_idx),
-    .current_tag        (Icache_rd_tag),
-    .last_index         (Icache_wr_idx),
-    .last_tag           (Icache_wr_tag),
-    .data_write_enable  (Icache_wr_en)
+    .Icache_valid_out   (Icache_valid_out)
+    // inputs 
+    // .clock              (clock),
+    // .reset              (reset),
+    // .Imem2proc_response (Imem2proc_response),
+    // .Imem2proc_data     (mem2proc_data),
+    // .Imem2proc_tag      (mem2proc_tag),
+    // .proc2Icache_addr   (proc2Icache_addr),
+    // .cachemem_data      (cachemem_data),
+    // .cachemem_valid     (cachemem_valid),
+    // // outputs
+    // .proc2Imem_command  (proc2Imem_command),
+    // .proc2Imem_addr     (proc2Imem_addr),
+    // .Icache_data_out    (Icache_data_out),
+    // .Icache_valid_out   (Icache_valid_out),
+    // .current_index      (Icache_rd_idx),
+    // .current_tag        (Icache_rd_tag),
+    // .last_index         (Icache_wr_idx),
+    // .last_tag           (Icache_wr_tag),
+    // .data_write_enable  (Icache_wr_en)
   );
 
   //D cache modules
