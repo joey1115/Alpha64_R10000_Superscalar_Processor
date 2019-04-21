@@ -31,6 +31,7 @@ typedef struct packed {
 
 typedef struct packed {
   logic [`NUM_SUPER-1:0]       hit;
+  logic [`NUM_SUPER-1:0]       valid;
   logic [`NUM_SUPER-1:0][63:0] value;
   logic [$clog2(`NUM_LSQ)-1:0] LQ_idx;
   logic                        retire;

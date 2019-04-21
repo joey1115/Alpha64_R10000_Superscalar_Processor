@@ -83,6 +83,7 @@ module Dcache_controller(
       .wr1_data(wr1_data),
       .wr1_dirty(wr1_dirty),
       .wr1_valid(wr1_valid),
+      .MSHR_queue(MSHR_queue),
       .rd1_search(rd1_search),
       .wr1_search(wr1_search),
       .write_back_stage(write_back_stage),
