@@ -603,6 +603,7 @@ module testbench;
         show_clk_count;
         print_close(); // close the pipe_print output file
         $fclose(wb_fileno);
+        $fclose(wb_fileno_clk);
         #100 $finish;
       end
 `endif
