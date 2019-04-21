@@ -143,10 +143,8 @@ module testbench;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
   logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
   I_CACHE_ENTRY_t [`NUM_ICACHE_LINES-1:0]         i_cache;
-  // logic [$clog2(`NUM_ICACHE_LINES)-1:0]           i_cache_head;
-  // logic [$clog2(`NUM_ICACHE_LINES)-1:0]           i_cache_tail;
   MEM_TAG_TABLE_t [15:0]                          mem_tag_table;
-  logic          [5:0]                           count;
+  logic          [5:0]                            count;
   logic          [`NUM_IDX-1:0][`NUM_WAY-1:0]     LRU_bank_sel;
   
 
@@ -184,17 +182,16 @@ module testbench;
     .pipeline_LQ(pipeline_LQ),
     .LQ_head(LQ_head),
     .LQ_tail(LQ_tail),
+    .LRU_bank_sel(LRU_bank_sel),
     .Dcache_bank(Dcache_bank),
     .MSHR_queue(MSHR_queue),
     .MSHR_writeback_head(MSHR_writeback_head),
     .MSHR_head(MSHR_head),
     .MSHR_tail(MSHR_tail),
     .i_cache(i_cache),
-    // .i_cache_head(i_cache_head),
-    // .i_cache_tail(i_cache_tail),
     .mem_tag_table(mem_tag_table),
     .count(count),
-    .LRU_bank_sel(LRU_bank_sel),
+
 `endif
     // Outputs
     .pipeline_commit_wr_idx(pipeline_commit_wr_idx),
