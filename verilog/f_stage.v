@@ -46,8 +46,8 @@ module F_stage(
   // next PC is target_pc if there is a taken branch or
   // the next sequential PC (PC+4) if no branch
   // (halting is handled with the enable PC_enable;
-  assign next_PC = BP_F_out.take_branch_target_out;
-  assign take_branch = BP_F_out.take_branch_out[0] || BP_F_out.take_branch_out[1]; 
+  assign next_PC = BP_F_out.branch_target;
+  assign take_branch = BP_F_out.branch_take[0] || BP_F_out.branch_take[1]; 
 
   // The take-branch signal must override stalling (otherwise it may be lost)
   assign PC_enable = (Imem_valid && get_next_inst) || BP_F_out.rollback_en;
@@ -65,9 +65,9 @@ module F_stage(
   // assign if_valid_inst_out = BP_F_out.inst_valid;
   assign if_valid_inst_out = BP_F_out.inst_valid;
 
-  assign if_target_out[0] = BP_F_out.take_branch_out[0] ? BP_F_out.take_branch_target_out:
+  assign if_target_out[0] = BP_F_out.branch_take[0] ? BP_F_out.branch_target:
                             if_NPC_out[0];
-  assign if_target_out[1] = BP_F_out.take_branch_out[1] ? BP_F_out.take_branch_target_out:
+  assign if_target_out[1] = BP_F_out.branch_take[1] ? BP_F_out.branch_target:
                             if_NPC_out[1];
 
   // This register holds the PC value

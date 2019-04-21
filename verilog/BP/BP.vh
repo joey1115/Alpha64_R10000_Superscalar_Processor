@@ -15,8 +15,8 @@ typedef struct packed {
 
 typedef struct packed {
   logic [`NUM_SUPER-1:0]       inst_valid;
-  logic [`NUM_SUPER-1:0]       take_branch_out;           // taken or not taken
-  logic [63:0]                 take_branch_target_out;    // if taken, target
+  logic [`NUM_SUPER-1:0]       branch_take;   // taken or not taken
+  logic [63:0]                 branch_target; // if taken, target
   logic                        rollback_en;
 } BP_F_OUT_t;
 
