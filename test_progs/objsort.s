@@ -26,18 +26,18 @@ oloop:	addq	$r15, 8, $r15                                                       
 	ldq     $r2, 0($r15)                                                                 #68
         bge     $r2, oloop                                                                   #6C
 	br	print                                                                        #70
-sloop:	mov	$r1, $r16	# r16 holds object to link to this one                       #74                                                
-	ldq     $r5, 16($r6)                                                                 #78      
-	jsr     $r26, ($r5)	# call to next function                                      #7C                                 
-	ldq	$r6, 0($r1)                                                                  #80     
-	ldq	$r5, 0($r6)	                                                             #84          
-	jsr	$r26, ($r5)	# call to greaterthan function                               #88                                        
-	bne	$r0, sloop                                                                   #8C    
-	bsr	$r26, makei                                                                  #90     
-	mov	$r0, $r2                                                                     #94  
-	mov     $r16, $r1                                                                    #98   
-	ldq     $r6, 0($r1)                                                                  #9C     
-        ldq     $r5, 32($r6)                                                                 #A0      
+sloop:	mov	$r1, $r16	# r16 holds object to link to this one                       #74
+	ldq     $r5, 16($r6)                                                                 #78
+	jsr     $r26, ($r5)	# call to next function                                      #7C
+	ldq	$r6, 0($r1)                                                                  #80
+	ldq	$r5, 0($r6)	                                                             #84
+	jsr	$r26, ($r5)	# call to greaterthan function                               #88
+	bne	$r0, sloop                                                                   #8C
+	bsr	$r26, makei                                                                  #90
+	mov	$r0, $r2                                                                     #94
+	mov     $r16, $r1                                                                    #98
+	ldq     $r6, 0($r1)                                                                  #9C
+        ldq     $r5, 32($r6)                                                                 #A0 
 	jsr     $r26, ($r5)     # call to link function                                      #A4                                 
 	ldq     $r2, 0($r15)                                                                 #A8      
 	bge	$r2, oloop                                                                   #AC    
@@ -61,38 +61,38 @@ makeh:	mov	$r22, $r0                                                            
 	ret                                                                                  #F4
 makei:	mov	$r22, $r0                                                                    #F8   
 	stq	$r20, 0($r22)                                                                #FC       
-	stq	$r1, 16($r22)                                                                       
-	stq	$r2, 8($r22)                                                                       
-	addq	$r22, 24, $r22                                                                       
-	ret                                                                       
-igth:	ret	$r1                                                                       
-	lda	$r0, 0                                                                       
-	ret                                                                       
-conti:	br	$r2, nexti                                                                       
-	addq	$r31, 1, $r0                                                                       
-	ret                                                                       
-inti:	br	$r4, linki                                                                       
-	ldq	$r0, 8($r1)                                                                       
-	ret                                                                       
-nexti:	br	$r3, inti                                                                       
-	ldq	$r1, 16($r1)                                                                       
-	ret                                                                       
-linki:	br      $r5, igti                                                                       
-	stq	$r2, 16($r1)                                                                       
-	ret                                                                       
-igti:	ret	$r1                                                                       
-	ldq	$r3,8($r1)                                                                       
-	cmplt	$r3,$r2,$r0                                                                       
-	ret                                                                       
-	.align 3                                                                       
-	lda	$r0, 0		# filler                                                                       
-htab:	br 	$r0, igth                                                                       
-	.quad	0                                                                       
-	.quad	0                                                                       
-        lda     $r0, 0          # filler                                                                       
-itab:   br	$r0, conti                                                                       
-        .quad   0                                                                       
-	.quad	0                                                                       
+	stq	$r1, 16($r22)                                                                #100       
+	stq	$r2, 8($r22)                                                                 #104      
+	addq	$r22, 24, $r22                                                               #108        
+	ret                                                                                  #10C
+igth:	ret	$r1                                                                          #110
+	lda	$r0, 0                                                                       #114
+	ret                                                                                  #118
+conti:	br	$r2, nexti                                                                   #11C    
+	addq	$r31, 1, $r0                                                                 #120      
+	ret                                                                                  #124
+inti:	br	$r4, linki                                                                   #128    
+	ldq	$r0, 8($r1)                                                                  #12C     
+	ret                                                                                  #130
+nexti:	br	$r3, inti                                                                    #134   
+	ldq	$r1, 16($r1)                                                                 #138      
+	ret                                                                                  #13C
+linki:	br      $r5, igti                                                                    #140   
+	stq	$r2, 16($r1)                                                                 #144      
+	ret                                                                                  #148
+igti:	ret	$r1                                                                          #14C
+	ldq	$r3,8($r1)                                                                   #150    
+	cmplt	$r3,$r2,$r0                                                                  #154     
+	ret                                                                                  #158
+	.align 3                                                                             #15C
+	lda	$r0, 0		# filler                                                     #160                  
+htab:	br 	$r0, igth                                                                    #164   
+	.quad	0                                                                            #168
+	.quad	0                                                                            #16C
+        lda     $r0, 0          # filler                                                     #170                 
+itab:   br	$r0, conti                                                                   #174    
+        .quad   0                                                                            
+	.quad	0                                                                            
 	.quad 	0                                                                       
                                                                        
                                                                        
