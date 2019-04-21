@@ -15,8 +15,8 @@
 // ******** WARNING !!! *********
 // DANGEROUS FEATURE: HALT_ON_TIMEOUT should always be uncommented
 // unless you know the pipeline will never reach the halt instruction and run forever
-`define HALT_ON_TIMEOUT_CLOCK_COUNT //STOP ON CLOCK COUNT FOR CPI
-`define HALT_ON_TIMEOUT_CYCLE_COUNT //STOP ON CYCLE COUNT (DURATION OF PROGRAM)
+// `define HALT_ON_TIMEOUT_CLOCK_COUNT //STOP ON CLOCK COUNT FOR CPI
+// `define HALT_ON_TIMEOUT_CYCLE_COUNT //STOP ON CYCLE COUNT (DURATION OF PROGRAM)
 
 // `define HALT_ON_CYCLE
 // After runing for TIMEOUT_CYCLES cycles, halt!
