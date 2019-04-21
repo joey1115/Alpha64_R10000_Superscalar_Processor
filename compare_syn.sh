@@ -40,6 +40,8 @@ cd ..
 
 echo "Running test programs"
 echo "Running make"
+chmod 755 ./vs-asm
+chmod +X ./vs-asm
 for i in ./test_progs/*.s
 do
   echo "Running $i"
