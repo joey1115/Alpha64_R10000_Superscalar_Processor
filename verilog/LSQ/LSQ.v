@@ -438,7 +438,7 @@ module LQ (
       case(decoder_LQ_out.rd_mem)
         2'b01: begin
           next_lq[tail].addr    = 61'h0;
-          next_lq[tail].valid   = `FALSE;
+          // next_lq[tail].valid   = `FALSE;
           next_lq[tail].ROB_idx = ROB_idx[0];
           next_lq[tail].FL_idx  = FL_idx[0];
           next_lq[tail].SQ_idx  = SQ_idx[0];
@@ -446,7 +446,7 @@ module LQ (
         end
         2'b10: begin
           next_lq[tail].addr    = 61'h0;
-          next_lq[tail].valid   = `FALSE;
+          // next_lq[tail].valid   = `FALSE;
           next_lq[tail].ROB_idx = ROB_idx[1];
           next_lq[tail].FL_idx  = FL_idx[1];
           next_lq[tail].SQ_idx  = SQ_idx[1];
@@ -454,7 +454,7 @@ module LQ (
         end
         2'b11: begin
           next_lq[tail].addr             = 61'h0;
-          next_lq[tail].valid            = `FALSE;
+          // next_lq[tail].valid            = `FALSE;
           next_lq[tail].ROB_idx          = ROB_idx[0];
           next_lq[tail].FL_idx           = FL_idx[0];
           next_lq[tail].SQ_idx           = SQ_idx[0];
@@ -474,17 +474,17 @@ module LQ (
       end
       2'b01: begin
         next_lq[LQ_idx_minus_one[0]].addr  = FU_LQ_out.result[0][63:3];
-        next_lq[LQ_idx_minus_one[0]].valid = SQ_LQ_out.hit[0] || D_cache_LQ_out.valid;
+        // next_lq[LQ_idx_minus_one[0]].valid = SQ_LQ_out.hit[0] || D_cache_LQ_out.valid;
       end
       2'b10: begin
         next_lq[LQ_idx_minus_one[1]].addr  = FU_LQ_out.result[1][63:3];
-        next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1] || D_cache_LQ_out.valid;
+        // next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1] || D_cache_LQ_out.valid;
       end
       2'b11: begin
         next_lq[LQ_idx_minus_one[0]].addr  = FU_LQ_out.result[0][63:3];
-        next_lq[LQ_idx_minus_one[0]].valid = SQ_LQ_out.hit[0] || D_cache_LQ_out.valid;
+        // next_lq[LQ_idx_minus_one[0]].valid = SQ_LQ_out.hit[0] || D_cache_LQ_out.valid;
         next_lq[LQ_idx_minus_one[1]].addr  = FU_LQ_out.result[1][63:3];
-        next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1];
+        // next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1];
       end
     endcase
   end
