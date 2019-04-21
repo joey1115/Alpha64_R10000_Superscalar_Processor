@@ -50,6 +50,7 @@ typedef struct packed {
   MSHR_INST_TYPE  [2:0]  inst_type;
   logic [2:0][1:0]       mshr_proc2mem_command;
   logic [2:0]            miss_dirty;
+  logic [$clog2(`NUM_ROB)-1:0]        ROB_idx;
   //looking up the MSHR      
   // SASS_ADDR [1:0]        search_addr; //address to search
   // MSHR_INST_TYPE [1:0]   search_type; //address search type (might not need)
@@ -68,7 +69,8 @@ typedef struct packed {
 {3{64'hbaadbeefdeadbeef}}, \
 {{3'b0}},                 \
 {3{2'b0}},                 \
-{3'b0}                    \
+{3'b0},                    \
+{($clog2(`NUM_ROB)){1'b0}} \
 }
 `define regA_reset  '{(`NUM_IDX){1'b0}}
 `define regB_reset  '{(`NUM_IDX){1'b0}}

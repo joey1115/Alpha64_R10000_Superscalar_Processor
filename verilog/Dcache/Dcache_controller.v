@@ -101,9 +101,9 @@ module Dcache_controller(
     MSHR mshr_0 (
       .clock(clock),
       .reset(reset),
-      .d_cache_mshr_out(d_cache_mshr_out),
       // .stored_rd_wb(stored_rd_wb),
       .stored_mem_wr(stored_mem_wr),
+      .d_cache_mshr_out(d_cache_mshr_out),
   `ifdef DEBUG
       .MSHR_queue(MSHR_queue),
       .writeback_head(MSHR_writeback_head),
@@ -136,10 +136,13 @@ module Dcache_controller(
 
   //if not in cache, enable to push d_cache_lq_out.value to the MSHR
   assign next_d_cache_mshr_out.miss_en[0] = lq_d_cache_out.rd_en && !rd1_hit && mshr_valid;
+  assign next_d_cache_mshr_out.ROB_idx = lq_d_cache_out.ROB_idx && !rd1_hit && mshr_valid;
   //Miss from stores
   assign next_d_cache_mshr_out.miss_en[1] = sq_d_cache_out.wr_en && !wr1_hit && mshr_valid;
+  // assign next_d_cache_mshr_out.ROB_idx[1] = sq_d_cache_out.ROB_idx && !wr1_hit && mshr_valid;
   //Store inst from evicts
   assign next_d_cache_mshr_out.miss_en[2] = ((!sq_d_cache_out.wr_en && mshr_d_cache_out.rd_wb_en && wr1_en) || (!sq_d_cache_out.wr_en && mshr_d_cache_out.mem_wr && wr1_en) || write_back_stage) && evicted_dirty && evicted_valid;// when wr1 is from memory and it is dirty
+  // assign next_d_cache_mshr_out.ROB_idx[2] = ((!sq_d_cache_out.wr_en && mshr_d_cache_out.rd_wb_en && wr1_en) || (!sq_d_cache_out.wr_en && mshr_d_cache_out.mem_wr && wr1_en) || write_back_stage) && evicted_dirty && evicted_valid;// when wr1 is from memory and it is dirty
   // assign next_d_cache_mshr_out.miss_en[2] = evicted_dirty && evicted_valid;// when wr1 is from memory and it is dirty
 
 

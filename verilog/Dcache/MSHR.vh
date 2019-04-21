@@ -29,6 +29,7 @@ typedef struct packed {
   logic                               complete;
   logic [3:0]                         mem_tag;
   MSHR_STATE                          state;
+  logic [$clog2(`NUM_ROB)-1:0]        ROB_idx;
 } MSHR_ENTRY_t;
 
 `define MSHR_queue_reset '{ \
@@ -40,7 +41,8 @@ STORE,                  \
 BUS_NONE,               \
 1'b0,                   \
 4'b0,                   \
-INPROGRESS              \
+INPROGRESS,              \
+{($clog2(`NUM_ROB)){1'b0}} \
 }
 
 typedef struct packed {

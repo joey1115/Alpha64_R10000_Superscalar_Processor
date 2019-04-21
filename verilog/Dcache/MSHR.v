@@ -68,7 +68,9 @@ module MSHR(
 
   SASS_ADDR current_rd_addr, last_rd_addr;
   SASS_ADDR current_wr_addr, last_wr_addr;
-
+  logic    [$clog2(`NUM_ROB)-1:0] current_rd_ROB_idx, last_rd_ROB_idx;
+  logic state, next_state;
+  logic key_enter_MSHR;
 
   //how many entries to allocate
   // assign tail_move = d_cache_mshr_out.miss_en[0] + d_cache_mshr_out.miss_en[1] + d_cache_mshr_out.miss_en[2];
@@ -165,9 +167,17 @@ module MSHR(
 
   assign next_head = (request_accepted) ? head_plus_one : head;
 
-  //change logic
-  assign current_rd_addr = d_cache_mshr_out.miss_addr[0];
-  assign changed_rd_input = current_rd_addr != last_rd_addr;
+  always_comb begin
+    if (state == 0 && changed_rd_input) 
+      next_state = 1;
+    else if (state == 1 && key_enter_MSHR)
+      next_state = 0;
+    else
+      next_state = state;
+  end
+
+  assign current_rd_ROB_idx = d_cache_mshr_out.ROB_idx;
+  assign changed_rd_input = current_rd_ROB_idx != last_rd_ROB_idx;
 
   assign current_wr_addr = d_cache_mshr_out.miss_addr[1];
   assign changed_wr_input = current_wr_addr != last_wr_addr;
@@ -211,9 +221,10 @@ module MSHR(
 
     next_MSHR_queue[head].mem_tag = mem2proc_response;
 
-    pending_rd_bus_load = d_cache_mshr_out.miss_en[0] && !rd_search_hit && changed_rd_input;
+    pending_rd_bus_load = d_cache_mshr_out.miss_en[0] && !rd_search_hit && state;
     pending_wr_bus_load = d_cache_mshr_out.miss_en[1] && !wr_search_hit;// && prev_changed_wr_input;
 
+    key_enter_MSHR  = 0;
     next_tail = tail;
     if(pending_rd_bus_load && !pending_wr_bus_load && !pending_bus_load && !d_cache_mshr_out.miss_en[2]) begin
       next_MSHR_queue[tail].valid = 1;
@@ -225,6 +236,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_one;
     end
@@ -238,6 +250,8 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
+      key_enter_MSHR                = 1;
 
       next_tail = tail_plus_one;
     end
@@ -251,6 +265,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_one;
     end
@@ -264,6 +279,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_one;
     end
@@ -277,6 +293,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
@@ -287,6 +304,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_two;
     end
@@ -300,6 +318,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
@@ -310,6 +329,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_two;
     end
@@ -323,6 +343,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[2];
@@ -333,6 +354,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_two;
     end
@@ -346,6 +368,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
@@ -356,6 +379,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_two;
     end
@@ -369,6 +393,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[2];
@@ -379,6 +404,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_two;
     end
@@ -392,6 +418,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[2];
@@ -402,6 +429,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty = d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_two;
     end
@@ -415,6 +443,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
@@ -425,6 +454,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty =  d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_two].valid = 1;
       next_MSHR_queue[tail_plus_two].data = d_cache_mshr_out.miss_data_in[1];
@@ -435,6 +465,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_two].mem_tag = 0;
       next_MSHR_queue[tail_plus_two].state = WAITING;
       next_MSHR_queue[tail_plus_two].dirty =  d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_two].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_three;
     end
@@ -448,6 +479,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
@@ -458,6 +490,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty =  d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_two].valid = 1;
       next_MSHR_queue[tail_plus_two].data = d_cache_mshr_out.miss_data_in[2];
@@ -468,6 +501,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_two].mem_tag = 0;
       next_MSHR_queue[tail_plus_two].state = WAITING;
       next_MSHR_queue[tail_plus_two].dirty =  d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail_plus_two].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_three;
     end
@@ -481,6 +515,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
@@ -491,6 +526,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty =  d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_two].valid = 1;
       next_MSHR_queue[tail_plus_two].data = d_cache_mshr_out.miss_data_in[2];
@@ -501,6 +537,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_two].mem_tag = 0;
       next_MSHR_queue[tail_plus_two].state = WAITING;
       next_MSHR_queue[tail_plus_two].dirty =  d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail_plus_two].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_three;
     end
@@ -514,6 +551,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
@@ -524,6 +562,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty =  d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_two].valid = 1;
       next_MSHR_queue[tail_plus_two].data = d_cache_mshr_out.miss_data_in[2];
@@ -534,6 +573,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_two].mem_tag = 0;
       next_MSHR_queue[tail_plus_two].state = WAITING;
       next_MSHR_queue[tail_plus_two].dirty =  d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail_plus_two].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_three;
     end
@@ -547,6 +587,7 @@ module MSHR(
       next_MSHR_queue[tail].mem_tag = 0;
       next_MSHR_queue[tail].state = WAITING;
       next_MSHR_queue[tail].dirty = d_cache_mshr_out.miss_dirty[0];
+      next_MSHR_queue[tail].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_one].valid = 1;
       next_MSHR_queue[tail_plus_one].data = d_cache_mshr_out.miss_data_in[1];
@@ -557,6 +598,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_one].mem_tag = 0;
       next_MSHR_queue[tail_plus_one].state = WAITING;
       next_MSHR_queue[tail_plus_one].dirty =  d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_one].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_two].valid = 1;
       next_MSHR_queue[tail_plus_two].data = d_cache_mshr_out.miss_data_in[1];
@@ -567,6 +609,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_two].mem_tag = 0;
       next_MSHR_queue[tail_plus_two].state = WAITING;
       next_MSHR_queue[tail_plus_two].dirty =  d_cache_mshr_out.miss_dirty[1];
+      next_MSHR_queue[tail_plus_two].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_MSHR_queue[tail_plus_three].valid = 1;
       next_MSHR_queue[tail_plus_three].data = d_cache_mshr_out.miss_data_in[2];
@@ -577,6 +620,7 @@ module MSHR(
       next_MSHR_queue[tail_plus_three].mem_tag = 0;
       next_MSHR_queue[tail_plus_three].state = WAITING;
       next_MSHR_queue[tail_plus_three].dirty =  d_cache_mshr_out.miss_dirty[2];
+      next_MSHR_queue[tail_plus_three].ROB_idx = d_cache_mshr_out.ROB_idx ;
 
       next_tail = tail_plus_four;
     end
@@ -600,12 +644,13 @@ module MSHR(
   always_ff @(posedge clock) begin
     if(reset) begin
       for(int i = 0; i < `MSHR_DEPTH; i++) begin
+        state = 0;
         MSHR_queue[i] <= `SD `MSHR_queue_reset;
       end
       writeback_head    <= `SD `writeback_head_reset;
       head              <= `SD `head_reset;
       tail              <= `SD `tail_reset;
-      last_rd_addr      <= `SD 64'h1111_1111_1111_1111;
+      last_rd_ROB_idx      <= `SD {($clog2(`NUM_ROB)){1'b0}};
       last_wr_addr      <= `SD 64'h1111_1111_1111_1111;
       prev_changed_wr_input <= `SD `FALSE;
     end
@@ -614,9 +659,10 @@ module MSHR(
       writeback_head    <= `SD next_writeback_head;
       head              <= `SD next_head;
       tail              <= `SD next_tail;
-      last_rd_addr      <= `SD current_rd_addr;
+      last_rd_ROB_idx      <= `SD current_rd_ROB_idx;
       last_wr_addr      <= `SD current_wr_addr;
       prev_changed_wr_input <= `SD changed_wr_input;
+      state <= next_state;
     end
   end
 endmodule

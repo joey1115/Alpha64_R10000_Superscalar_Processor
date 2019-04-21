@@ -131,6 +131,7 @@ module SQ (
   assign SQ_D_cache_out.wr_en = (ROB_SQ_out.wr_mem[0] & ROB_SQ_out.retire[0]) | (ROB_SQ_out.wr_mem[1] & (ROB_SQ_out.retire == 2'b11));
   assign SQ_D_cache_out.addr  = sq[head].addr;
   assign SQ_D_cache_out.value = sq[head].value;
+  
 
   always_comb begin
     case(ROB_SQ_out.wr_mem & retire_en)
@@ -339,18 +340,22 @@ module LQ (
       2'b00: begin
         LQ_D_cache_out.rd_en = `FALSE;
         LQ_D_cache_out.addr  = 61'h0;
+        LQ_D_cache_out.ROB_idx = 0;
       end
       2'b01: begin
         LQ_D_cache_out.rd_en = FU_LQ_out.done[0] & SQ_LQ_out.valid[0] & ~SQ_LQ_out.hit[0] & ~rollback_valid[0];
         LQ_D_cache_out.addr  = FU_LQ_out.result[0][63:3];
+        LQ_D_cache_out.ROB_idx = FU_LQ_out.ROB_idx[0];
       end
       2'b10: begin
         LQ_D_cache_out.rd_en = FU_LQ_out.done[1] & SQ_LQ_out.valid[1] & ~SQ_LQ_out.hit[1] & ~rollback_valid[1];
         LQ_D_cache_out.addr  = FU_LQ_out.result[1][63:3];
+        LQ_D_cache_out.ROB_idx = FU_LQ_out.ROB_idx[1];
       end
       2'b11: begin
         LQ_D_cache_out.rd_en = FU_LQ_out.done[0] & SQ_LQ_out.valid[1] & ~SQ_LQ_out.hit[0] & ~rollback_valid[0];
         LQ_D_cache_out.addr  = FU_LQ_out.result[0][63:3];
+        LQ_D_cache_out.ROB_idx = FU_LQ_out.ROB_idx[0];
       end
     endcase
   end

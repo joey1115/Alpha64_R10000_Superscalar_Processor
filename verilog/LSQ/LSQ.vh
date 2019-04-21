@@ -27,6 +27,7 @@ typedef struct packed {
   logic        wr_en;
   logic [60:0] addr;
   logic [63:0] value;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
 } SQ_D_CACHE_OUT_t;
 
 typedef struct packed {
@@ -98,6 +99,7 @@ typedef struct packed {
 typedef struct packed {
   logic        rd_en;
   logic [60:0] addr;
+  logic [$clog2(`NUM_ROB)-1:0] ROB_idx;
 } LQ_D_CACHE_OUT_t;
 
 typedef struct packed {
