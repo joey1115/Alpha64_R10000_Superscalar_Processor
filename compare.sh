@@ -21,6 +21,8 @@ cd project4_provided
 echo "Running make"
 make nuke &> /dev/null
 make simv &> compile.out
+chmod 755 ./vs-asm
+chmod +X ./vs-asm
 for i in ./../test_progs/*.s
 do
   echo "Running $i"
@@ -40,6 +42,8 @@ echo "Running test programs"
 echo "Running make"
 make nuke &> /dev/null
 make simv &> compile.out
+chmod 755 ./vs-asm
+chmod +X ./vs-asm
 for i in ./test_progs/*.s
 do
   echo "Running $i"
