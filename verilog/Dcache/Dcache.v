@@ -131,10 +131,10 @@ module Dcache(
 
   assign rd1_hit_out = rd1_hit[0] | rd1_hit[1] | rd1_hit[2] | rd1_hit[3];
 
-  assign rd1_data_out = (rd1_search & rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & !rd1_hit[3]) ? rd1_data[0] :
-                        (rd1_search & !rd1_hit[0] & rd1_hit[1] & !rd1_hit[2] & !rd1_hit[3]) ? rd1_data[1] :
-                        (rd1_search & !rd1_hit[0] & !rd1_hit[1] & rd1_hit[2] & !rd1_hit[3]) ? rd1_data[2] :
-                        (rd1_search & !rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & rd1_hit[3]) ? rd1_data[3] : 64'hDEADDEADDEADDEAD;
+  assign rd1_data_out = (rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & !rd1_hit[3]) ? rd1_data[0] :
+                        (!rd1_hit[0] & rd1_hit[1] & !rd1_hit[2] & !rd1_hit[3]) ? rd1_data[1] :
+                        (!rd1_hit[0] & !rd1_hit[1] & rd1_hit[2] & !rd1_hit[3]) ? rd1_data[2] :
+                        (!rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & rd1_hit[3]) ? rd1_data[3] : 64'hDEADDEADDEADDEAD;
 
   assign wr1_hit_out = wr1_hit[0] | wr1_hit[1] | wr1_hit[2] | wr1_hit[3];
 
