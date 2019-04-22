@@ -11,8 +11,6 @@ module Dcache(
   input logic                                                       wr1_from_mem,
   //addr from proc
   input SASS_ADDR                                                   rd1_addr, wr1_addr,
-  input logic                                                       rd1_search,
-  input logic                                                       wr1_search,
   input logic                                                       write_back_stage,
   output logic [63:0]                                               rd1_data_out,
   output logic                                                      rd1_hit_out, wr1_hit_out,
@@ -131,10 +129,10 @@ module Dcache(
 
   assign rd1_hit_out = rd1_hit[0] | rd1_hit[1] | rd1_hit[2] | rd1_hit[3];
 
-  assign rd1_data_out = (rd1_search & rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & !rd1_hit[3]) ? rd1_data[0] :
-                        (rd1_search & !rd1_hit[0] & rd1_hit[1] & !rd1_hit[2] & !rd1_hit[3]) ? rd1_data[1] :
-                        (rd1_search & !rd1_hit[0] & !rd1_hit[1] & rd1_hit[2] & !rd1_hit[3]) ? rd1_data[2] :
-                        (rd1_search & !rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & rd1_hit[3]) ? rd1_data[3] : 64'hDEADDEADDEADDEAD;
+  assign rd1_data_out = (rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & !rd1_hit[3]) ? rd1_data[0] :
+                        (!rd1_hit[0] & rd1_hit[1] & !rd1_hit[2] & !rd1_hit[3]) ? rd1_data[1] :
+                        (!rd1_hit[0] & !rd1_hit[1] & rd1_hit[2] & !rd1_hit[3]) ? rd1_data[2] :
+                        (!rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & rd1_hit[3]) ? rd1_data[3] : 64'hDEADDEADDEADDEAD;
 
   assign wr1_hit_out = wr1_hit[0] | wr1_hit[1] | wr1_hit[2] | wr1_hit[3];
 
@@ -155,24 +153,25 @@ module Dcache(
   //     end
   //   end
   // end
-  assign evicted_dirty_out = (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_dirty[0] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_dirty[1] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_dirty[2] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_dirty[3] : 0;
-  assign evicted_valid_out = (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_valid[0] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_valid[1] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_valid[2] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_valid[3] : 0;
+  assign evicted_dirty_out = ((LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_dirty[0] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_dirty[1] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_dirty[2] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_dirty[3] : 0;
 
-  assign evicted_addr_out = (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_addr[0] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_addr[1] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_addr[2] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_addr[3] : 0;
+  assign evicted_valid_out = ((LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_valid[0] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_valid[1] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_valid[2] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_valid[3] : 0;
 
-  assign evicted_data_out = (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_data[0] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_data[1] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_data[2] :
-                             (wr1_search && (LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_data[3] : 0;
+  assign evicted_addr_out = ((LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_addr[0] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_addr[1] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_addr[2] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_addr[3] : 0;
+
+  assign evicted_data_out = ((LRU_bank_sel[wr1_addr.set_index] == 4'b0001)) ? evicted_data[0] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b0010)) ? evicted_data[1] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b0100)) ? evicted_data[2] :
+                             ((LRU_bank_sel[wr1_addr.set_index] == 4'b1000)) ? evicted_data[3] : 0;
 
 
 

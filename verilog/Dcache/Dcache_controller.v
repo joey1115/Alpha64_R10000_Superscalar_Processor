@@ -12,10 +12,6 @@ module Dcache_controller(
 
 `ifdef DEBUG
     output logic [5:0]                                     count,
-    output MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]                MSHR_queue,
-    output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head,
-    output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
-    output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail,
     output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]     Dcache_bank,
     output logic [`NUM_IDX-1:0][`NUM_WAY-1:0]              LRU_bank_sel,
 `endif
@@ -40,11 +36,9 @@ module Dcache_controller(
   `endif
 
   logic [1:0] state, next_state;
-  logic [63:0] next_count;
+  logic [2:0] mainState, next_mainState;
+  logic [5:0] next_count;
   SASS_ADDR write_back_addr;
-  // logic write_back_stage;
-  logic mshr_valid;
-  logic mshr_empty;
   logic wr1_strictly_from_mem;
 
   logic [63:0]       rd1_data;
@@ -58,15 +52,23 @@ module Dcache_controller(
   logic [63:0]       wr1_data;
   logic              rd1_search;
   logic              wr1_search;
-  logic              stored_rd_wb;
-  logic              stored_mem_wr;
 
   logic              cache_empty;
 
+  logic request_accepted;
 
-  D_CACHE_MSHR_OUT_t d_cache_mshr_out, next_d_cache_mshr_out;
+  logic hit_cache;
 
-  MSHR_D_CACHE_OUT_t mshr_d_cache_out, next_mshr_d_cache_out;
+  logic evict_data;
+
+  logic [63:0] next_rd1_addr_reg, rd1_addr_reg;
+  logic [63:0] next_wr1_addr_reg, wr1_addr_reg;
+  logic [63:0] next_wr1_data_reg, wr1_data_reg;
+  logic [3:0]  next_in_progress_tag, in_progress_tag;
+  logic [63:0] next_data_from_mem, data_from_mem;
+
+
+
 
   Dcache dcache_0 (
       .clock(clock),
@@ -83,8 +85,6 @@ module Dcache_controller(
       .wr1_data(wr1_data),
       .wr1_dirty(wr1_dirty),
       .wr1_valid(wr1_valid),
-      .rd1_search(rd1_search),
-      .wr1_search(wr1_search),
       .write_back_stage(write_back_stage),
       .cache_empty(cache_empty),
     `ifdef DEBUG
@@ -97,109 +97,127 @@ module Dcache_controller(
       .evicted_data_out(evicted_data)
     );
 
-    MSHR mshr_0 (
-      .clock(clock),
-      .reset(reset),
-      .d_cache_mshr_out(d_cache_mshr_out),
-      // .stored_rd_wb(stored_rd_wb),
-      .stored_mem_wr(stored_mem_wr),
-  `ifdef DEBUG
-      .MSHR_queue(MSHR_queue),
-      .writeback_head(MSHR_writeback_head),
-      .head(MSHR_head),
-      .tail(MSHR_tail),
-  `endif
-      .mshr_d_cache_out(next_mshr_d_cache_out),
-      .mshr_valid(mshr_valid),
-      .mshr_empty(mshr_empty),
-      //mem to mshr
-      .mem2proc_response(mem2proc_response),
-      .mem2proc_data(mem2proc_data),     // data resulting from a load
-      .mem2proc_tag(mem2proc_tag),       // 0 = no value, other=tag of transaction
-      //cache to mshr
-      .proc2mem_addr(proc2mem_addr),
-      .proc2mem_data(proc2mem_data),
-      .proc2mem_command(proc2mem_command)
-    );
+  
+  //output
+  
 
-  //read cache outputs
-  //output d_cache_lq_out.value from mshr if exist otherwise from cache
-  assign d_cache_lq_out.value = rd1_data; 
-
-  //d_cache_lq_out.value is valid if it is read and if d_cache_lq_out.value is either in cache or mshr
-  assign d_cache_lq_out.valid = rd1_hit;
-
-  assign d_cache_sq_out.valid = ((wr1_hit & sq_d_cache_out.wr_en) || next_d_cache_mshr_out.miss_en[1]) && mshr_valid; // We think it is always 1
-
-  //Signals to MSHR
-
-  //if not in cache, enable to push d_cache_lq_out.value to the MSHR
-  assign next_d_cache_mshr_out.miss_en[0] = lq_d_cache_out.rd_en && !rd1_hit && mshr_valid;
-  //Miss from stores
-  assign next_d_cache_mshr_out.miss_en[1] = sq_d_cache_out.wr_en && !wr1_hit && mshr_valid;
-  //Store inst from evicts
-  assign next_d_cache_mshr_out.miss_en[2] = ((!sq_d_cache_out.wr_en && mshr_d_cache_out.rd_wb_en && wr1_en) || (!sq_d_cache_out.wr_en && mshr_d_cache_out.mem_wr && wr1_en) || write_back_stage) && evicted_dirty && evicted_valid;// when wr1 is from memory and it is dirty
-  // assign next_d_cache_mshr_out.miss_en[2] = evicted_dirty && evicted_valid;// when wr1 is from memory and it is dirty
-
-
-  //d_cache_lq_out.value sent to MSHR search
-  assign next_d_cache_mshr_out.miss_addr[0] = rd1_addr;
-  assign next_d_cache_mshr_out.miss_data_in[0] = {64'hDEADBEEFDEADBEEF};
-  assign next_d_cache_mshr_out.inst_type[0] = LOAD;
-  assign next_d_cache_mshr_out.mshr_proc2mem_command[0] = BUS_LOAD;
-  assign next_d_cache_mshr_out.miss_dirty[0] = 0;
-
-  assign next_d_cache_mshr_out.miss_addr[1] = {sq_d_cache_out.addr,3'b000};
-  assign next_d_cache_mshr_out.miss_data_in[1]= sq_d_cache_out.value;
-  assign next_d_cache_mshr_out.inst_type[1] = STORE;
-  assign next_d_cache_mshr_out.mshr_proc2mem_command[1] = BUS_LOAD;
-  assign next_d_cache_mshr_out.miss_dirty[1] = 1;
-
-  assign next_d_cache_mshr_out.miss_addr[2] = evicted_addr;
-  assign next_d_cache_mshr_out.miss_data_in[2] = evicted_data;
-  assign next_d_cache_mshr_out.inst_type[2] = EVICT;
-  assign next_d_cache_mshr_out.mshr_proc2mem_command[2] = BUS_STORE;
-  assign next_d_cache_mshr_out.miss_dirty[2] = 0;
-
-
-  //assign cachemem inputs
-  assign rd1_addr = {lq_d_cache_out.addr,3'b000};
-  assign rd1_search = lq_d_cache_out.rd_en;
-
-  assign wr1_search = wr1_from_mem || sq_d_cache_out.wr_en;
-
-  assign wr1_addr = (write_back_stage && (mshr_d_cache_out.mem_wr || mshr_d_cache_out.rd_wb_en))              ? mshr_d_cache_out.mem_addr :
-                    (write_back_stage)                                                                        ? write_back_addr :
-                    (!write_back_stage && sq_d_cache_out.wr_en)                                               ? {sq_d_cache_out.addr,3'b000} :
-                    (!write_back_stage && !sq_d_cache_out.wr_en && mshr_d_cache_out.rd_wb_en)                 ? mshr_d_cache_out.rd_wb_addr : mshr_d_cache_out.mem_addr;
-
-  assign wr1_dirty = (write_back_stage && (mshr_d_cache_out.mem_wr || mshr_d_cache_out.rd_wb_en))              ? mshr_d_cache_out.mem_dirty :
-                     (sq_d_cache_out.wr_en)                                                                    ? 1 :
-                     (!(sq_d_cache_out.wr_en) && mshr_d_cache_out.rd_wb_en)                                    ? mshr_d_cache_out.rd_wb_dirty : mshr_d_cache_out.mem_dirty;
-
-  assign wr1_data = (write_back_stage && (mshr_d_cache_out.mem_wr || mshr_d_cache_out.rd_wb_en))                                                        ?  mshr_d_cache_out.mem_data :
-                    (sq_d_cache_out.wr_en)                                                                    ?  sq_d_cache_out.value:
-                    (!(sq_d_cache_out.wr_en) && mshr_d_cache_out.rd_wb_en)                                    ?  mshr_d_cache_out.rd_wb_data : mshr_d_cache_out.mem_data;
-
-  assign wr1_valid = !write_back_stage || (mshr_d_cache_out.mem_wr || mshr_d_cache_out.rd_wb_en);
-
-  assign wr1_from_mem = mshr_d_cache_out.mem_wr || mshr_d_cache_out.rd_wb_en || write_back_stage;
-
-  assign wr1_strictly_from_mem = wr1_from_mem && !sq_d_cache_out.wr_en;
-
-  assign wr1_en = (wr1_hit && sq_d_cache_out.wr_en) | (!sq_d_cache_out.wr_en && wr1_from_mem);
-
-  //inform MSHR that it is written
-  assign stored_rd_wb = !sq_d_cache_out.wr_en && mshr_d_cache_out.rd_wb_en && wr1_en;
-  assign stored_mem_wr = !sq_d_cache_out.wr_en && !mshr_d_cache_out.rd_wb_en && mshr_d_cache_out.mem_wr && wr1_en;
-
-  //set the cache id valid or not
-  // assign cache_valid = mshr_valid;
-
-  // to clear cache after prog done
+ 
+  assign request_accepted = (mem2proc_response != 0);
+  assign hit_cache = wr1_hit || rd1_hit;
+  assign evict_data = evicted_valid && evicted_dirty;
 
   always_comb begin
-    if (write_back_stage && mshr_valid)
+    next_rd1_addr_reg = rd1_addr_reg;
+    next_wr1_addr_reg = wr1_addr_reg;
+    next_wr1_data_reg = wr1_data_reg;
+    proc2mem_addr = 64'h0;
+    proc2mem_data = 64'h0;
+    proc2mem_command = BUS_NONE;
+    next_in_progress_tag = in_progress_tag;
+    next_data_from_mem = data_from_mem;
+    wr1_en = 1'b0;
+    wr1_valid = 1'b0;
+    wr1_data = 64'hDEADBEEFDEADBEEF;
+    wr1_dirty = 1'b0;
+    rd1_addr = 64'hDEADBEEFDEADBEEF;
+    wr1_addr = 64'hDEADBEEFDEADBEEF;
+    wr1_strictly_from_mem = 1'b0;
+    d_cache_sq_out.valid = 1'b0;
+    d_cache_lq_out.valid = 1'b0;
+    d_cache_lq_out.value = 64'hDEADBEEFDEADBEEF;
+
+    case (mainState)
+      3'b000: begin
+        next_rd1_addr_reg = {lq_d_cache_out.addr,3'b000};
+        next_wr1_addr_reg = {sq_d_cache_out.addr,3'b000};
+        next_wr1_data_reg = sq_d_cache_out.value;
+
+        rd1_addr = {lq_d_cache_out.addr,3'b000};
+        wr1_addr = (write_back_stage) ? write_back_addr : {sq_d_cache_out.addr,3'b000};
+
+        d_cache_lq_out.valid = rd1_hit;
+        d_cache_lq_out.value = rd1_data; 
+      end
+      3'b001: begin
+        proc2mem_addr = evicted_addr;
+        proc2mem_data = evicted_data;
+        proc2mem_command = BUS_STORE;
+      end
+      3'b010: begin
+        proc2mem_addr = (sq_d_cache_out.wr_en) ? wr1_addr_reg : rd1_addr_reg;
+        proc2mem_command = BUS_LOAD;
+        next_in_progress_tag = mem2proc_response;
+      end
+      3'b011: begin
+        next_data_from_mem = mem2proc_data;
+      end
+      3'b100: begin
+        wr1_en = 1'b1;
+        wr1_valid = !write_back_stage;
+        wr1_data = data_from_mem;
+        wr1_dirty = 1'b0;
+        wr1_addr = (write_back_stage) ? write_back_addr:
+                   (sq_d_cache_out.wr_en) ? wr1_addr_reg: rd1_addr_reg;
+        wr1_strictly_from_mem = 1'b1;
+      end
+      3'b101: begin
+        wr1_en = 1'b1;
+        wr1_valid = 1'b1;
+        wr1_data = wr1_data_reg;
+        wr1_dirty = 1'b1;
+        wr1_addr = (write_back_stage) ? write_back_addr : wr1_addr_reg;
+        wr1_strictly_from_mem = 1'b0;
+        d_cache_sq_out.valid = 1'b1;
+      end
+    endcase
+  end
+
+
+  always_comb begin
+    case (mainState)
+      3'b000: next_mainState = (wr1_hit && sq_d_cache_out.wr_en && !write_back_stage) ? 3'b101 : 
+                               (write_back_stage) ? 3'b001 : 
+                               (!hit_cache && evict_data && (sq_d_cache_out.wr_en || lq_d_cache_out.rd_en)) ? 3'b001 : 
+                               (!hit_cache && !evict_data && (sq_d_cache_out.wr_en || lq_d_cache_out.rd_en)) ? 3'b010 : mainState;
+      3'b001: next_mainState = (request_accepted) ? 3'b010 : mainState;
+      3'b010: next_mainState = (request_accepted) ? 3'b011 : mainState;
+      3'b011: next_mainState = (mem2proc_tag == in_progress_tag) ? 3'b100 : mainState;
+      3'b100: next_mainState = 3'b000;
+      3'b101: next_mainState = 3'b000;
+      default: next_mainState = 3'b000;
+    endcase
+  end
+
+  assign halt_pipeline = (state == 2);
+  assign write_back_stage = state == 1;
+  assign write_back_addr = count & {{61{1'b1}},3'b000};
+
+  // synopsys sync_set_reset "reset"
+  always_ff @(posedge clock) begin
+    if(reset) begin
+      mainState       <= `SD 2'b00; 
+      state           <= `SD `state_reset;
+      count           <= `SD `count_reset;
+      rd1_addr_reg    <= `SD 64'hDEADBEEFDEADBEEF;
+      wr1_addr_reg    <= `SD 64'hDEADBEEFDEADBEEF;
+      wr1_data_reg    <= `SD 64'hDEADBEEFDEADBEEF;
+      in_progress_tag <= `SD 4'b0000;
+      data_from_mem   <= `SD 64'hDEADBEEFDEADBEEF;
+    end
+    else begin
+      mainState       <= `SD next_mainState;
+      state           <= `SD next_state;
+      count           <= `SD next_count;
+      rd1_addr_reg    <= `SD next_rd1_addr_reg;
+      wr1_addr_reg    <= `SD next_wr1_addr_reg;
+      wr1_data_reg    <= `SD next_wr1_data_reg;
+      in_progress_tag <= `SD next_in_progress_tag;
+      data_from_mem   <= `SD next_data_from_mem;
+    end
+  end
+  
+  always_comb begin
+    if (write_back_stage && mainState == 3'b000)
       next_count = count + 2;
     else
       next_count = count;
@@ -208,42 +226,10 @@ module Dcache_controller(
   always_comb begin
     if (state == 0 && write_back) 
       next_state = 1;
-    else if (state == 1 && mshr_empty)
-      next_state = 2;
     else if(write_back_stage && cache_empty)
-      next_state = 3;
+      next_state = 2;
     else
       next_state = state;
   end
-
-  assign halt_pipeline = (state == 3) && mshr_empty;
-  assign write_back_stage = state == 2;
-  assign write_back_addr = count & {{61{1'b1}},3'b000};
-
-  // synopsys sync_set_reset "reset"
-  always_ff @(posedge clock) begin
-    if(reset) begin
-      state           <= `SD `state_reset;
-      count           <= `SD `count_reset;
-    end
-    else begin
-      state           <= `SD next_state;
-      count           <= `SD next_count;
-    end
-  end
   
-  assign mshr_d_cache_out = next_mshr_d_cache_out;
-
-  // synopsys sync_set_reset "reset"
-  always_ff @(posedge clock) begin
-    if(reset) begin
-      d_cache_mshr_out  <= `SD `d_cache_mshr_out_reset;
-      //mshr_d_cache_out  <= `SD `mshr_d_cache_out_reset;
-    end
-    else begin
-      d_cache_mshr_out  <= `SD next_d_cache_mshr_out;
-      //mshr_d_cache_out  <= `SD next_mshr_d_cache_out;
-    end
-  end
-
 endmodule

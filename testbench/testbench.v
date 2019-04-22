@@ -20,8 +20,8 @@
 
 // `define HALT_ON_CYCLE
 // After runing for TIMEOUT_CYCLES cycles, halt!
-`define TIMEOUT_MAX_CYCLES 1000000
-`define TIMEOUT_MAX_CLOCK 1000000
+`define TIMEOUT_MAX_CYCLES 10000
+`define TIMEOUT_MAX_CLOCK 10000
 
 
 `define PRINT_DISPATCH_EN
@@ -37,7 +37,7 @@
 `define PRINT_SQ
 `define PRINT_LQ
 `define PRINT_DCACHE_BANK
-`define PRINT_MSHR_ENTRY
+// `define PRINT_MSHR_ENTRY
 `define PRINT_COUNT
 
 `include "sys_defs.vh"
@@ -132,10 +132,10 @@ module testbench;
   LQ_ENTRY_t     [`NUM_LSQ-1:0]            pipeline_LQ;
   logic          [$clog2(`NUM_LSQ)-1:0]    LQ_head, LQ_tail;
   D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0] Dcache_bank;
-  MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
-  logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head;
-  logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
-  logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
+  // MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]            MSHR_queue;
+  // logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head;
+  // logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head;
+  // logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail;
   logic          [5:0]                           count;
   logic          [`NUM_IDX-1:0][`NUM_WAY-1:0]     LRU_bank_sel;
   
@@ -175,10 +175,10 @@ module testbench;
     .LQ_head(LQ_head),
     .LQ_tail(LQ_tail),
     .Dcache_bank(Dcache_bank),
-    .MSHR_queue(MSHR_queue),
-    .MSHR_writeback_head(MSHR_writeback_head),
-    .MSHR_head(MSHR_head),
-    .MSHR_tail(MSHR_tail),
+    // .MSHR_queue(MSHR_queue),
+    // .MSHR_writeback_head(MSHR_writeback_head),
+    // .MSHR_head(MSHR_head),
+    // .MSHR_tail(MSHR_tail),
     .count(count),
     .LRU_bank_sel(LRU_bank_sel),
 `endif

@@ -35,10 +35,6 @@ module pipeline (
   output logic [`NUM_IDX-1:0][`NUM_WAY-1:0]              LRU_bank_sel,
 // 
   output D_CACHE_LINE_t [`NUM_WAY-1:0][`NUM_IDX-1:0]     Dcache_bank,
-  output MSHR_ENTRY_t   [`MSHR_DEPTH-1:0]                MSHR_queue,
-  output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_writeback_head,
-  output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_head,
-  output logic          [$clog2(`MSHR_DEPTH)-1:0]        MSHR_tail,
   output logic          [5:0]                           count,
 `endif
   output logic        [`NUM_SUPER-1:0][4:0]              pipeline_commit_wr_idx,
@@ -308,10 +304,6 @@ module pipeline (
 
 `ifdef DEBUG
     .count(count),
-    .MSHR_queue(MSHR_queue),
-    .MSHR_writeback_head(MSHR_writeback_head),
-    .MSHR_head(MSHR_head),
-    .MSHR_tail(MSHR_tail),
     .Dcache_bank(Dcache_bank),
     .LRU_bank_sel(LRU_bank_sel),
 `endif
