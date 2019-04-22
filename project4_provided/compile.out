@@ -1,0 +1,43 @@
+SW_VCS=2017.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 +define+CLOCK_PERIOD=30	 sys_defs.vh verilog/id_stage.v verilog/ex_stage.v verilog/wb_stage.v verilog/if_stage.v verilog/pipeline.v verilog/icache.v verilog/regfile.v verilog/mem_stage.v verilog/cache/cachemem.v testbench/testbench.v testbench/mem.v testbench/pipe_print.c -o simv
+                         Chronologic VCS (TM)
+      Version N-2017.12-SP2-1_Full64 -- Sun Apr 21 22:42:10 2019
+               Copyright (c) 1991-2017 by Synopsys Inc.
+                         ALL RIGHTS RESERVED
+
+This program is proprietary and confidential information of Synopsys Inc.
+and may be used and disclosed only as authorized in a license agreement
+controlling such use and disclosure.
+
+Parsing design file 'sys_defs.vh'
+Parsing design file 'verilog/id_stage.v'
+Parsing design file 'verilog/ex_stage.v'
+Parsing design file 'verilog/wb_stage.v'
+Parsing design file 'verilog/if_stage.v'
+Parsing design file 'verilog/pipeline.v'
+Parsing design file 'verilog/icache.v'
+Parsing design file 'verilog/regfile.v'
+Parsing design file 'verilog/mem_stage.v'
+Parsing design file 'verilog/cache/cachemem.v'
+Parsing design file 'testbench/testbench.v'
+Parsing included file 'sys_defs.vh'.
+Back to file 'testbench/testbench.v'.
+Parsing design file 'testbench/mem.v'
+Top Level Modules:
+       testbench
+TimeScale is 1 ns / 100 ps
+Starting vcs inline pass...
+3 modules and 0 UDP read.
+recompiling module pipeline
+recompiling module testbench
+recompiling module mem
+All of 3 modules done
+make[1]: Entering directory `/afs/umich.edu/user/w/z/wzhewei/Desktop/EECS-470/Project/final_project/group2w19/project4_provided/csrc'
+make[1]: Leaving directory `/afs/umich.edu/user/w/z/wzhewei/Desktop/EECS-470/Project/final_project/group2w19/project4_provided/csrc'
+make[1]: Entering directory `/afs/umich.edu/user/w/z/wzhewei/Desktop/EECS-470/Project/final_project/group2w19/project4_provided/csrc'
+rm -f _csrc*.so pre_vcsobj_*.so share_vcsobj_*.so
+gcc -w  -pipe -fPIC -O -I/usr/caen/vcs-2017.12-SP2-1/include    -c ../testbench/pipe_print.c
+if [ -x ../simv ]; then chmod -x ../simv; fi
+g++  -o ../simv    -Wl,-rpath-link=./ -Wl,-rpath='$ORIGIN'/simv.daidir/ -Wl,-rpath=./simv.daidir/ -Wl,-rpath='$ORIGIN'/simv.daidir//scsim.db.dir  -rdynamic  -Wl,-rpath=/usr/caen/vcs-2017.12-SP2-1/linux64/lib -L/usr/caen/vcs-2017.12-SP2-1/linux64/lib -lcmsg  pipe_print.o   objs/amcQw_d.o   _7299_archive_1.so  SIM_l.o      rmapats_mop.o rmapats.o rmar.o rmar_nd.o  rmar_llvm_0_1.o rmar_llvm_0_0.o          -lzerosoft_rt_stubs -lvirsim -lerrorinf -lsnpsmalloc -lvfs    -lvcsnew -lsimprofile -luclinative /usr/caen/vcs-2017.12-SP2-1/linux64/lib/vcs_tls.o   -Wl,-whole-archive -lvcsucli -Wl,-no-whole-archive          /usr/caen/vcs-2017.12-SP2-1/linux64/lib/vcs_save_restore_new.o -ldl  -lc -lm -lpthread -ldl 
+../simv up to date
+make[1]: Leaving directory `/afs/umich.edu/user/w/z/wzhewei/Desktop/EECS-470/Project/final_project/group2w19/project4_provided/csrc'
+CPU time: .327 seconds to compile + .298 seconds to elab + .321 seconds to link
