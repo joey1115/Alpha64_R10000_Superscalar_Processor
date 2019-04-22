@@ -24,21 +24,21 @@
 `define TIMEOUT_MAX_CLOCK 1000000
 
 
-`define PRINT_DISPATCH_EN
-`define PRINT_FETCHBUFFER
-`define PRINT_ROB
-`define PRINT_RS
-`define PRINT_MAP_TABLE
-`define PRINT_FREELIST
-`define PRINT_CDB
-`define PRINT_ARCHMAP
-`define PRINT_REG
-`define PRINT_MEMBUS
-`define PRINT_SQ
-`define PRINT_LQ
-`define PRINT_DCACHE_BANK
-`define PRINT_MSHR_ENTRY
-`define PRINT_COUNT
+// `define PRINT_DISPATCH_EN
+// `define PRINT_FETCHBUFFER
+// `define PRINT_ROB
+// `define PRINT_RS
+// `define PRINT_MAP_TABLE
+// `define PRINT_FREELIST
+// `define PRINT_CDB
+// `define PRINT_ARCHMAP
+// `define PRINT_REG
+// `define PRINT_MEMBUS
+// `define PRINT_SQ
+// `define PRINT_LQ
+// `define PRINT_DCACHE_BANK
+// `define PRINT_MSHR_ENTRY
+// `define PRINT_COUNT
 
 `include "sys_defs.vh"
 `include "verilog/ROB/ROB.vh"
