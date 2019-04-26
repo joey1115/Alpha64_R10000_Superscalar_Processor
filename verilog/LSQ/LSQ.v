@@ -37,7 +37,7 @@ module SQ (
   SQ_ENTRY_t  [`NUM_LSQ-1:0]                         next_sq;
   logic       [`NUM_SUPER-1:0][`NUM_LSQ-1:0][$clog2(`NUM_LSQ)-1:0]   sq_map_idx;
   logic       [`NUM_SUPER-1:0]                       retire_valid;
-  logic       [`NUM_SUPER-1:0]                       st_hit;
+  logic       [`NUM_SUPER-1:0]                       st_hit, st_valid;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_LSQ)-1:0] st_idx, SQ_idx_minus_one;
   logic       [`NUM_SUPER-1:0]                       rollback_valid;
   logic       [`NUM_SUPER-1:0][$clog2(`NUM_ROB)-1:0] diff;
@@ -72,8 +72,9 @@ module SQ (
 
   always_comb begin
     for (int i = 0; i < `NUM_SUPER; i++) begin
-      SQ_LQ_out.hit[i]    = st_hit[i];
-      SQ_LQ_out.value[i]  = sq[sq_map_idx[i][st_idx[i]]].value;
+      SQ_LQ_out.hit[i]   = st_hit[i];
+      SQ_LQ_out.valid[i] = st_valid[i];
+      SQ_LQ_out.value[i] = sq[sq_map_idx[i][st_idx[i]]].value;
     end
     SQ_LQ_out.LQ_idx = sq[head].LQ_idx;
     SQ_LQ_out.retire = (ROB_SQ_out.wr_mem & ROB_SQ_out.retire) != 2'b00;
@@ -191,10 +192,23 @@ module SQ (
     end
   end
 
+  // Valid logic
+  always_comb begin
+    st_valid = {`NUM_SUPER{`TRUE}};
+    for (int i = 0; i < `NUM_SUPER; i++) begin
+      for (int j = `NUM_LSQ - 1; j >= 0; j--) begin
+        if (!sq[sq_map_idx[i][j]].valid && j > head_map_idx[i]) begin
+          st_valid[i] = `FALSE;
+          break;
+        end
+      end
+    end
+  end
+
   // Age logic
   always_comb begin
     st_hit = {`NUM_SUPER{`FALSE}};
-    st_idx = {`NUM_SUPER{`FALSE}};
+    st_idx = {`NUM_SUPER{{($clog2(`NUM_SUPER)){{1'b0}}}}};
     for (int i = 0; i < `NUM_SUPER; i++) begin
       for (int j = `NUM_LSQ - 1; j >= 0; j--) begin
         if (LQ_SQ_out.addr[i] == sq[sq_map_idx[i][j]].addr && sq[sq_map_idx[i][j]].valid && j > head_map_idx[i]) begin
@@ -276,6 +290,8 @@ module LQ (
   assign LQ_idx_minus_one[1] = FU_LQ_out.LQ_idx[1] - 1;
   assign tail_map_idx        = SQ_LQ_out.LQ_idx - head;
 
+  assign LQ_valid = (CDB_valid & LQ_FU_out.done) | (~FU_LQ_out.done) | rollback_valid;
+
   always_comb begin
     LQ_BP_out.LQ_target.ROB_idx    = lq[lq_map_idx[ld_idx]].ROB_idx - 1;
     LQ_BP_out.LQ_target.FL_idx     = lq[lq_map_idx[ld_idx]].FL_idx - 1;
@@ -325,37 +341,16 @@ module LQ (
         LQ_D_cache_out.addr  = 61'h0;
       end
       2'b01: begin
-        LQ_D_cache_out.rd_en = ~SQ_LQ_out.hit[0] & ~rollback_valid[0];
+        LQ_D_cache_out.rd_en = FU_LQ_out.done[0] & SQ_LQ_out.valid[0] & ~SQ_LQ_out.hit[0] & ~rollback_valid[0];
         LQ_D_cache_out.addr  = FU_LQ_out.result[0][63:3];
       end
       2'b10: begin
-        LQ_D_cache_out.rd_en = ~SQ_LQ_out.hit[1] & ~rollback_valid[1];
+        LQ_D_cache_out.rd_en = FU_LQ_out.done[1] & SQ_LQ_out.valid[1] & ~SQ_LQ_out.hit[1] & ~rollback_valid[1];
         LQ_D_cache_out.addr  = FU_LQ_out.result[1][63:3];
       end
       2'b11: begin
-        LQ_D_cache_out.rd_en = ~SQ_LQ_out.hit[0] & ~rollback_valid[0];
+        LQ_D_cache_out.rd_en = FU_LQ_out.done[0] & SQ_LQ_out.valid[1] & ~SQ_LQ_out.hit[0] & ~rollback_valid[0];
         LQ_D_cache_out.addr  = FU_LQ_out.result[0][63:3];
-      end
-    endcase
-  end
-
-  always_comb begin
-    case(FU_LQ_out.done)
-      2'b00: begin
-        LQ_valid[0] = `TRUE;
-        LQ_valid[1] = `TRUE;
-      end
-      2'b01: begin
-        LQ_valid[0] = (CDB_valid[0] & (D_cache_LQ_out.valid | SQ_LQ_out.hit[0])) | rollback_valid[0];
-        LQ_valid[1] = `TRUE;
-      end
-      2'b10: begin
-        LQ_valid[0] = `TRUE;
-        LQ_valid[1] = (CDB_valid[1] & (D_cache_LQ_out.valid | SQ_LQ_out.hit[1])) | rollback_valid[1];
-      end
-      2'b11: begin
-        LQ_valid[0] = (CDB_valid[0] & (D_cache_LQ_out.valid | SQ_LQ_out.hit[0])) | rollback_valid[0];
-        LQ_valid[1] = SQ_LQ_out.hit[1] | rollback_valid[1];
       end
     endcase
   end
@@ -375,16 +370,16 @@ module LQ (
         LQ_FU_out.done[1] = `FALSE;
       end
       2'b01: begin
-        LQ_FU_out.done[0] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[0]) & ~rollback_valid[0];
+        LQ_FU_out.done[0] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[0]) & SQ_LQ_out.valid[0] & ~rollback_valid[0];
         LQ_FU_out.done[1] = `FALSE;
       end
       2'b10: begin
         LQ_FU_out.done[0] = `FALSE;
-        LQ_FU_out.done[1] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[1]) & ~rollback_valid[1];
+        LQ_FU_out.done[1] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[1]) & SQ_LQ_out.valid[1] & ~rollback_valid[1];
       end
       2'b11: begin
-        LQ_FU_out.done[0] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[0]) & ~rollback_valid[0];
-        LQ_FU_out.done[1] = SQ_LQ_out.hit[1] & ~rollback_valid[1];
+        LQ_FU_out.done[0] = (D_cache_LQ_out.valid | SQ_LQ_out.hit[0]) & SQ_LQ_out.valid[0] & ~rollback_valid[0];
+        LQ_FU_out.done[1] = SQ_LQ_out.hit[1] & SQ_LQ_out.valid[1] & ~rollback_valid[1];
       end
     endcase
   end
@@ -445,7 +440,7 @@ module LQ (
       case(decoder_LQ_out.rd_mem)
         2'b01: begin
           next_lq[tail].addr    = 61'h0;
-          next_lq[tail].valid   = `FALSE;
+          // next_lq[tail].valid   = `FALSE;
           next_lq[tail].ROB_idx = ROB_idx[0];
           next_lq[tail].FL_idx  = FL_idx[0];
           next_lq[tail].SQ_idx  = SQ_idx[0];
@@ -453,7 +448,7 @@ module LQ (
         end
         2'b10: begin
           next_lq[tail].addr    = 61'h0;
-          next_lq[tail].valid   = `FALSE;
+          // next_lq[tail].valid   = `FALSE;
           next_lq[tail].ROB_idx = ROB_idx[1];
           next_lq[tail].FL_idx  = FL_idx[1];
           next_lq[tail].SQ_idx  = SQ_idx[1];
@@ -461,7 +456,7 @@ module LQ (
         end
         2'b11: begin
           next_lq[tail].addr             = 61'h0;
-          next_lq[tail].valid            = `FALSE;
+          // next_lq[tail].valid            = `FALSE;
           next_lq[tail].ROB_idx          = ROB_idx[0];
           next_lq[tail].FL_idx           = FL_idx[0];
           next_lq[tail].SQ_idx           = SQ_idx[0];
@@ -481,17 +476,17 @@ module LQ (
       end
       2'b01: begin
         next_lq[LQ_idx_minus_one[0]].addr  = FU_LQ_out.result[0][63:3];
-        next_lq[LQ_idx_minus_one[0]].valid = SQ_LQ_out.hit[0] || D_cache_LQ_out.valid;
+        // next_lq[LQ_idx_minus_one[0]].valid = SQ_LQ_out.hit[0] || D_cache_LQ_out.valid;
       end
       2'b10: begin
         next_lq[LQ_idx_minus_one[1]].addr  = FU_LQ_out.result[1][63:3];
-        next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1] || D_cache_LQ_out.valid;
+        // next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1] || D_cache_LQ_out.valid;
       end
       2'b11: begin
         next_lq[LQ_idx_minus_one[0]].addr  = FU_LQ_out.result[0][63:3];
-        next_lq[LQ_idx_minus_one[0]].valid = SQ_LQ_out.hit[0] || D_cache_LQ_out.valid;
+        // next_lq[LQ_idx_minus_one[0]].valid = SQ_LQ_out.hit[0] || D_cache_LQ_out.valid;
         next_lq[LQ_idx_minus_one[1]].addr  = FU_LQ_out.result[1][63:3];
-        next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1];
+        // next_lq[LQ_idx_minus_one[1]].valid = SQ_LQ_out.hit[1];
       end
     endcase
   end

@@ -21,6 +21,8 @@ cd project4_provided
 echo "Running make"
 make nuke &> /dev/null
 make simv &> compile.out
+chmod 755 ./vs-asm
+chmod +X ./vs-asm
 for i in ./../test_progs/*.s
 do
   echo "Running $i"
@@ -61,18 +63,18 @@ do
   if [[ -n $result_mem ]]
   then
     echo "Error $filename mem"
-    cp -pf "./output/"$filename".program.sol.out" ./result_syn/
-    cp -pf "./output/"$filename".program.test.out" ./result_syn/
+    cp -pf "./output_syn/"$filename".program.sol.out" ./result_syn/
+    cp -pf "./output_syn/"$filename".program.test.out" ./result_syn/
   fi
   if [[ -n $result_wb ]]
   then
     echo "Error $filename wb"
-    cp -pf "./output/"$filename".writeback.sol.out" ./result_syn/
-    cp -pf "./output/"$filename".writeback.test.out" ./result_syn/
+    cp -pf "./output_syn/"$filename".writeback.sol.out" ./result_syn/
+    cp -pf "./output_syn/"$filename".writeback.test.out" ./result_syn/
   fi
   if [[ -n $result_mem || -n $result_wb ]]
   then
-    cp -pf "./output/"$filename".pipeline.sol.out" ./result_syn/
-    cp -pf "./output/"$filename".pipeline.test.out" ./result_syn/
+    cp -pf "./output_syn/"$filename".pipeline.sol.out" ./result_syn/
+    cp -pf "./output_syn/"$filename".pipeline.test.out" ./result_syn/
   fi
 done

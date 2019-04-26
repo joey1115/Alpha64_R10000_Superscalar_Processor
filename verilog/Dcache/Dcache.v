@@ -18,6 +18,7 @@ module Dcache(
   input logic [63:0]                                                wr1_data,
   input logic                                                       wr1_dirty,
   input logic                                                       wr1_valid,
+  input MSHR_ENTRY_t [`MSHR_DEPTH-1:0]                              MSHR_queue,
 
   output logic                                                      cache_empty,
 `ifdef DEBUG
@@ -56,6 +57,8 @@ module Dcache(
 
   logic [`NUM_WAY-1:0]            bank_empty;
   logic [`NUM_WAY-1:0]            dummywire;
+
+  logic [(`MEMORY_BLOCK_SIZE*8-1):0]  MSHR_rd1_data;
 
   always_comb begin
     for(int i = 0; i < `MSHR_DEPTH; i++) begin
@@ -126,13 +129,21 @@ module Dcache(
       .evicted_data(evicted_data)
       );
 
+  // always_comb begin
+  //   MSHR_rd1_data = 64'hbaadbeefdeadbeef;
+  //   for (int i=0; i<`MSHR_DEPTH; i++) begin
+  //     if (MSHR_queue[i].valid == `TRUE && MSHR_queue[i].addr == rd1_addr) begin
+  //       MSHR_rd1_data = MSHR_queue[i].data;
+  //     end
+  //   end
+  // end
 
   assign rd1_hit_out = rd1_hit[0] | rd1_hit[1] | rd1_hit[2] | rd1_hit[3];
 
   assign rd1_data_out = (rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & !rd1_hit[3]) ? rd1_data[0] :
                         (!rd1_hit[0] & rd1_hit[1] & !rd1_hit[2] & !rd1_hit[3]) ? rd1_data[1] :
                         (!rd1_hit[0] & !rd1_hit[1] & rd1_hit[2] & !rd1_hit[3]) ? rd1_data[2] :
-                        (!rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & rd1_hit[3]) ? rd1_data[3] : 64'hDEADDEADDEADDEAD;
+                        (!rd1_hit[0] & !rd1_hit[1] & !rd1_hit[2] & rd1_hit[3]) ? rd1_data[3] : 64'hbaadbeefdeadbeef;
 
   assign wr1_hit_out = wr1_hit[0] | wr1_hit[1] | wr1_hit[2] | wr1_hit[3];
 

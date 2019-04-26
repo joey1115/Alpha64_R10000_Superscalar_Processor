@@ -50,8 +50,6 @@ module Dcache_controller(
   logic              wr1_en, wr1_dirty, wr1_from_mem, wr1_valid;
   SASS_ADDR          rd1_addr, wr1_addr;
   logic [63:0]       wr1_data;
-  logic              rd1_search;
-  logic              wr1_search;
 
   logic              cache_empty;
 
@@ -157,7 +155,8 @@ module Dcache_controller(
         wr1_data = data_from_mem;
         wr1_dirty = 1'b0;
         wr1_addr = (write_back_stage) ? write_back_addr:
-                   (sq_d_cache_out.wr_en) ? wr1_addr_reg: rd1_addr_reg;
+                   (sq_d_cache_out.wr_en) ? wr1_addr_reg:
+                   (lq_d_cache_out.rd_en) ? rd1_addr_reg: 0;
         wr1_strictly_from_mem = 1'b1;
       end
       3'b101: begin
