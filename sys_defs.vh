@@ -33,8 +33,8 @@
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
 // probably not a good idea to change this second one
-`define VIRTUAL_CLOCK_PERIOD   30.0 // Clock period from dc_shell
-`define VERILOG_CLOCK_PERIOD   10.5 // Clock period from test bench
+`define VIRTUAL_CLOCK_PERIOD   10.5 // Clock period from dc_shell
+`define VERILOG_CLOCK_PERIOD   10.0 // Clock period from test bench
 
 `define MEM_LATENCY_IN_CYCLES (100.0/`CLOCK_PERIOD+0.49999)
 // the 0.49999 is to force ceiling(100/period).  The default behavior for
